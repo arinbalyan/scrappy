@@ -1,0 +1,90 @@
+package util
+
+import (
+	"errors"
+	"math/rand"
+	"net"
+	"net/http"
+	"net/http/cookiejar"
+	"strings"
+	"sync/atomic"
+	"time"
+)
+
+var defaultUA = []string{
+	"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+	"Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Safari/605.1.15",
+	"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+}
+
+type ClientOptions struct {
+	Retries            int
+	CookieResetEveryN  int64
+	ProxyURL           string
+	UserAgents         []string
+	BaseDelay          time.Duration
+	MaxDelay           time.Duration
+	Timeout            time.Duration
+}
+
+func NewHTTPClient(opts ClientOptions) *http.Client {
+	if opts.Timeout <= 0 { opts.Timeout = 20 * time.Second }
+	if opts.BaseDelay <= 0 { opts.BaseDelay = 300 * time.Millisecond }
+	if opts.MaxDelay <= 0 { opts.MaxDelay = 4 * time.Second }
+	if opts.CookieResetEveryN <= 0 { opts.CookieResetEveryN = 200 }
+	if len(opts.UserAgents) == 0 { opts.UserAgents = defaultUA }
+
+	jar, _ := cookiejar.New(nil)
+	base := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{Timeout: 8 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
+		TLSHandshakeTimeout: 8 * time.Second,
+		MaxIdleConns: 100,
+		MaxIdleConnsPerHost: 10,
+		IdleConnTimeout: 90 * time.Second,
+	}
+	if strings.TrimSpace(opts.ProxyURL) != "" {
+		if p, err := http.ProxyFromEnvironment(&http.Request{}); err == nil && p != nil {
+			_ = p
+		}
+	}
+	rt := &smartRT{base: base, opts: opts, jar: jar}
+	return &http.Client{Timeout: opts.Timeout, Transport: rt, Jar: jar}
+}
+
+type smartRT struct {
+	base  http.RoundTripper
+	opts  ClientOptions
+	jar   http.CookieJar
+	count int64
+}
+
+func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
+	ua := s.opts.UserAgents[rand.Intn(len(s.opts.UserAgents))]
+	if req.Header.Get("User-Agent") == "" {
+		req.Header.Set("User-Agent", ua)
+	}
+
+	attempts := s.opts.Retries + 1
+	if attempts < 1 { attempts = 1 }
+	var lastErr error
+	for i := 0; i < attempts; i++ {
+		resp, err := s.base.RoundTrip(req)
+		if err == nil && resp != nil && resp.StatusCode != http.StatusTooManyRequests && resp.StatusCode < 500 {
+			s.maybeResetCookies(req)
+			return resp, nil
+		}
+		if err == nil && resp != nil { resp.Body.Close() }
+		if err != nil { lastErr = err } else { lastErr = errors.New("retryable status") }
+		d := s.opts.BaseDelay * time.Duration(1<<i)
+		if d > s.opts.MaxDelay { d = s.opts.MaxDelay }
+		time.Sleep(d + time.Duration(rand.Intn(120))*time.Millisecond)
+	}
+	return nil, lastErr
+}
+
+func (s *smartRT) maybeResetCookies(req *http.Request) {
+	n := atomic.AddInt64(&s.count, 1)
+	if n%s.opts.CookieResetEveryN != 0 || s.jar == nil || req.URL == nil { return }
+	s.jar.SetCookies(req.URL, nil)
+}

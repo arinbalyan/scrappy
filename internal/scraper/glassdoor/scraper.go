@@ -9,13 +9,14 @@ import (
 	"strings"
 
 	"github.com/arinbalyan/scrappy/internal/model"
+	"github.com/arinbalyan/scrappy/internal/util"
 )
 
 const defaultURL = "https://www.glassdoor.com/Job/jobs.htm"
 var reJob = regexp.MustCompile(`(?s)data-jobid="([^"]+)"[\s\S]*?<a[^>]*class="jobLink"[^>]*>([^<]+)</a>[\s\S]*?<span[^>]*class="EmployerProfile_compactEmployerName"[^>]*>([^<]+)</span>`)
 
 type Scraper struct { client *http.Client; listURL string }
-func New(client *http.Client) *Scraper { if client == nil { client = &http.Client{} }; return &Scraper{client: client, listURL: defaultURL} }
+func New(client *http.Client) *Scraper { if client == nil { client = util.NewHTTPClient(util.ClientOptions{Retries: 2, CookieResetEveryN: 100}) }; return &Scraper{client: client, listURL: defaultURL} }
 func NewWithListURL(client *http.Client, u string) *Scraper { s := New(client); if strings.TrimSpace(u) != "" { s.listURL = u }; return s }
 func (s *Scraper) SiteName() model.Site { return model.SiteGlassdoor }
 

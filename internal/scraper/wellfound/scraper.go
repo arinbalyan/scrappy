@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
+	"github.com/arinbalyan/scrappy/internal/util"
 )
 
 const defaultURL = "https://wellfound.com/jobs"
@@ -17,7 +18,7 @@ const defaultURL = "https://wellfound.com/jobs"
 var reCard = regexp.MustCompile(`(?s)<a[^>]*href="([^"]*/jobs/[^"]+)"[^>]*>.*?<h2[^>]*>([^<]+)</h2>.*?<span[^>]*class="company"[^>]*>([^<]+)</span>`)
 
 type Scraper struct { client *http.Client; listURL string }
-func New(client *http.Client) *Scraper { if client == nil { client = &http.Client{Timeout: 15 * time.Second} }; return &Scraper{client: client, listURL: defaultURL} }
+func New(client *http.Client) *Scraper { if client == nil { client = util.NewHTTPClient(util.ClientOptions{Retries: 2, CookieResetEveryN: 120, Timeout: 15 * time.Second}) }; return &Scraper{client: client, listURL: defaultURL} }
 func NewWithListURL(client *http.Client, u string) *Scraper { s := New(client); if strings.TrimSpace(u) != "" { s.listURL = u }; return s }
 func (s *Scraper) SiteName() model.Site { return model.SiteWellfound }
 

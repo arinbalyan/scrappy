@@ -102,6 +102,14 @@ func runOnce(cfg *cliConfig) error {
 		MinScore:      0,
 	}
 
+	constraints := scrappy.EvaluateConstraints(input)
+	for _, w := range constraints.Warnings {
+		fmt.Printf("[constraint-warning] %s\n", w)
+	}
+	if len(constraints.Errors) > 0 {
+		return fmt.Errorf("constraint errors: %v", constraints.Errors)
+	}
+
 	engine := scrappy.NewEngine()
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
