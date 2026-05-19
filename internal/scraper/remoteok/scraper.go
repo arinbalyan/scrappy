@@ -9,13 +9,14 @@ import (
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
+	"github.com/arinbalyan/scrappy/internal/util"
 )
 
 const defaultAPI = "https://remoteok.com/api"
 
 type Scraper struct { client *http.Client; apiURL string }
 
-func New(client *http.Client) *Scraper { if client == nil { client = &http.Client{Timeout: 15 * time.Second} }; return &Scraper{client: client, apiURL: defaultAPI} }
+func New(client *http.Client) *Scraper { if client == nil { client = util.NewHTTPClient(util.ClientOptions{Retries: 2, CookieResetEveryN: 120, Timeout: 15 * time.Second}) }; return &Scraper{client: client, apiURL: defaultAPI} }
 func NewWithAPIURL(client *http.Client, endpoint string) *Scraper { s := New(client); if strings.TrimSpace(endpoint) != "" { s.apiURL = endpoint }; return s }
 func (s *Scraper) SiteName() model.Site { return model.SiteRemoteOK }
 

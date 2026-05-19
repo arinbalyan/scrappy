@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
+	"github.com/arinbalyan/scrappy/internal/util"
 )
 
 const (
@@ -39,7 +40,7 @@ type Scraper struct {
 
 func New(client *http.Client) *Scraper {
 	if client == nil {
-		client = &http.Client{Timeout: 15 * time.Second}
+		client = util.NewHTTPClient(util.ClientOptions{Retries: 3, CookieResetEveryN: 80, Timeout: 15 * time.Second})
 	}
 	return &Scraper{client: client, baseURL: baseURL, delay: 0}
 }

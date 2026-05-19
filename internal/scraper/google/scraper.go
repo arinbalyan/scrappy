@@ -10,13 +10,14 @@ import (
 	"strings"
 
 	"github.com/arinbalyan/scrappy/internal/model"
+	"github.com/arinbalyan/scrappy/internal/util"
 )
 
 const defaultSearchURL = "https://www.google.com/search"
 var reGoogleJob = regexp.MustCompile(`(?s)data-job-id="([^"]+)"[\s\S]*?<div[^>]*class="BjJfJf PUpOsf">([^<]+)</div>[\s\S]*?<div[^>]*class="Qk80Jf">([^<]+)</div>`)
 
 type Scraper struct { client *http.Client; searchURL string }
-func New(client *http.Client) *Scraper { if client == nil { client = &http.Client{} }; return &Scraper{client: client, searchURL: defaultSearchURL} }
+func New(client *http.Client) *Scraper { if client == nil { client = util.NewHTTPClient(util.ClientOptions{Retries: 2, CookieResetEveryN: 100}) }; return &Scraper{client: client, searchURL: defaultSearchURL} }
 func NewWithSearchURL(client *http.Client, u string) *Scraper { s := New(client); if strings.TrimSpace(u) != "" { s.searchURL = u }; return s }
 func (s *Scraper) SiteName() model.Site { return model.SiteGoogle }
 

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
+	"github.com/arinbalyan/scrappy/internal/util"
 )
 
 const defaultAPI = "https://remotive.com/api/remote-jobs"
@@ -21,7 +22,7 @@ type Scraper struct {
 
 func New(client *http.Client) *Scraper {
 	if client == nil {
-		client = &http.Client{Timeout: 15 * time.Second}
+		client = util.NewHTTPClient(util.ClientOptions{Retries: 2, CookieResetEveryN: 160, Timeout: 15 * time.Second})
 	}
 	return &Scraper{client: client, apiURL: defaultAPI}
 }
