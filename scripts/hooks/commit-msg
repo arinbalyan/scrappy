@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+msg_file="$1"
+msg="$(head -n1 "$msg_file")"
+
+pattern='^(feat|fix|refactor|docs|chore|test)(\([a-z0-9_\-/]+\))?: .{5,}$'
+if [[ ! "$msg" =~ $pattern ]]; then
+  echo "commit-msg: invalid commit message format"
+  echo "Expected: <type>(optional-scope): <message>"
+  exit 1
+fi
