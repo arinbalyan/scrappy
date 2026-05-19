@@ -1,14 +1,20 @@
 # Glassdoor
 
 ## Current integration
-- Source mode: HTML parsing of listing page.
-- Extracted fields: job id, title, company.
+- Source mode: listing HTML parsing.
+- Current extraction: `data-jobid`, title (`jobLink`), company (`EmployerProfile_compactEmployerName`).
 
-## Fragile points
-- CSS class names and `data-jobid` attribute.
-- Country/domain differences (`.com` vs `.co.uk`, etc.).
+## Supported knobs
+- `results_wanted`
+- shared resilience knobs (`retries`, `max_rps`, `site_rps`, proxy config)
 
-## Debug checklist
-1. Capture page HTML and validate `data-jobid` still exists.
-2. Update title/company selectors if class names shifted.
-3. Confirm anti-bot/consent interstitials are not being parsed as jobs.
+## Constraints and breakpoints
+- Class names and card structure are brittle and region-dependent.
+- Country/domain matrix is partial today (hardening backlog item).
+- Anti-bot pages can return 200 responses with non-job payloads.
+
+## Debug/update playbook
+1. Validate payload contains listing cards, not challenge/consent content.
+2. Confirm `data-jobid` presence and title/company selectors.
+3. If selectors drift, add alternate selector regex and keep existing one as fallback.
+4. Re-run `go test ./tests/scraper/glassdoor` and then full suite.
