@@ -1,4 +1,4 @@
-package export
+package export_test
 
 import (
 	"bufio"
@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	exportpkg "github.com/arinbalyan/scrappy/internal/export"
 	"github.com/arinbalyan/scrappy/internal/model"
 )
 
@@ -15,7 +16,7 @@ func TestWriteJSONL(t *testing.T) {
 	out := filepath.Join(dir, "jobs.jsonl")
 	jobs := []model.JobPost{{Title: "Engineer", JobURL: "https://example.com/job/1"}, {Title: "Analyst", JobURL: "https://example.com/job/2"}}
 
-	if err := WriteJSONL(out, jobs); err != nil {
+	if err := exportpkg.WriteJSONL(out, jobs); err != nil {
 		t.Fatalf("write jsonl: %v", err)
 	}
 
