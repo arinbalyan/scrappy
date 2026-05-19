@@ -67,8 +67,15 @@ func emailMatchesCompanyDomain(job *model.JobPost) bool {
 	if len(job.Emails) == 0 || job.Domain == "" {
 		return false
 	}
+	domain := strings.ToLower(strings.TrimSpace(job.Domain))
 	for _, email := range job.Emails {
-		if strings.Contains(email.Addr, "@"+job.Domain) {
+		addr := strings.ToLower(strings.TrimSpace(email.Addr))
+		parts := strings.Split(addr, "@")
+		if len(parts) != 2 {
+			continue
+		}
+		emailDomain := parts[1]
+		if emailDomain == domain || strings.HasSuffix(emailDomain, "."+domain) {
 			return true
 		}
 	}
