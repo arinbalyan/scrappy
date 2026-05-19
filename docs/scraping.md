@@ -1,0 +1,54 @@
+# Scraping
+
+`internal/scraper/` — site-specific scrapers that implement the `Scraper` interface.
+
+## Interface
+
+```go
+type Scraper interface {
+    Scrape(ctx context.Context, input ScraperInput) ([]JobPost, error)
+    SiteName() Site
+}
+```
+
+The scraper receives a context that carries the per-site rate limiter, so it should never fire requests faster than the token bucket allows.
+
+```go
+func (s *IndeedScraper) Scrape(ctx context.Context, input ScraperInput) ([]JobPost, error) {
+    for needsMore() {
+        if err := s.limiter.Wait(ctx); err != nil {
+            return nil, err
+        }
+        // fetch page, parse, append
+    }
+    return jobs, nil
+}
+```
+
+## Site-specific notes
+
+| Site | Page size | Pagination | Hard cap | Notes |
+|---|---|---|---|---|
+| Indeed | 100 jobs/page | Cursor (`nextCursor`) | None observed | GraphQL; best yield per RPS |
+| LinkedIn | 10 jobs/page | Offset (`start`) | 1,000 results | Use `--linkedin-strategy rotate` |
+| Glassdoor | ~30 jobs/page | Cursor | ~1,000 | Glassdoor rounds dates to next day |
+| ZipRecruiter | ~20 jobs/page | Cursor | ~1,000 | US/Canada only |
+| Google | ~10 jobs/page | Offset (SERP) | Best-effort | Aggressive rate-limiting |
+| Wellfound | ~25 jobs/page | Offset | None known | Public HTML |
+| RemoteOK | 50 jobs/page | Offset | None known | JSON in page `<script>` tag |
+| Remotive | ~30 jobs/page | Offset | None known | JSON API embedded |
+
+## Per-site concurrency defaults
+
+| Site | Max concurrent | Max RPS |
+|---|---|---|
+| LinkedIn | 1–2 goroutines | 1 req/3s |
+| Indeed | 10 goroutines | 3 req/s |
+| Glassdoor | 4 goroutines | 2 req/s |
+| Google | 2 goroutines | 1 req/2s |
+| ZipRecruiter | 4 goroutines | 2 req/s |
+| Wellfound / RemoteOK / Remotive | 8 goroutines | 5 req/s |
+
+## Rate limiting
+
+Each site's HTTP session respects a `rate.Limiter` that is injected via context. The limiter is a `golang.org/x/time/rate.Limiter` (token bucket) keyed by hostname, configurable via `--site-rps`.
