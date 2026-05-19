@@ -1,0 +1,37 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Go build cache / coverage / profiling
+*.test
+*.out
+*.prof
+*.pprof
+coverage.*
+
+# Go module / vendor
+vendor/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+Thumbs.db
+
+# Temporary / generated
+tmp/
+
+# Go workspace (if any)
+go.work
