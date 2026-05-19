@@ -47,7 +47,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Install gitleaks CLI
+        run: |
+          set -euo pipefail
+          VERSION="8.24.2"
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz" -o gitleaks.tar.gz
+          tar -xzf gitleaks.tar.gz gitleaks
+          chmod +x gitleaks
+          ./gitleaks version
+
       - name: Gitleaks scan
-        uses: gitleaks/gitleaks-action@v3
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gitleaks detect --source . --verbose --redact
