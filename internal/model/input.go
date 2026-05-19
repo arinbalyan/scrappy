@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 // ScraperInput holds all parameters for a scraping run (mirrors JobSpy's ScraperInput).
 type ScraperInput struct {
 	Sites                 []Site   `json:"sites"`
