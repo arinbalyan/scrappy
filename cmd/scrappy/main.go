@@ -42,8 +42,17 @@ func main() {
 		Use:   "scrappy",
 		Short: "Bulk job scraper",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if cfg.NonInteractive { cfg.Interactive = false }
-			if cfg.Interactive { runInteractive(cfg) }
+			if cfg.NonInteractive {
+				cfg.Interactive = false
+			}
+			if cfg.Interactive {
+				if fi, err := os.Stdin.Stat(); err != nil || (fi.Mode()&os.ModeCharDevice) == 0 {
+					cfg.Interactive = false
+				}
+			}
+			if cfg.Interactive {
+				runInteractive(cfg)
+			}
 			return runOnce(cfg)
 		},
 	}
