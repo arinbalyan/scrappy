@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/arinbalyan/scrappy/internal/dedup"
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -23,8 +24,10 @@ import (
 type PostProcessor func(context.Context, *model.JobPost) error
 
 type Engine struct {
-	scrapers map[model.Site]scraper.Scraper
-	hooks    []PostProcessor
+	scrapers     map[model.Site]scraper.Scraper
+	hooks        []PostProcessor
+	telemetry    RunTelemetry
+	siteFailOpen bool
 }
 
 func NewEngine() *Engine {
@@ -43,7 +46,15 @@ func NewEngine() *Engine {
 	for _, sc := range s {
 		m[sc.SiteName()] = sc
 	}
-	return &Engine{scrapers: m}
+	return &Engine{scrapers: m, siteFailOpen: true}
+}
+
+func (e *Engine) SetSiteFailOpen(enabled bool) {
+	e.siteFailOpen = enabled
+}
+
+func (e *Engine) Telemetry() RunTelemetry {
+	return e.telemetry
 }
 
 func (e *Engine) RegisterHook(h PostProcessor) {
@@ -55,6 +66,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	if len(sites) == 0 {
 		sites = model.AllSites()
 	}
+	e.telemetry = RunTelemetry{Sites: make([]SiteTelemetry, 0, len(sites)), SuggestedSiteRPS: map[model.Site]int{}}
 
 	all := make([]model.JobPost, 0)
 	for _, site := range sites {
@@ -62,13 +74,31 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		if !ok {
 			continue
 		}
+		st := SiteTelemetry{Site: site, Attempted: true, StatusCodeCount: map[int]int{}}
 		jobs, err := sc.Scrape(ctx, input)
 		if err != nil {
+			st.Error = err.Error()
+			st.Success = false
+			e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], err)
+			e.telemetry.Sites = append(e.telemetry.Sites, st)
+			if e.siteFailOpen {
+				continue
+			}
 			return nil, fmt.Errorf("scrape %s: %w", site, err)
 		}
+		st.Success = true
+		st.ResultCount = len(jobs)
+		if len(jobs) == 0 {
+			st.EmptyPageRate = 1
+		}
+		e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], nil)
+		e.telemetry.Sites = append(e.telemetry.Sites, st)
 		for i := range jobs {
 			for _, h := range e.hooks {
 				if err := h(ctx, &jobs[i]); err != nil {
+					if e.siteFailOpen {
+						continue
+					}
 					return nil, fmt.Errorf("post-process %s: %w", jobs[i].ID, err)
 				}
 			}
@@ -102,4 +132,34 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		all = all[:input.ResultsWanted]
 	}
 	return all, nil
+}
+
+func suggestRPS(current int, err error) int {
+	if current <= 0 {
+		current = 3
+	}
+	if err == nil {
+		if current < 10 {
+			return current + 1
+		}
+		return current
+	}
+	e := err.Error()
+	if containsAny(e, "429", "rate", "too many requests", "captcha") {
+		if current > 1 {
+			return current - 1
+		}
+		return 1
+	}
+	return current
+}
+
+func containsAny(s string, vals ...string) bool {
+	s = strings.ToLower(s)
+	for _, v := range vals {
+		if strings.Contains(s, strings.ToLower(v)) {
+			return true
+		}
+	}
+	return false
 }

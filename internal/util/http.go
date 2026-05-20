@@ -19,49 +19,68 @@ var defaultUA = []string{
 }
 
 type ClientOptions struct {
-	Retries            int
-	CookieResetEveryN  int64
+	Retries               int
+	CookieResetEveryN     int64
 	UserAgentRotateEveryN int64
-	ProxyURL           string
-	UserAgents         []string
-	BaseDelay          time.Duration
-	MaxDelay           time.Duration
-	Timeout            time.Duration
+	ProxyURL              string
+	ProxyRotateEveryN     int64
+	ProxyStickyWindowN    int64
+	UserAgents            []string
+	BaseDelay             time.Duration
+	MaxDelay              time.Duration
+	Timeout               time.Duration
 }
 
 func NewHTTPClient(opts ClientOptions) *http.Client {
-	if opts.Timeout <= 0 { opts.Timeout = 20 * time.Second }
-	if opts.BaseDelay <= 0 { opts.BaseDelay = 300 * time.Millisecond }
-	if opts.MaxDelay <= 0 { opts.MaxDelay = 4 * time.Second }
-	if opts.CookieResetEveryN <= 0 { opts.CookieResetEveryN = 200 }
-	if opts.UserAgentRotateEveryN <= 0 { opts.UserAgentRotateEveryN = 1 }
-	if len(opts.UserAgents) == 0 { opts.UserAgents = defaultUA }
+	if opts.Timeout <= 0 {
+		opts.Timeout = 20 * time.Second
+	}
+	if opts.BaseDelay <= 0 {
+		opts.BaseDelay = 300 * time.Millisecond
+	}
+	if opts.MaxDelay <= 0 {
+		opts.MaxDelay = 4 * time.Second
+	}
+	if opts.CookieResetEveryN <= 0 {
+		opts.CookieResetEveryN = 200
+	}
+	if opts.UserAgentRotateEveryN <= 0 {
+		opts.UserAgentRotateEveryN = 1
+	}
+	if opts.ProxyStickyWindowN <= 0 {
+		opts.ProxyStickyWindowN = 20
+	}
+	if len(opts.UserAgents) == 0 {
+		opts.UserAgents = defaultUA
+	}
 
 	jar, _ := cookiejar.New(nil)
 	base := &http.Transport{
-		Proxy: http.ProxyFromEnvironment,
-		DialContext: (&net.Dialer{Timeout: 8 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
+		Proxy:               http.ProxyFromEnvironment,
+		DialContext:         (&net.Dialer{Timeout: 8 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
 		TLSHandshakeTimeout: 8 * time.Second,
-		MaxIdleConns: 100,
+		MaxIdleConns:        100,
 		MaxIdleConnsPerHost: 10,
-		IdleConnTimeout: 90 * time.Second,
+		IdleConnTimeout:     90 * time.Second,
 	}
-	if strings.TrimSpace(opts.ProxyURL) != "" {
-		if proxyURL, err := url.Parse(strings.TrimSpace(opts.ProxyURL)); err == nil {
-			base.Proxy = http.ProxyURL(proxyURL)
-		}
+	proxyList := parseProxyList(opts.ProxyURL)
+	if len(proxyList) > 0 {
+		base.Proxy = http.ProxyURL(proxyList[0])
 	}
-	rt := &smartRT{base: base, opts: opts, jar: jar}
+	rt := &smartRT{base: base, opts: opts, jar: jar, proxyList: proxyList}
 	return &http.Client{Timeout: opts.Timeout, Transport: rt, Jar: jar}
 }
 
 type smartRT struct {
-	base    http.RoundTripper
-	opts    ClientOptions
-	jar     http.CookieJar
-	count   int64
-	uaCount int64
-	uaIndex int64
+	base      *http.Transport
+	opts      ClientOptions
+	jar       http.CookieJar
+	count     int64
+	uaCount   int64
+	uaIndex   int64
+	proxyList []*url.URL
+	proxyIdx  int64
+	proxyReqN int64
 }
 
 func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
@@ -79,6 +98,7 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 
 	var lastErr error
 	for i := 0; i < attempts; i++ {
+		s.maybeRotateProxy()
 		attemptReq := req.Clone(req.Context())
 		resp, err := s.base.RoundTrip(attemptReq)
 		if err == nil && resp != nil && resp.StatusCode != http.StatusTooManyRequests && resp.StatusCode < 500 {
@@ -93,11 +113,11 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 		} else {
 			lastErr = errors.New("retryable status")
 		}
-		d := s.opts.BaseDelay * time.Duration(1<<i)
-		if d > s.opts.MaxDelay {
-			d = s.opts.MaxDelay
+		d := s.retryDelay(i, nil)
+		if resp != nil {
+			d = s.retryDelay(i, resp)
 		}
-		time.Sleep(d + time.Duration(rand.Intn(120))*time.Millisecond)
+		time.Sleep(d)
 	}
 	return nil, lastErr
 }
@@ -134,6 +154,58 @@ func (s *smartRT) nextUserAgent() string {
 
 func (s *smartRT) maybeResetCookies(req *http.Request) {
 	n := atomic.AddInt64(&s.count, 1)
-	if n%s.opts.CookieResetEveryN != 0 || s.jar == nil || req.URL == nil { return }
+	if n%s.opts.CookieResetEveryN != 0 || s.jar == nil || req.URL == nil {
+		return
+	}
 	s.jar.SetCookies(req.URL, nil)
+}
+
+func parseProxyList(raw string) []*url.URL {
+	parts := strings.Split(raw, ",")
+	out := make([]*url.URL, 0, len(parts))
+	for _, p := range parts {
+		v := strings.TrimSpace(p)
+		if v == "" {
+			continue
+		}
+		u, err := url.Parse(v)
+		if err != nil || u == nil || u.Scheme == "" || u.Host == "" {
+			continue
+		}
+		out = append(out, u)
+	}
+	return out
+}
+
+func (s *smartRT) maybeRotateProxy() {
+	if len(s.proxyList) <= 1 {
+		return
+	}
+	stickyN := s.opts.ProxyStickyWindowN
+	if stickyN <= 0 {
+		stickyN = 1
+	}
+	n := atomic.AddInt64(&s.proxyReqN, 1)
+	if n == 1 || (s.opts.ProxyRotateEveryN > 0 && n%s.opts.ProxyRotateEveryN == 0) || n%stickyN == 0 {
+		next := (atomic.LoadInt64(&s.proxyIdx) + 1) % int64(len(s.proxyList))
+		atomic.StoreInt64(&s.proxyIdx, next)
+		s.base.Proxy = http.ProxyURL(s.proxyList[next])
+	}
+}
+
+func (s *smartRT) retryDelay(attempt int, resp *http.Response) time.Duration {
+	d := s.opts.BaseDelay * time.Duration(1<<attempt)
+	if d > s.opts.MaxDelay {
+		d = s.opts.MaxDelay
+	}
+	jitter := time.Duration(rand.Intn(120)) * time.Millisecond
+	if resp != nil {
+		if resp.StatusCode == http.StatusTooManyRequests {
+			jitter += 300 * time.Millisecond
+		}
+		if resp.StatusCode >= 500 {
+			jitter += 80 * time.Millisecond
+		}
+	}
+	return d + jitter
 }
