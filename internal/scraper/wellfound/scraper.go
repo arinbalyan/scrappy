@@ -122,7 +122,7 @@ func toPost(title, company, description, jobURL, datePosted, employment string, 
 	title = strings.TrimSpace(title)
 	company = strings.TrimSpace(company)
 	post := model.JobPost{
-		ID:          fmt.Sprintf("wf-%s-%s-%d", slug(title), slug(company), seed),
+		ID:          fmt.Sprintf("wf-%s-%s-%d", util.NormalizeSlug(title), util.NormalizeSlug(company), seed),
 		Title:       title,
 		CompanyName: company,
 		Description: strings.TrimSpace(description),
@@ -133,14 +133,6 @@ func toPost(title, company, description, jobURL, datePosted, employment string, 
 	if post.JobURL == "" {
 		post.JobURL = defaultURL
 	}
-	if t, err := time.Parse("2006-01-02", strings.TrimSpace(datePosted)); err == nil {
-		post.DatePosted = &t
-	} else if t, err := time.Parse(time.RFC3339, strings.TrimSpace(datePosted)); err == nil {
-		post.DatePosted = &t
-	}
+	post.DatePosted = util.ParseDatePosted(datePosted)
 	return post
-}
-
-func slug(v string) string {
-	return strings.ToLower(strings.ReplaceAll(strings.TrimSpace(v), " ", "-"))
 }

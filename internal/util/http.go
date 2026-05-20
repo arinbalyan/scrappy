@@ -6,6 +6,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/cookiejar"
+	"net/url"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -44,8 +45,8 @@ func NewHTTPClient(opts ClientOptions) *http.Client {
 		IdleConnTimeout: 90 * time.Second,
 	}
 	if strings.TrimSpace(opts.ProxyURL) != "" {
-		if p, err := http.ProxyFromEnvironment(&http.Request{}); err == nil && p != nil {
-			_ = p
+		if proxyURL, err := url.Parse(strings.TrimSpace(opts.ProxyURL)); err == nil {
+			base.Proxy = http.ProxyURL(proxyURL)
 		}
 	}
 	rt := &smartRT{base: base, opts: opts, jar: jar}
@@ -66,21 +67,45 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	attempts := s.opts.Retries + 1
-	if attempts < 1 { attempts = 1 }
+	if attempts < 1 {
+		attempts = 1
+	}
+	if !isRetryableMethod(req.Method) {
+		attempts = 1
+	}
+
 	var lastErr error
 	for i := 0; i < attempts; i++ {
-		resp, err := s.base.RoundTrip(req)
+		attemptReq := req.Clone(req.Context())
+		resp, err := s.base.RoundTrip(attemptReq)
 		if err == nil && resp != nil && resp.StatusCode != http.StatusTooManyRequests && resp.StatusCode < 500 {
-			s.maybeResetCookies(req)
+			s.maybeResetCookies(attemptReq)
 			return resp, nil
 		}
-		if err == nil && resp != nil { resp.Body.Close() }
-		if err != nil { lastErr = err } else { lastErr = errors.New("retryable status") }
+		if err == nil && resp != nil {
+			resp.Body.Close()
+		}
+		if err != nil {
+			lastErr = err
+		} else {
+			lastErr = errors.New("retryable status")
+		}
 		d := s.opts.BaseDelay * time.Duration(1<<i)
-		if d > s.opts.MaxDelay { d = s.opts.MaxDelay }
+		if d > s.opts.MaxDelay {
+			d = s.opts.MaxDelay
+		}
 		time.Sleep(d + time.Duration(rand.Intn(120))*time.Millisecond)
 	}
 	return nil, lastErr
+}
+
+func isRetryableMethod(method string) bool {
+	switch strings.ToUpper(strings.TrimSpace(method)) {
+	case http.MethodGet, http.MethodHead, http.MethodOptions:
+		return true
+	default:
+		return false
+	}
 }
 
 func (s *smartRT) maybeResetCookies(req *http.Request) {
