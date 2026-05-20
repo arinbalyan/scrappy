@@ -1,8 +1,10 @@
 # Glassdoor
 
 ## Current integration
-- Source mode: listing HTML parsing.
-- Current extraction: `data-jobid`, title (`jobLink`), company (`EmployerProfile_compactEmployerName`).
+- Parser order:
+  1. `application/ld+json` JobPosting extraction
+  2. fallback listing HTML parsing
+- Current extraction: id, title, company, description, date_posted, job URL (when present in structured data).
 
 ## Supported knobs
 - `results_wanted`
