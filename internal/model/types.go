@@ -25,6 +25,17 @@ const (
 	SiteGreenhouse    Site = "greenhouse"
 	SiteWorkableJobs  Site = "workable_jobs"
 	SiteMyWorkdayJobs Site = "myworkdayjobs"
+	SiteAdzuna        Site = "adzuna"
+	SiteSeek          Site = "seek"
+	SiteWorkingNomads Site = "workingnomads"
+	SiteStartupJobs   Site = "startupjobs"
+	SiteFiveAMSAT     Site = "fiveamsat"
+	SiteGolangJobs    Site = "golangjobs"
+	SiteGradcracker   Site = "gradcracker"
+	SiteHiringCafe    Site = "hiringcafe"
+	SiteJobindex      Site = "jobindex"
+	SiteUKVisaJobs    Site = "ukvisajobs"
+	SiteWuzzuf        Site = "wuzzuf"
 )
 
 // AllSites returns every known site.
@@ -34,6 +45,9 @@ func AllSites() []Site {
 		SiteGoogle, SiteBayt, SiteNaukri, SiteBDJobs,
 		SiteWellfound, SiteRemoteOK, SiteRemotive, SiteBuiltIn,
 		SiteOtta, SiteLever, SiteGreenhouse, SiteWorkableJobs, SiteMyWorkdayJobs,
+		SiteAdzuna, SiteSeek, SiteWorkingNomads, SiteStartupJobs,
+		SiteFiveAMSAT, SiteGolangJobs, SiteGradcracker, SiteHiringCafe,
+		SiteJobindex, SiteUKVisaJobs, SiteWuzzuf,
 	}
 }
 
