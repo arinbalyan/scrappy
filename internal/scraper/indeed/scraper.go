@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -146,6 +147,16 @@ func (s *Scraper) scrapePage(ctx context.Context, input model.ScraperInput, curs
 	req.Header.Set("referer", "https://www.indeed.com/")
 	req.Header.Set("indeed-locale", "en-US")
 	req.Header.Set("user-agent", "Mozilla/5.0")
+	req.Header.Set("indeed-app-info", "appv=193.1; appid=com.indeed.jobsearch; osv=16.6.1; os=ios; dtype=phone")
+	if host := req.URL.Host; host != "" {
+		req.Header.Set("host", host)
+	}
+	if v := strings.TrimSpace(os.Getenv("SCRAPPY_INDEED_API_KEY")); v != "" {
+		req.Header.Set("indeed-api-key", v)
+	}
+	if v := strings.TrimSpace(os.Getenv("SCRAPPY_INDEED_CO")); v != "" {
+		req.Header.Set("indeed-co", v)
+	}
 
 	resp, err := s.client.Do(req)
 	if err != nil {
