@@ -5,7 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -14,6 +18,8 @@ import (
 )
 
 const apiURL = "https://apis.indeed.com/graphql"
+
+var indeedJobKeyRe = regexp.MustCompile(`"jobKey":"([a-zA-Z0-9_-]+)"`)
 
 const jobSearchQueryTemplate = `query GetJobData {
   jobSearch(
@@ -135,6 +141,9 @@ func (s *Scraper) scrapePage(ctx context.Context, input model.ScraperInput, curs
 	}
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("accept", "application/json")
+	req.Header.Set("accept-language", "en-US,en;q=0.9")
+	req.Header.Set("origin", "https://www.indeed.com")
+	req.Header.Set("referer", "https://www.indeed.com/")
 	req.Header.Set("indeed-locale", "en-US")
 	req.Header.Set("user-agent", "Mozilla/5.0")
 
@@ -144,6 +153,12 @@ func (s *Scraper) scrapePage(ctx context.Context, input model.ScraperInput, curs
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+		if fallbackJobs, fallbackErr := s.scrapeHTMLFallback(ctx, input, seen); fallbackErr == nil {
+			return fallbackJobs, "", nil
+		}
+		return nil, "", nil
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, "", fmt.Errorf("indeed api status %d", resp.StatusCode)
 	}
@@ -334,6 +349,94 @@ func mapUnitToInterval(unit string) (model.CompensationInterval, bool) {
 	default:
 		return "", false
 	}
+}
+
+func (s *Scraper) scrapeHTMLFallback(ctx context.Context, input model.ScraperInput, seen map[string]struct{}) ([]model.JobPost, error) {
+	searchURL := buildIndeedSearchURL(input, s.apiURL)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, searchURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("create indeed fallback request: %w", err)
+	}
+	req.Header.Set("accept", "text/html,application/xhtml+xml")
+	req.Header.Set("accept-language", "en-US,en;q=0.9")
+	req.Header.Set("user-agent", "Mozilla/5.0")
+	req.Header.Set("referer", "https://www.indeed.com/")
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("execute indeed fallback request: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("indeed fallback status %d", resp.StatusCode)
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read indeed fallback body: %w", err)
+	}
+
+	keys := parseIndeedJobKeys(string(body))
+	if len(keys) == 0 {
+		return nil, nil
+	}
+	out := make([]model.JobPost, 0, len(keys))
+	for i, key := range keys {
+		jobURL := "https://www.indeed.com/viewjob?jk=" + key
+		if _, ok := seen[jobURL]; ok {
+			continue
+		}
+		seen[jobURL] = struct{}{}
+		out = append(out, model.JobPost{ID: "in-" + key, JobURL: jobURL, Title: "(fallback) Indeed listing", CompanyName: "", IsRemote: input.IsRemote})
+		if len(out) >= input.ResultsWanted && input.ResultsWanted > 0 {
+			break
+		}
+		_ = i
+	}
+	return out, nil
+}
+
+func buildIndeedSearchURL(input model.ScraperInput, apiEndpoint string) string {
+	base := "https://www.indeed.com/jobs"
+	if u, err := url.Parse(strings.TrimSpace(apiEndpoint)); err == nil && u != nil && u.Scheme != "" && u.Host != "" {
+		base = u.Scheme + "://" + u.Host + "/jobs"
+	}
+	u, _ := url.Parse(base)
+	q := u.Query()
+	if strings.TrimSpace(input.SearchTerm) != "" {
+		q.Set("q", strings.TrimSpace(input.SearchTerm))
+	}
+	if strings.TrimSpace(input.Location) != "" {
+		q.Set("l", strings.TrimSpace(input.Location))
+	}
+	if input.Offset > 0 {
+		q.Set("start", strconv.Itoa(input.Offset))
+	}
+	u.RawQuery = q.Encode()
+	return u.String()
+}
+
+func parseIndeedJobKeys(html string) []string {
+	m := indeedJobKeyRe.FindAllStringSubmatch(html, -1)
+	if len(m) == 0 {
+		return nil
+	}
+	seen := map[string]struct{}{}
+	keys := make([]string, 0, len(m))
+	for _, row := range m {
+		if len(row) < 2 {
+			continue
+		}
+		k := strings.TrimSpace(row[1])
+		if k == "" {
+			continue
+		}
+		if _, ok := seen[k]; ok {
+			continue
+		}
+		seen[k] = struct{}{}
+		keys = append(keys, k)
+	}
+	return keys
 }
 
 type graphQLResponse struct {
