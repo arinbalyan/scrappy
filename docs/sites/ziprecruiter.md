@@ -1,8 +1,10 @@
 # ZipRecruiter
 
 ## Current integration
-- Source mode: listing HTML parsing.
-- Current extraction: card id, job URL, title, company.
+- Parser order:
+  1. `application/ld+json` JobPosting extraction
+  2. fallback listing HTML card parsing
+- Current extraction: card id (fallback), job URL, title, company, description, date_posted when available.
 
 ## Supported knobs
 - `results_wanted`
