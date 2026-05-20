@@ -41,6 +41,8 @@ func NewWithSearchURL(client *http.Client, u string) *Scraper {
 func (s *Scraper) SiteName() model.Site { return model.SiteGoogle }
 
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
+	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
+
 	u, _ := url.Parse(s.searchURL)
 	q := u.Query()
 	if input.GoogleSearchTerm != "" {

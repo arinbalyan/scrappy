@@ -57,6 +57,8 @@ func NewWithBaseURL(client *http.Client, customBaseURL string) *Scraper {
 func (s *Scraper) SiteName() model.Site { return model.SiteLinkedIn }
 
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
+	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
+
 	if input.ResultsWanted <= 0 {
 		input.ResultsWanted = 15
 	}
@@ -146,13 +148,11 @@ func (s *Scraper) scrapeSinglePass(ctx context.Context, input model.ScraperInput
 func (s *Scraper) scrapeRotateStrategy(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	passes := []struct {
 		remote bool
-		easy   bool
 		hours  int
 	}{
-		{remote: input.IsRemote, easy: input.EasyApply, hours: input.HoursOld},
-		{remote: true, easy: false, hours: input.HoursOld},
-		{remote: false, easy: true, hours: input.HoursOld},
-		{remote: false, easy: false, hours: input.HoursOld},
+		{remote: input.IsRemote, hours: input.HoursOld},
+		{remote: true, hours: input.HoursOld},
+		{remote: false, hours: input.HoursOld},
 	}
 	seen := map[string]struct{}{}
 	all := make([]model.JobPost, 0, input.ResultsWanted)
@@ -162,7 +162,6 @@ func (s *Scraper) scrapeRotateStrategy(ctx context.Context, input model.ScraperI
 		}
 		cp := input
 		cp.IsRemote = pass.remote
-		cp.EasyApply = pass.easy
 		cp.HoursOld = pass.hours
 		cp.ResultsWanted = input.ResultsWanted - len(all)
 		jobs, err := s.scrapeSinglePass(ctx, cp)
@@ -218,9 +217,6 @@ func (s *Scraper) fetchSearchPage(ctx context.Context, input model.ScraperInput,
 	}
 	if jt := linkedInJobTypeCode(input.JobType); jt != "" {
 		q.Set("f_JT", jt)
-	}
-	if input.EasyApply {
-		q.Set("f_AL", "true")
 	}
 	if len(input.LinkedInCompanyIDs) > 0 {
 		ids := make([]string, 0, len(input.LinkedInCompanyIDs))
