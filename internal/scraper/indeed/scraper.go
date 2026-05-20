@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"os"
@@ -387,7 +386,7 @@ func (s *Scraper) scrapeHTMLFallback(ctx context.Context, input model.ScraperInp
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("indeed fallback status %d", resp.StatusCode)
 	}
-	body, err := io.ReadAll(resp.Body)
+	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("read indeed fallback body: %w", err)
 	}

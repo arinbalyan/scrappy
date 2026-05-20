@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/arinbalyan/scrappy/internal/dedup"
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -69,30 +70,65 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	e.telemetry = RunTelemetry{Sites: make([]SiteTelemetry, 0, len(sites)), SuggestedSiteRPS: map[model.Site]int{}}
 
 	all := make([]model.JobPost, 0)
+	telemetryBySite := make(map[model.Site]SiteTelemetry, len(sites))
+	jobsBySite := make(map[model.Site][]model.JobPost, len(sites))
+	var allMu sync.Mutex
+	var wg sync.WaitGroup
+	globalSem := make(chan struct{}, 4)
+
 	for _, site := range sites {
 		sc, ok := e.scrapers[site]
 		if !ok {
 			continue
 		}
-		st := SiteTelemetry{Site: site, Attempted: true, StatusCodeCount: map[int]int{}}
-		jobs, err := sc.Scrape(ctx, input)
-		if err != nil {
-			st.Error = err.Error()
-			st.Success = false
-			e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], err)
-			e.telemetry.Sites = append(e.telemetry.Sites, st)
-			if e.siteFailOpen {
-				continue
+		wg.Add(1)
+		go func(site model.Site, sc scraper.Scraper) {
+			defer wg.Done()
+			globalSem <- struct{}{}
+			defer func() { <-globalSem }()
+
+			st := SiteTelemetry{Site: site, Attempted: true, StatusCodeCount: map[int]int{}}
+			jobs, err := sc.Scrape(ctx, input)
+			if err != nil {
+				st.Error = err.Error()
+				st.Success = false
+				st.ChallengeDetected = containsAny(st.Error, "captcha", "cloudflare", "attention required", "forbidden", "blocked")
+				if e.siteFailOpen {
+					st.FailOpenReason = classifyFailOpenReason(err)
+				}
+				allMu.Lock()
+				e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], err)
+				telemetryBySite[site] = st
+				allMu.Unlock()
+				return
 			}
-			return nil, fmt.Errorf("scrape %s: %w", site, err)
+			st.Success = true
+			st.ResultCount = len(jobs)
+			if len(jobs) == 0 {
+				st.EmptyPageRate = 1
+			}
+			allMu.Lock()
+			e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], nil)
+			telemetryBySite[site] = st
+			jobsBySite[site] = jobs
+			allMu.Unlock()
+		}(site, sc)
+	}
+	wg.Wait()
+
+	if !e.siteFailOpen {
+		for _, site := range sites {
+			if st, ok := telemetryBySite[site]; ok && !st.Success && st.Error != "" {
+				return nil, fmt.Errorf("scrape %s: %s", site, st.Error)
+			}
 		}
-		st.Success = true
-		st.ResultCount = len(jobs)
-		if len(jobs) == 0 {
-			st.EmptyPageRate = 1
+	}
+
+	for _, site := range sites {
+		if st, ok := telemetryBySite[site]; ok {
+			e.telemetry.Sites = append(e.telemetry.Sites, st)
 		}
-		e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], nil)
-		e.telemetry.Sites = append(e.telemetry.Sites, st)
+		jobs := jobsBySite[site]
 		for i := range jobs {
 			for _, h := range e.hooks {
 				if err := h(ctx, &jobs[i]); err != nil {
@@ -162,4 +198,23 @@ func containsAny(s string, vals ...string) bool {
 		}
 	}
 	return false
+}
+
+func classifyFailOpenReason(err error) string {
+	if err == nil {
+		return ""
+	}
+	e := strings.ToLower(err.Error())
+	switch {
+	case containsAny(e, "captcha", "cloudflare", "attention required", "bot"):
+		return "challenge_detected"
+	case containsAny(e, "429", "too many requests", "rate"):
+		return "rate_limited"
+	case containsAny(e, "403", "401", "forbidden", "unauthorized"):
+		return "access_denied"
+	case containsAny(e, "timeout", "deadline exceeded"):
+		return "timeout"
+	default:
+		return "unknown"
+	}
 }

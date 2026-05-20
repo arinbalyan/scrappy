@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -21,9 +20,24 @@ var (
 	reGoogleLD  = regexp.MustCompile(`(?s)<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>`)
 )
 
-type Scraper struct { client *http.Client; searchURL string }
-func New(client *http.Client) *Scraper { if client == nil { client = util.NewHTTPClient(util.ClientOptions{Retries: 2, CookieResetEveryN: 100}) }; return &Scraper{client: client, searchURL: defaultSearchURL} }
-func NewWithSearchURL(client *http.Client, u string) *Scraper { s := New(client); if strings.TrimSpace(u) != "" { s.searchURL = u }; return s }
+type Scraper struct {
+	client    *http.Client
+	searchURL string
+}
+
+func New(client *http.Client) *Scraper {
+	if client == nil {
+		client = util.NewHTTPClient(util.ClientOptions{Retries: 2, CookieResetEveryN: 100})
+	}
+	return &Scraper{client: client, searchURL: defaultSearchURL}
+}
+func NewWithSearchURL(client *http.Client, u string) *Scraper {
+	s := New(client)
+	if strings.TrimSpace(u) != "" {
+		s.searchURL = u
+	}
+	return s
+}
 func (s *Scraper) SiteName() model.Site { return model.SiteGoogle }
 
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
@@ -45,12 +59,22 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("google status %d", resp.StatusCode)
 	}
-	b, _ := io.ReadAll(resp.Body)
+	b, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
+	if err != nil {
+		return nil, fmt.Errorf("google read: %w", err)
+	}
 
 	if jobs := parseLDJSONJobs(string(b)); len(jobs) > 0 {
-		return limitJobs(jobs, input.ResultsWanted), nil
+		limited := limitJobs(jobs, input.ResultsWanted)
+		if util.HasMeaningfulJobs(limited) {
+			return limited, nil
+		}
 	}
-	return limitJobs(parseHTMLJobs(string(b)), input.ResultsWanted), nil
+	limited := limitJobs(parseHTMLJobs(string(b)), input.ResultsWanted)
+	if !util.HasMeaningfulJobs(limited) {
+		return nil, nil
+	}
+	return limited, nil
 }
 
 func limitJobs(in []model.JobPost, wanted int) []model.JobPost {
