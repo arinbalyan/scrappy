@@ -8,21 +8,23 @@ import (
 type Site string
 
 const (
-	SiteLinkedIn     Site = "linkedin"
-	SiteIndeed       Site = "indeed"
-	SiteZipRecruiter Site = "zip_recruiter"
-	SiteGlassdoor    Site = "glassdoor"
-	SiteGoogle       Site = "google"
-	SiteBayt         Site = "bayt"
-	SiteNaukri       Site = "naukri"
-	SiteBDJobs       Site = "bdjobs"
-	SiteWellfound    Site = "wellfound"
-	SiteRemoteOK     Site = "remoteok"
-	SiteRemotive     Site = "remotive"
-	SiteBuiltIn      Site = "builtin"
-	SiteOtta         Site = "otta"
-	SiteLever        Site = "lever"
-	SiteGreenhouse   Site = "greenhouse"
+	SiteLinkedIn      Site = "linkedin"
+	SiteIndeed        Site = "indeed"
+	SiteZipRecruiter  Site = "zip_recruiter"
+	SiteGlassdoor     Site = "glassdoor"
+	SiteGoogle        Site = "google"
+	SiteBayt          Site = "bayt"
+	SiteNaukri        Site = "naukri"
+	SiteBDJobs        Site = "bdjobs"
+	SiteWellfound     Site = "wellfound"
+	SiteRemoteOK      Site = "remoteok"
+	SiteRemotive      Site = "remotive"
+	SiteBuiltIn       Site = "builtin"
+	SiteOtta          Site = "otta"
+	SiteLever         Site = "lever"
+	SiteGreenhouse    Site = "greenhouse"
+	SiteWorkableJobs  Site = "workable_jobs"
+	SiteMyWorkdayJobs Site = "myworkdayjobs"
 )
 
 // AllSites returns every known site.
@@ -31,7 +33,7 @@ func AllSites() []Site {
 		SiteLinkedIn, SiteIndeed, SiteZipRecruiter, SiteGlassdoor,
 		SiteGoogle, SiteBayt, SiteNaukri, SiteBDJobs,
 		SiteWellfound, SiteRemoteOK, SiteRemotive, SiteBuiltIn,
-		SiteOtta, SiteLever, SiteGreenhouse,
+		SiteOtta, SiteLever, SiteGreenhouse, SiteWorkableJobs, SiteMyWorkdayJobs,
 	}
 }
 
@@ -96,10 +98,10 @@ const (
 
 // Compensation holds salary data.
 type Compensation struct {
-	Interval   CompensationInterval `json:"interval,omitempty"`
-	MinAmount  *float64             `json:"min_amount,omitempty"`
-	MaxAmount  *float64             `json:"max_amount,omitempty"`
-	Currency   string               `json:"currency,omitempty"` // default USD
+	Interval  CompensationInterval `json:"interval,omitempty"`
+	MinAmount *float64             `json:"min_amount,omitempty"`
+	MaxAmount *float64             `json:"max_amount,omitempty"`
+	Currency  string               `json:"currency,omitempty"` // default USD
 }
 
 // JobType mirrors JobSpy's enum.
@@ -116,33 +118,33 @@ const (
 // Email is a single extracted and optionally verified address.
 type Email struct {
 	Addr     string `json:"addr"`
-	Verified bool   `json:"verified"`    // MX lookup passed
-	Source   string `json:"source"`      // description | company_page | mailto | direct
+	Verified bool   `json:"verified"`       // MX lookup passed
+	Source   string `json:"source"`         // description | company_page | mailto | direct
 	Role     bool   `json:"role,omitempty"` // info@, admin@, support@, etc.
 }
 
 // JobPost is the canonical scraped-job record, extending JobSpy's model.
 type JobPost struct {
-	ID          string     `json:"id,omitempty"`
-	Title       string     `json:"title"`
-	CompanyName string     `json:"company_name,omitempty"`
-	CompanyURL  string     `json:"company_url,omitempty"`
-	JobURL      string     `json:"job_url"`
-	JobURLDirect string    `json:"job_url_direct,omitempty"`
-	Location    Location   `json:"location,omitempty"`
-	IsRemote    bool       `json:"is_remote,omitempty"`
-	Description string     `json:"description,omitempty"`
-	JobType     string     `json:"job_type,omitempty"`
-	DatePosted  *time.Time `json:"date_posted,omitempty"`
+	ID           string     `json:"id,omitempty"`
+	Title        string     `json:"title"`
+	CompanyName  string     `json:"company_name,omitempty"`
+	CompanyURL   string     `json:"company_url,omitempty"`
+	JobURL       string     `json:"job_url"`
+	JobURLDirect string     `json:"job_url_direct,omitempty"`
+	Location     Location   `json:"location,omitempty"`
+	IsRemote     bool       `json:"is_remote,omitempty"`
+	Description  string     `json:"description,omitempty"`
+	JobType      string     `json:"job_type,omitempty"`
+	DatePosted   *time.Time `json:"date_posted,omitempty"`
 
-	Emails        []Email      `json:"emails,omitempty"`
-	Compensation  *Compensation `json:"compensation,omitempty"`
-	Seniority     string        `json:"seniority,omitempty"`     // entry | mid | senior | lead
-	Department    string        `json:"department,omitempty"`    // eng | data | product | ...
-	Domain        string        `json:"domain,omitempty"`         // company domain from email / URL
-	Industry      string        `json:"industry,omitempty"`
-	CompanyLogoURL string       `json:"company_logo_url,omitempty"`
-	ApplyMethod   string        `json:"apply_method,omitempty"`  // easy_apply | email | external_url
+	Emails         []Email       `json:"emails,omitempty"`
+	Compensation   *Compensation `json:"compensation,omitempty"`
+	Seniority      string        `json:"seniority,omitempty"`  // entry | mid | senior | lead
+	Department     string        `json:"department,omitempty"` // eng | data | product | ...
+	Domain         string        `json:"domain,omitempty"`     // company domain from email / URL
+	Industry       string        `json:"industry,omitempty"`
+	CompanyLogoURL string        `json:"company_logo_url,omitempty"`
+	ApplyMethod    string        `json:"apply_method,omitempty"` // easy_apply | email | external_url
 
 	// LinkedIn-specific
 	JobLevel string `json:"job_level,omitempty"`

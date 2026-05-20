@@ -16,9 +16,11 @@ import (
 	googlescraper "github.com/arinbalyan/scrappy/internal/scraper/google"
 	indeedscraper "github.com/arinbalyan/scrappy/internal/scraper/indeed"
 	linkedinscraper "github.com/arinbalyan/scrappy/internal/scraper/linkedin"
+	workdayscraper "github.com/arinbalyan/scrappy/internal/scraper/myworkdayjobs"
 	remoteokscraper "github.com/arinbalyan/scrappy/internal/scraper/remoteok"
 	remotivescraper "github.com/arinbalyan/scrappy/internal/scraper/remotive"
 	wellfoundscraper "github.com/arinbalyan/scrappy/internal/scraper/wellfound"
+	workablejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/workable_jobs"
 	ziprecruiterscraper "github.com/arinbalyan/scrappy/internal/scraper/ziprecruiter"
 )
 
@@ -42,6 +44,8 @@ func NewEngine() *Engine {
 		remoteokscraper.New(nil),
 		remotivescraper.New(nil),
 		builtinscraper.New(nil),
+		workablejobsscraper.New(nil),
+		workdayscraper.New(nil),
 	}
 	m := make(map[model.Site]scraper.Scraper, len(s))
 	for _, sc := range s {

@@ -26,14 +26,16 @@ const ascii = `
 `
 
 type cliConfig struct {
-	Search        string
-	Location      string
-	Sites         string
-	ResultsWanted int
-	Format        string
-	Out           string
-	Interactive   bool
+	Search         string
+	Location       string
+	Sites          string
+	ResultsWanted  int
+	Format         string
+	Out            string
+	Interactive    bool
 	NonInteractive bool
+	WorkableSeeds  string
+	WorkdaySeeds   string
 }
 
 func main() {
@@ -65,6 +67,8 @@ func main() {
 	root.Flags().StringVar(&cfg.Out, "out", "", "output path")
 	root.Flags().BoolVar(&cfg.Interactive, "interactive", true, "interactive wizard mode")
 	root.Flags().BoolVar(&cfg.NonInteractive, "non-interactive", false, "disable interactive wizard")
+	root.Flags().StringVar(&cfg.WorkableSeeds, "workable-seeds", "", "comma-separated Workable account/company seeds")
+	root.Flags().StringVar(&cfg.WorkdaySeeds, "workday-seeds", "", "comma-separated Workday CXS endpoint seeds")
 
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -88,27 +92,33 @@ func ask(r *bufio.Reader, label, def string) string {
 	fmt.Printf("%s [%s]: ", label, def)
 	in, _ := r.ReadString('\n')
 	in = strings.TrimSpace(in)
-	if in == "" { return def }
+	if in == "" {
+		return def
+	}
 	return in
 }
 
 func askInt(r *bufio.Reader, label string, def int) int {
 	v := ask(r, label, strconv.Itoa(def))
 	n, err := strconv.Atoi(v)
-	if err != nil { return def }
+	if err != nil {
+		return def
+	}
 	return n
 }
 
 func runOnce(cfg *cliConfig) error {
 	sites := parseSites(cfg.Sites)
 	input := model.ScraperInput{
-		Sites:         sites,
-		SearchTerm:    cfg.Search,
-		Location:      cfg.Location,
-		ResultsWanted: cfg.ResultsWanted,
-		Dedup:         true,
+		Sites:          sites,
+		SearchTerm:     cfg.Search,
+		Location:       cfg.Location,
+		ResultsWanted:  cfg.ResultsWanted,
+		Dedup:          true,
 		DedupByCompany: false,
-		MinScore:      0,
+		MinScore:       0,
+		WorkableSeeds:  parseCSV(cfg.WorkableSeeds),
+		WorkdaySeeds:   parseCSV(cfg.WorkdaySeeds),
 	}
 
 	constraints := scrappy.EvaluateConstraints(input)
@@ -124,7 +134,9 @@ func runOnce(cfg *cliConfig) error {
 	defer cancel()
 
 	jobs, err := engine.Scrape(ctx, input)
-	if err != nil { return err }
+	if err != nil {
+		return err
+	}
 
 	if cfg.Out == "" {
 		enc := json.NewEncoder(os.Stdout)
@@ -149,7 +161,24 @@ func parseSites(v string) []model.Site {
 	out := make([]model.Site, 0, len(parts))
 	for _, p := range parts {
 		s := model.Site(strings.TrimSpace(strings.ToLower(p)))
-		if s != "" { out = append(out, s) }
+		if s != "" {
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+func parseCSV(v string) []string {
+	if strings.TrimSpace(v) == "" {
+		return nil
+	}
+	parts := strings.Split(v, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		x := strings.TrimSpace(p)
+		if x != "" {
+			out = append(out, x)
+		}
 	}
 	return out
 }

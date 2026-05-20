@@ -16,9 +16,15 @@ func EvaluateConstraints(input model.ScraperInput) ConstraintResult {
 		switch s {
 		case model.SiteIndeed:
 			count := 0
-			if input.HoursOld > 0 { count++ }
-			if input.EasyApply { count++ }
-			if input.JobType != "" || input.IsRemote { count++ }
+			if input.HoursOld > 0 {
+				count++
+			}
+			if input.EasyApply {
+				count++
+			}
+			if input.JobType != "" || input.IsRemote {
+				count++
+			}
 			if count > 1 {
 				r.Warnings = append(r.Warnings, "Indeed supports only one of: hours_old OR easy_apply OR job_type/is_remote")
 			}
@@ -36,6 +42,14 @@ func EvaluateConstraints(input model.ScraperInput) ConstraintResult {
 		case model.SiteZipRecruiter:
 			if input.Country != "" {
 				r.Warnings = append(r.Warnings, fmt.Sprintf("ZipRecruiter ignores country=%q and primarily uses location", input.Country))
+			}
+		case model.SiteWorkableJobs:
+			if len(input.WorkableSeeds) == 0 {
+				r.Warnings = append(r.Warnings, "workable_jobs works best with --workable-seeds or SCRAPPY_WORKABLE_SEEDS")
+			}
+		case model.SiteMyWorkdayJobs:
+			if len(input.WorkdaySeeds) == 0 {
+				r.Warnings = append(r.Warnings, "myworkdayjobs works best with --workday-seeds or SCRAPPY_WORKDAY_SEEDS")
 			}
 		}
 	}
