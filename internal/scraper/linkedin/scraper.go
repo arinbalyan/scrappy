@@ -249,7 +249,7 @@ func (s *Scraper) fetchSearchPage(ctx context.Context, input model.ScraperInput,
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return "", fmt.Errorf("linkedin search status %d", resp.StatusCode)
 	}
-	b, err := io.ReadAll(resp.Body)
+	b, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 	if err != nil {
 		return "", fmt.Errorf("read linkedin search response: %w", err)
 	}
