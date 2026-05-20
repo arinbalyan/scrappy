@@ -87,6 +87,7 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 	if req.Header.Get("User-Agent") == "" {
 		req.Header.Set("User-Agent", s.nextUserAgent())
 	}
+	Debug("http_roundtrip_start", map[string]any{"method": req.Method, "url": req.URL.String()})
 
 	attempts := s.opts.Retries + 1
 	if attempts < 1 {
@@ -102,22 +103,32 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 		attemptReq := req.Clone(req.Context())
 		resp, err := s.base.RoundTrip(attemptReq)
 		if err == nil && resp != nil && resp.StatusCode != http.StatusTooManyRequests && resp.StatusCode < 500 {
+			Debug("http_roundtrip_success", map[string]any{"method": req.Method, "url": req.URL.String(), "status": resp.StatusCode, "attempt": i + 1})
 			s.maybeResetCookies(attemptReq)
 			return resp, nil
 		}
 		if err == nil && resp != nil {
+			if resp.StatusCode >= 400 && resp.StatusCode < 500 {
+				APIMiss("http_client_api_miss", map[string]any{"method": req.Method, "url": req.URL.String(), "status": resp.StatusCode, "attempt": i + 1})
+			}
 			resp.Body.Close()
 		}
 		if err != nil {
+			Warn("http_roundtrip_error_retry", map[string]any{"method": req.Method, "url": req.URL.String(), "attempt": i + 1, "err": err.Error()})
 			lastErr = err
 		} else {
+			Warn("http_roundtrip_status_retry", map[string]any{"method": req.Method, "url": req.URL.String(), "attempt": i + 1, "status": resp.StatusCode})
 			lastErr = errors.New("retryable status")
 		}
 		d := s.retryDelay(i, nil)
 		if resp != nil {
 			d = s.retryDelay(i, resp)
 		}
+		Debug("http_retry_backoff", map[string]any{"method": req.Method, "url": req.URL.String(), "attempt": i + 1, "sleep_ms": d.Milliseconds()})
 		time.Sleep(d)
+	}
+	if lastErr != nil {
+		Error("http_roundtrip_failed", map[string]any{"method": req.Method, "url": req.URL.String(), "err": lastErr.Error()})
 	}
 	return nil, lastErr
 }
