@@ -23,6 +23,7 @@ import (
 	jobindexscraper "github.com/arinbalyan/scrappy/internal/scraper/jobindex"
 	linkedinscraper "github.com/arinbalyan/scrappy/internal/scraper/linkedin"
 	workdayscraper "github.com/arinbalyan/scrappy/internal/scraper/myworkdayjobs"
+	naukriscraper "github.com/arinbalyan/scrappy/internal/scraper/naukri"
 	remoteokscraper "github.com/arinbalyan/scrappy/internal/scraper/remoteok"
 	remotivescraper "github.com/arinbalyan/scrappy/internal/scraper/remotive"
 	seekscraper "github.com/arinbalyan/scrappy/internal/scraper/seek"
@@ -49,6 +50,7 @@ func NewEngine() *Engine {
 	s := []scraper.Scraper{
 		indeedscraper.New(nil),
 		linkedinscraper.New(nil),
+		naukriscraper.New(nil),
 		glassdoorscraper.New(nil),
 		ziprecruiterscraper.New(nil),
 		googlescraper.New(nil),
@@ -127,6 +129,14 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			}
 
 			util.Info("site_scrape_start", map[string]any{"site": site})
+			util.Debug("site_scrape_context", map[string]any{
+				"site":           site,
+				"search_term":    input.SearchTerm,
+				"location":       input.Location,
+				"results_wanted": input.ResultsWanted,
+				"hours_old":      input.HoursOld,
+				"is_remote":      input.IsRemote,
+			})
 			st := SiteTelemetry{Site: site, Attempted: true, StatusCodeCount: map[int]int{}}
 			jobs, err := sc.Scrape(ctx, input)
 			if err != nil {

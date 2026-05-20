@@ -100,6 +100,8 @@ func NewWithAPIURL(client *http.Client, endpoint string) *Scraper {
 func (s *Scraper) SiteName() model.Site { return model.SiteIndeed }
 
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
+	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
+
 	if input.ResultsWanted <= 0 {
 		input.ResultsWanted = 15
 	}
@@ -226,10 +228,6 @@ func buildFilters(input model.ScraperInput) string {
 	if input.HoursOld > 0 {
 		return fmt.Sprintf("filters: { date: { field: \"dateOnIndeed\", start: \"%dh\" } }", input.HoursOld)
 	}
-	if input.EasyApply {
-		return "filters: { keyword: { field: \"indeedApplyScope\", keys: [\"DESKTOP\"] } }"
-	}
-
 	keys := make([]string, 0, 2)
 	switch input.JobType {
 	case model.JobTypeFullTime:
@@ -408,6 +406,7 @@ func (s *Scraper) scrapeHTMLFallback(ctx context.Context, input model.ScraperInp
 		}
 		_ = i
 	}
+	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(out)})
 	return out, nil
 }
 
