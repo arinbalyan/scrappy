@@ -65,6 +65,20 @@ One page per site. Each page covers: how it works, pagination, rate limits, know
 - Public HTML, tech-focused.
 - Effort: easy-medium.
 
+## Workable Jobs
+
+- Site key: `workable_jobs`.
+- Native endpoint pattern: `https://apply.workable.com/api/v1/widget/accounts/{seed}/jobs`.
+- Seed inputs: `--workable-seeds` / `SCRAPPY_WORKABLE_SEEDS`.
+- Role filtering: flexible title/description contains + synonym expansion.
+
+## MyWorkdayJobs
+
+- Site key: `myworkdayjobs`.
+- Native endpoint pattern: Workday CXS JSON endpoint (`.../wday/cxs/.../jobs`).
+- Seed inputs: `--workday-seeds` / `SCRAPPY_WORKDAY_SEEDS`.
+- Role filtering: flexible title/description contains + synonym expansion.
+
 ## Otta (planned)
 
 - `otta.com` — AI talent matching. May require a cookie from a logged-in browser session.
