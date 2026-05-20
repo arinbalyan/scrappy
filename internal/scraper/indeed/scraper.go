@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -78,8 +79,10 @@ const jobSearchQueryTemplate = `query GetJobData {
 }`
 
 type Scraper struct {
-	client *http.Client
-	apiURL string
+	client      *http.Client
+	apiURL      string
+	warmupOnce  sync.Once
+	warmupError error
 }
 
 func New(client *http.Client) *Scraper {
@@ -101,6 +104,10 @@ func (s *Scraper) SiteName() model.Site { return model.SiteIndeed }
 
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
+	if input.Country == "" {
+		input.Country = model.CountryUSA
+	}
+	s.warmupOnce.Do(func() { s.warmupError = s.bootstrapSession(ctx, input.Country) })
 
 	if input.ResultsWanted <= 0 {
 		input.ResultsWanted = 15
@@ -145,24 +152,20 @@ func (s *Scraper) scrapePage(ctx context.Context, input model.ScraperInput, curs
 	if err != nil {
 		return nil, "", fmt.Errorf("create indeed request: %w", err)
 	}
+	req.Header.Set("Host", "apis.indeed.com")
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("accept", "application/json")
-	req.Header.Set("accept-language", "en-US,en;q=0.9")
-	req.Header.Set("origin", "https://www.indeed.com")
-	req.Header.Set("referer", "https://www.indeed.com/")
 	req.Header.Set("indeed-locale", "en-US")
-	req.Header.Set("user-agent", "Mozilla/5.0")
+	req.Header.Set("accept-language", "en-US,en;q=0.9")
+	req.Header.Set("user-agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Indeed App 193.1")
 	req.Header.Set("indeed-app-info", "appv=193.1; appid=com.indeed.jobsearch; osv=16.6.1; os=ios; dtype=phone")
-	if host := req.URL.Host; host != "" {
-		req.Header.Set("host", host)
-	}
 	if v := strings.TrimSpace(os.Getenv("SCRAPPY_INDEED_API_KEY")); v != "" {
 		req.Header.Set("indeed-api-key", v)
 	}
 	if v := strings.TrimSpace(os.Getenv("SCRAPPY_INDEED_CO")); v != "" {
-		req.Header.Set("indeed-co", v)
-	} else if co := indeedCountryHeader(input.Country); co != "" {
-		req.Header.Set("indeed-co", co)
+		req.Header.Set("indeed-co", strings.ToUpper(v))
+	} else {
+		req.Header.Set("indeed-co", indeedCountryHeader(input.Country))
 	}
 
 	resp, err := s.client.Do(req)
@@ -195,6 +198,11 @@ func (s *Scraper) scrapePage(ctx context.Context, input model.ScraperInput, curs
 		}
 		seen[jobURL] = struct{}{}
 		out = append(out, toJobPost(job, jobURL))
+	}
+	if len(out) == 0 {
+		if fallbackJobs, fallbackErr := s.scrapeHTMLFallback(ctx, input, seen); fallbackErr == nil && len(fallbackJobs) > 0 {
+			return fallbackJobs, "", nil
+		}
 	}
 
 	return out, parsed.Data.JobSearch.PageInfo.NextCursor, nil
@@ -411,11 +419,18 @@ func (s *Scraper) scrapeHTMLFallback(ctx context.Context, input model.ScraperInp
 }
 
 func buildIndeedSearchURL(input model.ScraperInput, apiEndpoint string) string {
-	base := "https://www.indeed.com/jobs"
-	if u, err := url.Parse(strings.TrimSpace(apiEndpoint)); err == nil && u != nil && u.Scheme != "" && u.Host != "" {
-		base = u.Scheme + "://" + u.Host + "/jobs"
+	host := indeedSearchHost(input.Country)
+	scheme := "https"
+	if ep, err := url.Parse(strings.TrimSpace(apiEndpoint)); err == nil && ep != nil && ep.Host != "" {
+		h := strings.ToLower(strings.TrimSpace(ep.Hostname()))
+		if h != "" && h != "apis.indeed.com" {
+			host = ep.Host
+			if ep.Scheme != "" {
+				scheme = ep.Scheme
+			}
+		}
 	}
-	u, _ := url.Parse(base)
+	u, _ := url.Parse(scheme + "://" + strings.Trim(host, "/") + "/jobs")
 	q := u.Query()
 	if strings.TrimSpace(input.SearchTerm) != "" {
 		q.Set("q", strings.TrimSpace(input.SearchTerm))
@@ -430,10 +445,27 @@ func buildIndeedSearchURL(input model.ScraperInput, apiEndpoint string) string {
 	return u.String()
 }
 
+func indeedSearchHost(c model.Country) string {
+	switch c {
+	case model.CountryCanada:
+		return "ca.indeed.com"
+	case model.CountryUK:
+		return "uk.indeed.com"
+	case model.CountryGermany:
+		return "de.indeed.com"
+	case model.CountryFrance:
+		return "fr.indeed.com"
+	case model.CountryIndia:
+		return "in.indeed.com"
+	case model.CountryAustralia:
+		return "au.indeed.com"
+	default:
+		return "www.indeed.com"
+	}
+}
+
 func indeedCountryHeader(c model.Country) string {
 	switch c {
-	case model.CountryUSA:
-		return "US"
 	case model.CountryCanada:
 		return "CA"
 	case model.CountryUK:
@@ -446,9 +478,36 @@ func indeedCountryHeader(c model.Country) string {
 		return "IN"
 	case model.CountryAustralia:
 		return "AU"
+	case model.CountryUSA:
+		fallthrough
 	default:
-		return ""
+		return "US"
 	}
+}
+
+func (s *Scraper) bootstrapSession(ctx context.Context, country model.Country) error {
+	host := indeedSearchHost(country)
+	warmupURLs := []string{
+		"https://" + host + "/",
+		"https://" + host + "/m/",
+		"https://" + host + "/jobs",
+		"https://" + host + "/m/jobs",
+	}
+	for _, u := range warmupURLs {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+		req.Header.Set("accept-language", "en-US,en;q=0.9")
+		req.Header.Set("user-agent", "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 Indeed App 193.1")
+		resp, err := s.client.Do(req)
+		if err != nil {
+			return err
+		}
+		resp.Body.Close()
+	}
+	return nil
 }
 
 func parseIndeedJobKeys(html string) []string {

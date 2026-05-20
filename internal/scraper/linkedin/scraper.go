@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -22,9 +23,11 @@ const (
 )
 
 var (
-	reJobCardHref   = regexp.MustCompile(`href="([^"]*?/jobs/view/(\d+)[^"]*)"`)
+	reJobCardHref   = regexp.MustCompile(`href="([^"]*?/jobs/view/(?:[^"/?]*-)?(\d+)[^"]*)"`)
 	reTitleSR       = regexp.MustCompile(`<span class="sr-only">([^<]+)</span>`)
+	reTitleAlt      = regexp.MustCompile(`base-search-card__title[^>]*>\s*(?:<a[^>]*>)?\s*([^<]+?)\s*(?:</a>)?\s*</h3>`)
 	reCompany       = regexp.MustCompile(`base-search-card__subtitle[\s\S]*?<a[^>]*>([^<]+)</a>`)
+	reCompanyAlt    = regexp.MustCompile(`base-search-card__subtitle[^>]*>\s*([^<]+?)\s*</`)
 	reLocation      = regexp.MustCompile(`job-search-card__location">([^<]+)<`)
 	reDateTime      = regexp.MustCompile(`<time[^>]*datetime="([0-9]{4}-[0-9]{2}-[0-9]{2})"`)
 	reSalary        = regexp.MustCompile(`job-search-card__salary-info[^>]*>\s*([^<]+)<`)
@@ -34,9 +37,11 @@ var (
 )
 
 type Scraper struct {
-	client  *http.Client
-	baseURL string
-	delay   time.Duration
+	client      *http.Client
+	baseURL     string
+	delay       time.Duration
+	warmupOnce  sync.Once
+	warmupError error
 }
 
 func New(client *http.Client) *Scraper {
@@ -58,6 +63,7 @@ func (s *Scraper) SiteName() model.Site { return model.SiteLinkedIn }
 
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
+	s.warmupOnce.Do(func() { s.warmupError = s.bootstrapSession(ctx) })
 
 	if input.ResultsWanted <= 0 {
 		input.ResultsWanted = 15
@@ -218,6 +224,9 @@ func (s *Scraper) fetchSearchPage(ctx context.Context, input model.ScraperInput,
 	if jt := linkedInJobTypeCode(input.JobType); jt != "" {
 		q.Set("f_JT", jt)
 	}
+	if input.EasyApply {
+		q.Set("f_AL", "true")
+	}
 	if len(input.LinkedInCompanyIDs) > 0 {
 		ids := make([]string, 0, len(input.LinkedInCompanyIDs))
 		for _, id := range input.LinkedInCompanyIDs {
@@ -225,6 +234,7 @@ func (s *Scraper) fetchSearchPage(ctx context.Context, input model.ScraperInput,
 		}
 		q.Set("f_C", strings.Join(ids, ","))
 	}
+	q.Set("pageNum", "0")
 	if input.HoursOld > 0 {
 		q.Set("f_TPR", "r"+strconv.Itoa(input.HoursOld*3600))
 	}
@@ -234,8 +244,12 @@ func (s *Scraper) fetchSearchPage(ctx context.Context, input model.ScraperInput,
 	if err != nil {
 		return "", fmt.Errorf("create linkedin search request: %w", err)
 	}
-	req.Header.Set("accept", "text/html")
-	req.Header.Set("user-agent", "Mozilla/5.0")
+	req.Header.Set("authority", "www.linkedin.com")
+	req.Header.Set("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7")
+	req.Header.Set("accept-language", "en-US,en;q=0.9")
+	req.Header.Set("cache-control", "max-age=0")
+	req.Header.Set("upgrade-insecure-requests", "1")
+	req.Header.Set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -295,8 +309,12 @@ func (s *Scraper) fetchJobDetails(ctx context.Context, jobID string) (details, e
 }
 
 func parseJobCards(htmlBody, base string) []model.JobPost {
-	reCard := regexp.MustCompile(`(?s)<div class="base-search-card"[\s\S]*?</div>`)
+	reCard := regexp.MustCompile(`(?s)<li[^>]*>[\s\S]*?<div[^>]*class="[^"]*base-search-card[^"]*"[\s\S]*?</li>`)
 	cards := reCard.FindAllString(htmlBody, -1)
+	if len(cards) == 0 {
+		reLegacy := regexp.MustCompile(`(?s)<div[^>]*class="[^"]*base-search-card[^"]*"[\s\S]*?</div>`)
+		cards = reLegacy.FindAllString(htmlBody, -1)
+	}
 	jobs := make([]model.JobPost, 0, len(cards))
 	for _, c := range cards {
 		href := firstGroup(reJobCardHref, c, 1)
@@ -305,7 +323,13 @@ func parseJobCards(htmlBody, base string) []model.JobPost {
 			continue
 		}
 		title := htmlUnescape(strings.TrimSpace(firstGroup(reTitleSR, c, 1)))
+		if title == "" {
+			title = htmlUnescape(strings.TrimSpace(firstGroup(reTitleAlt, c, 1)))
+		}
 		company := htmlUnescape(strings.TrimSpace(firstGroup(reCompany, c, 1)))
+		if company == "" {
+			company = htmlUnescape(strings.TrimSpace(firstGroup(reCompanyAlt, c, 1)))
+		}
 		locRaw := htmlUnescape(strings.TrimSpace(firstGroup(reLocation, c, 1)))
 		dateRaw := strings.TrimSpace(firstGroup(reDateTime, c, 1))
 		salaryRaw := htmlUnescape(strings.TrimSpace(firstGroup(reSalary, c, 1)))
@@ -411,6 +435,24 @@ func cleanURL(href, base string) string {
 		return strings.TrimRight(base, "/") + href
 	}
 	return strings.TrimRight(base, "/") + "/" + href
+}
+
+func (s *Scraper) bootstrapSession(ctx context.Context) error {
+	for _, u := range []string{s.baseURL + "/", s.baseURL + "/jobs/"} {
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
+		if err != nil {
+			return err
+		}
+		req.Header.Set("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+		req.Header.Set("accept-language", "en-US,en;q=0.9")
+		req.Header.Set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+		resp, err := s.client.Do(req)
+		if err != nil {
+			return err
+		}
+		resp.Body.Close()
+	}
+	return nil
 }
 
 func stripTags(s string) string {

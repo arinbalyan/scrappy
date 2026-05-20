@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -32,6 +34,19 @@ type ClientOptions struct {
 }
 
 func NewHTTPClient(opts ClientOptions) *http.Client {
+	if strings.TrimSpace(opts.ProxyURL) == "" {
+		opts.ProxyURL = strings.TrimSpace(os.Getenv("SCRAPPY_PROXIES"))
+	}
+	if opts.ProxyRotateEveryN <= 0 {
+		if v, err := strconv.ParseInt(strings.TrimSpace(os.Getenv("SCRAPPY_PROXY_ROTATE_EVERY_N")), 10, 64); err == nil && v > 0 {
+			opts.ProxyRotateEveryN = v
+		}
+	}
+	if opts.ProxyStickyWindowN <= 0 {
+		if v, err := strconv.ParseInt(strings.TrimSpace(os.Getenv("SCRAPPY_PROXY_STICKY_WINDOW_N")), 10, 64); err == nil && v > 0 {
+			opts.ProxyStickyWindowN = v
+		}
+	}
 	if opts.Timeout <= 0 {
 		opts.Timeout = 20 * time.Second
 	}
