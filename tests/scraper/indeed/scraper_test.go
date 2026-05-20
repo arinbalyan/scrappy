@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
@@ -74,5 +75,32 @@ func TestIndeedScraper_ScrapeBasic(t *testing.T) {
 	}
 	if jobs[0].Compensation == nil || jobs[0].Compensation.MinAmount == nil {
 		t.Fatalf("expected compensation in parsed job")
+	}
+}
+
+func TestIndeedScraper_FallbackOnUnauthorized(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		if r.Method == http.MethodGet {
+			_, _ = w.Write([]byte(`<html><body>{"jobKey":"abc123"}{"jobKey":"def456"}</body></html>`))
+			return
+		}
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	}))
+	defer server.Close()
+
+	s := indeedpkg.NewWithAPIURL(server.Client(), server.URL)
+	jobs, err := s.Scrape(context.Background(), model.ScraperInput{SearchTerm: "golang", ResultsWanted: 2})
+	if err != nil {
+		t.Fatalf("expected fallback success, got err: %v", err)
+	}
+	if len(jobs) != 2 {
+		t.Fatalf("expected 2 fallback jobs, got %d", len(jobs))
+	}
+	if !strings.Contains(jobs[0].JobURL, "indeed.com/viewjob?jk=") {
+		t.Fatalf("unexpected fallback url: %s", jobs[0].JobURL)
 	}
 }
