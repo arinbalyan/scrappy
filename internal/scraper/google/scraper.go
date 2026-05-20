@@ -9,7 +9,6 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/util"
@@ -129,19 +128,13 @@ func parseLDJSONJobs(raw string) []model.JobPost {
 }
 
 func ldJobToPost(title, company, description, datePosted string, seed int) model.JobPost {
-	normTitle := strings.ToLower(strings.ReplaceAll(strings.TrimSpace(title), " ", "-"))
-	normCompany := strings.ToLower(strings.ReplaceAll(strings.TrimSpace(company), " ", "-"))
 	post := model.JobPost{
-		ID:          fmt.Sprintf("go-%s-%s-%d", normTitle, normCompany, seed),
+		ID:          fmt.Sprintf("go-%s-%s-%d", util.NormalizeSlug(title), util.NormalizeSlug(company), seed),
 		Title:       strings.TrimSpace(title),
 		CompanyName: strings.TrimSpace(company),
 		Description: strings.TrimSpace(description),
 		JobURL:      "https://www.google.com/search?q=" + url.QueryEscape(strings.TrimSpace(title)+" "+strings.TrimSpace(company)),
 	}
-	if t, err := time.Parse("2006-01-02", strings.TrimSpace(datePosted)); err == nil {
-		post.DatePosted = &t
-	} else if t, err := time.Parse(time.RFC3339, strings.TrimSpace(datePosted)); err == nil {
-		post.DatePosted = &t
-	}
+	post.DatePosted = util.ParseDatePosted(datePosted)
 	return post
 }
