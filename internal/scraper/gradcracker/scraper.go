@@ -35,6 +35,8 @@ func NewWithAPIURL(client *http.Client, endpoint string) *Scraper {
 func (s *Scraper) SiteName() model.Site { return model.SiteGradcracker }
 
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
+	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
+
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, s.apiURL, nil)
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -61,5 +63,6 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		}
 		jobs = append(jobs, model.JobPost{ID: "gc-" + strings.TrimSpace(r.ID), Title: strings.TrimSpace(r.Title), CompanyName: strings.TrimSpace(r.Company), Location: model.Location{City: strings.TrimSpace(r.Location)}, JobURL: strings.TrimSpace(r.URL), Description: strings.TrimSpace(r.Description), DatePosted: posted})
 	}
+	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(jobs)})
 	return jobs, nil
 }

@@ -40,6 +40,8 @@ func NewWithBaseURL(client *http.Client, base string) *Scraper {
 func (s *Scraper) SiteName() model.Site { return model.SiteWorkableJobs }
 
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
+	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
+
 	seeds := normalizeSeeds(input.WorkableSeeds, "SCRAPPY_WORKABLE_SEEDS")
 	if len(seeds) == 0 {
 		util.APIMiss("workable_no_seeds", map[string]any{"site": model.SiteWorkableJobs})
@@ -76,6 +78,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if successfulSeeds == 0 && len(seedErrs) > 0 {
 		return nil, errors.Join(seedErrs...)
 	}
+	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(out)})
 	return out, nil
 }
 
@@ -136,6 +139,7 @@ func (s *Scraper) fetchSeedJobs(ctx context.Context, seed string) ([]model.JobPo
 		post.DatePosted = util.ParseDatePosted(r.CreatedAt)
 		jobs = append(jobs, post)
 	}
+	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(jobs)})
 	return jobs, nil
 }
 

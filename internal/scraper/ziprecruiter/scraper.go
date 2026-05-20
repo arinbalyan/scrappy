@@ -40,6 +40,8 @@ func NewWithListURL(client *http.Client, u string) *Scraper {
 func (s *Scraper) SiteName() model.Site { return model.SiteZipRecruiter }
 
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
+	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
+
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, s.listURL, nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0")
 	resp, err := s.client.Do(req)

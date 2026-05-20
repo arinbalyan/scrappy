@@ -39,6 +39,8 @@ func NewWithAPIURL(client *http.Client, endpoint string) *Scraper {
 func (s *Scraper) SiteName() model.Site { return model.SiteAdzuna }
 
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
+	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
+
 	appID := strings.TrimSpace(input.AdzunaAppID)
 	if appID == "" {
 		appID = strings.TrimSpace(os.Getenv("SCRAPPY_ADZUNA_APP_ID"))
@@ -116,5 +118,6 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			IsRemote:    strings.Contains(strings.ToLower(r.Location.DisplayName), "remote"),
 		})
 	}
+	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(jobs)})
 	return jobs, nil
 }
