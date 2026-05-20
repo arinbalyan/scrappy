@@ -29,8 +29,6 @@ const (
 	SiteSeek          Site = "seek"
 	SiteWorkingNomads Site = "workingnomads"
 	SiteStartupJobs   Site = "startupjobs"
-	SiteFiveAMSAT     Site = "fiveamsat"
-	SiteGolangJobs    Site = "golangjobs"
 	SiteGradcracker   Site = "gradcracker"
 	SiteHiringCafe    Site = "hiringcafe"
 	SiteJobindex      Site = "jobindex"
@@ -46,8 +44,7 @@ func AllSites() []Site {
 		SiteWellfound, SiteRemoteOK, SiteRemotive, SiteBuiltIn,
 		SiteOtta, SiteLever, SiteGreenhouse, SiteWorkableJobs, SiteMyWorkdayJobs,
 		SiteAdzuna, SiteSeek, SiteWorkingNomads, SiteStartupJobs,
-		SiteFiveAMSAT, SiteGolangJobs, SiteGradcracker, SiteHiringCafe,
-		SiteJobindex, SiteUKVisaJobs, SiteWuzzuf,
+		SiteGradcracker, SiteHiringCafe, SiteJobindex, SiteUKVisaJobs, SiteWuzzuf,
 	}
 }
 

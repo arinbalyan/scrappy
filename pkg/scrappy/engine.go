@@ -13,9 +13,7 @@ import (
 	"github.com/arinbalyan/scrappy/internal/scraper"
 	adzunascraper "github.com/arinbalyan/scrappy/internal/scraper/adzuna"
 	builtinscraper "github.com/arinbalyan/scrappy/internal/scraper/builtin"
-	fiveamsatscraper "github.com/arinbalyan/scrappy/internal/scraper/fiveamsat"
 	glassdoorscraper "github.com/arinbalyan/scrappy/internal/scraper/glassdoor"
-	golangjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/golangjobs"
 	googlescraper "github.com/arinbalyan/scrappy/internal/scraper/google"
 	gradcrackerscraper "github.com/arinbalyan/scrappy/internal/scraper/gradcracker"
 	hiringcafescraper "github.com/arinbalyan/scrappy/internal/scraper/hiringcafe"
@@ -64,8 +62,6 @@ func NewEngine() *Engine {
 		seekscraper.New(nil),
 		workingnomadsscraper.New(nil),
 		startupjobsscraper.New(nil),
-		fiveamsatscraper.New(nil),
-		golangjobsscraper.New(nil),
 		gradcrackerscraper.New(nil),
 		hiringcafescraper.New(nil),
 		jobindexscraper.New(nil),
