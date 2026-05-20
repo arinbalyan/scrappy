@@ -8,6 +8,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/export"
@@ -41,6 +42,8 @@ type cliConfig struct {
 	AdzunaAppKey   string
 	LogLevel       string
 }
+
+var loadDotEnvOnce sync.Once
 
 func main() {
 	cfg := &cliConfig{}
@@ -115,6 +118,7 @@ func askInt(r *bufio.Reader, label string, def int) int {
 }
 
 func runOnce(cfg *cliConfig) error {
+	loadDotEnvOnce.Do(func() { loadDotEnv(".env") })
 	level := strings.TrimSpace(cfg.LogLevel)
 	if level == "" {
 		level = strings.TrimSpace(os.Getenv("SCRAPPY_LOG_LEVEL"))
@@ -197,4 +201,30 @@ func parseCSV(v string) []string {
 		}
 	}
 	return out
+}
+
+func loadDotEnv(path string) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return
+	}
+	for _, raw := range strings.Split(string(b), "\n") {
+		line := strings.TrimSpace(raw)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		k, v, ok := strings.Cut(line, "=")
+		if !ok {
+			continue
+		}
+		k = strings.TrimSpace(k)
+		v = strings.TrimSpace(v)
+		if k == "" {
+			continue
+		}
+		if _, exists := os.LookupEnv(k); exists {
+			continue
+		}
+		_ = os.Setenv(k, v)
+	}
 }
