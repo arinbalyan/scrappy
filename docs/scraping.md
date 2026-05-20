@@ -48,6 +48,31 @@ func (s *IndeedScraper) Scrape(ctx context.Context, input ScraperInput) ([]JobPo
 | Google | 2 goroutines | 1 req/2s |
 | ZipRecruiter | 4 goroutines | 2 req/s |
 | Wellfound / RemoteOK / Remotive | 8 goroutines | 5 req/s |
+| Workable Jobs | 4 goroutines | 2 req/s |
+| MyWorkdayJobs | 4 goroutines | 2 req/s |
+
+## New native ATS sources
+
+### workable_jobs
+- Site key: `workable_jobs`
+- Discovery inputs: `--workable-seeds` or `SCRAPPY_WORKABLE_SEEDS` (comma-separated). CLI overrides env.
+- Seed examples: `spotify,datadog` or `https://apply.workable.com/spotify/`.
+- Filtering: role filter uses flexible contains + synonym matching against title/description.
+- Extracted fields: title, company, url, description, department, job type, posted date, location, remote flag.
+
+### myworkdayjobs
+- Site key: `myworkdayjobs`
+- Discovery inputs: `--workday-seeds` or `SCRAPPY_WORKDAY_SEEDS` (comma-separated). CLI overrides env.
+- Seed format: Workday CXS endpoints (must include `/wday/cxs/`).
+- Filtering: role filter uses flexible contains + synonym matching against title/description.
+- Extracted fields: title, company, url, description, posted date, location, remote flag, inferred experience range.
+
+## Development process (this feature)
+1. Added new site enums and engine wiring.
+2. Implemented native Workable and Workday scrapers with guarded body reads.
+3. Added role synonym filtering and seed normalization.
+4. Added strict parser/filter tests for both scrapers.
+5. Added constraints warnings for missing discovery seeds.
 
 ## Rate limiting
 
