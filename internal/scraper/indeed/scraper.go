@@ -20,7 +20,11 @@ import (
 
 const apiURL = "https://apis.indeed.com/graphql"
 
-var indeedJobKeyRe = regexp.MustCompile(`"jobKey":"([a-zA-Z0-9_-]+)"`)
+var (
+	indeedJobKeyRe     = regexp.MustCompile(`"jobKey":"([a-zA-Z0-9_-]+)"`)
+	indeedAnchorJKRe   = regexp.MustCompile(`(?:[?&]jk=|/rc/clk\?jk=)([a-zA-Z0-9_-]+)`)
+	indeedWindowDataRe = regexp.MustCompile(`window\._initialData\s*=\s*(\{[\s\S]*?\});`)
+)
 
 const jobSearchQueryTemplate = `query GetJobData {
   jobSearch(
@@ -156,6 +160,8 @@ func (s *Scraper) scrapePage(ctx context.Context, input model.ScraperInput, curs
 	}
 	if v := strings.TrimSpace(os.Getenv("SCRAPPY_INDEED_CO")); v != "" {
 		req.Header.Set("indeed-co", v)
+	} else if co := indeedCountryHeader(input.Country); co != "" {
+		req.Header.Set("indeed-co", co)
 	}
 
 	resp, err := s.client.Do(req)
@@ -257,26 +263,26 @@ func toJobPost(j indeedJob, jobURL string) model.JobPost {
 	}
 
 	jp := model.JobPost{
-		ID:          "in-" + j.Key,
-		Title:       j.Title,
-		Description: j.Description.HTML,
-		CompanyName: j.Employer.Name,
-		JobURL:      jobURL,
+		ID:           "in-" + j.Key,
+		Title:        j.Title,
+		Description:  j.Description.HTML,
+		CompanyName:  j.Employer.Name,
+		JobURL:       jobURL,
 		JobURLDirect: j.Recruit.ViewJobURL,
 		Location: model.Location{
 			City:    j.Location.City,
 			State:   j.Location.Admin1Code,
 			Country: j.Location.CountryCode,
 		},
-		DatePosted:           posted,
-		IsRemote:             hasRemoteSignal(j),
-		CompanyIndustry:      normalizeIndustry(j.Employer.Dossier.EmployerDetails.Industry),
-		CompanyNumEmployees:  j.Employer.Dossier.EmployerDetails.EmployeesLocalizedLabel,
-		CompanyRevenue:       j.Employer.Dossier.EmployerDetails.RevenueLocalizedLabel,
-		CompanyDescription:   j.Employer.Dossier.EmployerDetails.BriefDescription,
-		CompanyLogo:          j.Employer.Dossier.Images.SquareLogoURL,
-		CompanyURL:           "https://www.indeed.com" + j.Employer.RelativeCompanyPageURL,
-		CompanyAddresses:     firstOrEmpty(j.Employer.Dossier.EmployerDetails.Addresses),
+		DatePosted:          posted,
+		IsRemote:            hasRemoteSignal(j),
+		CompanyIndustry:     normalizeIndustry(j.Employer.Dossier.EmployerDetails.Industry),
+		CompanyNumEmployees: j.Employer.Dossier.EmployerDetails.EmployeesLocalizedLabel,
+		CompanyRevenue:      j.Employer.Dossier.EmployerDetails.RevenueLocalizedLabel,
+		CompanyDescription:  j.Employer.Dossier.EmployerDetails.BriefDescription,
+		CompanyLogo:         j.Employer.Dossier.Images.SquareLogoURL,
+		CompanyURL:          "https://www.indeed.com" + j.Employer.RelativeCompanyPageURL,
+		CompanyAddresses:    firstOrEmpty(j.Employer.Dossier.EmployerDetails.Addresses),
 	}
 	if c := parseCompensation(j.Compensation); c != nil {
 		jp.Compensation = c
@@ -426,26 +432,63 @@ func buildIndeedSearchURL(input model.ScraperInput, apiEndpoint string) string {
 	return u.String()
 }
 
-func parseIndeedJobKeys(html string) []string {
-	m := indeedJobKeyRe.FindAllStringSubmatch(html, -1)
-	if len(m) == 0 {
-		return nil
+func indeedCountryHeader(c model.Country) string {
+	switch c {
+	case model.CountryUSA:
+		return "US"
+	case model.CountryCanada:
+		return "CA"
+	case model.CountryUK:
+		return "GB"
+	case model.CountryGermany:
+		return "DE"
+	case model.CountryFrance:
+		return "FR"
+	case model.CountryIndia:
+		return "IN"
+	case model.CountryAustralia:
+		return "AU"
+	default:
+		return ""
 	}
+}
+
+func parseIndeedJobKeys(html string) []string {
 	seen := map[string]struct{}{}
-	keys := make([]string, 0, len(m))
-	for _, row := range m {
-		if len(row) < 2 {
-			continue
-		}
-		k := strings.TrimSpace(row[1])
+	keys := make([]string, 0, 64)
+	appendKey := func(k string) {
+		k = strings.TrimSpace(k)
 		if k == "" {
-			continue
+			return
 		}
 		if _, ok := seen[k]; ok {
-			continue
+			return
 		}
 		seen[k] = struct{}{}
 		keys = append(keys, k)
+	}
+
+	for _, row := range indeedJobKeyRe.FindAllStringSubmatch(html, -1) {
+		if len(row) > 1 {
+			appendKey(row[1])
+		}
+	}
+	for _, row := range indeedAnchorJKRe.FindAllStringSubmatch(html, -1) {
+		if len(row) > 1 {
+			appendKey(row[1])
+		}
+	}
+	for _, row := range indeedWindowDataRe.FindAllStringSubmatch(html, -1) {
+		if len(row) > 1 {
+			for _, nested := range indeedJobKeyRe.FindAllStringSubmatch(row[1], -1) {
+				if len(nested) > 1 {
+					appendKey(nested[1])
+				}
+			}
+		}
+	}
+	if len(keys) == 0 {
+		return nil
 	}
 	return keys
 }
@@ -487,11 +530,11 @@ type indeedJob struct {
 		RelativeCompanyPageURL string `json:"relativeCompanyPageUrl"`
 		Dossier                struct {
 			EmployerDetails struct {
-				Addresses              []string `json:"addresses"`
-				Industry               string   `json:"industry"`
-				EmployeesLocalizedLabel string  `json:"employeesLocalizedLabel"`
-				RevenueLocalizedLabel  string   `json:"revenueLocalizedLabel"`
-				BriefDescription       string   `json:"briefDescription"`
+				Addresses               []string `json:"addresses"`
+				Industry                string   `json:"industry"`
+				EmployeesLocalizedLabel string   `json:"employeesLocalizedLabel"`
+				RevenueLocalizedLabel   string   `json:"revenueLocalizedLabel"`
+				BriefDescription        string   `json:"briefDescription"`
 			} `json:"employerDetails"`
 			Images struct {
 				SquareLogoURL string `json:"squareLogoUrl"`
