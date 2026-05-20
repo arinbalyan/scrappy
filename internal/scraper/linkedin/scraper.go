@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -59,7 +60,13 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if input.ResultsWanted <= 0 {
 		input.ResultsWanted = 15
 	}
+	if strings.EqualFold(strings.TrimSpace(input.LinkedInStrategy), "rotate") {
+		return s.scrapeRotateStrategy(ctx, input)
+	}
+	return s.scrapeSinglePass(ctx, input)
+}
 
+func (s *Scraper) scrapeSinglePass(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	seen := map[string]struct{}{}
 	jobs := make([]model.JobPost, 0, input.ResultsWanted)
 	start := 0
@@ -70,6 +77,10 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	for len(jobs) < input.Offset+input.ResultsWanted && start < 1000 {
 		htmlBody, err := s.fetchSearchPage(ctx, input, start)
 		if err != nil {
+			if strings.Contains(strings.ToLower(err.Error()), "status 429") {
+				s.adaptiveBackoff(ctx, start)
+				continue
+			}
 			return nil, err
 		}
 		parsed := parseJobCards(htmlBody, s.baseURL)
@@ -130,6 +141,63 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		to = len(jobs)
 	}
 	return jobs[from:to], nil
+}
+
+func (s *Scraper) scrapeRotateStrategy(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
+	passes := []struct {
+		remote bool
+		easy   bool
+		hours  int
+	}{
+		{remote: input.IsRemote, easy: input.EasyApply, hours: input.HoursOld},
+		{remote: true, easy: false, hours: input.HoursOld},
+		{remote: false, easy: true, hours: input.HoursOld},
+		{remote: false, easy: false, hours: input.HoursOld},
+	}
+	seen := map[string]struct{}{}
+	all := make([]model.JobPost, 0, input.ResultsWanted)
+	for _, pass := range passes {
+		if len(all) >= input.ResultsWanted {
+			break
+		}
+		cp := input
+		cp.IsRemote = pass.remote
+		cp.EasyApply = pass.easy
+		cp.HoursOld = pass.hours
+		cp.ResultsWanted = input.ResultsWanted - len(all)
+		jobs, err := s.scrapeSinglePass(ctx, cp)
+		if err != nil {
+			continue
+		}
+		for _, j := range jobs {
+			if _, ok := seen[j.ID]; ok {
+				continue
+			}
+			seen[j.ID] = struct{}{}
+			all = append(all, j)
+			if len(all) >= input.ResultsWanted {
+				break
+			}
+		}
+	}
+	if len(all) == 0 {
+		return nil, nil
+	}
+	return all, nil
+}
+
+func (s *Scraper) adaptiveBackoff(ctx context.Context, start int) {
+	base := 900 * time.Millisecond
+	if start > 200 {
+		base = 1300 * time.Millisecond
+	}
+	jitter := time.Duration(rand.Intn(700)) * time.Millisecond
+	wait := base + jitter
+	select {
+	case <-ctx.Done():
+		return
+	case <-time.After(wait):
+	}
 }
 
 func (s *Scraper) fetchSearchPage(ctx context.Context, input model.ScraperInput, start int) (string, error) {
