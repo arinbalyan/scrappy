@@ -2,18 +2,24 @@ package glassdoor
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
 const defaultURL = "https://www.glassdoor.com/Job/jobs.htm"
-var reJob = regexp.MustCompile(`(?s)data-jobid="([^"]+)"[\s\S]*?<a[^>]*class="jobLink"[^>]*>([^<]+)</a>[\s\S]*?<span[^>]*class="EmployerProfile_compactEmployerName"[^>]*>([^<]+)</span>`)
+
+var (
+	reJob      = regexp.MustCompile(`(?s)data-jobid="([^"]+)"[\s\S]*?<a[^>]*class="jobLink"[^>]*>([^<]+)</a>[\s\S]*?<span[^>]*class="EmployerProfile_compactEmployerName"[^>]*>([^<]+)</span>`)
+	reLDScript = regexp.MustCompile(`(?s)<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>`)
+)
 
 type Scraper struct { client *http.Client; listURL string }
 func New(client *http.Client) *Scraper { if client == nil { client = util.NewHTTPClient(util.ClientOptions{Retries: 2, CookieResetEveryN: 100}) }; return &Scraper{client: client, listURL: defaultURL} }
@@ -24,14 +30,112 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, s.listURL, nil)
 	req.Header.Set("User-Agent", "Mozilla/5.0")
 	resp, err := s.client.Do(req)
-	if err != nil { return nil, fmt.Errorf("glassdoor request: %w", err) }
+	if err != nil {
+		return nil, fmt.Errorf("glassdoor request: %w", err)
+	}
 	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 { return nil, fmt.Errorf("glassdoor status %d", resp.StatusCode) }
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("glassdoor status %d", resp.StatusCode)
+	}
 	b, _ := io.ReadAll(resp.Body)
-	m := reJob.FindAllStringSubmatch(string(b), -1)
-	limit := input.ResultsWanted
-	if limit <= 0 || limit > len(m) { limit = len(m) }
-	out := make([]model.JobPost, 0, limit)
-	for i := 0; i < limit; i++ { out = append(out, model.JobPost{ID: "gd-" + m[i][1], Title: strings.TrimSpace(m[i][2]), CompanyName: strings.TrimSpace(m[i][3]), JobURL: s.listURL}) }
-	return out, nil
+	raw := string(b)
+
+	if jobs := parseLDJSONJobs(raw); len(jobs) > 0 {
+		return limitJobs(jobs, input.ResultsWanted), nil
+	}
+	return limitJobs(parseHTMLJobs(raw, s.listURL), input.ResultsWanted), nil
+}
+
+func limitJobs(in []model.JobPost, wanted int) []model.JobPost {
+	if wanted <= 0 || wanted > len(in) {
+		return in
+	}
+	return in[:wanted]
+}
+
+func parseHTMLJobs(raw, sourceURL string) []model.JobPost {
+	m := reJob.FindAllStringSubmatch(raw, -1)
+	out := make([]model.JobPost, 0, len(m))
+	for _, row := range m {
+		out = append(out, model.JobPost{
+			ID:          "gd-" + row[1],
+			Title:       strings.TrimSpace(row[2]),
+			CompanyName: strings.TrimSpace(row[3]),
+			JobURL:      sourceURL,
+		})
+	}
+	return out
+}
+
+func parseLDJSONJobs(raw string) []model.JobPost {
+	type ldJob struct {
+		Type        string `json:"@type"`
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		DatePosted  string `json:"datePosted"`
+		URL         string `json:"url"`
+		HiringOrg   struct {
+			Name string `json:"name"`
+		} `json:"hiringOrganization"`
+	}
+	type ldGraph struct {
+		Graph []ldJob `json:"@graph"`
+	}
+
+	scripts := reLDScript.FindAllStringSubmatch(raw, -1)
+	jobs := make([]model.JobPost, 0)
+	for i, s := range scripts {
+		body := strings.TrimSpace(s[1])
+		if body == "" {
+			continue
+		}
+		var single ldJob
+		if err := json.Unmarshal([]byte(body), &single); err == nil && strings.EqualFold(single.Type, "JobPosting") {
+			jobs = append(jobs, toPost(single.Title, single.HiringOrg.Name, single.Description, single.URL, single.DatePosted, i))
+			continue
+		}
+		var many []ldJob
+		if err := json.Unmarshal([]byte(body), &many); err == nil {
+			for idx, j := range many {
+				if strings.EqualFold(j.Type, "JobPosting") {
+					jobs = append(jobs, toPost(j.Title, j.HiringOrg.Name, j.Description, j.URL, j.DatePosted, i*1000+idx))
+				}
+			}
+			continue
+		}
+		var graph ldGraph
+		if err := json.Unmarshal([]byte(body), &graph); err == nil {
+			for idx, j := range graph.Graph {
+				if strings.EqualFold(j.Type, "JobPosting") {
+					jobs = append(jobs, toPost(j.Title, j.HiringOrg.Name, j.Description, j.URL, j.DatePosted, i*1000+idx))
+				}
+			}
+		}
+	}
+	return jobs
+}
+
+func toPost(title, company, description, jobURL, datePosted string, seed int) model.JobPost {
+	title = strings.TrimSpace(title)
+	company = strings.TrimSpace(company)
+	post := model.JobPost{
+		ID:          fmt.Sprintf("gd-%s-%s-%d", slug(title), slug(company), seed),
+		Title:       title,
+		CompanyName: company,
+		Description: strings.TrimSpace(description),
+		JobURL:      strings.TrimSpace(jobURL),
+	}
+	if post.JobURL == "" {
+		post.JobURL = defaultURL
+	}
+	if t, err := time.Parse("2006-01-02", strings.TrimSpace(datePosted)); err == nil {
+		post.DatePosted = &t
+	} else if t, err := time.Parse(time.RFC3339, strings.TrimSpace(datePosted)); err == nil {
+		post.DatePosted = &t
+	}
+	return post
+}
+
+func slug(v string) string {
+	return strings.ToLower(strings.ReplaceAll(strings.TrimSpace(v), " ", "-"))
 }
