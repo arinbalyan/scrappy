@@ -21,6 +21,7 @@ var defaultUA = []string{
 type ClientOptions struct {
 	Retries            int
 	CookieResetEveryN  int64
+	UserAgentRotateEveryN int64
 	ProxyURL           string
 	UserAgents         []string
 	BaseDelay          time.Duration
@@ -33,6 +34,7 @@ func NewHTTPClient(opts ClientOptions) *http.Client {
 	if opts.BaseDelay <= 0 { opts.BaseDelay = 300 * time.Millisecond }
 	if opts.MaxDelay <= 0 { opts.MaxDelay = 4 * time.Second }
 	if opts.CookieResetEveryN <= 0 { opts.CookieResetEveryN = 200 }
+	if opts.UserAgentRotateEveryN <= 0 { opts.UserAgentRotateEveryN = 1 }
 	if len(opts.UserAgents) == 0 { opts.UserAgents = defaultUA }
 
 	jar, _ := cookiejar.New(nil)
@@ -54,16 +56,17 @@ func NewHTTPClient(opts ClientOptions) *http.Client {
 }
 
 type smartRT struct {
-	base  http.RoundTripper
-	opts  ClientOptions
-	jar   http.CookieJar
-	count int64
+	base    http.RoundTripper
+	opts    ClientOptions
+	jar     http.CookieJar
+	count   int64
+	uaCount int64
+	uaIndex int64
 }
 
 func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
-	ua := s.opts.UserAgents[rand.Intn(len(s.opts.UserAgents))]
 	if req.Header.Get("User-Agent") == "" {
-		req.Header.Set("User-Agent", ua)
+		req.Header.Set("User-Agent", s.nextUserAgent())
 	}
 
 	attempts := s.opts.Retries + 1
@@ -106,6 +109,27 @@ func isRetryableMethod(method string) bool {
 	default:
 		return false
 	}
+}
+
+func (s *smartRT) nextUserAgent() string {
+	if len(s.opts.UserAgents) == 0 {
+		return "Mozilla/5.0"
+	}
+	if s.opts.UserAgentRotateEveryN <= 1 {
+		idx := rand.Intn(len(s.opts.UserAgents))
+		return s.opts.UserAgents[idx]
+	}
+	c := atomic.AddInt64(&s.uaCount, 1)
+	if c == 1 {
+		idx := rand.Intn(len(s.opts.UserAgents))
+		atomic.StoreInt64(&s.uaIndex, int64(idx))
+		return s.opts.UserAgents[idx]
+	}
+	if c%s.opts.UserAgentRotateEveryN == 0 {
+		next := (atomic.LoadInt64(&s.uaIndex) + 1) % int64(len(s.opts.UserAgents))
+		atomic.StoreInt64(&s.uaIndex, next)
+	}
+	return s.opts.UserAgents[atomic.LoadInt64(&s.uaIndex)]
 }
 
 func (s *smartRT) maybeResetCookies(req *http.Request) {
