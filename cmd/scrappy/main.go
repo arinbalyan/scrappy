@@ -12,6 +12,7 @@ import (
 
 	"github.com/arinbalyan/scrappy/internal/export"
 	"github.com/arinbalyan/scrappy/internal/model"
+	"github.com/arinbalyan/scrappy/internal/util"
 	"github.com/arinbalyan/scrappy/pkg/scrappy"
 	"github.com/spf13/cobra"
 )
@@ -36,6 +37,7 @@ type cliConfig struct {
 	NonInteractive bool
 	WorkableSeeds  string
 	WorkdaySeeds   string
+	LogLevel       string
 }
 
 func main() {
@@ -69,6 +71,7 @@ func main() {
 	root.Flags().BoolVar(&cfg.NonInteractive, "non-interactive", false, "disable interactive wizard")
 	root.Flags().StringVar(&cfg.WorkableSeeds, "workable-seeds", "", "comma-separated Workable account/company seeds")
 	root.Flags().StringVar(&cfg.WorkdaySeeds, "workday-seeds", "", "comma-separated Workday CXS endpoint seeds")
+	root.Flags().StringVar(&cfg.LogLevel, "log-level", "", "log level: DEBUG|INFO|WARN|ERROR|SYSTEM_ERROR|API_MISS")
 
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -108,6 +111,12 @@ func askInt(r *bufio.Reader, label string, def int) int {
 }
 
 func runOnce(cfg *cliConfig) error {
+	level := strings.TrimSpace(cfg.LogLevel)
+	if level == "" {
+		level = strings.TrimSpace(os.Getenv("SCRAPPY_LOG_LEVEL"))
+	}
+	util.SetLogLevel(level)
+
 	sites := parseSites(cfg.Sites)
 	input := model.ScraperInput{
 		Sites:          sites,
@@ -119,6 +128,7 @@ func runOnce(cfg *cliConfig) error {
 		MinScore:       0,
 		WorkableSeeds:  parseCSV(cfg.WorkableSeeds),
 		WorkdaySeeds:   parseCSV(cfg.WorkdaySeeds),
+		LogLevel:       level,
 	}
 
 	constraints := scrappy.EvaluateConstraints(input)

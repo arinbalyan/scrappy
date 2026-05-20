@@ -17,7 +17,6 @@ import (
 
 const defaultBase = "https://apply.workable.com"
 
-
 type Scraper struct {
 	client *http.Client
 	base   string
@@ -43,8 +42,10 @@ func (s *Scraper) SiteName() model.Site { return model.SiteWorkableJobs }
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	seeds := normalizeSeeds(input.WorkableSeeds, "SCRAPPY_WORKABLE_SEEDS")
 	if len(seeds) == 0 {
+		util.APIMiss("workable_no_seeds", map[string]any{"site": model.SiteWorkableJobs})
 		return nil, nil
 	}
+	util.Debug("workable_scrape_begin", map[string]any{"seeds": len(seeds), "results_wanted": input.ResultsWanted})
 	out := make([]model.JobPost, 0, input.ResultsWanted)
 	seen := map[string]struct{}{}
 	seedErrs := make([]error, 0)
@@ -52,9 +53,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	for _, seed := range seeds {
 		jobs, err := s.fetchSeedJobs(ctx, seed)
 		if err != nil {
+			util.Warn("workable_seed_failed", map[string]any{"seed": seed, "err": err.Error()})
 			seedErrs = append(seedErrs, fmt.Errorf("%s: %w", seed, err))
 			continue
 		}
+		util.Debug("workable_seed_success", map[string]any{"seed": seed, "jobs": len(jobs)})
 		successfulSeeds++
 		for _, j := range jobs {
 			if _, ok := seen[j.JobURL]; ok {
