@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -14,18 +15,24 @@ import (
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
-const defaultAPI = "https://www.naukri.com/jobapi/v3/search"
+const (
+	defaultAPI  = "https://www.naukri.com/jobapi/v3/search"
+	defaultList = "https://www.naukri.com/jobs"
+)
+
+var reNaukriLD = regexp.MustCompile(`(?s)<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>`)
 
 type Scraper struct {
-	client *http.Client
-	apiURL string
+	client  *http.Client
+	apiURL  string
+	listURL string
 }
 
 func New(client *http.Client) *Scraper {
 	if client == nil {
 		client = util.NewHTTPClient(util.ClientOptions{Retries: 3, CookieResetEveryN: 150, Timeout: 18 * time.Second})
 	}
-	return &Scraper{client: client, apiURL: defaultAPI}
+	return &Scraper{client: client, apiURL: defaultAPI, listURL: defaultList}
 }
 
 func NewWithAPIURL(client *http.Client, endpoint string) *Scraper {
@@ -41,6 +48,24 @@ func (s *Scraper) SiteName() model.Site { return model.SiteNaukri }
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
 
+	jobs, err := s.scrapeAPI(ctx, input)
+	if err == nil && util.HasMeaningfulJobs(jobs) {
+		util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(jobs), "path": "api"})
+		return jobs, nil
+	}
+
+	fallback, ferr := s.scrapeHTML(ctx, input)
+	if ferr != nil {
+		if err != nil {
+			return nil, fmt.Errorf("naukri api fallback failed: %w (api error: %v)", ferr, err)
+		}
+		return nil, ferr
+	}
+	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(fallback), "path": "html"})
+	return fallback, nil
+}
+
+func (s *Scraper) scrapeAPI(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	u, _ := url.Parse(s.apiURL)
 	q := u.Query()
 	if strings.TrimSpace(input.SearchTerm) != "" {
@@ -115,8 +140,122 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			WorkFromHome:    strings.TrimSpace(r.WfhType),
 		})
 	}
-	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(jobs)})
 	return jobs, nil
+}
+
+func (s *Scraper) scrapeHTML(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
+	u, _ := url.Parse(s.listURL)
+	q := u.Query()
+	if strings.TrimSpace(input.SearchTerm) != "" {
+		q.Set("k", strings.TrimSpace(input.SearchTerm))
+	}
+	if strings.TrimSpace(input.Location) != "" {
+		q.Set("l", strings.TrimSpace(input.Location))
+	}
+	u.RawQuery = q.Encode()
+
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	req.Header.Set("User-Agent", "Mozilla/5.0")
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("naukri html request: %w", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("naukri html status %d", resp.StatusCode)
+	}
+	b, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
+	if err != nil {
+		return nil, fmt.Errorf("naukri html read: %w", err)
+	}
+	jobs := parseNaukriLD(string(b))
+	jobs = limitNaukriJobs(jobs, input.ResultsWanted)
+	if !util.HasMeaningfulJobs(jobs) {
+		return nil, nil
+	}
+	return jobs, nil
+}
+
+func parseNaukriLD(raw string) []model.JobPost {
+	type ldJob struct {
+		Type        string `json:"@type"`
+		Title       string `json:"title"`
+		Description string `json:"description"`
+		DatePosted  string `json:"datePosted"`
+		URL         string `json:"url"`
+		JobLocation any    `json:"jobLocation"`
+		HiringOrg   struct {
+			Name string `json:"name"`
+		} `json:"hiringOrganization"`
+	}
+	type ldGraph struct {
+		Graph []ldJob `json:"@graph"`
+	}
+
+	scripts := reNaukriLD.FindAllStringSubmatch(raw, -1)
+	out := make([]model.JobPost, 0)
+	for i, s := range scripts {
+		body := strings.TrimSpace(s[1])
+		if body == "" {
+			continue
+		}
+		var single ldJob
+		if err := json.Unmarshal([]byte(body), &single); err == nil && strings.EqualFold(single.Type, "JobPosting") {
+			out = append(out, toLDPost(single, i))
+			continue
+		}
+		var arr []ldJob
+		if err := json.Unmarshal([]byte(body), &arr); err == nil {
+			for idx, j := range arr {
+				if strings.EqualFold(j.Type, "JobPosting") {
+					out = append(out, toLDPost(j, i*1000+idx))
+				}
+			}
+			continue
+		}
+		var graph ldGraph
+		if err := json.Unmarshal([]byte(body), &graph); err == nil {
+			for idx, j := range graph.Graph {
+				if strings.EqualFold(j.Type, "JobPosting") {
+					out = append(out, toLDPost(j, i*1000+idx))
+				}
+			}
+		}
+	}
+	return out
+}
+
+func toLDPost(j struct {
+	Type        string `json:"@type"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	DatePosted  string `json:"datePosted"`
+	URL         string `json:"url"`
+	JobLocation any    `json:"jobLocation"`
+	HiringOrg   struct {
+		Name string `json:"name"`
+	} `json:"hiringOrganization"`
+}, seed int) model.JobPost {
+	post := model.JobPost{
+		ID:          fmt.Sprintf("naukri-%s-%s-%d", util.NormalizeSlug(j.Title), util.NormalizeSlug(j.HiringOrg.Name), seed),
+		Title:       strings.TrimSpace(j.Title),
+		CompanyName: strings.TrimSpace(j.HiringOrg.Name),
+		Description: strings.TrimSpace(j.Description),
+		JobURL:      strings.TrimSpace(j.URL),
+		DatePosted:  util.ParseDatePosted(j.DatePosted),
+	}
+	if post.JobURL == "" {
+		post.JobURL = defaultList
+	}
+	post.IsRemote = strings.Contains(strings.ToLower(post.Title+" "+post.Description), "remote")
+	return post
+}
+
+func limitNaukriJobs(in []model.JobPost, wanted int) []model.JobPost {
+	if wanted <= 0 || wanted > len(in) {
+		return in
+	}
+	return in[:wanted]
 }
 
 func pageSize(resultsWanted int) int {
