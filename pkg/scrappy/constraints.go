@@ -2,6 +2,8 @@ package scrappy
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/arinbalyan/scrappy/internal/model"
 )
 
@@ -50,6 +52,10 @@ func EvaluateConstraints(input model.ScraperInput) ConstraintResult {
 		case model.SiteMyWorkdayJobs:
 			if len(input.WorkdaySeeds) == 0 {
 				r.Warnings = append(r.Warnings, "myworkdayjobs works best with --workday-seeds or SCRAPPY_WORKDAY_SEEDS")
+			}
+		case model.SiteAdzuna:
+			if strings.TrimSpace(input.AdzunaAppID) == "" || strings.TrimSpace(input.AdzunaAppKey) == "" {
+				r.Warnings = append(r.Warnings, "adzuna requires --adzuna-app-id/--adzuna-app-key or SCRAPPY_ADZUNA_APP_ID/SCRAPPY_ADZUNA_APP_KEY")
 			}
 		}
 	}
