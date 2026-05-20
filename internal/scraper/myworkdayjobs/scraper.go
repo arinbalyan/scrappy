@@ -19,7 +19,6 @@ import (
 
 type Scraper struct{ client *http.Client }
 
-
 func New(client *http.Client) *Scraper {
 	if client == nil {
 		client = util.NewHTTPClient(util.ClientOptions{Retries: 2, CookieResetEveryN: 120, Timeout: 25 * time.Second})
@@ -32,8 +31,10 @@ func (s *Scraper) SiteName() model.Site { return model.SiteMyWorkdayJobs }
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	seeds := normalizeSeeds(input.WorkdaySeeds)
 	if len(seeds) == 0 {
+		util.APIMiss("workday_no_seeds", map[string]any{"site": model.SiteMyWorkdayJobs})
 		return nil, nil
 	}
+	util.Debug("workday_scrape_begin", map[string]any{"seeds": len(seeds), "results_wanted": input.ResultsWanted})
 	out := make([]model.JobPost, 0, input.ResultsWanted)
 	seen := map[string]struct{}{}
 	seedErrs := make([]error, 0)
@@ -41,9 +42,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	for _, seed := range seeds {
 		jobs, err := s.fetchSeedJobs(ctx, seed)
 		if err != nil {
+			util.Warn("workday_seed_failed", map[string]any{"seed": seed, "err": err.Error()})
 			seedErrs = append(seedErrs, fmt.Errorf("%s: %w", seed, err))
 			continue
 		}
+		util.Debug("workday_seed_success", map[string]any{"seed": seed, "jobs": len(jobs)})
 		successfulSeeds++
 		for _, j := range jobs {
 			if _, ok := seen[j.JobURL]; ok {
