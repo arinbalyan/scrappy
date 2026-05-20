@@ -35,6 +35,8 @@ type ScraperInput struct {
 	CSVEmailsOnly      bool         `json:"csv_emails_only"`
 	WorkableSeeds      []string     `json:"workable_seeds,omitempty"`
 	WorkdaySeeds       []string     `json:"workday_seeds,omitempty"`
+	AdzunaAppID        string       `json:"adzuna_app_id,omitempty"`
+	AdzunaAppKey       string       `json:"adzuna_app_key,omitempty"`
 	MaxRPS             int          `json:"max_rps"`
 	SiteRPS            map[Site]int `json:"site_rps,omitempty"`
 

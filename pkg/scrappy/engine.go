@@ -11,16 +11,27 @@ import (
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/quality"
 	"github.com/arinbalyan/scrappy/internal/scraper"
+	adzunascraper "github.com/arinbalyan/scrappy/internal/scraper/adzuna"
 	builtinscraper "github.com/arinbalyan/scrappy/internal/scraper/builtin"
+	fiveamsatscraper "github.com/arinbalyan/scrappy/internal/scraper/fiveamsat"
 	glassdoorscraper "github.com/arinbalyan/scrappy/internal/scraper/glassdoor"
+	golangjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/golangjobs"
 	googlescraper "github.com/arinbalyan/scrappy/internal/scraper/google"
+	gradcrackerscraper "github.com/arinbalyan/scrappy/internal/scraper/gradcracker"
+	hiringcafescraper "github.com/arinbalyan/scrappy/internal/scraper/hiringcafe"
 	indeedscraper "github.com/arinbalyan/scrappy/internal/scraper/indeed"
+	jobindexscraper "github.com/arinbalyan/scrappy/internal/scraper/jobindex"
 	linkedinscraper "github.com/arinbalyan/scrappy/internal/scraper/linkedin"
 	workdayscraper "github.com/arinbalyan/scrappy/internal/scraper/myworkdayjobs"
 	remoteokscraper "github.com/arinbalyan/scrappy/internal/scraper/remoteok"
 	remotivescraper "github.com/arinbalyan/scrappy/internal/scraper/remotive"
+	seekscraper "github.com/arinbalyan/scrappy/internal/scraper/seek"
+	startupjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/startupjobs"
+	ukvisajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ukvisajobs"
 	wellfoundscraper "github.com/arinbalyan/scrappy/internal/scraper/wellfound"
 	workablejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/workable_jobs"
+	workingnomadsscraper "github.com/arinbalyan/scrappy/internal/scraper/workingnomads"
+	wuzzufscraper "github.com/arinbalyan/scrappy/internal/scraper/wuzzuf"
 	ziprecruiterscraper "github.com/arinbalyan/scrappy/internal/scraper/ziprecruiter"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
@@ -47,6 +58,17 @@ func NewEngine() *Engine {
 		builtinscraper.New(nil),
 		workablejobsscraper.New(nil),
 		workdayscraper.New(nil),
+		adzunascraper.New(nil),
+		seekscraper.New(nil),
+		workingnomadsscraper.New(nil),
+		startupjobsscraper.New(nil),
+		fiveamsatscraper.New(nil),
+		golangjobsscraper.New(nil),
+		gradcrackerscraper.New(nil),
+		hiringcafescraper.New(nil),
+		jobindexscraper.New(nil),
+		ukvisajobsscraper.New(nil),
+		wuzzufscraper.New(nil),
 	}
 	m := make(map[model.Site]scraper.Scraper, len(s))
 	for _, sc := range s {

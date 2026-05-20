@@ -37,6 +37,8 @@ type cliConfig struct {
 	NonInteractive bool
 	WorkableSeeds  string
 	WorkdaySeeds   string
+	AdzunaAppID    string
+	AdzunaAppKey   string
 	LogLevel       string
 }
 
@@ -71,6 +73,8 @@ func main() {
 	root.Flags().BoolVar(&cfg.NonInteractive, "non-interactive", false, "disable interactive wizard")
 	root.Flags().StringVar(&cfg.WorkableSeeds, "workable-seeds", "", "comma-separated Workable account/company seeds")
 	root.Flags().StringVar(&cfg.WorkdaySeeds, "workday-seeds", "", "comma-separated Workday CXS endpoint seeds")
+	root.Flags().StringVar(&cfg.AdzunaAppID, "adzuna-app-id", "", "Adzuna app id (or SCRAPPY_ADZUNA_APP_ID)")
+	root.Flags().StringVar(&cfg.AdzunaAppKey, "adzuna-app-key", "", "Adzuna app key (or SCRAPPY_ADZUNA_APP_KEY)")
 	root.Flags().StringVar(&cfg.LogLevel, "log-level", "", "log level: DEBUG|INFO|WARN|ERROR|SYSTEM_ERROR|API_MISS")
 
 	if err := root.Execute(); err != nil {
@@ -128,6 +132,8 @@ func runOnce(cfg *cliConfig) error {
 		MinScore:       0,
 		WorkableSeeds:  parseCSV(cfg.WorkableSeeds),
 		WorkdaySeeds:   parseCSV(cfg.WorkdaySeeds),
+		AdzunaAppID:    strings.TrimSpace(cfg.AdzunaAppID),
+		AdzunaAppKey:   strings.TrimSpace(cfg.AdzunaAppKey),
 		LogLevel:       level,
 	}
 
