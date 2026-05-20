@@ -1,8 +1,10 @@
 # Wellfound
 
 ## Current integration
-- Source mode: listing HTML parsing.
-- Extracted fields: url, title, company, remote marker (default true), scrape-time timestamp.
+- Parser order:
+  1. `application/ld+json` JobPosting extraction
+  2. fallback listing HTML parsing
+- Extracted fields: url, title, company, description, employment type, remote marker (default true), date_posted when available.
 
 ## Supported knobs
 - `results_wanted`
