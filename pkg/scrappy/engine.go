@@ -22,6 +22,7 @@ import (
 	linkedinscraper "github.com/arinbalyan/scrappy/internal/scraper/linkedin"
 	remoteokscraper "github.com/arinbalyan/scrappy/internal/scraper/remoteok"
 	remotivescraper "github.com/arinbalyan/scrappy/internal/scraper/remotive"
+	ziprecruiterscraper "github.com/arinbalyan/scrappy/internal/scraper/ziprecruiter"
 	ukvisajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ukvisajobs"
 	workingnomadsscraper "github.com/arinbalyan/scrappy/internal/scraper/workingnomads"
 	wuzzufscraper "github.com/arinbalyan/scrappy/internal/scraper/wuzzuf"
@@ -51,6 +52,7 @@ func NewEngine() *Engine {
 		remoteokscraper.New(nil),
 		remotivescraper.New(nil),
 		aijobsscraper.New(nil),
+		ziprecruiterscraper.New(nil),
 		workingnomadsscraper.New(nil),
 		wuzzufscraper.New(nil),
 		ycjobsscraper.New(nil),

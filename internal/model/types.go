@@ -10,6 +10,7 @@ type Site string
 const (
 	SiteLinkedIn        Site = "linkedin"
 	SiteIndeed          Site = "indeed"
+	SiteZipRecruiter    Site = "zip_recruiter"
 	SiteGreenhouse      Site = "greenhouse"
 	SiteGunIO           Site = "gunio"
 	SiteHimalayas       Site = "himalayas"
@@ -30,6 +31,7 @@ func AllSites() []Site {
 	return []Site{
 		SiteLinkedIn,
 		SiteIndeed,
+		SiteZipRecruiter,
 		SiteGreenhouse,
 		SiteGunIO,
 		SiteHimalayas,
