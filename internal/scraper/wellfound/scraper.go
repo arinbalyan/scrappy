@@ -65,7 +65,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 	limited := limitJobs(parseHTMLJobs(raw), input.ResultsWanted)
 	if !util.HasMeaningfulJobs(limited) {
-		return nil, nil
+		return nil, fmt.Errorf("wellfound no parseable jobs")
 	}
 	return limited, nil
 }

@@ -54,6 +54,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		return nil, fmt.Errorf("gradcracker request: %w", err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusForbidden {
+		return nil, fmt.Errorf("gradcracker blocked status 403")
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("gradcracker status %d", resp.StatusCode)
 	}
@@ -62,13 +65,17 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		return nil, fmt.Errorf("gradcracker read: %w", err)
 	}
 
+	raw := string(body)
+	if strings.Contains(strings.ToLower(raw), "just a moment") || strings.Contains(strings.ToLower(raw), "attention required") {
+		return nil, fmt.Errorf("gradcracker challenge page")
+	}
 	jobs := parseGradcrackerAPI(body)
 	if !util.HasMeaningfulJobs(jobs) {
-		jobs = parseGradcrackerHTML(string(body))
+		jobs = parseGradcrackerHTML(raw)
 	}
 	jobs = limitGradcrackerJobs(jobs, input.ResultsWanted)
 	if !util.HasMeaningfulJobs(jobs) {
-		return nil, nil
+		return nil, fmt.Errorf("gradcracker no parseable jobs")
 	}
 	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(jobs)})
 	return jobs, nil

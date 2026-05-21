@@ -45,7 +45,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	seeds := normalizeSeeds(input.WorkableSeeds, "SCRAPPY_WORKABLE_SEEDS")
 	if len(seeds) == 0 {
 		util.APIMiss("workable_no_seeds", map[string]any{"site": model.SiteWorkableJobs})
-		return nil, nil
+		return nil, fmt.Errorf("workable missing seeds: set --workable-seeds or SCRAPPY_WORKABLE_SEEDS")
+	}
+
+	if strings.TrimSpace(input.SearchTerm) == "" {
+		return nil, fmt.Errorf("workable missing search term")
 	}
 	util.Debug("workable_scrape_begin", map[string]any{"seeds": len(seeds), "results_wanted": input.ResultsWanted})
 	out := make([]model.JobPost, 0, input.ResultsWanted)
@@ -140,6 +144,9 @@ func (s *Scraper) fetchSeedJobs(ctx context.Context, seed string) ([]model.JobPo
 		jobs = append(jobs, post)
 	}
 	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(jobs)})
+	if !util.HasMeaningfulJobs(jobs) {
+		return nil, fmt.Errorf("workable_jobs no parseable jobs")
+	}
 	return jobs, nil
 }
 

@@ -34,7 +34,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	seeds := normalizeSeeds(input.WorkdaySeeds)
 	if len(seeds) == 0 {
 		util.APIMiss("workday_no_seeds", map[string]any{"site": model.SiteMyWorkdayJobs})
-		return nil, nil
+		return nil, fmt.Errorf("workday missing seeds: set --workday-seeds or SCRAPPY_WORKDAY_SEEDS")
+	}
+
+	if strings.TrimSpace(input.SearchTerm) == "" {
+		return nil, fmt.Errorf("workday missing search term")
 	}
 	util.Debug("workday_scrape_begin", map[string]any{"seeds": len(seeds), "results_wanted": input.ResultsWanted})
 	out := make([]model.JobPost, 0, input.ResultsWanted)
