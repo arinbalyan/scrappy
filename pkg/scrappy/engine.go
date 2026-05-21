@@ -378,7 +378,9 @@ func classifyFailOpenReason(err error) string {
 }
 
 func enrichJobEmails(job *model.JobPost) {
-	text := strings.TrimSpace(job.Description)
+	job.Emails = dedupEmails(job.Emails)
+
+	text := jobTextForEmailExtraction(job)
 	if text == "" {
 		return
 	}
@@ -390,6 +392,17 @@ func enrichJobEmails(job *model.JobPost) {
 		job.Emails = append(job.Emails, model.Email{Addr: e.Addr, Source: e.Source, Role: e.Role})
 	}
 	job.Emails = dedupEmails(job.Emails)
+}
+
+func jobTextForEmailExtraction(job *model.JobPost) string {
+	parts := make([]string, 0, 2)
+	if v := strings.TrimSpace(job.Description); v != "" {
+		parts = append(parts, v)
+	}
+	if v := strings.TrimSpace(job.CompanyDescription); v != "" {
+		parts = append(parts, v)
+	}
+	return strings.Join(parts, "\n")
 }
 
 func dedupEmails(in []model.Email) []model.Email {
