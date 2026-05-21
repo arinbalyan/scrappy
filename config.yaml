@@ -1,36 +1,51 @@
 defaults:
-  search: "software engineer"
+  search: "AI automation engineer"
   location: "Remote"
-  results_wanted: 15
+  results_wanted: 25
 
 sites:
-  seek:
-    search: "software engineer"
-    location: "Australia"
-  naukri:
-    search: "software engineer"
-    location: "India"
-  bdjobs:
-    search: "software engineer"
-    location: "Bangladesh"
-  bayt:
-    search: "software engineer"
-    location: "United Arab Emirates"
-  otta:
-    search: "software engineer"
-    location: "United Kingdom"
-  lever:
-    search: "software engineer"
+  indeed:
+    search: '"ai automation engineer" ("ai agent" OR "llm" OR "machine learning") -marketing -sales'
+    location: "United States"
+  linkedin:
+    search: '"AI Engineer" OR "ML Engineer" OR "AI Agent Engineer"'
     location: "United States"
   greenhouse:
-    search: "software engineer"
+    search: '"AI Engineer" OR "Machine Learning Engineer"'
     location: "United States"
-  wellfound:
-    search: "software engineer"
-    location: "United States"
+  gunio:
+    search: "ai engineer"
+    location: "Remote"
+  himalayas:
+    search: "llm engineer"
+    location: "Remote"
+  hiringcafe:
+    search: "ai automation engineer"
+    location: "Remote"
+  huggingfacejobs:
+    search: "machine learning engineer"
+    location: "Remote"
+  jobindex:
+    search: "machine learning engineer"
+    location: "Denmark"
   remoteok:
-    search: "golang"
+    search: "ai engineer"
     location: "Remote"
   remotive:
-    search: "golang"
+    search: "machine learning engineer"
+    location: "Remote"
+  workingnomads:
+    search: "llm engineer"
+    location: "Remote"
+  wuzzuf:
+    search: "ai engineer"
+    location: "Egypt"
+  ycjobs:
+    search: "ai agent engineer"
+    location: "United States"
+  ukvisajobs:
+    search: "machine learning engineer"
+    location: "United Kingdom"
+  aijobs:
+    search: "ai engineer"
     location: "Remote"

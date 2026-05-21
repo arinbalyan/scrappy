@@ -4,7 +4,6 @@ package model
 type ScraperInput struct {
 	Sites               []Site  `json:"sites"`
 	SearchTerm          string  `json:"search_term,omitempty"`
-	GoogleSearchTerm    string  `json:"google_search_term,omitempty"`
 	Location            string  `json:"location,omitempty"`
 	Country             Country `json:"country,omitempty"`
 	DistanceMiles       int     `json:"distance,omitempty"`
@@ -33,10 +32,6 @@ type ScraperInput struct {
 	EmailEnrichDomains string       `json:"email_enrich_domains,omitempty"`
 	LinkedInStrategy   string       `json:"linkedin_strategy,omitempty"` // "" | "rotate"
 	CSVEmailsOnly      bool         `json:"csv_emails_only"`
-	WorkableSeeds      []string     `json:"workable_seeds,omitempty"`
-	WorkdaySeeds       []string     `json:"workday_seeds,omitempty"`
-	AdzunaAppID        string       `json:"adzuna_app_id,omitempty"`
-	AdzunaAppKey       string       `json:"adzuna_app_key,omitempty"`
 	MaxRPS             int          `json:"max_rps"`
 	SiteRPS            map[Site]int `json:"site_rps,omitempty"`
 

@@ -9,7 +9,7 @@ import (
 func TestLoadAppConfigParsesDefaultsAndSites(t *testing.T) {
 	dir := t.TempDir()
 	p := filepath.Join(dir, "config.yaml")
-	data := []byte("defaults:\n  search: backend\n  location: Remote\n  results_wanted: 7\nsites:\n  seek:\n    search: golang\n    location: Australia\n")
+	data := []byte("defaults:\n  search: backend\n  location: Remote\n  results_wanted: 7\nsites:\n  remoteok:\n    search: golang\n    location: Remote\n")
 	if err := os.WriteFile(p, data, 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
@@ -18,12 +18,12 @@ func TestLoadAppConfigParsesDefaultsAndSites(t *testing.T) {
 	if cfg.Defaults.Search != "backend" || cfg.Defaults.Location != "Remote" || cfg.Defaults.ResultsWanted != 7 {
 		t.Fatalf("unexpected defaults: %+v", cfg.Defaults)
 	}
-	seek, ok := cfg.Sites["seek"]
+	remoteok, ok := cfg.Sites["remoteok"]
 	if !ok {
-		t.Fatalf("missing seek site config")
+		t.Fatalf("missing remoteok site config")
 	}
-	if seek.Search != "golang" || seek.Location != "Australia" {
-		t.Fatalf("unexpected seek target: %+v", seek)
+	if remoteok.Search != "golang" || remoteok.Location != "Remote" {
+		t.Fatalf("unexpected remoteok target: %+v", remoteok)
 	}
 }
 
