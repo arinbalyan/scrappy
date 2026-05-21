@@ -12,11 +12,13 @@ import (
 	"github.com/arinbalyan/scrappy/internal/quality"
 	"github.com/arinbalyan/scrappy/internal/scraper"
 	aijobsscraper "github.com/arinbalyan/scrappy/internal/scraper/aijobs"
+	androidjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/androidjobs"
 	arbeitnowscraper "github.com/arinbalyan/scrappy/internal/scraper/arbeitnow"
 	baytscraper "github.com/arinbalyan/scrappy/internal/scraper/bayt"
 	bdjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/bdjobs"
 	builtinscraper "github.com/arinbalyan/scrappy/internal/scraper/builtin"
 	cryptocurrencyjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/cryptocurrencyjobs"
+	devopsjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/devopsjobs"
 	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
 	gunioscraper "github.com/arinbalyan/scrappy/internal/scraper/gunio"
 	hackernewsscraper "github.com/arinbalyan/scrappy/internal/scraper/hackernews"
@@ -26,6 +28,7 @@ import (
 	huggingfacejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/huggingfacejobs"
 	indeedscraper "github.com/arinbalyan/scrappy/internal/scraper/indeed"
 	internshalascraper "github.com/arinbalyan/scrappy/internal/scraper/internshala"
+	jobicyscraper "github.com/arinbalyan/scrappy/internal/scraper/jobicy"
 	jobindexscraper "github.com/arinbalyan/scrappy/internal/scraper/jobindex"
 	jobspressoscraper "github.com/arinbalyan/scrappy/internal/scraper/jobspresso"
 	larajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/larajobs"
@@ -82,6 +85,9 @@ func NewEngine() *Engine {
 		hackernewsscraper.New(nil),
 		cryptocurrencyjobsscraper.New(nil),
 		aijobsscraper.New(nil),
+		androidjobsscraper.New(nil),
+		jobicyscraper.New(nil),
+		devopsjobsscraper.New(nil),
 		ziprecruiterscraper.New(nil),
 		workingnomadsscraper.New(nil),
 		wuzzufscraper.New(nil),
