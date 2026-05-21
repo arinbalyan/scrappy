@@ -14,6 +14,7 @@ import (
 	aijobsscraper "github.com/arinbalyan/scrappy/internal/scraper/aijobs"
 	baytscraper "github.com/arinbalyan/scrappy/internal/scraper/bayt"
 	bdjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/bdjobs"
+	builtinscraper "github.com/arinbalyan/scrappy/internal/scraper/builtin"
 	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
 	gunioscraper "github.com/arinbalyan/scrappy/internal/scraper/gunio"
 	himalayasscraper "github.com/arinbalyan/scrappy/internal/scraper/himalayas"
@@ -26,6 +27,7 @@ import (
 	naukriscraper "github.com/arinbalyan/scrappy/internal/scraper/naukri"
 	remoteokscraper "github.com/arinbalyan/scrappy/internal/scraper/remoteok"
 	remotivescraper "github.com/arinbalyan/scrappy/internal/scraper/remotive"
+	startupjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/startupjobs"
 	ziprecruiterscraper "github.com/arinbalyan/scrappy/internal/scraper/ziprecruiter"
 	ukvisajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ukvisajobs"
 	workingnomadsscraper "github.com/arinbalyan/scrappy/internal/scraper/workingnomads"
@@ -51,6 +53,8 @@ func NewEngine() *Engine {
 		bdjobsscraper.New(nil),
 		naukriscraper.New(nil),
 		internshalascraper.New(nil),
+		builtinscraper.New(nil),
+		startupjobsscraper.New(nil),
 		greenhousescraper.New(nil),
 		gunioscraper.New(nil),
 		himalayasscraper.New(nil),
