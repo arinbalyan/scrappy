@@ -12,11 +12,14 @@ import (
 	"github.com/arinbalyan/scrappy/internal/quality"
 	"github.com/arinbalyan/scrappy/internal/scraper"
 	aijobsscraper "github.com/arinbalyan/scrappy/internal/scraper/aijobs"
+	arbeitnowscraper "github.com/arinbalyan/scrappy/internal/scraper/arbeitnow"
 	baytscraper "github.com/arinbalyan/scrappy/internal/scraper/bayt"
 	bdjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/bdjobs"
 	builtinscraper "github.com/arinbalyan/scrappy/internal/scraper/builtin"
+	cryptocurrencyjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/cryptocurrencyjobs"
 	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
 	gunioscraper "github.com/arinbalyan/scrappy/internal/scraper/gunio"
+	hackernewsscraper "github.com/arinbalyan/scrappy/internal/scraper/hackernews"
 	hasjobscraper "github.com/arinbalyan/scrappy/internal/scraper/hasjob"
 	himalayasscraper "github.com/arinbalyan/scrappy/internal/scraper/himalayas"
 	hiringcafescraper "github.com/arinbalyan/scrappy/internal/scraper/hiringcafe"
@@ -75,6 +78,9 @@ func NewEngine() *Engine {
 		hasjobscraper.New(nil),
 		vuejobsscraper.New(nil),
 		larajobsscraper.New(nil),
+		arbeitnowscraper.New(nil),
+		hackernewsscraper.New(nil),
+		cryptocurrencyjobsscraper.New(nil),
 		aijobsscraper.New(nil),
 		ziprecruiterscraper.New(nil),
 		workingnomadsscraper.New(nil),
