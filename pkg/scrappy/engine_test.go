@@ -79,3 +79,36 @@ func TestEngineDedupsAcrossSameSiteSearchTermsByJobURL(t *testing.T) {
 		t.Fatalf("expected 1 deduped job, got %d", len(jobs))
 	}
 }
+
+func TestEngineEmailsOnlyFiltersAndExtractsFromDescriptionAndCompanyDescription(t *testing.T) {
+	s := &fakeScraper{
+		site: model.SiteIndeed,
+		jobs: map[string][]model.JobPost{
+			"golang": {
+				{ID: "1", Title: "No email", JobURL: "https://example.com/no-email", Description: "plain text without contacts"},
+				{ID: "2", Title: "Desc email", JobURL: "https://example.com/desc-email", Description: "contact eng@acme.com"},
+				{ID: "3", Title: "Company desc email", JobURL: "https://example.com/company-email", CompanyDescription: "reach us at jobs@beta.com"},
+			},
+		},
+	}
+	e := &Engine{scrapers: map[model.Site]scraper.Scraper{model.SiteIndeed: s}, siteFailOpen: true}
+	input := model.ScraperInput{
+		Sites:      []model.Site{model.SiteIndeed},
+		SearchTerm: "golang",
+		EmailsOnly: true,
+		Dedup:      true,
+	}
+
+	jobs, err := e.Scrape(context.Background(), input)
+	if err != nil {
+		t.Fatalf("scrape: %v", err)
+	}
+	if len(jobs) != 2 {
+		t.Fatalf("expected only 2 jobs with emails, got %d", len(jobs))
+	}
+	for _, j := range jobs {
+		if len(j.Emails) == 0 {
+			t.Fatalf("emails-only result contains job without emails: %s", j.ID)
+		}
+	}
+}

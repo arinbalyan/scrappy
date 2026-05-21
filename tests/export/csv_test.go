@@ -70,16 +70,34 @@ func TestWriteCSV(t *testing.T) {
 		t.Fatalf("header/data column mismatch: %d vs %d", len(records[0]), len(records[1]))
 	}
 	emailsCol := -1
+	emailsVerifiedCol := -1
+	emailSourceCol := -1
 	for i, h := range records[0] {
-		if h == "emails" {
+		switch h {
+		case "emails":
 			emailsCol = i
-			break
+		case "emails_verified":
+			emailsVerifiedCol = i
+		case "email_source":
+			emailSourceCol = i
 		}
 	}
 	if emailsCol < 0 {
 		t.Fatalf("emails column missing")
 	}
+	if emailsVerifiedCol < 0 {
+		t.Fatalf("emails_verified column missing")
+	}
+	if emailSourceCol < 0 {
+		t.Fatalf("email_source column missing")
+	}
 	if got := records[1][emailsCol]; got != "hr@acme.com;eng@acme.com" {
 		t.Fatalf("unexpected emails serialization: %q", got)
+	}
+	if got := records[1][emailsVerifiedCol]; got != "true;false" {
+		t.Fatalf("unexpected emails_verified serialization: %q", got)
+	}
+	if got := records[1][emailSourceCol]; got != "description;company_page" {
+		t.Fatalf("unexpected email_source serialization: %q", got)
 	}
 }
