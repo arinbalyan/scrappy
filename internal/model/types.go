@@ -16,10 +16,24 @@ const (
 	SiteBayt          Site = "bayt"
 	SiteNaukri        Site = "naukri"
 	SiteBDJobs        Site = "bdjobs"
-	SiteWellfound     Site = "wellfound"
-	SiteRemoteOK      Site = "remoteok"
-	SiteRemotive      Site = "remotive"
-	SiteBuiltIn       Site = "builtin"
+	SiteWellfound       Site = "wellfound"
+	SiteHimalayas       Site = "himalayas"
+	SiteWeWorkRemotely  Site = "weworkremotely"
+	SiteRemoteCo        Site = "remoteco"
+	SiteRemoteOK        Site = "remoteok"
+	SiteRemotive        Site = "remotive"
+	SiteBuiltIn         Site = "builtin"
+	SiteContra          Site = "contra"
+	SiteToptal          Site = "toptal"
+	SiteGunIO           Site = "gunio"
+	SiteBraintrust      Site = "braintrust"
+	SiteLemonIO         Site = "lemonio"
+	SiteYCJobs          Site = "ycjobs"
+	SitePallet          Site = "pallet"
+	SiteGetro           Site = "getro"
+	SiteMLJobs          Site = "mljobs"
+	SiteAIJobs          Site = "aijobs"
+	SiteHuggingFaceJobs Site = "huggingfacejobs"
 	SiteOtta          Site = "otta"
 	SiteLever         Site = "lever"
 	SiteGreenhouse    Site = "greenhouse"
@@ -34,17 +48,21 @@ const (
 	SiteJobindex      Site = "jobindex"
 	SiteUKVisaJobs    Site = "ukvisajobs"
 	SiteWuzzuf        Site = "wuzzuf"
+	SiteRemotiveAPI   Site = "remotive_api"
 )
 
 // AllSites returns every known site.
 func AllSites() []Site {
 	return []Site{
-		SiteLinkedIn, SiteIndeed, SiteZipRecruiter, SiteGlassdoor,
-		SiteGoogle, SiteBayt, SiteNaukri, SiteBDJobs,
-		SiteWellfound, SiteRemoteOK, SiteRemotive, SiteBuiltIn,
+		SiteLinkedIn, SiteIndeed, SiteZipRecruiter,
+		SiteGoogle, SiteBayt, SiteBDJobs,
+		SiteWellfound, SiteHimalayas, SiteWeWorkRemotely, SiteRemoteCo, SiteRemoteOK, SiteRemotive, SiteRemotiveAPI, SiteBuiltIn,
+		SiteContra, SiteToptal, SiteGunIO, SiteBraintrust, SiteLemonIO,
+		SiteYCJobs, SitePallet, SiteGetro,
+		SiteMLJobs, SiteAIJobs, SiteHuggingFaceJobs,
 		SiteOtta, SiteLever, SiteGreenhouse, SiteWorkableJobs, SiteMyWorkdayJobs,
-		SiteAdzuna, SiteSeek, SiteWorkingNomads, SiteStartupJobs,
-		SiteGradcracker, SiteHiringCafe, SiteJobindex, SiteUKVisaJobs, SiteWuzzuf,
+		SiteAdzuna, SiteWorkingNomads, SiteStartupJobs,
+		SiteJobindex, SiteUKVisaJobs, SiteWuzzuf,
 	}
 }
 

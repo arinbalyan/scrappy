@@ -30,12 +30,22 @@ func HasMeaningfulJobs(jobs []model.JobPost) bool {
 		return false
 	}
 	for _, j := range jobs {
-		t := strings.TrimSpace(j.Title)
-		u := strings.TrimSpace(j.JobURL)
+		t := strings.ToLower(strings.TrimSpace(j.Title))
+		u := strings.ToLower(strings.TrimSpace(j.JobURL))
 		c := strings.TrimSpace(j.CompanyName)
-		if t != "" && (u != "" || c != "") {
-			return true
+		if t == "" || (u == "" && c == "") {
+			continue
 		}
+		if strings.Contains(u, "/cdn-cgi/l/email-protection") {
+			continue
+		}
+		if t == "latest jobs" || t == "work archive" || t == "archive" || t == "home" || t == "login" || t == "sign in" {
+			continue
+		}
+		if strings.Contains(t, "email protected") || strings.Contains(t, "[email") {
+			continue
+		}
+		return true
 	}
 	return false
 }

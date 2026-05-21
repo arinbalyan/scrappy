@@ -51,7 +51,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 	if appID == "" || appKey == "" {
 		util.APIMiss("adzuna_missing_credentials", map[string]any{"site": model.SiteAdzuna})
-		return nil, nil
+		return nil, fmt.Errorf("adzuna missing credentials: set --adzuna-app-id/--adzuna-app-key or SCRAPPY_ADZUNA_APP_ID/SCRAPPY_ADZUNA_APP_KEY")
+	}
+
+	if strings.TrimSpace(input.SearchTerm) == "" {
+		return nil, fmt.Errorf("adzuna missing search term")
 	}
 
 	u, _ := url.Parse(s.apiURL)
@@ -119,5 +123,8 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		})
 	}
 	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(jobs)})
+	if !util.HasMeaningfulJobs(jobs) {
+		return nil, fmt.Errorf("adzuna no parseable jobs")
+	}
 	return jobs, nil
 }

@@ -12,24 +12,21 @@ import (
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
-const (
-	defaultListURL = "https://www.bayt.com/en/international/jobs/"
-	defaultSearch  = "https://www.bayt.com/en/en/job-search/"
-)
+const defaultListURL = "https://www.bayt.com/en/international/jobs/"
+const defaultSearch  = "https://www.bayt.com/en/job-search/"
 
-var reJob = regexp.MustCompile(`(?is)<a[^>]*href="(https?://[^"]*?/jobs/[^"]*)"[^>]*>\s*([^<]{4,160})\s*</a>`)
+var reJobLink = regexp.MustCompile(`(?is)<a[^>]+href="(https?://[^"]*?/jobs/[^"]*)"[^>]*>`)
 
 type Scraper struct {
 	Client  *http.Client
 	ListURL string
-	AuthURL string // base URL used for matching job URLs in HTML
 }
 
 func New(client *http.Client) *Scraper {
 	if client == nil {
 		client = util.NewHTTPClient(util.ClientOptions{Retries: 3, Timeout: 20 * time.Second})
 	}
-	return &Scraper{Client: client, ListURL: defaultListURL, AuthURL: "https://www.bayt.com"}
+	return &Scraper{Client: client, ListURL: defaultListURL}
 }
 
 func NewWithListURL(client *http.Client, u string) *Scraper {

@@ -148,7 +148,11 @@ func (s *Scraper) scrapeSinglePass(ctx context.Context, input model.ScraperInput
 	if to > len(jobs) {
 		to = len(jobs)
 	}
-	return jobs[from:to], nil
+	trimmed := jobs[from:to]
+	if len(trimmed) == 0 {
+		return nil, fmt.Errorf("linkedin no parseable jobs")
+	}
+	return trimmed, nil
 }
 
 func (s *Scraper) scrapeRotateStrategy(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
@@ -186,7 +190,7 @@ func (s *Scraper) scrapeRotateStrategy(ctx context.Context, input model.ScraperI
 		}
 	}
 	if len(all) == 0 {
-		return nil, nil
+		return nil, fmt.Errorf("linkedin no parseable jobs")
 	}
 	return all, nil
 }

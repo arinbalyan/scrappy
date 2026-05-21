@@ -75,5 +75,8 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		out = append(out, model.JobPost{ID: id, Title: title, CompanyName: company, JobURL: url, IsRemote: true, DatePosted: posted})
 	}
 	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(out)})
+	if !util.HasMeaningfulJobs(out) {
+		return nil, fmt.Errorf("remoteok no parseable jobs")
+	}
 	return out, nil
 }

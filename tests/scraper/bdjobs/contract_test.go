@@ -18,7 +18,7 @@ func TestBDJobsFailsOnEmptyResponse(t *testing.T) {
 		_, _ = w.Write([]byte(`<!-- no jobs -->`))
 	}))
 	defer srv.Close()
-	s := &sut.Scraper{Client: srv.Client(), ListURL: srv.URL, AuthURL: srv.URL}
+	s := &sut.Scraper{Client: srv.Client(), ListURL: srv.URL}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	_, err := s.Scrape(ctx, model.ScraperInput{SearchTerm: "developer", ResultsWanted: 5})
@@ -34,7 +34,7 @@ func TestBDJobsFailsOn429And503(t *testing.T) {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(status)
 		}))
-		s := &sut.Scraper{Client: srv.Client(), ListURL: srv.URL, AuthURL: srv.URL}
+		s := &sut.Scraper{Client: srv.Client(), ListURL: srv.URL}
 		_, err := s.Scrape(ctx, model.ScraperInput{SearchTerm: "developer", ResultsWanted: 5})
 		srv.Close()
 		if err == nil {
@@ -53,7 +53,7 @@ func TestBDJobsReturnsJobsOnValidHTML(t *testing.T) {
 		_, _ = w.Write([]byte(page))
 	}))
 	defer srv.Close()
-	s := &sut.Scraper{Client: srv.Client(), ListURL: srv.URL, AuthURL: srv.URL}
+	s := &sut.Scraper{Client: srv.Client(), ListURL: srv.URL}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	jobs, err := s.Scrape(ctx, model.ScraperInput{SearchTerm: "developer", ResultsWanted: 5})
@@ -74,7 +74,7 @@ func TestBDJobsDetectsChallengePage(t *testing.T) {
 		_, _ = w.Write([]byte(`<html><body><div>captcha required</div></body></html>`))
 	}))
 	defer srv.Close()
-	s := &sut.Scraper{Client: srv.Client(), ListURL: srv.URL, AuthURL: srv.URL}
+	s := &sut.Scraper{Client: srv.Client(), ListURL: srv.URL}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	_, err := s.Scrape(ctx, model.ScraperInput{SearchTerm: "developer", ResultsWanted: 5})
