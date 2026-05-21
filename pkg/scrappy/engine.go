@@ -17,6 +17,7 @@ import (
 	builtinscraper "github.com/arinbalyan/scrappy/internal/scraper/builtin"
 	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
 	gunioscraper "github.com/arinbalyan/scrappy/internal/scraper/gunio"
+	hasjobscraper "github.com/arinbalyan/scrappy/internal/scraper/hasjob"
 	himalayasscraper "github.com/arinbalyan/scrappy/internal/scraper/himalayas"
 	hiringcafescraper "github.com/arinbalyan/scrappy/internal/scraper/hiringcafe"
 	huggingfacejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/huggingfacejobs"
@@ -24,6 +25,7 @@ import (
 	internshalascraper "github.com/arinbalyan/scrappy/internal/scraper/internshala"
 	jobindexscraper "github.com/arinbalyan/scrappy/internal/scraper/jobindex"
 	jobspressoscraper "github.com/arinbalyan/scrappy/internal/scraper/jobspresso"
+	larajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/larajobs"
 	linkedinscraper "github.com/arinbalyan/scrappy/internal/scraper/linkedin"
 	naukriscraper "github.com/arinbalyan/scrappy/internal/scraper/naukri"
 	remotefirstjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/remotefirstjobs"
@@ -31,6 +33,7 @@ import (
 	remotivescraper "github.com/arinbalyan/scrappy/internal/scraper/remotive"
 	startupjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/startupjobs"
 	ukvisajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ukvisajobs"
+	vuejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/vuejobs"
 	weworkremotelyscraper "github.com/arinbalyan/scrappy/internal/scraper/weworkremotely"
 	workingnomadsscraper "github.com/arinbalyan/scrappy/internal/scraper/workingnomads"
 	wuzzufscraper "github.com/arinbalyan/scrappy/internal/scraper/wuzzuf"
@@ -69,6 +72,9 @@ func NewEngine() *Engine {
 		weworkremotelyscraper.New(nil),
 		remotefirstjobsscraper.New(nil),
 		jobspressoscraper.New(nil),
+		hasjobscraper.New(nil),
+		vuejobsscraper.New(nil),
+		larajobsscraper.New(nil),
 		aijobsscraper.New(nil),
 		ziprecruiterscraper.New(nil),
 		workingnomadsscraper.New(nil),
