@@ -8,34 +8,37 @@ import (
 type Site string
 
 const (
-	SiteLinkedIn        Site = "linkedin"
-	SiteIndeed          Site = "indeed"
-	SiteZipRecruiter    Site = "zip_recruiter"
-	SiteBayt            Site = "bayt"
-	SiteBDJobs          Site = "bdjobs"
-	SiteNaukri          Site = "naukri"
-	SiteInternshala     Site = "internshala"
-	SiteBuiltin         Site = "builtin"
-	SiteStartupJobs     Site = "startupjobs"
-	SiteGreenhouse      Site = "greenhouse"
-	SiteGunIO           Site = "gunio"
-	SiteHimalayas       Site = "himalayas"
-	SiteHiringCafe      Site = "hiringcafe"
-	SiteHuggingFaceJobs Site = "huggingfacejobs"
-	SiteJobindex        Site = "jobindex"
-	SiteRemoteOK        Site = "remoteok"
-	SiteRemotive        Site = "remotive"
-	SiteWeWorkRemotely  Site = "weworkremotely"
-	SiteRemoteFirstJobs Site = "remotefirstjobs"
-	SiteJobspresso      Site = "jobspresso"
-	SiteHasJob          Site = "hasjob"
-	SiteVueJobs         Site = "vuejobs"
-	SiteLaraJobs        Site = "larajobs"
-	SiteAIJobs          Site = "aijobs"
-	SiteWorkingNomads   Site = "workingnomads"
-	SiteWuzzuf          Site = "wuzzuf"
-	SiteYCJobs          Site = "ycjobs"
-	SiteUKVisaJobs      Site = "ukvisajobs"
+	SiteLinkedIn           Site = "linkedin"
+	SiteIndeed             Site = "indeed"
+	SiteZipRecruiter       Site = "zip_recruiter"
+	SiteBayt               Site = "bayt"
+	SiteBDJobs             Site = "bdjobs"
+	SiteNaukri             Site = "naukri"
+	SiteInternshala        Site = "internshala"
+	SiteBuiltin            Site = "builtin"
+	SiteStartupJobs        Site = "startupjobs"
+	SiteGreenhouse         Site = "greenhouse"
+	SiteGunIO              Site = "gunio"
+	SiteHimalayas          Site = "himalayas"
+	SiteHiringCafe         Site = "hiringcafe"
+	SiteHuggingFaceJobs    Site = "huggingfacejobs"
+	SiteJobindex           Site = "jobindex"
+	SiteRemoteOK           Site = "remoteok"
+	SiteRemotive           Site = "remotive"
+	SiteWeWorkRemotely     Site = "weworkremotely"
+	SiteRemoteFirstJobs    Site = "remotefirstjobs"
+	SiteJobspresso         Site = "jobspresso"
+	SiteHasJob             Site = "hasjob"
+	SiteVueJobs            Site = "vuejobs"
+	SiteLaraJobs           Site = "larajobs"
+	SiteArbeitnow          Site = "arbeitnow"
+	SiteHackerNews         Site = "hackernews"
+	SiteCryptocurrencyJobs Site = "cryptocurrencyjobs"
+	SiteAIJobs             Site = "aijobs"
+	SiteWorkingNomads      Site = "workingnomads"
+	SiteWuzzuf             Site = "wuzzuf"
+	SiteYCJobs             Site = "ycjobs"
+	SiteUKVisaJobs         Site = "ukvisajobs"
 )
 
 // AllSites returns every known site.
@@ -64,6 +67,9 @@ func AllSites() []Site {
 		SiteHasJob,
 		SiteVueJobs,
 		SiteLaraJobs,
+		SiteArbeitnow,
+		SiteHackerNews,
+		SiteCryptocurrencyJobs,
 		SiteAIJobs,
 		SiteWorkingNomads,
 		SiteWuzzuf,
