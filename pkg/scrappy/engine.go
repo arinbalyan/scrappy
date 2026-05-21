@@ -17,8 +17,10 @@ import (
 	baytscraper "github.com/arinbalyan/scrappy/internal/scraper/bayt"
 	bdjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/bdjobs"
 	builtinscraper "github.com/arinbalyan/scrappy/internal/scraper/builtin"
+	crunchboardscraper "github.com/arinbalyan/scrappy/internal/scraper/crunchboard"
 	cryptocurrencyjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/cryptocurrencyjobs"
 	devopsjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/devopsjobs"
+	dribbbleScraper "github.com/arinbalyan/scrappy/internal/scraper/dribbble"
 	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
 	gunioscraper "github.com/arinbalyan/scrappy/internal/scraper/gunio"
 	hackernewsscraper "github.com/arinbalyan/scrappy/internal/scraper/hackernews"
@@ -84,10 +86,12 @@ func NewEngine() *Engine {
 		arbeitnowscraper.New(nil),
 		hackernewsscraper.New(nil),
 		cryptocurrencyjobsscraper.New(nil),
+		dribbbleScraper.New(nil),
 		aijobsscraper.New(nil),
 		androidjobsscraper.New(nil),
 		jobicyscraper.New(nil),
 		devopsjobsscraper.New(nil),
+		crunchboardscraper.New(nil),
 		ziprecruiterscraper.New(nil),
 		workingnomadsscraper.New(nil),
 		wuzzufscraper.New(nil),
