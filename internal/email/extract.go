@@ -273,10 +273,5 @@ func BuildURLFromDomainAndSite(domain, site string) string {
 	if domain == "" {
 		return ""
 	}
-	switch strings.ToLower(site) {
-	case "wellfound":
-		return "https://wellfound.com/company/" + domain
-	default:
-		return "https://" + domain
-	}
+	return "https://" + domain
 }

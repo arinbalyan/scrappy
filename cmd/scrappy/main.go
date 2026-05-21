@@ -37,10 +37,6 @@ type cliConfig struct {
 	Out            string
 	Interactive    bool
 	NonInteractive bool
-	WorkableSeeds  string
-	WorkdaySeeds   string
-	AdzunaAppID    string
-	AdzunaAppKey   string
 	LogLevel       string
 	ConfigPath     string
 }
@@ -90,10 +86,6 @@ func main() {
 	root.Flags().StringVar(&cfg.Out, "out", "", "output path")
 	root.Flags().BoolVar(&cfg.Interactive, "interactive", true, "interactive wizard mode")
 	root.Flags().BoolVar(&cfg.NonInteractive, "non-interactive", false, "disable interactive wizard")
-	root.Flags().StringVar(&cfg.WorkableSeeds, "workable-seeds", "", "comma-separated Workable account/company seeds")
-	root.Flags().StringVar(&cfg.WorkdaySeeds, "workday-seeds", "", "comma-separated Workday CXS endpoint seeds")
-	root.Flags().StringVar(&cfg.AdzunaAppID, "adzuna-app-id", "", "Adzuna app id (or SCRAPPY_ADZUNA_APP_ID)")
-	root.Flags().StringVar(&cfg.AdzunaAppKey, "adzuna-app-key", "", "Adzuna app key (or SCRAPPY_ADZUNA_APP_KEY)")
 	root.Flags().StringVar(&cfg.LogLevel, "log-level", "", "log level: DEBUG|INFO|WARN|ERROR|SYSTEM_ERROR|API_MISS")
 	root.Flags().StringVar(&cfg.ConfigPath, "config", "config.yaml", "path to config yaml with per-site search/location")
 
@@ -177,13 +169,9 @@ func runOnce(cfg *cliConfig) error {
 		Dedup:          true,
 		DedupByCompany: false,
 		MinScore:       0,
-		WorkableSeeds:  parseCSV(cfg.WorkableSeeds),
-		WorkdaySeeds:   parseCSV(cfg.WorkdaySeeds),
-		AdzunaAppID:    strings.TrimSpace(cfg.AdzunaAppID),
-		AdzunaAppKey:   strings.TrimSpace(cfg.AdzunaAppKey),
-		LogLevel:       level,
-		SiteSearch:     siteSearch,
-		SiteLocation:   siteLocation,
+		LogLevel:     level,
+		SiteSearch:   siteSearch,
+		SiteLocation: siteLocation,
 	}
 
 	constraints := scrappy.EvaluateConstraints(input)
