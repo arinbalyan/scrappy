@@ -37,6 +37,10 @@ const (
 	SiteAndroidJobs        Site = "androidjobs"
 	SiteJobicy             Site = "jobicy"
 	SiteDevOpsJobs         Site = "devopsjobs"
+	SiteCrunchboard        Site = "crunchboard"
+	SiteIOSDevJobs         Site = "iosdevjobs"
+	SiteSwissDevJobs       Site = "swissdevjobs"
+	SiteDribbble           Site = "dribbble"
 	SiteAIJobs             Site = "aijobs"
 	SiteWorkingNomads      Site = "workingnomads"
 	SiteWuzzuf             Site = "wuzzuf"
@@ -76,6 +80,10 @@ func AllSites() []Site {
 		SiteAndroidJobs,
 		SiteJobicy,
 		SiteDevOpsJobs,
+		SiteCrunchboard,
+		SiteIOSDevJobs,
+		SiteSwissDevJobs,
+		SiteDribbble,
 		SiteAIJobs,
 		SiteWorkingNomads,
 		SiteWuzzuf,
