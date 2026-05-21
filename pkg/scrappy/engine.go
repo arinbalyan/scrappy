@@ -12,14 +12,18 @@ import (
 	"github.com/arinbalyan/scrappy/internal/quality"
 	"github.com/arinbalyan/scrappy/internal/scraper"
 	aijobsscraper "github.com/arinbalyan/scrappy/internal/scraper/aijobs"
+	baytscraper "github.com/arinbalyan/scrappy/internal/scraper/bayt"
+	bdjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/bdjobs"
 	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
 	gunioscraper "github.com/arinbalyan/scrappy/internal/scraper/gunio"
 	himalayasscraper "github.com/arinbalyan/scrappy/internal/scraper/himalayas"
 	hiringcafescraper "github.com/arinbalyan/scrappy/internal/scraper/hiringcafe"
 	huggingfacejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/huggingfacejobs"
 	indeedscraper "github.com/arinbalyan/scrappy/internal/scraper/indeed"
+	internshalascraper "github.com/arinbalyan/scrappy/internal/scraper/internshala"
 	jobindexscraper "github.com/arinbalyan/scrappy/internal/scraper/jobindex"
 	linkedinscraper "github.com/arinbalyan/scrappy/internal/scraper/linkedin"
+	naukriscraper "github.com/arinbalyan/scrappy/internal/scraper/naukri"
 	remoteokscraper "github.com/arinbalyan/scrappy/internal/scraper/remoteok"
 	remotivescraper "github.com/arinbalyan/scrappy/internal/scraper/remotive"
 	ziprecruiterscraper "github.com/arinbalyan/scrappy/internal/scraper/ziprecruiter"
@@ -43,6 +47,10 @@ func NewEngine() *Engine {
 	s := []scraper.Scraper{
 		indeedscraper.New(nil),
 		linkedinscraper.New(nil),
+		baytscraper.New(nil),
+		bdjobsscraper.New(nil),
+		naukriscraper.New(nil),
+		internshalascraper.New(nil),
 		greenhousescraper.New(nil),
 		gunioscraper.New(nil),
 		himalayasscraper.New(nil),
