@@ -8,60 +8,41 @@ import (
 type Site string
 
 const (
-	SiteLinkedIn      Site = "linkedin"
-	SiteIndeed        Site = "indeed"
-	SiteZipRecruiter  Site = "zip_recruiter"
-	SiteGlassdoor     Site = "glassdoor"
-	SiteGoogle        Site = "google"
-	SiteBayt          Site = "bayt"
-	SiteNaukri        Site = "naukri"
-	SiteBDJobs        Site = "bdjobs"
-	SiteWellfound       Site = "wellfound"
+	SiteLinkedIn        Site = "linkedin"
+	SiteIndeed          Site = "indeed"
+	SiteGreenhouse      Site = "greenhouse"
+	SiteGunIO           Site = "gunio"
 	SiteHimalayas       Site = "himalayas"
-	SiteRemoteCo        Site = "remoteco"
+	SiteHiringCafe      Site = "hiringcafe"
+	SiteHuggingFaceJobs Site = "huggingfacejobs"
+	SiteJobindex        Site = "jobindex"
 	SiteRemoteOK        Site = "remoteok"
 	SiteRemotive        Site = "remotive"
-	SiteBuiltIn         Site = "builtin"
-	SiteContra          Site = "contra"
-	SiteToptal          Site = "toptal"
-	SiteGunIO           Site = "gunio"
-	SiteBraintrust      Site = "braintrust"
-	SiteLemonIO         Site = "lemonio"
-	SiteYCJobs          Site = "ycjobs"
-	SitePallet          Site = "pallet"
-	SiteGetro           Site = "getro"
-	SiteMLJobs          Site = "mljobs"
 	SiteAIJobs          Site = "aijobs"
-	SiteHuggingFaceJobs Site = "huggingfacejobs"
-	SiteOtta          Site = "otta"
-	SiteLever         Site = "lever"
-	SiteGreenhouse    Site = "greenhouse"
-	SiteWorkableJobs  Site = "workable_jobs"
-	SiteMyWorkdayJobs Site = "myworkdayjobs"
-	SiteAdzuna        Site = "adzuna"
-	SiteSeek          Site = "seek"
-	SiteWorkingNomads Site = "workingnomads"
-	SiteStartupJobs   Site = "startupjobs"
-	SiteGradcracker   Site = "gradcracker"
-	SiteHiringCafe    Site = "hiringcafe"
-	SiteJobindex      Site = "jobindex"
-	SiteUKVisaJobs    Site = "ukvisajobs"
-	SiteWuzzuf        Site = "wuzzuf"
-	SiteRemotiveAPI   Site = "remotive_api"
+	SiteWorkingNomads   Site = "workingnomads"
+	SiteWuzzuf          Site = "wuzzuf"
+	SiteYCJobs          Site = "ycjobs"
+	SiteUKVisaJobs      Site = "ukvisajobs"
 )
 
 // AllSites returns every known site.
 func AllSites() []Site {
 	return []Site{
-		SiteLinkedIn, SiteIndeed, SiteZipRecruiter,
-		SiteGoogle, SiteBayt, SiteBDJobs,
-		SiteWellfound, SiteHimalayas, SiteRemoteCo, SiteRemoteOK, SiteRemotive, SiteRemotiveAPI, SiteBuiltIn,
-		SiteContra, SiteToptal, SiteGunIO, SiteBraintrust, SiteLemonIO,
-		SiteYCJobs, SitePallet, SiteGetro,
-		SiteMLJobs, SiteAIJobs, SiteHuggingFaceJobs,
-		SiteOtta, SiteLever, SiteGreenhouse, SiteWorkableJobs, SiteMyWorkdayJobs,
-		SiteAdzuna, SiteWorkingNomads, SiteStartupJobs,
-		SiteJobindex, SiteUKVisaJobs, SiteWuzzuf,
+		SiteLinkedIn,
+		SiteIndeed,
+		SiteGreenhouse,
+		SiteGunIO,
+		SiteHimalayas,
+		SiteHiringCafe,
+		SiteHuggingFaceJobs,
+		SiteJobindex,
+		SiteRemoteOK,
+		SiteRemotive,
+		SiteAIJobs,
+		SiteWorkingNomads,
+		SiteWuzzuf,
+		SiteYCJobs,
+		SiteUKVisaJobs,
 	}
 }
 
