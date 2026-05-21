@@ -45,5 +45,7 @@ type ScraperInput struct {
 	LocalProxyPort   int    `json:"-"`
 	ProxyHealthCheck bool   `json:"proxy_health_check"`
 	Retries          int    `json:"retries"`
-	LogLevel         string `json:"log_level,omitempty"`
+	LogLevel         string          `json:"log_level,omitempty"`
+	SiteSearch       map[Site]string `json:"site_search,omitempty"`
+	SiteLocation     map[Site]string `json:"site_location,omitempty"`
 }

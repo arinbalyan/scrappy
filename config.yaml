@@ -1,0 +1,36 @@
+defaults:
+  search: "software engineer"
+  location: "Remote"
+  results_wanted: 15
+
+sites:
+  seek:
+    search: "software engineer"
+    location: "Australia"
+  naukri:
+    search: "software engineer"
+    location: "India"
+  bdjobs:
+    search: "software engineer"
+    location: "Bangladesh"
+  bayt:
+    search: "software engineer"
+    location: "United Arab Emirates"
+  otta:
+    search: "software engineer"
+    location: "United Kingdom"
+  lever:
+    search: "software engineer"
+    location: "United States"
+  greenhouse:
+    search: "software engineer"
+    location: "United States"
+  wellfound:
+    search: "software engineer"
+    location: "United States"
+  remoteok:
+    search: "golang"
+    location: "Remote"
+  remotive:
+    search: "golang"
+    location: "Remote"

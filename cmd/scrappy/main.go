@@ -16,6 +16,7 @@ import (
 	"github.com/arinbalyan/scrappy/internal/util"
 	"github.com/arinbalyan/scrappy/pkg/scrappy"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 const ascii = `
@@ -41,6 +42,21 @@ type cliConfig struct {
 	AdzunaAppID    string
 	AdzunaAppKey   string
 	LogLevel       string
+	ConfigPath     string
+}
+
+type siteTarget struct {
+	Search   string `yaml:"search"`
+	Location string `yaml:"location"`
+}
+
+type appConfig struct {
+	Defaults struct {
+		Search        string `yaml:"search"`
+		Location      string `yaml:"location"`
+		ResultsWanted int    `yaml:"results_wanted"`
+	} `yaml:"defaults"`
+	Sites map[string]siteTarget `yaml:"sites"`
 }
 
 var loadDotEnvOnce sync.Once
@@ -66,10 +82,10 @@ func main() {
 		},
 	}
 
-	root.Flags().StringVar(&cfg.Search, "search", "software engineer", "search term")
-	root.Flags().StringVar(&cfg.Location, "location", "Remote", "search location")
+	root.Flags().StringVar(&cfg.Search, "search", "", "search term")
+	root.Flags().StringVar(&cfg.Location, "location", "", "search location")
 	root.Flags().StringVar(&cfg.Sites, "sites", "linkedin,indeed", "comma-separated sites")
-	root.Flags().IntVar(&cfg.ResultsWanted, "results-wanted", 15, "max results")
+	root.Flags().IntVar(&cfg.ResultsWanted, "results-wanted", 0, "max results")
 	root.Flags().StringVar(&cfg.Format, "format", "jsonl", "output format: jsonl|csv|xlsx|parquet")
 	root.Flags().StringVar(&cfg.Out, "out", "", "output path")
 	root.Flags().BoolVar(&cfg.Interactive, "interactive", true, "interactive wizard mode")
@@ -79,6 +95,7 @@ func main() {
 	root.Flags().StringVar(&cfg.AdzunaAppID, "adzuna-app-id", "", "Adzuna app id (or SCRAPPY_ADZUNA_APP_ID)")
 	root.Flags().StringVar(&cfg.AdzunaAppKey, "adzuna-app-key", "", "Adzuna app key (or SCRAPPY_ADZUNA_APP_KEY)")
 	root.Flags().StringVar(&cfg.LogLevel, "log-level", "", "log level: DEBUG|INFO|WARN|ERROR|SYSTEM_ERROR|API_MISS")
+	root.Flags().StringVar(&cfg.ConfigPath, "config", "config.yaml", "path to config yaml with per-site search/location")
 
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -126,11 +143,37 @@ func runOnce(cfg *cliConfig) error {
 	util.SetLogLevel(level)
 
 	sites := parseSites(cfg.Sites)
+	ac := loadAppConfig(cfg.ConfigPath)
+	globalSearch := strings.TrimSpace(cfg.Search)
+	if globalSearch == "" {
+		globalSearch = strings.TrimSpace(ac.Defaults.Search)
+	}
+	globalLocation := strings.TrimSpace(cfg.Location)
+	if globalLocation == "" {
+		globalLocation = strings.TrimSpace(ac.Defaults.Location)
+	}
+	resultsWanted := cfg.ResultsWanted
+	if resultsWanted <= 0 && ac.Defaults.ResultsWanted > 0 {
+		resultsWanted = ac.Defaults.ResultsWanted
+	}
+	siteSearch := map[model.Site]string{}
+	siteLocation := map[model.Site]string{}
+	for _, s := range sites {
+		if t, ok := ac.Sites[string(s)]; ok {
+			if v := strings.TrimSpace(t.Search); v != "" {
+				siteSearch[s] = v
+			}
+			if v := strings.TrimSpace(t.Location); v != "" {
+				siteLocation[s] = v
+			}
+		}
+	}
+
 	input := model.ScraperInput{
 		Sites:          sites,
-		SearchTerm:     cfg.Search,
-		Location:       cfg.Location,
-		ResultsWanted:  cfg.ResultsWanted,
+		SearchTerm:     globalSearch,
+		Location:       globalLocation,
+		ResultsWanted:  resultsWanted,
 		Dedup:          true,
 		DedupByCompany: false,
 		MinScore:       0,
@@ -139,6 +182,8 @@ func runOnce(cfg *cliConfig) error {
 		AdzunaAppID:    strings.TrimSpace(cfg.AdzunaAppID),
 		AdzunaAppKey:   strings.TrimSpace(cfg.AdzunaAppKey),
 		LogLevel:       level,
+		SiteSearch:     siteSearch,
+		SiteLocation:   siteLocation,
 	}
 
 	constraints := scrappy.EvaluateConstraints(input)
@@ -201,6 +246,22 @@ func parseCSV(v string) []string {
 		}
 	}
 	return out
+}
+
+func loadAppConfig(path string) appConfig {
+	var c appConfig
+	if strings.TrimSpace(path) == "" {
+		return c
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return c
+	}
+	_ = yaml.Unmarshal(b, &c)
+	if c.Sites == nil {
+		c.Sites = map[string]siteTarget{}
+	}
+	return c
 }
 
 func loadDotEnv(path string) {

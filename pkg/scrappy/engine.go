@@ -45,7 +45,6 @@ import (
 	toptalscraper "github.com/arinbalyan/scrappy/internal/scraper/toptal"
 	ukvisajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ukvisajobs"
 	wellfoundscraper "github.com/arinbalyan/scrappy/internal/scraper/wellfound"
-	weworkremotelyscraper "github.com/arinbalyan/scrappy/internal/scraper/weworkremotely"
 	workablejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/workable_jobs"
 	workingnomadsscraper "github.com/arinbalyan/scrappy/internal/scraper/workingnomads"
 	wuzzufscraper "github.com/arinbalyan/scrappy/internal/scraper/wuzzuf"
@@ -75,7 +74,6 @@ func NewEngine() *Engine {
 		googlescraper.New(nil),
 		wellfoundscraper.New(nil),
 		himalayasscraper.New(nil),
-		weworkremotelyscraper.New(nil),
 		remotecoscraper.New(nil),
 		remoteokscraper.New(nil),
 		remotivescraper.New(nil),
@@ -167,17 +165,28 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				defer func() { <-sem }()
 			}
 
+			siteInput := input
+			if siteInput.SiteSearch != nil {
+				if v := strings.TrimSpace(siteInput.SiteSearch[site]); v != "" {
+					siteInput.SearchTerm = v
+				}
+			}
+			if siteInput.SiteLocation != nil {
+				if v := strings.TrimSpace(siteInput.SiteLocation[site]); v != "" {
+					siteInput.Location = v
+				}
+			}
 			util.Info("site_scrape_start", map[string]any{"site": site})
 			util.Debug("site_scrape_context", map[string]any{
 				"site":           site,
-				"search_term":    input.SearchTerm,
-				"location":       input.Location,
-				"results_wanted": input.ResultsWanted,
-				"hours_old":      input.HoursOld,
-				"is_remote":      input.IsRemote,
+				"search_term":    siteInput.SearchTerm,
+				"location":       siteInput.Location,
+				"results_wanted": siteInput.ResultsWanted,
+				"hours_old":      siteInput.HoursOld,
+				"is_remote":      siteInput.IsRemote,
 			})
 			st := SiteTelemetry{Site: site, Attempted: true, StatusCodeCount: map[int]int{}}
-			jobs, err := sc.Scrape(ctx, input)
+			jobs, err := sc.Scrape(ctx, siteInput)
 			if err != nil {
 				st.Error = err.Error()
 				st.Success = false
