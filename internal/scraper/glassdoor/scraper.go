@@ -68,6 +68,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		return nil, fmt.Errorf("glassdoor request: %w", err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusForbidden {
+		return nil, fmt.Errorf("glassdoor blocked status 403")
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("glassdoor status %d", resp.StatusCode)
 	}
@@ -76,6 +79,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		return nil, fmt.Errorf("glassdoor read: %w", err)
 	}
 	raw := string(b)
+	if strings.Contains(strings.ToLower(raw), "security | glassdoor") || strings.Contains(strings.ToLower(raw), "just a moment") {
+		return nil, fmt.Errorf("glassdoor challenge page")
+	}
 
 	if jobs := parseLDJSONJobs(raw); len(jobs) > 0 {
 		limited := limitJobs(jobs, input.ResultsWanted)
@@ -85,7 +91,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 	limited := limitJobs(parseHTMLJobs(raw, s.listURL), input.ResultsWanted)
 	if !util.HasMeaningfulJobs(limited) {
-		return nil, nil
+		return nil, fmt.Errorf("glassdoor no parseable jobs")
 	}
 	return limited, nil
 }

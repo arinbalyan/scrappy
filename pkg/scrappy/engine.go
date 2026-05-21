@@ -12,25 +12,44 @@ import (
 	"github.com/arinbalyan/scrappy/internal/quality"
 	"github.com/arinbalyan/scrappy/internal/scraper"
 	adzunascraper "github.com/arinbalyan/scrappy/internal/scraper/adzuna"
+	aijobsscraper "github.com/arinbalyan/scrappy/internal/scraper/aijobs"
+	baytscraper "github.com/arinbalyan/scrappy/internal/scraper/bayt"
+	bdjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/bdjobs"
+	braintrustscraper "github.com/arinbalyan/scrappy/internal/scraper/braintrust"
 	builtinscraper "github.com/arinbalyan/scrappy/internal/scraper/builtin"
+	contrascraper "github.com/arinbalyan/scrappy/internal/scraper/contra"
+	getroscraper "github.com/arinbalyan/scrappy/internal/scraper/getro"
 	glassdoorscraper "github.com/arinbalyan/scrappy/internal/scraper/glassdoor"
 	googlescraper "github.com/arinbalyan/scrappy/internal/scraper/google"
 	gradcrackerscraper "github.com/arinbalyan/scrappy/internal/scraper/gradcracker"
+	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
+	gunioscraper "github.com/arinbalyan/scrappy/internal/scraper/gunio"
+	himalayasscraper "github.com/arinbalyan/scrappy/internal/scraper/himalayas"
 	hiringcafescraper "github.com/arinbalyan/scrappy/internal/scraper/hiringcafe"
+	huggingfacejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/huggingfacejobs"
 	indeedscraper "github.com/arinbalyan/scrappy/internal/scraper/indeed"
 	jobindexscraper "github.com/arinbalyan/scrappy/internal/scraper/jobindex"
+	lemonioscraper "github.com/arinbalyan/scrappy/internal/scraper/lemonio"
+	leverscraper "github.com/arinbalyan/scrappy/internal/scraper/lever"
 	linkedinscraper "github.com/arinbalyan/scrappy/internal/scraper/linkedin"
+	mljobsscraper "github.com/arinbalyan/scrappy/internal/scraper/mljobs"
 	workdayscraper "github.com/arinbalyan/scrappy/internal/scraper/myworkdayjobs"
 	naukriscraper "github.com/arinbalyan/scrappy/internal/scraper/naukri"
+	ottascraper "github.com/arinbalyan/scrappy/internal/scraper/otta"
+	palletscraper "github.com/arinbalyan/scrappy/internal/scraper/pallet"
+	remotecoscraper "github.com/arinbalyan/scrappy/internal/scraper/remoteco"
 	remoteokscraper "github.com/arinbalyan/scrappy/internal/scraper/remoteok"
 	remotivescraper "github.com/arinbalyan/scrappy/internal/scraper/remotive"
 	seekscraper "github.com/arinbalyan/scrappy/internal/scraper/seek"
 	startupjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/startupjobs"
+	toptalscraper "github.com/arinbalyan/scrappy/internal/scraper/toptal"
 	ukvisajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ukvisajobs"
 	wellfoundscraper "github.com/arinbalyan/scrappy/internal/scraper/wellfound"
+	weworkremotelyscraper "github.com/arinbalyan/scrappy/internal/scraper/weworkremotely"
 	workablejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/workable_jobs"
 	workingnomadsscraper "github.com/arinbalyan/scrappy/internal/scraper/workingnomads"
 	wuzzufscraper "github.com/arinbalyan/scrappy/internal/scraper/wuzzuf"
+	ycjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ycjobs"
 	ziprecruiterscraper "github.com/arinbalyan/scrappy/internal/scraper/ziprecruiter"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
@@ -49,13 +68,32 @@ func NewEngine() *Engine {
 		indeedscraper.New(nil),
 		linkedinscraper.New(nil),
 		naukriscraper.New(nil),
+		baytscraper.New(nil),
+		bdjobsscraper.New(nil),
 		glassdoorscraper.New(nil),
 		ziprecruiterscraper.New(nil),
 		googlescraper.New(nil),
 		wellfoundscraper.New(nil),
+		himalayasscraper.New(nil),
+		weworkremotelyscraper.New(nil),
+		remotecoscraper.New(nil),
 		remoteokscraper.New(nil),
 		remotivescraper.New(nil),
 		builtinscraper.New(nil),
+		contrascraper.New(nil),
+		toptalscraper.New(nil),
+		gunioscraper.New(nil),
+		braintrustscraper.New(nil),
+		lemonioscraper.New(nil),
+		ycjobsscraper.New(nil),
+		palletscraper.New(nil),
+		getroscraper.New(nil),
+		mljobsscraper.New(nil),
+		aijobsscraper.New(nil),
+		huggingfacejobsscraper.New(nil),
+		ottascraper.New(nil),
+		leverscraper.New(nil),
+		greenhousescraper.New(nil),
 		workablejobsscraper.New(nil),
 		workdayscraper.New(nil),
 		adzunascraper.New(nil),
@@ -68,10 +106,11 @@ func NewEngine() *Engine {
 		ukvisajobsscraper.New(nil),
 		wuzzufscraper.New(nil),
 	}
-	m := make(map[model.Site]scraper.Scraper, len(s))
+	m := make(map[model.Site]scraper.Scraper, len(s)+1)
 	for _, sc := range s {
 		m[sc.SiteName()] = sc
 	}
+	m[model.SiteRemotiveAPI] = remotivescraper.New(nil)
 	return &Engine{scrapers: m, siteFailOpen: true}
 }
 
@@ -112,6 +151,10 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	for _, site := range sites {
 		sc, ok := e.scrapers[site]
 		if !ok {
+			st := SiteTelemetry{Site: site, Attempted: false, Success: false, Error: "unsupported site", FailOpenReason: "unsupported_site", StatusCodeCount: map[int]int{}}
+			telemetryBySite[site] = st
+			util.Warn("site_scrape_fail_open", map[string]any{"site": site, "reason": "unsupported_site", "err": "unsupported site"})
+			resultsCh <- siteResult{site: site, st: st, ok: false}
 			continue
 		}
 		wg.Add(1)

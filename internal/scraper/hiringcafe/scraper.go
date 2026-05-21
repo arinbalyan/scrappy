@@ -66,7 +66,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 	jobs = limitHiringCafeJobs(jobs, input.ResultsWanted)
 	if !util.HasMeaningfulJobs(jobs) {
-		return nil, nil
+		return nil, fmt.Errorf("hiringcafe no parseable jobs")
 	}
 	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(jobs)})
 	return jobs, nil

@@ -117,7 +117,7 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 		s.maybeRotateProxy()
 		attemptReq := req.Clone(req.Context())
 		resp, err := s.base.RoundTrip(attemptReq)
-		if err == nil && resp != nil && resp.StatusCode != http.StatusTooManyRequests && resp.StatusCode < 500 {
+		if err == nil && resp != nil && !isRetryableStatus(resp.StatusCode) {
 			Debug("http_roundtrip_success", map[string]any{"method": req.Method, "url": req.URL.String(), "status": resp.StatusCode, "attempt": i + 1})
 			s.maybeResetCookies(attemptReq)
 			return resp, nil
@@ -155,6 +155,16 @@ func isRetryableMethod(method string) bool {
 	default:
 		return false
 	}
+}
+
+func isRetryableStatus(code int) bool {
+	if code == http.StatusTooManyRequests {
+		return true
+	}
+	if code >= 500 {
+		return true
+	}
+	return code == http.StatusForbidden || code == http.StatusUnauthorized || code == http.StatusNotAcceptable
 }
 
 func (s *smartRT) nextUserAgent() string {
@@ -198,9 +208,40 @@ func parseProxyList(raw string) []*url.URL {
 		if err != nil || u == nil || u.Scheme == "" || u.Host == "" {
 			continue
 		}
+		if !proxyReachable(u) {
+			Warn("proxy_unreachable_skip", map[string]any{"proxy": u.String()})
+			continue
+		}
 		out = append(out, u)
 	}
 	return out
+}
+
+func proxyReachable(u *url.URL) bool {
+	if u == nil {
+		return false
+	}
+	host := u.Hostname()
+	if host == "" {
+		return false
+	}
+	port := u.Port()
+	if port == "" {
+		switch u.Scheme {
+		case "http", "https":
+			port = "80"
+		case "socks5", "socks5h":
+			port = "1080"
+		default:
+			port = "80"
+		}
+	}
+	c, err := net.DialTimeout("tcp", net.JoinHostPort(host, port), 500*time.Millisecond)
+	if err != nil {
+		return false
+	}
+	_ = c.Close()
+	return true
 }
 
 func (s *smartRT) maybeRotateProxy() {
@@ -231,6 +272,9 @@ func (s *smartRT) retryDelay(attempt int, resp *http.Response) time.Duration {
 		}
 		if resp.StatusCode >= 500 {
 			jitter += 80 * time.Millisecond
+		}
+		if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusNotAcceptable {
+			jitter += 600 * time.Millisecond
 		}
 	}
 	return d + jitter

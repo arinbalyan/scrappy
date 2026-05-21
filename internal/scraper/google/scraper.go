@@ -16,8 +16,10 @@ import (
 const defaultSearchURL = "https://www.google.com/search"
 
 var (
-	reGoogleJob = regexp.MustCompile(`(?s)data-job-id="([^"]+)"[\s\S]*?<div[^>]*class="BjJfJf PUpOsf">([^<]+)</div>[\s\S]*?<div[^>]*class="Qk80Jf">([^<]+)</div>`)
-	reGoogleLD  = regexp.MustCompile(`(?s)<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>`)
+	reGoogleJob       = regexp.MustCompile(`(?s)data-job-id="([^"]+)"[\s\S]*?<div[^>]*class="BjJfJf PUpOsf">([^<]+)</div>[\s\S]*?<div[^>]*class="Qk80Jf">([^<]+)</div>`)
+	reGoogleLD        = regexp.MustCompile(`(?s)<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>`)
+	reGoogleInitial52 = regexp.MustCompile(`"520084652":(\[.*?\]\s*])\s*}\s*]\s*]\s*]\s*]\s*]`)
+	reGoogleFC        = regexp.MustCompile(`data-async-fc="([^"]+)"`)
 )
 
 type Scraper struct {
@@ -45,14 +47,21 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 	u, _ := url.Parse(s.searchURL)
 	q := u.Query()
-	if input.GoogleSearchTerm != "" {
-		q.Set("q", input.GoogleSearchTerm+" jobs")
-	} else if input.SearchTerm != "" {
-		q.Set("q", input.SearchTerm+" jobs")
+	query := strings.TrimSpace(input.GoogleSearchTerm)
+	if query == "" {
+		query = strings.TrimSpace(input.SearchTerm)
+		if query != "" {
+			query += " jobs"
+		}
 	}
+	q.Set("q", query)
+	q.Set("udm", "8")
+	q.Set("hl", "en")
 	u.RawQuery = q.Encode()
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
-	req.Header.Set("User-Agent", "Mozilla/5.0")
+	req.Header.Set("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+	req.Header.Set("accept-language", "en-US,en;q=0.9")
+	req.Header.Set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("google request: %w", err)
@@ -66,15 +75,22 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		return nil, fmt.Errorf("google read: %w", err)
 	}
 
-	if jobs := parseLDJSONJobs(string(b)); len(jobs) > 0 {
+	raw := string(b)
+	if jobs := parseGoogleInitialJobs(raw); len(jobs) > 0 {
 		limited := limitJobs(jobs, input.ResultsWanted)
 		if util.HasMeaningfulJobs(limited) {
 			return limited, nil
 		}
 	}
-	limited := limitJobs(parseHTMLJobs(string(b)), input.ResultsWanted)
+	if jobs := parseLDJSONJobs(raw); len(jobs) > 0 {
+		limited := limitJobs(jobs, input.ResultsWanted)
+		if util.HasMeaningfulJobs(limited) {
+			return limited, nil
+		}
+	}
+	limited := limitJobs(parseHTMLJobs(raw), input.ResultsWanted)
 	if !util.HasMeaningfulJobs(limited) {
-		return nil, nil
+		return nil, fmt.Errorf("google no parseable job cards from response")
 	}
 	return limited, nil
 }
@@ -151,6 +167,65 @@ func parseLDJSONJobs(raw string) []model.JobPost {
 		}
 	}
 	return jobs
+}
+
+func parseGoogleInitialJobs(raw string) []model.JobPost {
+	matches := reGoogleInitial52.FindAllStringSubmatch(raw, -1)
+	out := make([]model.JobPost, 0, len(matches))
+	for i, m := range matches {
+		if len(m) < 2 {
+			continue
+		}
+		var parsed []any
+		if err := json.Unmarshal([]byte(m[1]), &parsed); err != nil {
+			continue
+		}
+		if job := toGoogleInitialJob(parsed, i); job != nil {
+			out = append(out, *job)
+		}
+	}
+	return out
+}
+
+func toGoogleInitialJob(v []any, seed int) *model.JobPost {
+	if len(v) < 4 {
+		return nil
+	}
+	title, _ := v[0].(string)
+	company, _ := v[1].(string)
+	loc, _ := v[2].(string)
+	if strings.TrimSpace(title) == "" {
+		return nil
+	}
+	jobURL := ""
+	if refs, ok := v[3].([]any); ok && len(refs) > 0 {
+		if first, ok := refs[0].([]any); ok && len(first) > 0 {
+			jobURL, _ = first[0].(string)
+		}
+	}
+	if strings.TrimSpace(jobURL) == "" {
+		jobURL = "https://www.google.com/search?q=" + url.QueryEscape(title+" "+company)
+	}
+	jp := model.JobPost{ID: fmt.Sprintf("go-%s-%s-%d", util.NormalizeSlug(title), util.NormalizeSlug(company), seed), Title: strings.TrimSpace(title), CompanyName: strings.TrimSpace(company), JobURL: strings.TrimSpace(jobURL), Location: parseSimpleLocation(loc)}
+	jp.IsRemote = strings.Contains(strings.ToLower(title+" "+loc), "remote")
+	return &jp
+}
+
+func parseSimpleLocation(v string) model.Location {
+	parts := strings.Split(v, ",")
+	for i := range parts {
+		parts[i] = strings.TrimSpace(parts[i])
+	}
+	switch len(parts) {
+	case 1:
+		return model.Location{City: parts[0]}
+	case 2:
+		return model.Location{City: parts[0], State: parts[1]}
+	case 3:
+		return model.Location{City: parts[0], State: parts[1], Country: parts[2]}
+	default:
+		return model.Location{}
+	}
 }
 
 func ldJobToPost(title, company, description, datePosted string, seed int) model.JobPost {

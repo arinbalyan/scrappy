@@ -77,5 +77,8 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		jobs = append(jobs, model.JobPost{ID: "stj-" + strings.TrimSpace(r.ID), Title: strings.TrimSpace(r.Title), CompanyName: strings.TrimSpace(r.CompanyName), JobURL: strings.TrimSpace(r.URL), Description: strings.TrimSpace(r.Description), Location: model.Location{City: strings.TrimSpace(r.Location)}, DatePosted: posted, IsRemote: r.Remote || strings.Contains(strings.ToLower(r.Location), "remote")})
 	}
 	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(jobs)})
+	if !util.HasMeaningfulJobs(jobs) {
+		return nil, fmt.Errorf("startupjobs no parseable jobs")
+	}
 	return jobs, nil
 }

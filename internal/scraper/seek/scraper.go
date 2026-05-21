@@ -54,6 +54,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 
 	fallback, ferr := s.scrapeHTML(ctx, input)
+	if ferr == nil && util.HasMeaningfulJobs(fallback) {
+		util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(fallback), "path": "html"})
+		return fallback, nil
+	}
+
 	if ferr != nil {
 		if err != nil {
 			return nil, fmt.Errorf("seek api fallback failed: %w (api error: %v)", ferr, err)
@@ -83,6 +88,12 @@ func (s *Scraper) scrapeAPI(ctx context.Context, input model.ScraperInput) ([]mo
 		return nil, fmt.Errorf("seek request: %w", err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, fmt.Errorf("seek api unavailable status 404")
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		return nil, fmt.Errorf("seek api blocked status 403")
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("seek status %d", resp.StatusCode)
 	}
@@ -137,6 +148,9 @@ func (s *Scraper) scrapeHTML(ctx context.Context, input model.ScraperInput) ([]m
 		return nil, fmt.Errorf("seek html request: %w", err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusForbidden {
+		return nil, fmt.Errorf("seek html blocked status 403")
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("seek html status %d", resp.StatusCode)
 	}
@@ -145,9 +159,13 @@ func (s *Scraper) scrapeHTML(ctx context.Context, input model.ScraperInput) ([]m
 		return nil, fmt.Errorf("seek html read: %w", err)
 	}
 
-	jobs := limitJobs(parseLDJSONJobs(string(b)), input.ResultsWanted)
+	htmlBody := string(b)
+	if strings.Contains(strings.ToLower(htmlBody), "just a moment") || strings.Contains(strings.ToLower(htmlBody), "security") {
+		return nil, fmt.Errorf("seek html challenge page")
+	}
+	jobs := limitJobs(parseLDJSONJobs(htmlBody), input.ResultsWanted)
 	if !util.HasMeaningfulJobs(jobs) {
-		return nil, nil
+		return nil, fmt.Errorf("seek no parseable jobs")
 	}
 	return jobs, nil
 }

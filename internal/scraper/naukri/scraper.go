@@ -55,6 +55,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 
 	fallback, ferr := s.scrapeHTML(ctx, input)
+	if ferr == nil && util.HasMeaningfulJobs(fallback) {
+		util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(fallback), "path": "html"})
+		return fallback, nil
+	}
+
 	if ferr != nil {
 		if err != nil {
 			return nil, fmt.Errorf("naukri api fallback failed: %w (api error: %v)", ferr, err)
@@ -67,24 +72,57 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 func (s *Scraper) scrapeAPI(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	u, _ := url.Parse(s.apiURL)
+	term := strings.TrimSpace(input.SearchTerm)
+	if term == "" {
+		term = "software engineer"
+	}
+	seo := strings.ToLower(strings.ReplaceAll(term, " ", "-"))
+	loc := strings.TrimSpace(input.Location)
+	if loc == "" {
+		loc = "india"
+	}
 	q := u.Query()
-	if strings.TrimSpace(input.SearchTerm) != "" {
-		q.Set("q", strings.TrimSpace(input.SearchTerm))
-	}
-	if strings.TrimSpace(input.Location) != "" {
-		q.Set("l", strings.TrimSpace(input.Location))
-	}
 	q.Set("noOfResults", strconv.Itoa(pageSize(input.ResultsWanted)))
+	q.Set("urlType", "search_by_keyword")
+	q.Set("searchType", "adv")
+	q.Set("keyword", term)
+	q.Set("pageNo", "1")
+	q.Set("k", term)
+	q.Set("seoKey", seo+"-jobs")
+	q.Set("src", "jobsearchDesk")
+	q.Set("latLong", "")
+	q.Set("location", loc)
+	if input.IsRemote {
+		q.Set("remote", "true")
+	}
 	u.RawQuery = q.Encode()
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "Mozilla/5.0")
+	req.Header.Set("authority", "www.naukri.com")
+	req.Header.Set("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8")
+	req.Header.Set("accept-language", "en-US,en;q=0.9")
+	req.Header.Set("cache-control", "max-age=0")
+	req.Header.Set("upgrade-insecure-requests", "1")
+	req.Header.Set("appid", "109")
+	req.Header.Set("systemid", "Naukri")
+	req.Header.Set("AppId", "109")
+	req.Header.Set("SystemId", "Naukri")
+	req.Header.Set("Nkparam", "Ppy0YK9uSHqPtG3bEejYc04RTpUN2CjJOrqA68tzQt0SKJHXZKzz9M8cZtKLVkoOuQmfe4cTb1r2CwfHaxW5Tg==")
+	req.Header.Set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("naukri request: %w", err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusNotAcceptable {
+		return nil, fmt.Errorf("naukri status 406 recaptcha required")
+	}
+	if resp.StatusCode == http.StatusBadRequest {
+		return nil, fmt.Errorf("naukri api rejected status 400")
+	}
+	if resp.StatusCode == http.StatusForbidden {
+		return nil, fmt.Errorf("naukri api blocked status 403")
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("naukri status %d", resp.StatusCode)
 	}
@@ -161,6 +199,9 @@ func (s *Scraper) scrapeHTML(ctx context.Context, input model.ScraperInput) ([]m
 		return nil, fmt.Errorf("naukri html request: %w", err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusForbidden {
+		return nil, fmt.Errorf("naukri html blocked status 403")
+	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("naukri html status %d", resp.StatusCode)
 	}
@@ -171,7 +212,7 @@ func (s *Scraper) scrapeHTML(ctx context.Context, input model.ScraperInput) ([]m
 	jobs := parseNaukriLD(string(b))
 	jobs = limitNaukriJobs(jobs, input.ResultsWanted)
 	if !util.HasMeaningfulJobs(jobs) {
-		return nil, nil
+		return nil, fmt.Errorf("naukri html fallback returned no parseable jobs")
 	}
 	return jobs, nil
 }

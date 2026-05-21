@@ -98,5 +98,8 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		})
 	}
 	util.Debug("scraper_done", map[string]any{"site": s.SiteName(), "jobs": len(jobs)})
+	if !util.HasMeaningfulJobs(jobs) {
+		return nil, fmt.Errorf("remotive no parseable jobs")
+	}
 	return jobs, nil
 }

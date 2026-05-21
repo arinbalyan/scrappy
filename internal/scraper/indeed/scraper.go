@@ -399,7 +399,7 @@ func (s *Scraper) scrapeHTMLFallback(ctx context.Context, input model.ScraperInp
 
 	keys := parseIndeedJobKeys(string(body))
 	if len(keys) == 0 {
-		return nil, nil
+		return nil, fmt.Errorf("indeed no parseable jobs")
 	}
 	out := make([]model.JobPost, 0, len(keys))
 	for i, key := range keys {

@@ -15,8 +15,9 @@ import (
 const defaultURL = "https://builtin.com/jobs"
 
 var (
-	reJob      = regexp.MustCompile(`(?s)<a[^>]*href="([^"]*/job/[^"]+)"[^>]*>.*?<h3[^>]*>([^<]+)</h3>.*?<span[^>]*class="company"[^>]*>([^<]+)</span>`)
-	reLDScript = regexp.MustCompile(`(?s)<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>`)
+	reCardID    = regexp.MustCompile(`<div id="job-card-(\d+)"`)
+	reLegacyJob = regexp.MustCompile(`(?s)<a[^>]*href="([^"]*(?:/job/|/jobs/)[^"]+)"[^>]*>.*?<h[23][^>]*>([^<]+)</h[23]>[\s\S]*?(?:<span[^>]*class="company"[^>]*>([^<]+)</span>|<a[^>]*class="company"[^>]*>([^<]+)</a>)`)
+	reLDScript  = regexp.MustCompile(`(?s)<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>`)
 )
 
 type Scraper struct {
@@ -65,7 +66,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 	limited := limitJobs(parseHTMLJobs(raw), input.ResultsWanted)
 	if !util.HasMeaningfulJobs(limited) {
-		return nil, nil
+		return nil, fmt.Errorf("builtin no parseable jobs from response")
 	}
 	return limited, nil
 }
@@ -78,17 +79,57 @@ func limitJobs(jobs []model.JobPost, wanted int) []model.JobPost {
 }
 
 func parseHTMLJobs(raw string) []model.JobPost {
-	m := reJob.FindAllStringSubmatch(raw, -1)
-	out := make([]model.JobPost, 0, len(m))
-	for i, row := range m {
-		out = append(out, model.JobPost{
-			ID:          fmt.Sprintf("bi-%d", i+1),
-			JobURL:      strings.TrimSpace(row[1]),
-			Title:       strings.TrimSpace(row[2]),
-			CompanyName: strings.TrimSpace(row[3]),
-		})
+	idxs := reCardID.FindAllStringSubmatchIndex(raw, -1)
+	out := make([]model.JobPost, 0, len(idxs))
+	for i, pos := range idxs {
+		if len(pos) < 4 {
+			continue
+		}
+		start := pos[0]
+		end := len(raw)
+		if i+1 < len(idxs) {
+			end = idxs[i+1][0]
+		}
+		if start >= end || start < 0 || end > len(raw) {
+			continue
+		}
+		chunk := raw[start:end]
+		id := strings.TrimSpace(raw[pos[2]:pos[3]])
+		title := firstGroup(regexp.MustCompile(`(?s)data-id="job-card-title"[^>]*>\s*([^<]+?)\s*</a>`), chunk, 1)
+		company := firstGroup(regexp.MustCompile(`(?s)data-id="company-title"[^>]*>\s*(?:<span>)?([^<]+?)\s*(?:</span>)?\s*</a>`), chunk, 1)
+		jobURL := firstGroup(regexp.MustCompile(`(?s)data-id="job-card-title"[^>]*href="([^"]+)"`), chunk, 1)
+		if jobURL != "" && strings.HasPrefix(jobURL, "/") {
+			jobURL = "https://builtin.com" + jobURL
+		}
+		if strings.TrimSpace(title) == "" || strings.TrimSpace(jobURL) == "" {
+			continue
+		}
+		out = append(out, model.JobPost{ID: "bi-" + id, JobURL: strings.TrimSpace(jobURL), Title: strings.TrimSpace(title), CompanyName: strings.TrimSpace(company)})
+	}
+	if len(out) > 0 {
+		return out
+	}
+	legacy := reLegacyJob.FindAllStringSubmatch(raw, -1)
+	for i, row := range legacy {
+		company := strings.TrimSpace(row[3])
+		if company == "" && len(row) > 4 {
+			company = strings.TrimSpace(row[4])
+		}
+		jobURL := strings.TrimSpace(row[1])
+		if strings.HasPrefix(jobURL, "/") {
+			jobURL = "https://builtin.com" + jobURL
+		}
+		out = append(out, model.JobPost{ID: fmt.Sprintf("bi-%d", i+1), JobURL: jobURL, Title: strings.TrimSpace(row[2]), CompanyName: company})
 	}
 	return out
+}
+
+func firstGroup(re *regexp.Regexp, s string, idx int) string {
+	m := re.FindStringSubmatch(s)
+	if len(m) <= idx {
+		return ""
+	}
+	return strings.TrimSpace(m[idx])
 }
 
 func parseLDJSONJobs(raw string) []model.JobPost {

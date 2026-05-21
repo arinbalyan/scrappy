@@ -21,14 +21,13 @@ var reJobLink = regexp.MustCompile(`(?is)<a[^>]*href="(https?://[^"]*?/jobdetail
 type Scraper struct {
 	Client  *http.Client
 	ListURL string
-	AuthURL string
 }
 
 func New(client *http.Client) *Scraper {
 	if client == nil {
 		client = util.NewHTTPClient(util.ClientOptions{Retries: 3, Timeout: 20 * time.Second})
 	}
-	return &Scraper{Client: client, ListURL: defaultListURL, AuthURL: "https://bdjobs.com"}
+	return &Scraper{Client: client, ListURL: defaultListURL}
 }
 
 func NewWithListURL(client *http.Client, u string) *Scraper {
