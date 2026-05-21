@@ -36,11 +36,11 @@ type ScraperInput struct {
 	SiteRPS            map[Site]int `json:"site_rps,omitempty"`
 
 	// proxies and resilience
-	Proxy            string `json:"-"` // not serialised; consumed by transport layer
-	LocalProxyPort   int    `json:"-"`
-	ProxyHealthCheck bool   `json:"proxy_health_check"`
-	Retries          int    `json:"retries"`
-	LogLevel         string          `json:"log_level,omitempty"`
-	SiteSearch       map[Site]string `json:"site_search,omitempty"`
-	SiteLocation     map[Site]string `json:"site_location,omitempty"`
+	Proxy            string            `json:"-"` // not serialised; consumed by transport layer
+	LocalProxyPort   int               `json:"-"`
+	ProxyHealthCheck bool              `json:"proxy_health_check"`
+	Retries          int               `json:"retries"`
+	LogLevel         string            `json:"log_level,omitempty"`
+	SiteSearch       map[Site][]string `json:"site_search,omitempty"`
+	SiteLocation     map[Site]string   `json:"site_location,omitempty"`
 }

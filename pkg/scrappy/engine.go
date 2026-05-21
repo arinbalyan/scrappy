@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/arinbalyan/scrappy/internal/dedup"
+	internalemail "github.com/arinbalyan/scrappy/internal/email"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/quality"
 	"github.com/arinbalyan/scrappy/internal/scraper"
@@ -158,57 +159,75 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				defer func() { <-sem }()
 			}
 
-			siteInput := input
-			if siteInput.SiteSearch != nil {
-				if v := strings.TrimSpace(siteInput.SiteSearch[site]); v != "" {
-					siteInput.SearchTerm = v
+			baseInput := input
+			if baseInput.SiteLocation != nil {
+				if v := strings.TrimSpace(baseInput.SiteLocation[site]); v != "" {
+					baseInput.Location = v
 				}
 			}
-			if siteInput.SiteLocation != nil {
-				if v := strings.TrimSpace(siteInput.SiteLocation[site]); v != "" {
-					siteInput.Location = v
+
+			terms := []string{strings.TrimSpace(baseInput.SearchTerm)}
+			if baseInput.SiteSearch != nil {
+				if vs, ok := baseInput.SiteSearch[site]; ok {
+					terms = terms[:0]
+					for _, v := range vs {
+						v = strings.TrimSpace(v)
+						if v != "" {
+							terms = append(terms, v)
+						}
+					}
 				}
 			}
-			util.Info("site_scrape_start", map[string]any{"site": site})
-			util.Debug("site_scrape_context", map[string]any{
-				"site":           site,
-				"search_term":    siteInput.SearchTerm,
-				"location":       siteInput.Location,
-				"results_wanted": siteInput.ResultsWanted,
-				"hours_old":      siteInput.HoursOld,
-				"is_remote":      siteInput.IsRemote,
-			})
+			if len(terms) == 0 {
+				terms = []string{""}
+			}
+
 			st := SiteTelemetry{Site: site, Attempted: true, StatusCodeCount: map[int]int{}}
-			jobs, err := sc.Scrape(ctx, siteInput)
-			if err != nil {
-				st.Error = err.Error()
-				st.Success = false
-				st.ChallengeDetected = containsAny(st.Error, "captcha", "cloudflare", "attention required", "forbidden", "blocked")
-				if e.siteFailOpen {
-					st.FailOpenReason = classifyFailOpenReason(err)
-					util.Warn("site_scrape_fail_open", map[string]any{"site": site, "reason": st.FailOpenReason, "err": st.Error})
-				} else {
-					util.Error("site_scrape_failed", map[string]any{"site": site, "err": st.Error})
+			aggregated := make([]model.JobPost, 0)
+			for _, term := range terms {
+				siteInput := baseInput
+				siteInput.SearchTerm = term
+				util.Info("site_scrape_start", map[string]any{"site": site})
+				util.Debug("site_scrape_context", map[string]any{
+					"site":           site,
+					"search_term":    siteInput.SearchTerm,
+					"location":       siteInput.Location,
+					"results_wanted": siteInput.ResultsWanted,
+					"hours_old":      siteInput.HoursOld,
+					"is_remote":      siteInput.IsRemote,
+				})
+				jobs, err := sc.Scrape(ctx, siteInput)
+				if err != nil {
+					st.Error = err.Error()
+					st.Success = false
+					st.ChallengeDetected = containsAny(st.Error, "captcha", "cloudflare", "attention required", "forbidden", "blocked")
+					if e.siteFailOpen {
+						st.FailOpenReason = classifyFailOpenReason(err)
+						util.Warn("site_scrape_fail_open", map[string]any{"site": site, "reason": st.FailOpenReason, "err": st.Error})
+					} else {
+						util.Error("site_scrape_failed", map[string]any{"site": site, "err": st.Error})
+					}
+					allMu.Lock()
+					e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], err)
+					telemetryBySite[site] = st
+					allMu.Unlock()
+					resultsCh <- siteResult{site: site, st: st, ok: false}
+					return
 				}
-				allMu.Lock()
-				e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], err)
-				telemetryBySite[site] = st
-				allMu.Unlock()
-				resultsCh <- siteResult{site: site, st: st, ok: false}
-				return
+				aggregated = append(aggregated, jobs...)
 			}
 			st.Success = true
-			st.ResultCount = len(jobs)
-			if len(jobs) == 0 {
+			st.ResultCount = len(aggregated)
+			if len(aggregated) == 0 {
 				st.EmptyPageRate = 1
 				util.APIMiss("site_scrape_empty", map[string]any{"site": site})
 			}
-			util.Info("site_scrape_success", map[string]any{"site": site, "jobs": len(jobs)})
+			util.Info("site_scrape_success", map[string]any{"site": site, "jobs": len(aggregated)})
 			allMu.Lock()
 			e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], nil)
 			telemetryBySite[site] = st
 			allMu.Unlock()
-			resultsCh <- siteResult{site: site, jobs: jobs, st: st, ok: true}
+			resultsCh <- siteResult{site: site, jobs: aggregated, st: st, ok: true}
 		}(site, sc)
 	}
 	wg.Wait()
@@ -229,6 +248,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		}
 		jobs := res.jobs
 		for i := range jobs {
+			enrichJobEmails(&jobs[i])
 			for _, h := range e.hooks {
 				if err := h(ctx, &jobs[i]); err != nil {
 					if e.siteFailOpen {
@@ -241,7 +261,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			jobs[i].QualityScore = quality.Score(&jobs[i])
 			util.Debug("job_processed", map[string]any{"site": res.site, "job_id": jobs[i].ID, "title": jobs[i].Title})
 		}
-		processedBySite[res.site] = jobs
+		processedBySite[res.site] = dedupWithinSite(jobs)
 	}
 
 	for _, site := range sites {
@@ -355,4 +375,58 @@ func classifyFailOpenReason(err error) string {
 	default:
 		return "unknown"
 	}
+}
+
+func enrichJobEmails(job *model.JobPost) {
+	text := strings.TrimSpace(job.Description)
+	if text == "" {
+		return
+	}
+	found := internalemail.Extract(text)
+	if len(found) == 0 {
+		return
+	}
+	for _, e := range found {
+		job.Emails = append(job.Emails, model.Email{Addr: e.Addr, Source: e.Source, Role: e.Role})
+	}
+	job.Emails = dedupEmails(job.Emails)
+}
+
+func dedupEmails(in []model.Email) []model.Email {
+	seen := make(map[string]struct{}, len(in))
+	out := make([]model.Email, 0, len(in))
+	for _, e := range in {
+		addr := strings.TrimSpace(strings.ToLower(e.Addr))
+		if addr == "" {
+			continue
+		}
+		if _, ok := seen[addr]; ok {
+			continue
+		}
+		seen[addr] = struct{}{}
+		e.Addr = addr
+		out = append(out, e)
+	}
+	return out
+}
+
+func dedupWithinSite(in []model.JobPost) []model.JobPost {
+	seen := map[string]struct{}{}
+	out := make([]model.JobPost, 0, len(in))
+	for _, j := range in {
+		key := strings.TrimSpace(j.JobURL)
+		if key == "" {
+			key = strings.TrimSpace(j.ID)
+		}
+		if key == "" {
+			out = append(out, j)
+			continue
+		}
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		out = append(out, j)
+	}
+	return out
 }

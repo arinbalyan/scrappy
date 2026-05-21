@@ -39,11 +39,47 @@ type cliConfig struct {
 	NonInteractive bool
 	LogLevel       string
 	ConfigPath     string
+	EmailOnly      bool
+}
+
+type siteSearchTerms []string
+
+func (s *siteSearchTerms) UnmarshalYAML(value *yaml.Node) error {
+	switch value.Kind {
+	case yaml.ScalarNode:
+		term := strings.TrimSpace(value.Value)
+		if term == "" {
+			*s = nil
+			return nil
+		}
+		*s = []string{term}
+		return nil
+	case yaml.SequenceNode:
+		terms := make([]string, 0, len(value.Content))
+		for _, n := range value.Content {
+			if n.Kind != yaml.ScalarNode {
+				continue
+			}
+			term := strings.TrimSpace(n.Value)
+			if term == "" {
+				continue
+			}
+			terms = append(terms, term)
+		}
+		if len(terms) == 0 {
+			*s = nil
+			return nil
+		}
+		*s = terms
+		return nil
+	default:
+		return fmt.Errorf("site search must be string or list of strings")
+	}
 }
 
 type siteTarget struct {
-	Search   string `yaml:"search"`
-	Location string `yaml:"location"`
+	Search   siteSearchTerms `yaml:"search"`
+	Location string          `yaml:"location"`
 }
 
 type appConfig struct {
@@ -59,6 +95,14 @@ var loadDotEnvOnce sync.Once
 
 func main() {
 	cfg := &cliConfig{}
+	root := newRootCommand(cfg)
+	if err := root.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root := &cobra.Command{
 		Use:   "scrappy",
 		Short: "Bulk job scraper",
@@ -88,11 +132,8 @@ func main() {
 	root.Flags().BoolVar(&cfg.NonInteractive, "non-interactive", false, "disable interactive wizard")
 	root.Flags().StringVar(&cfg.LogLevel, "log-level", "", "log level: DEBUG|INFO|WARN|ERROR|SYSTEM_ERROR|API_MISS")
 	root.Flags().StringVar(&cfg.ConfigPath, "config", "config.yaml", "path to config yaml with per-site search/location")
-
-	if err := root.Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(1)
-	}
+	root.Flags().BoolVar(&cfg.EmailOnly, "email", false, "only include jobs with at least one email")
+	return root
 }
 
 func runInteractive(cfg *cliConfig) {
@@ -148,12 +189,21 @@ func runOnce(cfg *cliConfig) error {
 	if resultsWanted <= 0 && ac.Defaults.ResultsWanted > 0 {
 		resultsWanted = ac.Defaults.ResultsWanted
 	}
-	siteSearch := map[model.Site]string{}
+	siteSearch := map[model.Site][]string{}
 	siteLocation := map[model.Site]string{}
 	for _, s := range sites {
 		if t, ok := ac.Sites[string(s)]; ok {
-			if v := strings.TrimSpace(t.Search); v != "" {
-				siteSearch[s] = v
+			if len(t.Search) > 0 {
+				terms := make([]string, 0, len(t.Search))
+				for _, term := range t.Search {
+					term = strings.TrimSpace(term)
+					if term != "" {
+						terms = append(terms, term)
+					}
+				}
+				if len(terms) > 0 {
+					siteSearch[s] = terms
+				}
 			}
 			if v := strings.TrimSpace(t.Location); v != "" {
 				siteLocation[s] = v
@@ -169,9 +219,10 @@ func runOnce(cfg *cliConfig) error {
 		Dedup:          true,
 		DedupByCompany: false,
 		MinScore:       0,
-		LogLevel:     level,
-		SiteSearch:   siteSearch,
-		SiteLocation: siteLocation,
+		EmailsOnly:     cfg.EmailOnly,
+		LogLevel:       level,
+		SiteSearch:     siteSearch,
+		SiteLocation:   siteLocation,
 	}
 
 	constraints := scrappy.EvaluateConstraints(input)
