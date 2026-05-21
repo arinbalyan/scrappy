@@ -18,7 +18,6 @@ const (
 	SiteBDJobs        Site = "bdjobs"
 	SiteWellfound       Site = "wellfound"
 	SiteHimalayas       Site = "himalayas"
-	SiteWeWorkRemotely  Site = "weworkremotely"
 	SiteRemoteCo        Site = "remoteco"
 	SiteRemoteOK        Site = "remoteok"
 	SiteRemotive        Site = "remotive"
@@ -56,7 +55,7 @@ func AllSites() []Site {
 	return []Site{
 		SiteLinkedIn, SiteIndeed, SiteZipRecruiter,
 		SiteGoogle, SiteBayt, SiteBDJobs,
-		SiteWellfound, SiteHimalayas, SiteWeWorkRemotely, SiteRemoteCo, SiteRemoteOK, SiteRemotive, SiteRemotiveAPI, SiteBuiltIn,
+		SiteWellfound, SiteHimalayas, SiteRemoteCo, SiteRemoteOK, SiteRemotive, SiteRemotiveAPI, SiteBuiltIn,
 		SiteContra, SiteToptal, SiteGunIO, SiteBraintrust, SiteLemonIO,
 		SiteYCJobs, SitePallet, SiteGetro,
 		SiteMLJobs, SiteAIJobs, SiteHuggingFaceJobs,
