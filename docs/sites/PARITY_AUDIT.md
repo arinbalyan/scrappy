@@ -1,6 +1,6 @@
-# JobSpy Parity Audit (file-by-file baseline)
+# Python Parity Audit (file-by-file baseline)
 
-Reference source: `tmp/JobSpy/jobspy/*`
+Reference source: `tmp/upstream/jobspy/*`
 
 ## Implemented parity
 - `indeed/__init__.py` -> cursor GraphQL search + filter composition + compensation mapping
@@ -9,12 +9,12 @@ Reference source: `tmp/JobSpy/jobspy/*`
 - Export paths + schema fields wired through `model.JobPost`
 
 ## Partial parity / hardening in progress
-- Full rich parsing depth for non-Indeed/LinkedIn sites (currently lighter)
+- Full rich parsing depth for non-Indee/LinkedIn sites (currently lighter)
 - Full country matrix behavior for Indeed/Glassdoor by domain mapping
-- Full JobSpy-equivalent field population for all site-specific optional fields
+- Full upstream Python project-equivalent field population for all site-specific optional fields
 - TLS-fingerprint equivalence (Go stdlib transport hardened, but not identical to python tls-client behavior)
 
-## Smart upgrades over JobSpy
+## Smart upgrades over upstream Python project
 - Shared client-level retry/backoff + UA rotation + cookie reset cadence in `internal/util/http.go`
 - Constraint evaluation layer in `pkg/scrappy/constraints.go` with explicit CLI warnings
 - Reusable engine API (`pkg/scrappy`) for orchestration/AI post-processing hooks
