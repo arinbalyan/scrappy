@@ -71,6 +71,7 @@ const (
 	SiteEuroJobs           Site = "eurojobs"
 	SiteFindwork           Site = "findwork"
 	SiteAcademicCareers   Site = "academiccareers"
+	SiteArbeitsagentur    Site = "arbeitsagentur"
 	SiteWeb3Career        Site = "web3career"
 )
 
@@ -100,6 +101,7 @@ func AllSites() []Site {
 		SiteVueJobs,
 		SiteLaraJobs,
 		SiteArbeitnow,
+		SiteArbeitsagentur,
 		SiteHackerNews,
 		SiteCryptocurrencyJobs,
 		SiteAndroidJobs,
