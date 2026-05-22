@@ -237,3 +237,19 @@ sites:
       - '"AI Engineer" OR "Machine Learning Engineer"'
       - '"Forward Deployed Engineer" OR "GTM Engineer"'
     location: "Germany"
+  djinni:
+    search:
+      - "ai engineer"
+      - "machine learning engineer"
+      - "forward deployed engineer"
+    location: "Remote"
+  jobsdb:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "Singapore"
+  snagajob:
+    search:
+      - "cashier"
+      - "retail associate"
+    location: "United States"
