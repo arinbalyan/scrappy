@@ -217,3 +217,23 @@ sites:
       - '"AI Engineer" OR "Machine Learning Engineer"'
       - '"Forward Deployed Engineer" OR "GTM Engineer"'
     location: "United States"
+  reed:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "United Kingdom"
+  infojobs:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "Spain"
+  themuse:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer"'
+    location: "United States"
+  stepstone:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "Germany"

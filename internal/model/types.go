@@ -56,6 +56,10 @@ const (
 	SiteJooble             Site = "jooble"
 	SiteDice               Site = "dice"
 	SiteMonster            Site = "monster"
+	SiteStepStone          Site = "stepstone"
+	SiteInfoJobs           Site = "infojobs"
+	SiteReed               Site = "reed"
+	SiteTheMuse            Site = "themuse"
 )
 
 // AllSites returns every known site.
@@ -109,6 +113,10 @@ func AllSites() []Site {
 		SiteJooble,
 		SiteDice,
 		SiteMonster,
+		SiteStepStone,
+		SiteInfoJobs,
+		SiteReed,
+		SiteTheMuse,
 	}
 }
 
