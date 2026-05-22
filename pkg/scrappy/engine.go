@@ -20,6 +20,8 @@ import (
 	builtinscraper "github.com/arinbalyan/scrappy/internal/scraper/builtin"
 	crunchboardscraper "github.com/arinbalyan/scrappy/internal/scraper/crunchboard"
 	cryptocurrencyjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/cryptocurrencyjobs"
+	cryptojobslistscraper "github.com/arinbalyan/scrappy/internal/scraper/cryptojobslist"
+	devitjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/devitjobs"
 	devopsjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/devopsjobs"
 	dribbbleScraper "github.com/arinbalyan/scrappy/internal/scraper/dribbble"
 	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
@@ -41,9 +43,9 @@ import (
 	remoteokscraper "github.com/arinbalyan/scrappy/internal/scraper/remoteok"
 	remotivescraper "github.com/arinbalyan/scrappy/internal/scraper/remotive"
 	startupjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/startupjobs"
+	swissdevjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/swissdevjobs"
 	ukvisajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ukvisajobs"
 	vuejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/vuejobs"
-	weworkremotelyscraper "github.com/arinbalyan/scrappy/internal/scraper/weworkremotely"
 	workingnomadsscraper "github.com/arinbalyan/scrappy/internal/scraper/workingnomads"
 	wuzzufscraper "github.com/arinbalyan/scrappy/internal/scraper/wuzzuf"
 	ycjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ycjobs"
@@ -70,6 +72,7 @@ func NewEngine() *Engine {
 		internshalascraper.New(nil),
 		builtinscraper.New(nil),
 		startupjobsscraper.New(nil),
+		swissdevjobsscraper.New(nil),
 		greenhousescraper.New(nil),
 		gunioscraper.New(nil),
 		himalayasscraper.New(nil),
@@ -78,7 +81,6 @@ func NewEngine() *Engine {
 		jobindexscraper.New(nil),
 		remoteokscraper.New(nil),
 		remotivescraper.New(nil),
-		weworkremotelyscraper.New(nil),
 		remotefirstjobsscraper.New(nil),
 		jobspressoscraper.New(nil),
 		hasjobscraper.New(nil),
@@ -93,6 +95,8 @@ func NewEngine() *Engine {
 		jobicyscraper.New(nil),
 		devopsjobsscraper.New(nil),
 		crunchboardscraper.New(nil),
+		cryptojobslistscraper.New(nil),
+		devitjobsscraper.New(nil),
 		ziprecruiterscraper.New(nil),
 		workingnomadsscraper.New(nil),
 		wuzzufscraper.New(nil),

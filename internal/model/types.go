@@ -25,7 +25,6 @@ const (
 	SiteJobindex           Site = "jobindex"
 	SiteRemoteOK           Site = "remoteok"
 	SiteRemotive           Site = "remotive"
-	SiteWeWorkRemotely     Site = "weworkremotely"
 	SiteRemoteFirstJobs    Site = "remotefirstjobs"
 	SiteJobspresso         Site = "jobspresso"
 	SiteHasJob             Site = "hasjob"
@@ -40,6 +39,8 @@ const (
 	SiteCrunchboard        Site = "crunchboard"
 	SiteIOSDevJobs         Site = "iosdevjobs"
 	SiteSwissDevJobs       Site = "swissdevjobs"
+	SiteCryptoJobsList     Site = "cryptojobslist"
+	SiteDevITJobs          Site = "devitjobs"
 	SiteDribbble           Site = "dribbble"
 	SiteAIJobs             Site = "aijobs"
 	SiteWorkingNomads      Site = "workingnomads"
@@ -68,7 +69,6 @@ func AllSites() []Site {
 		SiteJobindex,
 		SiteRemoteOK,
 		SiteRemotive,
-		SiteWeWorkRemotely,
 		SiteRemoteFirstJobs,
 		SiteJobspresso,
 		SiteHasJob,
@@ -83,6 +83,8 @@ func AllSites() []Site {
 		SiteCrunchboard,
 		SiteIOSDevJobs,
 		SiteSwissDevJobs,
+		SiteCryptoJobsList,
+		SiteDevITJobs,
 		SiteDribbble,
 		SiteAIJobs,
 		SiteWorkingNomads,

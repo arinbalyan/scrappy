@@ -1,51 +1,176 @@
 defaults:
-  search: "AI automation engineer"
+  search: "AI engineer"
   location: "Remote"
-  results_wanted: 25
+  results_wanted: 1000
+  out: /home/nemesis/code/data/data1.csv
+  format: csv
 
 sites:
   indeed:
-    search: '"ai automation engineer" ("ai agent" OR "llm" OR "machine learning") -marketing -sales'
+    search:
+      - '"AI Engineer" OR "ML Engineer" OR "AI Developer"'
+      - '"AI Automation" OR "GTM Engineer" OR "Forward Deployed Engineer"'
     location: "United States"
   linkedin:
-    search: '"AI Engineer" OR "ML Engineer" OR "AI Agent Engineer"'
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer"'
+      - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+      - '"AI Product Engineer" OR "AI/ML Engineer"'
+    location: "United States"
+  zip_recruiter:
+    search:
+      - '"AI Engineer" OR "ML Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "United States"
+  builtin:
+    search: '"AI Engineer" OR "ML Engineer" OR "Forward Deployed Engineer"'
     location: "United States"
   greenhouse:
-    search: '"AI Engineer" OR "Machine Learning Engineer"'
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "AI Automation"'
     location: "United States"
   gunio:
     search: "ai engineer"
     location: "Remote"
   himalayas:
-    search: "llm engineer"
+    search:
+      - "ai engineer"
+      - "machine learning engineer"
+      - "forward deployed engineer"
     location: "Remote"
   hiringcafe:
-    search: "ai automation engineer"
+    search:
+      - "ai automation engineer"
+      - "machine learning engineer"
     location: "Remote"
   huggingfacejobs:
-    search: "machine learning engineer"
+    search:
+      - "machine learning engineer"
+      - "ai engineer"
+      - "forward deployed engineer"
     location: "Remote"
-  jobindex:
-    search: "machine learning engineer"
-    location: "Denmark"
   remoteok:
-    search: "ai engineer"
+    search:
+      - "ai engineer"
+      - "machine learning"
+      - "forward deployed"
     location: "Remote"
   remotive:
-    search: "machine learning engineer"
+    search:
+      - "machine learning engineer"
+      - "ai engineer"
+      - "forward deployed"
     location: "Remote"
-  workingnomads:
-    search: "llm engineer"
+  remotefirstjobs:
+    search:
+      - "ai engineer"
+      - "machine learning"
+      - "forward deployed"
     location: "Remote"
-  wuzzuf:
-    search: "ai engineer"
-    location: "Egypt"
-  ycjobs:
-    search: "ai agent engineer"
+  jobspresso:
+    search:
+      - "ai engineer"
+      - "machine learning"
+    location: "Remote"
+  wellfound:
+    search:
+      - '"AI Engineer" OR "ML Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
     location: "United States"
-  ukvisajobs:
-    search: "machine learning engineer"
-    location: "United Kingdom"
+  workingnomads:
+    search:
+      - "llm engineer"
+      - "ai engineer"
+      - "forward deployed"
+    location: "Remote"
+  ycjobs:
+    search:
+      - "ai agent engineer"
+      - "ai engineer"
+      - "forward deployed engineer"
+    location: "United States"
   aijobs:
+    search:
+      - "ai engineer"
+      - "machine learning engineer"
+      - "forward deployed"
+    location: "Remote"
+  hackernews:
+    search:
+      - "ai engineer"
+      - "machine learning"
+      - "forward deployed"
+    location: "Remote"
+  cryptocurrencyjobs:
+    search:
+      - "ai engineer"
+      - "machine learning"
+    location: "Remote"
+  jobicy:
+    search:
+      - "ai engineer"
+      - "machine learning"
+      - "forward deployed"
+    location: "Remote"
+  devopsjobs:
     search: "ai engineer"
     location: "Remote"
+  androidjobs:
+    search: "ai engineer"
+    location: "Remote"
+  iosdevjobs:
+    search: "ai engineer"
+    location: "Remote"
+  vuejobs:
+    search: "ai engineer"
+    location: "Remote"
+  larajobs:
+    search: "ai engineer"
+    location: "Remote"
+  arbeitnow:
+    search:
+      - "ai engineer"
+      - "machine learning"
+      - "forward deployed"
+    location: "Remote"
+  startupjobs:
+    search:
+      - "ai engineer"
+      - "machine learning"
+      - "forward deployed"
+    location: "Remote"
+  cryptojobslist:
+    search:
+      - "ai engineer"
+      - "machine learning"
+      - "llm engineer"
+    location: "Remote"
+  devitjobs:
+    search:
+      - "ai engineer"
+      - "machine learning engineer"
+      - "backend engineer"
+    location: "Switzerland"
+  swissdevjobs:
+    search:
+      - "ai engineer"
+      - "machine learning engineer"
+      - "backend engineer"
+    location: "Switzerland"
+  hasjob:
+    search:
+      - "ai engineer"
+      - "machine learning"
+    location: "Remote"
+  naukri:
+    search:
+      - "ai engineer"
+      - "machine learning engineer"
+      - "forward deployed engineer"
+    location: "India"
+  internshala:
+    search:
+      - "ai engineer"
+      - "machine learning"
+    location: "India"
