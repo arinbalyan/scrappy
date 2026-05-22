@@ -36,6 +36,7 @@ import (
 	indeedscraper "github.com/arinbalyan/scrappy/internal/scraper/indeed"
 	internshalascraper "github.com/arinbalyan/scrappy/internal/scraper/internshala"
 	jobicyscraper "github.com/arinbalyan/scrappy/internal/scraper/jobicy"
+	jobstreetscraper "github.com/arinbalyan/scrappy/internal/scraper/jobstreet"
 	jobindexscraper "github.com/arinbalyan/scrappy/internal/scraper/jobindex"
 	jobspressoscraper "github.com/arinbalyan/scrappy/internal/scraper/jobspresso"
 	larajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/larajobs"
@@ -66,6 +67,9 @@ import (
 	jobsscraper "github.com/arinbalyan/scrappy/internal/scraper/jobsdb"
 	snagajobscraper "github.com/arinbalyan/scrappy/internal/scraper/snagajob"
 	djinniscraper "github.com/arinbalyan/scrappy/internal/scraper/djinni"
+	headhunterscraper "github.com/arinbalyan/scrappy/internal/scraper/headhunter"
+	mycareersfuturescraper "github.com/arinbalyan/scrappy/internal/scraper/mycareersfuture"
+	upworkscraper "github.com/arinbalyan/scrappy/internal/scraper/upwork"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
@@ -110,6 +114,7 @@ func NewEngine() *Engine {
 		aijobsscraper.New(nil),
 		androidjobsscraper.New(nil),
 		jobicyscraper.New(nil),
+		jobstreetscraper.New(nil),
 		devopsjobsscraper.New(nil),
 		crunchboardscraper.New(nil),
 		cryptojobslistscraper.New(nil),
@@ -134,6 +139,9 @@ func NewEngine() *Engine {
 		jobsscraper.New(nil),
 		snagajobscraper.New(nil),
 		djinniscraper.New(nil),
+		headhunterscraper.New(nil),
+		mycareersfuturescraper.New(nil),
+		upworkscraper.New(nil),
 	}
 	m := make(map[model.Site]scraper.Scraper, len(s)+1)
 	for _, sc := range s {

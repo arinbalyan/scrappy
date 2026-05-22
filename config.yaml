@@ -243,11 +243,32 @@ sites:
       - "machine learning engineer"
       - "forward deployed engineer"
     location: "Remote"
+  jobstreet:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "Malaysia"
   jobsdb:
     search:
       - '"AI Engineer" OR "Machine Learning Engineer"'
       - '"Forward Deployed Engineer" OR "GTM Engineer"'
     location: "Singapore"
+  headhunter:
+    search:
+      - "ai engineer"
+      - "machine learning engineer"
+      - "forward deployed engineer"
+    location: "Russia"
+  mycareersfuture:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "Singapore"
+  upwork:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "Remote"
   snagajob:
     search:
       - "cashier"
