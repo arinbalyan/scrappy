@@ -70,6 +70,10 @@ import (
 	headhunterscraper "github.com/arinbalyan/scrappy/internal/scraper/headhunter"
 	mycareersfuturescraper "github.com/arinbalyan/scrappy/internal/scraper/mycareersfuture"
 	upworkscraper "github.com/arinbalyan/scrappy/internal/scraper/upwork"
+	eurojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/eurojobs"
+	fwdayweekscraper "github.com/arinbalyan/scrappy/internal/scraper/4dayweek"
+	findworkscraper "github.com/arinbalyan/scrappy/internal/scraper/findwork"
+	web3careerscraper "github.com/arinbalyan/scrappy/internal/scraper/web3career"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
@@ -142,6 +146,10 @@ func NewEngine() *Engine {
 		headhunterscraper.New(nil),
 		mycareersfuturescraper.New(nil),
 		upworkscraper.New(nil),
+		eurojobsscraper.New(nil),
+		fwdayweekscraper.New(nil),
+		findworkscraper.New(nil),
+		web3careerscraper.New(nil),
 	}
 	m := make(map[model.Site]scraper.Scraper, len(s)+1)
 	for _, sc := range s {

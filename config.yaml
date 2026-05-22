@@ -269,6 +269,18 @@ sites:
       - '"AI Engineer" OR "Machine Learning Engineer"'
       - '"Forward Deployed Engineer" OR "GTM Engineer"'
     location: "Remote"
+  "4dayweek":
+    search:
+      - "ai engineer"
+      - "machine learning engineer"
+      - "forward deployed"
+    location: "Remote"
+  eurojobs:
+    search:
+      - "ai engineer"
+      - "machine learning engineer"
+      - "forward deployed"
+    location: "Europe"
   snagajob:
     search:
       - "cashier"
