@@ -197,3 +197,23 @@ sites:
       - '"AI Engineer" OR "Machine Learning Engineer"'
       - '"Forward Deployed Engineer" OR "GTM Engineer"'
     location: "United States"
+  dice:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "United States"
+  careerjet:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "United States"
+  jooble:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "United States"
+  monster:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "United States"
