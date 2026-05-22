@@ -48,6 +48,8 @@ const (
 	SiteYCJobs             Site = "ycjobs"
 	SiteUKVisaJobs         Site = "ukvisajobs"
 	SiteGoogle             Site = "google"
+	SiteGlassdoor          Site = "glassdoor"
+	SiteAdzuna             Site = "adzuna"
 )
 
 // AllSites returns every known site.
@@ -93,6 +95,8 @@ func AllSites() []Site {
 		SiteYCJobs,
 		SiteUKVisaJobs,
 		SiteGoogle,
+		SiteGlassdoor,
+		SiteAdzuna,
 	}
 }
 

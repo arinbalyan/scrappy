@@ -25,6 +25,10 @@ sites:
   builtin:
     search: '"AI Engineer" OR "ML Engineer" OR "Forward Deployed Engineer"'
     location: "United States"
+  glassdoor:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+    location: "United States"
   greenhouse:
     search:
       - '"AI Engineer" OR "Machine Learning Engineer"'
@@ -179,3 +183,7 @@ sites:
       - "ai engineer"
       - "machine learning"
     location: "India"
+  adzuna:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+    location: "United States"

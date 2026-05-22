@@ -11,13 +11,13 @@ import (
 func TestLoadAppConfigParsesDefaultsAndSites(t *testing.T) {
 	dir := t.TempDir()
 	p := filepath.Join(dir, "config.yaml")
-	data := []byte("defaults:\n  search: backend\n  location: Remote\n  results_wanted: 7\nsites:\n  remoteok:\n    search: golang\n    location: Remote\n")
+	data := []byte("defaults:\n  search: backend\n  location: Remote\n  results_wanted: 7\n  out: /tmp/jobs.csv\n  format: csv\nsites:\n  remoteok:\n    search: golang\n    location: Remote\n")
 	if err := os.WriteFile(p, data, 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
 
 	cfg := loadAppConfig(p)
-	if cfg.Defaults.Search != "backend" || cfg.Defaults.Location != "Remote" || cfg.Defaults.ResultsWanted != 7 {
+	if cfg.Defaults.Search != "backend" || cfg.Defaults.Location != "Remote" || cfg.Defaults.ResultsWanted != 7 || cfg.Defaults.Out != "/tmp/jobs.csv" || cfg.Defaults.Format != "csv" {
 		t.Fatalf("unexpected defaults: %+v", cfg.Defaults)
 	}
 	remoteok, ok := cfg.Sites["remoteok"]
@@ -64,5 +64,18 @@ func TestLoadAppConfigMissingFile(t *testing.T) {
 	cfg := loadAppConfig("/path/does/not/exist.yaml")
 	if cfg.Sites != nil && len(cfg.Sites) != 0 {
 		t.Fatalf("expected empty sites on missing file")
+	}
+}
+
+func TestRootCommandFormatDefaultIsEmpty(t *testing.T) {
+	cfg := &cliConfig{}
+	root := newRootCommand(cfg)
+	root.SetArgs([]string{"--non-interactive", "--search", "x", "--sites", "indeed"})
+	root.RunE = func(cmd *cobra.Command, args []string) error { return nil }
+	if err := root.Execute(); err != nil {
+		t.Fatalf("execute root: %v", err)
+	}
+	if cfg.Format != "" {
+		t.Fatalf("expected default format to be empty, got %q", cfg.Format)
 	}
 }
