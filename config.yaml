@@ -163,6 +163,11 @@ sites:
       - "ai engineer"
       - "machine learning"
     location: "Remote"
+  google:
+    search:
+      - '"AI Engineer" OR "Machine Learning Engineer"'
+      - '"Forward Deployed Engineer" OR "GTM Engineer"'
+    location: "United States"
   naukri:
     search:
       - "ai engineer"

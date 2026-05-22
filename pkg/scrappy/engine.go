@@ -23,6 +23,7 @@ import (
 	cryptojobslistscraper "github.com/arinbalyan/scrappy/internal/scraper/cryptojobslist"
 	devitjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/devitjobs"
 	devopsjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/devopsjobs"
+	googlescraper "github.com/arinbalyan/scrappy/internal/scraper/google"
 	dribbbleScraper "github.com/arinbalyan/scrappy/internal/scraper/dribbble"
 	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
 	gunioscraper "github.com/arinbalyan/scrappy/internal/scraper/gunio"
@@ -102,6 +103,7 @@ func NewEngine() *Engine {
 		wuzzufscraper.New(nil),
 		ycjobsscraper.New(nil),
 		ukvisajobsscraper.New(nil),
+		googlescraper.New(nil),
 	}
 	m := make(map[model.Site]scraper.Scraper, len(s)+1)
 	for _, sc := range s {
