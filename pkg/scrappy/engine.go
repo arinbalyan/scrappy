@@ -55,6 +55,10 @@ import (
 	adzunascraper "github.com/arinbalyan/scrappy/internal/scraper/adzuna"
 	simplyhiredscraper "github.com/arinbalyan/scrappy/internal/scraper/simplyhired"
 	careerbuilderscraper "github.com/arinbalyan/scrappy/internal/scraper/careerbuilder"
+	dicescraper "github.com/arinbalyan/scrappy/internal/scraper/dice"
+	careerjetscraper "github.com/arinbalyan/scrappy/internal/scraper/careerjet"
+	jooblescraper "github.com/arinbalyan/scrappy/internal/scraper/jooble"
+	monsterscraper "github.com/arinbalyan/scrappy/internal/scraper/monster"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
@@ -112,6 +116,10 @@ func NewEngine() *Engine {
 		adzunascraper.New(nil),
 		simplyhiredscraper.New(nil),
 		careerbuilderscraper.New(nil),
+		dicescraper.New(nil),
+		careerjetscraper.New(nil),
+		jooblescraper.New(nil),
+		monsterscraper.New(nil),
 	}
 	m := make(map[model.Site]scraper.Scraper, len(s)+1)
 	for _, sc := range s {
