@@ -146,7 +146,7 @@ func AllSites() []Site {
 	}
 }
 
-// Country enumerates supported search countries (mirrors JobSpy).
+// Country enumerates supported search countries.
 type Country string
 
 const (
@@ -213,7 +213,7 @@ type Compensation struct {
 	Currency  string               `json:"currency,omitempty"` // default USD
 }
 
-// JobType mirrors JobSpy's enum.
+// JobType matches the job-type enum.
 type JobType string
 
 const (
@@ -232,7 +232,7 @@ type Email struct {
 	Role     bool   `json:"role,omitempty"` // info@, admin@, support@, etc.
 }
 
-// JobPost is the canonical scraped-job record, extending JobSpy's model.
+// JobPost is the canonical scraped-job record.
 type JobPost struct {
 	ID           string     `json:"id,omitempty"`
 	Title        string     `json:"title"`
@@ -280,7 +280,7 @@ type JobPost struct {
 	QualityScore int `json:"quality_score,omitempty"`
 }
 
-// JobResponse wraps a slice of JobPost (mirrors JobSpy model).
+// JobResponse wraps a slice of JobPost.
 type JobResponse struct {
 	Jobs []JobPost `json:"jobs"`
 }

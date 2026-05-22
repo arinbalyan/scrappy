@@ -1,6 +1,6 @@
 # Overview
 
-`scrappy` is a bulk job-board scraper written in Go. It ports and extends [JobSpy](https://github.com/speedyapply/JobSpy), targeting better memory efficiency, faster concurrency, fewer third-party dependencies, and email enrichment.
+`scrappy` is a bulk job-board scraper written in Go. It ports and extends an open-source Python job-board scraping library, targeting better memory efficiency, faster concurrency, fewer third-party dependencies, and email enrichment.
 
 ## Why Go
 

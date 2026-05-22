@@ -1,6 +1,6 @@
 package model
 
-// ScraperInput holds all parameters for a scraping run (mirrors JobSpy's ScraperInput).
+// ScraperInput holds all parameters for a scraping run.
 type ScraperInput struct {
 	Sites               []Site  `json:"sites"`
 	SearchTerm          string  `json:"search_term,omitempty"`
