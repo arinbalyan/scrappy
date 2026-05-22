@@ -70,6 +70,7 @@ const (
 	Site4DayWeek           Site = "4dayweek"
 	SiteEuroJobs           Site = "eurojobs"
 	SiteFindwork           Site = "findwork"
+	SiteAcademicCareers   Site = "academiccareers"
 	SiteWeb3Career        Site = "web3career"
 )
 
@@ -136,6 +137,7 @@ func AllSites() []Site {
 		SiteJobStreet,
 		SiteUpwork,
 		Site4DayWeek,
+		SiteAcademicCareers,
 		SiteEuroJobs,
 		SiteFindwork,
 		SiteWeb3Career,
