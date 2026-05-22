@@ -87,6 +87,8 @@ type appConfig struct {
 		Search        string `yaml:"search"`
 		Location      string `yaml:"location"`
 		ResultsWanted int    `yaml:"results_wanted"`
+		Out           string `yaml:"out"`
+		Format        string `yaml:"format"`
 	} `yaml:"defaults"`
 	Sites map[string]siteTarget `yaml:"sites"`
 }
@@ -126,7 +128,7 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().StringVar(&cfg.Location, "location", "", "search location")
 	root.Flags().StringVar(&cfg.Sites, "sites", "linkedin,indeed", "comma-separated sites")
 	root.Flags().IntVar(&cfg.ResultsWanted, "results-wanted", 0, "max results")
-	root.Flags().StringVar(&cfg.Format, "format", "jsonl", "output format: jsonl|csv|xlsx|parquet")
+	root.Flags().StringVar(&cfg.Format, "format", "", "output format: jsonl|csv|xlsx|parquet")
 	root.Flags().StringVar(&cfg.Out, "out", "", "output path")
 	root.Flags().BoolVar(&cfg.Interactive, "interactive", true, "interactive wizard mode")
 	root.Flags().BoolVar(&cfg.NonInteractive, "non-interactive", false, "disable interactive wizard")
@@ -189,6 +191,14 @@ func runOnce(cfg *cliConfig) error {
 	if resultsWanted <= 0 && ac.Defaults.ResultsWanted > 0 {
 		resultsWanted = ac.Defaults.ResultsWanted
 	}
+	outPath := strings.TrimSpace(cfg.Out)
+	if outPath == "" {
+		outPath = strings.TrimSpace(ac.Defaults.Out)
+	}
+	format := strings.TrimSpace(cfg.Format)
+	if format == "" {
+		format = strings.TrimSpace(ac.Defaults.Format)
+	}
 	siteSearch := map[model.Site][]string{}
 	siteLocation := map[model.Site]string{}
 	for _, s := range sites {
@@ -242,21 +252,21 @@ func runOnce(cfg *cliConfig) error {
 		return err
 	}
 
-	if cfg.Out == "" {
+	if outPath == "" {
 		enc := json.NewEncoder(os.Stdout)
 		enc.SetIndent("", "  ")
 		return enc.Encode(jobs)
 	}
 
-	switch strings.ToLower(cfg.Format) {
+	switch strings.ToLower(format) {
 	case "csv":
-		return export.WriteCSV(cfg.Out, jobs)
+		return export.WriteCSV(outPath, jobs)
 	case "xlsx":
-		return export.WriteXLSX(cfg.Out, jobs)
+		return export.WriteXLSX(outPath, jobs)
 	case "parquet":
-		return export.WriteParquet(cfg.Out, jobs)
+		return export.WriteParquet(outPath, jobs)
 	default:
-		return export.WriteJSONL(cfg.Out, jobs)
+		return export.WriteJSONL(outPath, jobs)
 	}
 }
 
