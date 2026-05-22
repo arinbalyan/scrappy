@@ -43,6 +43,7 @@ import (
 	naukriscraper "github.com/arinbalyan/scrappy/internal/scraper/naukri"
 	remotefirstjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/remotefirstjobs"
 	remoteokscraper "github.com/arinbalyan/scrappy/internal/scraper/remoteok"
+	reedscraper "github.com/arinbalyan/scrappy/internal/scraper/reed"
 	remotivescraper "github.com/arinbalyan/scrappy/internal/scraper/remotive"
 	startupjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/startupjobs"
 	swissdevjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/swissdevjobs"
@@ -59,6 +60,9 @@ import (
 	careerjetscraper "github.com/arinbalyan/scrappy/internal/scraper/careerjet"
 	jooblescraper "github.com/arinbalyan/scrappy/internal/scraper/jooble"
 	monsterscraper "github.com/arinbalyan/scrappy/internal/scraper/monster"
+	stepstonescraper "github.com/arinbalyan/scrappy/internal/scraper/stepstone"
+	themusescraper "github.com/arinbalyan/scrappy/internal/scraper/themuse"
+	infojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/infojobs"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
@@ -88,6 +92,7 @@ func NewEngine() *Engine {
 		hiringcafescraper.New(nil),
 		huggingfacejobsscraper.New(nil),
 		jobindexscraper.New(nil),
+		reedscraper.New(nil),
 		remoteokscraper.New(nil),
 		remotivescraper.New(nil),
 		remotefirstjobsscraper.New(nil),
@@ -120,6 +125,9 @@ func NewEngine() *Engine {
 		careerjetscraper.New(nil),
 		jooblescraper.New(nil),
 		monsterscraper.New(nil),
+		stepstonescraper.New(nil),
+		themusescraper.New(nil),
+		infojobsscraper.New(nil),
 	}
 	m := make(map[model.Site]scraper.Scraper, len(s)+1)
 	for _, sc := range s {
