@@ -21,7 +21,7 @@ const RoleEmailSource = "description"
 // ─── Patterns ─────────────────────────────────────────────────────────────────
 
 var (
-	// mailRegex matches a---b@example.com style addresses (JobSpy pattern) and plain RFC addresses.
+	// mailRegex handles dot-obfuscated addresses ([at] or [dot] replaced with ---) and plain RFC addresses.
 	mailRegex = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+(?:---[a-zA-Z0-9._%+\-]+)*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)
 
 	rolePrefixes = regexp.MustCompile(`(?i)^(info|admin|support|contact|sales|hello|careers|press|marketing|jobs|hr|recruiting|noreply|no-reply|help|enquiries|enquiry|billing)@`)

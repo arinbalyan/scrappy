@@ -14,7 +14,10 @@ import (
 func TestWriteJSONL(t *testing.T) {
 	dir := t.TempDir()
 	out := filepath.Join(dir, "jobs.jsonl")
-	jobs := []model.JobPost{{Title: "Engineer", JobURL: "https://example.com/job/1"}, {Title: "Analyst", JobURL: "https://example.com/job/2"}}
+	jobs := []model.JobPost{
+		{Title: "Engineer", JobURL: "https://example.com/job/1", Emails: []model.Email{{Addr: "a@example.com"}, {Addr: "b@example.com"}}},
+		{Title: "Analyst", JobURL: "https://example.com/job/2"},
+	}
 
 	if err := exportpkg.WriteJSONL(out, jobs); err != nil {
 		t.Fatalf("write jsonl: %v", err)
@@ -33,6 +36,9 @@ func TestWriteJSONL(t *testing.T) {
 		var jp model.JobPost
 		if err := json.Unmarshal(s.Bytes(), &jp); err != nil {
 			t.Fatalf("invalid jsonl line: %v", err)
+		}
+		if count == 1 && len(jp.Emails) != 2 {
+			t.Fatalf("expected first row to keep 2 emails, got %d", len(jp.Emails))
 		}
 	}
 	if err := s.Err(); err != nil {

@@ -3,31 +3,97 @@ package scrappy
 import (
 	"context"
 	"fmt"
+	"os"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
+	htmlparser "golang.org/x/net/html"
 	"github.com/arinbalyan/scrappy/internal/dedup"
+	internalemail "github.com/arinbalyan/scrappy/internal/email"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/quality"
 	"github.com/arinbalyan/scrappy/internal/scraper"
 	aijobsscraper "github.com/arinbalyan/scrappy/internal/scraper/aijobs"
+	androidjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/androidjobs"
+	arbeitnowscraper "github.com/arinbalyan/scrappy/internal/scraper/arbeitnow"
+	baytscraper "github.com/arinbalyan/scrappy/internal/scraper/bayt"
+	bdjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/bdjobs"
+	builtinscraper "github.com/arinbalyan/scrappy/internal/scraper/builtin"
+	crunchboardscraper "github.com/arinbalyan/scrappy/internal/scraper/crunchboard"
+	cryptocurrencyjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/cryptocurrencyjobs"
+	cryptojobslistscraper "github.com/arinbalyan/scrappy/internal/scraper/cryptojobslist"
+	devitjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/devitjobs"
+	devopsjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/devopsjobs"
+	glassdoorscraper "github.com/arinbalyan/scrappy/internal/scraper/glassdoor"
+	googlescraper "github.com/arinbalyan/scrappy/internal/scraper/google"
+	dribbbleScraper "github.com/arinbalyan/scrappy/internal/scraper/dribbble"
 	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
 	gunioscraper "github.com/arinbalyan/scrappy/internal/scraper/gunio"
+	hackernewsscraper "github.com/arinbalyan/scrappy/internal/scraper/hackernews"
+	hasjobscraper "github.com/arinbalyan/scrappy/internal/scraper/hasjob"
 	himalayasscraper "github.com/arinbalyan/scrappy/internal/scraper/himalayas"
 	hiringcafescraper "github.com/arinbalyan/scrappy/internal/scraper/hiringcafe"
 	huggingfacejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/huggingfacejobs"
 	indeedscraper "github.com/arinbalyan/scrappy/internal/scraper/indeed"
+	internshalascraper "github.com/arinbalyan/scrappy/internal/scraper/internshala"
+	jobicyscraper "github.com/arinbalyan/scrappy/internal/scraper/jobicy"
+	jobstreetscraper "github.com/arinbalyan/scrappy/internal/scraper/jobstreet"
 	jobindexscraper "github.com/arinbalyan/scrappy/internal/scraper/jobindex"
+	jobspressoscraper "github.com/arinbalyan/scrappy/internal/scraper/jobspresso"
+	larajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/larajobs"
 	linkedinscraper "github.com/arinbalyan/scrappy/internal/scraper/linkedin"
+	naukriscraper "github.com/arinbalyan/scrappy/internal/scraper/naukri"
+	remotefirstjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/remotefirstjobs"
 	remoteokscraper "github.com/arinbalyan/scrappy/internal/scraper/remoteok"
+	reedscraper "github.com/arinbalyan/scrappy/internal/scraper/reed"
 	remotivescraper "github.com/arinbalyan/scrappy/internal/scraper/remotive"
+	startupjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/startupjobs"
+	swissdevjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/swissdevjobs"
 	ukvisajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ukvisajobs"
+	vuejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/vuejobs"
 	workingnomadsscraper "github.com/arinbalyan/scrappy/internal/scraper/workingnomads"
 	wuzzufscraper "github.com/arinbalyan/scrappy/internal/scraper/wuzzuf"
 	ycjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ycjobs"
+	ziprecruiterscraper "github.com/arinbalyan/scrappy/internal/scraper/ziprecruiter"
+	academiccareersscraper "github.com/arinbalyan/scrappy/internal/scraper/academiccareers"
+	adzunascraper "github.com/arinbalyan/scrappy/internal/scraper/adzuna"
+	simplyhiredscraper "github.com/arinbalyan/scrappy/internal/scraper/simplyhired"
+	careerbuilderscraper "github.com/arinbalyan/scrappy/internal/scraper/careerbuilder"
+	dicescraper "github.com/arinbalyan/scrappy/internal/scraper/dice"
+	careerjetscraper "github.com/arinbalyan/scrappy/internal/scraper/careerjet"
+	jooblescraper "github.com/arinbalyan/scrappy/internal/scraper/jooble"
+	monsterscraper "github.com/arinbalyan/scrappy/internal/scraper/monster"
+	stepstonescraper "github.com/arinbalyan/scrappy/internal/scraper/stepstone"
+	themusescraper "github.com/arinbalyan/scrappy/internal/scraper/themuse"
+	infojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/infojobs"
+	jobsscraper "github.com/arinbalyan/scrappy/internal/scraper/jobsdb"
+	snagajobscraper "github.com/arinbalyan/scrappy/internal/scraper/snagajob"
+	djinniscraper "github.com/arinbalyan/scrappy/internal/scraper/djinni"
+	headhunterscraper "github.com/arinbalyan/scrappy/internal/scraper/headhunter"
+	mycareersfuturescraper "github.com/arinbalyan/scrappy/internal/scraper/mycareersfuture"
+	upworkscraper "github.com/arinbalyan/scrappy/internal/scraper/upwork"
+	eurojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/eurojobs"
+	fwdayweekscraper "github.com/arinbalyan/scrappy/internal/scraper/4dayweek"
+	findworkscraper "github.com/arinbalyan/scrappy/internal/scraper/findwork"
+	web3careerscraper "github.com/arinbalyan/scrappy/internal/scraper/web3career"
+	iosdevjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/iosdevjobs"
+	arbeitsagenturscraper "github.com/arinbalyan/scrappy/internal/scraper/arbeitsagentur"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
+
+// requiredEnvVars maps sites to environment variables that must be set
+// before the scraper can function.  The engine skips these sites with
+// a clear WARN message instead of wasting time on a doomed request.
+var requiredEnvVars = map[model.Site][]string{
+	model.SiteAdzuna:        {"ADZUNA_APP_ID", "ADZUNA_APP_KEY"},
+	model.SiteCareerjet:     {"CAREERJET_AFFID"},
+	model.SiteInfoJobs:      {"INFOJOBS_CLIENT_ID", "INFOJOBS_CLIENT_SECRET"},
+	model.SiteFindwork:      {"FINDWORK_API_KEY"},
+	model.SiteArbeitsagentur: {"ARBEITSAGENTUR_API_KEY"},
+}
 
 type PostProcessor func(context.Context, *model.JobPost) error
 
@@ -42,19 +108,69 @@ func NewEngine() *Engine {
 	s := []scraper.Scraper{
 		indeedscraper.New(nil),
 		linkedinscraper.New(nil),
+		baytscraper.New(nil),
+		bdjobsscraper.New(nil),
+		naukriscraper.New(nil),
+		internshalascraper.New(nil),
+		builtinscraper.New(nil),
+		startupjobsscraper.New(nil),
+		swissdevjobsscraper.New(nil),
 		greenhousescraper.New(nil),
 		gunioscraper.New(nil),
 		himalayasscraper.New(nil),
 		hiringcafescraper.New(nil),
 		huggingfacejobsscraper.New(nil),
 		jobindexscraper.New(nil),
+		reedscraper.New(nil),
 		remoteokscraper.New(nil),
 		remotivescraper.New(nil),
+		remotefirstjobsscraper.New(nil),
+		jobspressoscraper.New(nil),
+		hasjobscraper.New(nil),
+		vuejobsscraper.New(nil),
+		larajobsscraper.New(nil),
+		arbeitnowscraper.New(nil),
+		hackernewsscraper.New(nil),
+		cryptocurrencyjobsscraper.New(nil),
+		dribbbleScraper.New(nil),
 		aijobsscraper.New(nil),
+		androidjobsscraper.New(nil),
+		jobicyscraper.New(nil),
+		jobstreetscraper.New(nil),
+		devopsjobsscraper.New(nil),
+		crunchboardscraper.New(nil),
+		cryptojobslistscraper.New(nil),
+		devitjobsscraper.New(nil),
+		ziprecruiterscraper.New(nil),
 		workingnomadsscraper.New(nil),
 		wuzzufscraper.New(nil),
 		ycjobsscraper.New(nil),
 		ukvisajobsscraper.New(nil),
+		glassdoorscraper.New(nil),
+		googlescraper.New(nil),
+		adzunascraper.New(nil),
+		simplyhiredscraper.New(nil),
+		careerbuilderscraper.New(nil),
+		dicescraper.New(nil),
+		careerjetscraper.New(nil),
+		jooblescraper.New(nil),
+		monsterscraper.New(nil),
+		stepstonescraper.New(nil),
+		themusescraper.New(nil),
+		infojobsscraper.New(nil),
+		jobsscraper.New(nil),
+		snagajobscraper.New(nil),
+		djinniscraper.New(nil),
+		headhunterscraper.New(nil),
+		mycareersfuturescraper.New(nil),
+		upworkscraper.New(nil),
+		eurojobsscraper.New(nil),
+		fwdayweekscraper.New(nil),
+		findworkscraper.New(nil),
+		web3careerscraper.New(nil),
+		academiccareersscraper.New(nil),
+		iosdevjobsscraper.New(nil),
+		arbeitsagenturscraper.New(nil),
 	}
 	m := make(map[model.Site]scraper.Scraper, len(s)+1)
 	for _, sc := range s {
@@ -97,12 +213,42 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	}
 	resultsCh := make(chan siteResult, len(sites))
 
+	// Memory-pressure monitor (only when cap is set).
+	if input.MemoryCapMB > 0 {
+		memThreshold := uint64(input.MemoryCapMB) * 1024 * 1024 * 8 / 10 // 80%
+		memDone := make(chan struct{})
+		defer close(memDone)
+		go func() {
+			ticker := time.NewTicker(10 * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-memDone:
+					return
+				case <-ticker.C:
+				}
+				var m runtime.MemStats
+				runtime.ReadMemStats(&m)
+				if m.Alloc > memThreshold {
+					util.Warn("memory_pressure", map[string]any{
+						"alloc_mb":   m.Alloc / 1024 / 1024,
+						"cap_mb":     input.MemoryCapMB,
+						"pct":        m.Alloc * 100 / (uint64(input.MemoryCapMB) * 1024 * 1024),
+						"gc_cycles":  m.NumGC,
+					})
+				}
+			}
+		}()
+	}
+
 	for _, site := range sites {
 		sc, ok := e.scrapers[site]
 		if !ok {
 			st := SiteTelemetry{Site: site, Attempted: false, Success: false, Error: "unsupported site", FailOpenReason: "unsupported_site", StatusCodeCount: map[int]int{}}
 			telemetryBySite[site] = st
-			util.Warn("site_scrape_fail_open", map[string]any{"site": site, "reason": "unsupported_site", "err": "unsupported site"})
+			util.Warn("unsupported", map[string]any{"site": site})
 			resultsCh <- siteResult{site: site, st: st, ok: false}
 			continue
 		}
@@ -116,57 +262,117 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				defer func() { <-sem }()
 			}
 
-			siteInput := input
-			if siteInput.SiteSearch != nil {
-				if v := strings.TrimSpace(siteInput.SiteSearch[site]); v != "" {
-					siteInput.SearchTerm = v
+			// Check required env vars before attempting scrape.
+			if vars, needsKey := requiredEnvVars[site]; needsKey {
+				missing := make([]string, 0, len(vars))
+				for _, ev := range vars {
+					if os.Getenv(ev) == "" {
+						missing = append(missing, ev)
+					}
+				}
+				if len(missing) > 0 {
+					st := SiteTelemetry{Site: site, Attempted: false, Success: false, Error: fmt.Sprintf("missing env vars: %s", strings.Join(missing, ", ")), FailOpenReason: "missing_credentials"}
+					telemetryBySite[site] = st
+					util.Warn("skipping", map[string]any{"site": site, "reason": "missing required env var(s)", "vars": strings.Join(missing, ", ")})
+					resultsCh <- siteResult{site: site, st: st, ok: false}
+					return
 				}
 			}
-			if siteInput.SiteLocation != nil {
-				if v := strings.TrimSpace(siteInput.SiteLocation[site]); v != "" {
-					siteInput.Location = v
+
+			baseInput := input
+			if baseInput.SiteLocation != nil {
+				if v := strings.TrimSpace(baseInput.SiteLocation[site]); v != "" {
+					baseInput.Location = v
 				}
 			}
-			util.Info("site_scrape_start", map[string]any{"site": site})
-			util.Debug("site_scrape_context", map[string]any{
-				"site":           site,
-				"search_term":    siteInput.SearchTerm,
-				"location":       siteInput.Location,
-				"results_wanted": siteInput.ResultsWanted,
-				"hours_old":      siteInput.HoursOld,
-				"is_remote":      siteInput.IsRemote,
-			})
+			if baseInput.SiteCountry != nil {
+				if c, ok := baseInput.SiteCountry[site]; ok && c != "" {
+					baseInput.Country = c
+				}
+			}
+
+			// Build terms list (per-site overrides, then global SearchTerms, then single SearchTerm).
+			terms := []string{strings.TrimSpace(baseInput.SearchTerm)}
+			if baseInput.SiteSearch != nil {
+				if vs, ok := baseInput.SiteSearch[site]; ok {
+					terms = vs
+				} else if len(baseInput.SearchTerms) > 0 {
+					terms = baseInput.SearchTerms
+				}
+			} else if len(baseInput.SearchTerms) > 0 {
+				terms = baseInput.SearchTerms
+			}
+			if len(terms) == 0 {
+				terms = []string{""}
+			}
+
+			// Build locations list (per-site multi, then global Locations, then single Location).
+			locs := []string{strings.TrimSpace(baseInput.Location)}
+			if len(baseInput.SiteLocations) > 0 {
+				if vs, ok := baseInput.SiteLocations[site]; ok && len(vs) > 0 {
+					locs = vs
+				}
+			} else if len(baseInput.Locations) > 0 {
+				locs = baseInput.Locations
+			}
+			if len(locs) == 0 {
+				locs = []string{""}
+			}
+
 			st := SiteTelemetry{Site: site, Attempted: true, StatusCodeCount: map[int]int{}}
-			jobs, err := sc.Scrape(ctx, siteInput)
-			if err != nil {
-				st.Error = err.Error()
-				st.Success = false
-				st.ChallengeDetected = containsAny(st.Error, "captcha", "cloudflare", "attention required", "forbidden", "blocked")
-				if e.siteFailOpen {
-					st.FailOpenReason = classifyFailOpenReason(err)
-					util.Warn("site_scrape_fail_open", map[string]any{"site": site, "reason": st.FailOpenReason, "err": st.Error})
-				} else {
-					util.Error("site_scrape_failed", map[string]any{"site": site, "err": st.Error})
+			aggregated := make([]model.JobPost, 0)
+			var lastErr error
+			for _, term := range terms {
+				for _, loc := range locs {
+					siteInput := baseInput
+					siteInput.SearchTerm = term
+					siteInput.Location = loc
+					util.Info("Scraping", map[string]any{"site": site, "search": siteInput.SearchTerm, "location": siteInput.Location})
+					jobs, err := sc.Scrape(ctx, siteInput)
+					aggregated = append(aggregated, jobs...)
+					if err != nil {
+						lastErr = err
+						st.Error = err.Error()
+						st.Success = false
+						st.ChallengeDetected = containsAny(st.Error, "captcha", "cloudflare", "attention required", "forbidden", "blocked")
+						if e.siteFailOpen {
+							st.FailOpenReason = classifyFailOpenReason(err)
+							util.Warn("fail_open", map[string]any{"site": site, "reason": st.FailOpenReason, "err": st.Error, "partial": len(aggregated), "term": term, "location": loc})
+						} else {
+							util.Error("scrape_failed", map[string]any{"site": site, "err": st.Error, "partial": len(aggregated), "term": term, "location": loc})
+						}
+						allMu.Lock()
+						e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], err)
+						telemetryBySite[site] = st
+						allMu.Unlock()
+						// Continue to next (term, loc) combo — don't break.
+						continue
+					}
 				}
-				allMu.Lock()
-				e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], err)
-				telemetryBySite[site] = st
-				allMu.Unlock()
+			}
+			if lastErr != nil && len(aggregated) == 0 {
+				// All (term, loc) combos failed with zero results.
 				resultsCh <- siteResult{site: site, st: st, ok: false}
 				return
 			}
-			st.Success = true
-			st.ResultCount = len(jobs)
-			if len(jobs) == 0 {
-				st.EmptyPageRate = 1
-				util.APIMiss("site_scrape_empty", map[string]any{"site": site})
+			if st.Error == "" {
+				st.Success = true
 			}
-			util.Info("site_scrape_success", map[string]any{"site": site, "jobs": len(jobs)})
+			st.ResultCount = len(aggregated)
+			if st.Success && len(aggregated) == 0 {
+				st.EmptyPageRate = 1
+				util.APIMiss("no_results", map[string]any{"site": site})
+			}
+			if st.Error == "" || len(aggregated) > 0 {
+				util.Info("scraped", map[string]any{"site": site, "jobs": len(aggregated)})
+			}
 			allMu.Lock()
 			e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], nil)
 			telemetryBySite[site] = st
 			allMu.Unlock()
-			resultsCh <- siteResult{site: site, jobs: jobs, st: st, ok: true}
+			if len(aggregated) > 0 || st.Success {
+				resultsCh <- siteResult{site: site, jobs: aggregated, st: st, ok: true}
+			}
 		}(site, sc)
 	}
 	wg.Wait()
@@ -187,19 +393,25 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		}
 		jobs := res.jobs
 		for i := range jobs {
+			jobs[i].Description = stripHTML(jobs[i].Description)
+			jobs[i].CompanyDescription = stripHTML(jobs[i].CompanyDescription)
+			jobs[i].Site = string(res.site)
+			now := time.Now()
+			jobs[i].FetchedAt = &now
+			enrichJobEmails(&jobs[i])
+			jobs[i].QualityScore = quality.Score(&jobs[i])
 			for _, h := range e.hooks {
 				if err := h(ctx, &jobs[i]); err != nil {
 					if e.siteFailOpen {
-						util.Warn("post_process_fail_open", map[string]any{"site": res.site, "job_id": jobs[i].ID, "err": err.Error()})
+						util.Warn("hook_failed", map[string]any{"site": res.site, "job_id": jobs[i].ID, "err": err.Error()})
 						continue
 					}
 					return nil, fmt.Errorf("post-process %s: %w", jobs[i].ID, err)
 				}
 			}
-			jobs[i].QualityScore = quality.Score(&jobs[i])
-			util.Debug("job_processed", map[string]any{"site": res.site, "job_id": jobs[i].ID, "title": jobs[i].Title})
+			util.Debug("job", map[string]any{"site": res.site, "job_id": jobs[i].ID, "title": jobs[i].Title})
 		}
-		processedBySite[res.site] = jobs
+		processedBySite[res.site] = dedupWithinSite(jobs)
 	}
 
 	for _, site := range sites {
@@ -269,6 +481,19 @@ func containsAny(s string, vals ...string) bool {
 }
 
 func globalConcurrency(input model.ScraperInput) int {
+	// Scale concurrency based on memory cap if set.
+	if input.MemoryCapMB > 0 {
+		switch {
+		case input.MemoryCapMB <= 256:
+			return 3
+		case input.MemoryCapMB <= 512:
+			return 5
+		case input.MemoryCapMB <= 1024:
+			return 8
+		default:
+			return 12
+		}
+	}
 	if input.MaxRPS > 0 {
 		if input.MaxRPS < 2 {
 			return 2
@@ -302,7 +527,7 @@ func classifyFailOpenReason(err error) string {
 	}
 	e := strings.ToLower(err.Error())
 	switch {
-	case containsAny(e, "captcha", "cloudflare", "attention required", "bot"):
+	case containsAny(e, "captcha", "cloudflare", "attention required", "bot", "blocked", "datadome"):
 		return "challenge_detected"
 	case containsAny(e, "429", "too many requests", "rate"):
 		return "rate_limited"
@@ -313,4 +538,90 @@ func classifyFailOpenReason(err error) string {
 	default:
 		return "unknown"
 	}
+}
+
+func enrichJobEmails(job *model.JobPost) {
+	job.Emails = dedupEmails(job.Emails)
+
+	text := jobTextForEmailExtraction(job)
+	if text == "" {
+		return
+	}
+	found := internalemail.Extract(text)
+	if len(found) == 0 {
+		return
+	}
+	for _, e := range found {
+		job.Emails = append(job.Emails, model.Email{Addr: e.Addr, Source: e.Source, Role: e.Role})
+	}
+	job.Emails = dedupEmails(job.Emails)
+}
+
+func jobTextForEmailExtraction(job *model.JobPost) string {
+	parts := make([]string, 0, 2)
+	if v := strings.TrimSpace(job.Description); v != "" {
+		parts = append(parts, v)
+	}
+	if v := strings.TrimSpace(job.CompanyDescription); v != "" {
+		parts = append(parts, v)
+	}
+	return strings.Join(parts, "\n")
+}
+
+func dedupEmails(in []model.Email) []model.Email {
+	seen := make(map[string]struct{}, len(in))
+	out := make([]model.Email, 0, len(in))
+	for _, e := range in {
+		addr := strings.TrimSpace(strings.ToLower(e.Addr))
+		if addr == "" {
+			continue
+		}
+		if _, ok := seen[addr]; ok {
+			continue
+		}
+		seen[addr] = struct{}{}
+		e.Addr = addr
+		out = append(out, e)
+	}
+	return out
+}
+
+func stripHTML(s string) string {
+	if s == "" || !strings.ContainsAny(s, "<>") {
+		return htmlparser.UnescapeString(s)
+	}
+	tokenizer := htmlparser.NewTokenizer(strings.NewReader(s))
+	var out strings.Builder
+	out.Grow(len(s))
+	for {
+		switch tokenizer.Next() {
+		case htmlparser.ErrorToken:
+			return htmlparser.UnescapeString(out.String())
+		case htmlparser.TextToken:
+			out.Write(tokenizer.Text())
+		default:
+			// skip tags, comments, doctype, etc.
+		}
+	}
+}
+
+func dedupWithinSite(in []model.JobPost) []model.JobPost {
+	seen := map[string]struct{}{}
+	out := make([]model.JobPost, 0, len(in))
+	for _, j := range in {
+		key := strings.TrimSpace(j.JobURL)
+		if key == "" {
+			key = strings.TrimSpace(j.ID)
+		}
+		if key == "" {
+			out = append(out, j)
+			continue
+		}
+		if _, ok := seen[key]; ok {
+			continue
+		}
+		seen[key] = struct{}{}
+		out = append(out, j)
+	}
+	return out
 }

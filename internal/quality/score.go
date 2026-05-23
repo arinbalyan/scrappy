@@ -86,7 +86,8 @@ func isFresh(job *model.JobPost) bool {
 	if job.DatePosted == nil || job.DatePosted.IsZero() {
 		return false
 	}
-	return time.Since(*job.DatePosted) <= 24*time.Hour
+	diff := time.Since(*job.DatePosted)
+	return diff >= 0 && diff <= 24*time.Hour
 }
 
 func isAgency(job *model.JobPost) bool {
@@ -111,7 +112,7 @@ func isAgency(job *model.JobPost) bool {
 	}
 
 	name := strings.ToLower(strings.TrimSpace(job.CompanyName))
-	return hasToken(name, "staffing") || hasToken(name, "recruiting") || hasToken(name, "recruitment") || hasToken(name, "talent")
+	return hasToken(name, "staffing") || hasToken(name, "recruiting") || hasToken(name, "recruitment")
 }
 
 func hasToken(s, token string) bool {
