@@ -137,11 +137,23 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 	// Client-side search term filtering (TheMuse API has no direct search param)
 	if searchTerm := strings.TrimSpace(input.SearchTerm); searchTerm != "" {
-		term := strings.ToLower(searchTerm)
+		// Split on " OR " and match any term
+		terms := strings.Split(searchTerm, " OR ")
+		lowerTerms := make([]string, 0, len(terms))
+		for _, t := range terms {
+			t = strings.Trim(strings.TrimSpace(t), `"`)
+			if t != "" {
+				lowerTerms = append(lowerTerms, strings.ToLower(t))
+			}
+		}
 		filtered := make([]themuseJob, 0, len(rawJobs))
 		for _, j := range rawJobs {
-			if strings.Contains(strings.ToLower(j.Name), term) {
-				filtered = append(filtered, j)
+			lower := strings.ToLower(j.Name)
+			for _, t := range lowerTerms {
+				if strings.Contains(lower, t) {
+					filtered = append(filtered, j)
+					break
+				}
 			}
 		}
 		rawJobs = filtered
