@@ -245,6 +245,8 @@ type JobPost struct {
 	Description  string     `json:"description,omitempty"`
 	JobType      string     `json:"job_type,omitempty"`
 	DatePosted   *time.Time `json:"date_posted,omitempty"`
+	Site         string     `json:"site"`
+	FetchedAt    *time.Time `json:"fetched_at,omitempty"`
 
 	Emails         []Email       `json:"emails,omitempty"`
 	Compensation   *Compensation `json:"compensation,omitempty"`
