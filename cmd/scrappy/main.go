@@ -35,6 +35,7 @@ type cliConfig struct {
 	ResultsWanted  int
 	Format         string
 	Out            string
+	Timeout        int
 	Interactive    bool
 	NonInteractive bool
 	LogLevel       string
@@ -126,7 +127,7 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 
 	root.Flags().StringVar(&cfg.Search, "search", "", "search term")
 	root.Flags().StringVar(&cfg.Location, "location", "", "search location")
-	root.Flags().StringVar(&cfg.Sites, "sites", "linkedin,indeed", "comma-separated sites")
+	root.Flags().StringVar(&cfg.Sites, "sites", "", "comma-separated sites (empty = all supported)")
 	root.Flags().IntVar(&cfg.ResultsWanted, "results-wanted", 0, "max results")
 	root.Flags().StringVar(&cfg.Format, "format", "", "output format: jsonl|csv|xlsx|parquet")
 	root.Flags().StringVar(&cfg.Out, "out", "", "output path")
@@ -135,6 +136,7 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().StringVar(&cfg.LogLevel, "log-level", "", "log level: DEBUG|INFO|WARN|ERROR|SYSTEM_ERROR|API_MISS")
 	root.Flags().StringVar(&cfg.ConfigPath, "config", "config.yaml", "path to config yaml with per-site search/location")
 	root.Flags().BoolVar(&cfg.EmailOnly, "email", false, "only include jobs with at least one email")
+	root.Flags().IntVar(&cfg.Timeout, "timeout", 600, "scrape timeout in seconds")
 	return root
 }
 
@@ -178,6 +180,10 @@ func runOnce(cfg *cliConfig) error {
 	util.SetLogLevel(level)
 
 	sites := parseSites(cfg.Sites)
+	if len(sites) == 0 {
+		sites = make([]model.Site, len(model.AllSites()))
+		copy(sites, model.AllSites())
+	}
 	ac := loadAppConfig(cfg.ConfigPath)
 	globalSearch := strings.TrimSpace(cfg.Search)
 	if globalSearch == "" {
@@ -244,7 +250,7 @@ func runOnce(cfg *cliConfig) error {
 	}
 
 	engine := scrappy.NewEngine()
-	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Timeout)*time.Second)
 	defer cancel()
 
 	jobs, err := engine.Scrape(ctx, input)

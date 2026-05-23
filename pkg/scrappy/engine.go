@@ -6,7 +6,9 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
+	htmlparser "golang.org/x/net/html"
 	"github.com/arinbalyan/scrappy/internal/dedup"
 	internalemail "github.com/arinbalyan/scrappy/internal/email"
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -253,37 +255,47 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 					"is_remote":      siteInput.IsRemote,
 				})
 				jobs, err := sc.Scrape(ctx, siteInput)
+				aggregated = append(aggregated, jobs...)
 				if err != nil {
 					st.Error = err.Error()
 					st.Success = false
 					st.ChallengeDetected = containsAny(st.Error, "captcha", "cloudflare", "attention required", "forbidden", "blocked")
 					if e.siteFailOpen {
 						st.FailOpenReason = classifyFailOpenReason(err)
-						util.Warn("site_scrape_fail_open", map[string]any{"site": site, "reason": st.FailOpenReason, "err": st.Error})
+						util.Warn("site_scrape_fail_open", map[string]any{"site": site, "reason": st.FailOpenReason, "err": st.Error, "partial": len(aggregated)})
 					} else {
-						util.Error("site_scrape_failed", map[string]any{"site": site, "err": st.Error})
+						util.Error("site_scrape_failed", map[string]any{"site": site, "err": st.Error, "partial": len(aggregated)})
 					}
 					allMu.Lock()
 					e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], err)
 					telemetryBySite[site] = st
 					allMu.Unlock()
-					resultsCh <- siteResult{site: site, st: st, ok: false}
-					return
+					if len(aggregated) == 0 {
+						resultsCh <- siteResult{site: site, st: st, ok: false}
+						return
+					}
+					util.Info("site_scrape_partial", map[string]any{"site": site, "jobs": len(aggregated), "err": err.Error()})
+					break
 				}
-				aggregated = append(aggregated, jobs...)
 			}
-			st.Success = true
+			if st.Error == "" {
+				st.Success = true
+			}
 			st.ResultCount = len(aggregated)
-			if len(aggregated) == 0 {
+			if st.Success && len(aggregated) == 0 {
 				st.EmptyPageRate = 1
 				util.APIMiss("site_scrape_empty", map[string]any{"site": site})
 			}
-			util.Info("site_scrape_success", map[string]any{"site": site, "jobs": len(aggregated)})
+			if st.Error == "" || len(aggregated) > 0 {
+				util.Info("site_scrape_success", map[string]any{"site": site, "jobs": len(aggregated)})
+			}
 			allMu.Lock()
 			e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], nil)
 			telemetryBySite[site] = st
 			allMu.Unlock()
-			resultsCh <- siteResult{site: site, jobs: aggregated, st: st, ok: true}
+			if len(aggregated) > 0 || st.Success {
+				resultsCh <- siteResult{site: site, jobs: aggregated, st: st, ok: true}
+			}
 		}(site, sc)
 	}
 	wg.Wait()
@@ -304,7 +316,13 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		}
 		jobs := res.jobs
 		for i := range jobs {
+			jobs[i].Description = stripHTML(jobs[i].Description)
+			jobs[i].CompanyDescription = stripHTML(jobs[i].CompanyDescription)
+			jobs[i].Site = string(res.site)
+			now := time.Now()
+			jobs[i].FetchedAt = &now
 			enrichJobEmails(&jobs[i])
+			jobs[i].QualityScore = quality.Score(&jobs[i])
 			for _, h := range e.hooks {
 				if err := h(ctx, &jobs[i]); err != nil {
 					if e.siteFailOpen {
@@ -314,7 +332,6 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 					return nil, fmt.Errorf("post-process %s: %w", jobs[i].ID, err)
 				}
 			}
-			jobs[i].QualityScore = quality.Score(&jobs[i])
 			util.Debug("job_processed", map[string]any{"site": res.site, "job_id": jobs[i].ID, "title": jobs[i].Title})
 		}
 		processedBySite[res.site] = dedupWithinSite(jobs)
@@ -477,6 +494,25 @@ func dedupEmails(in []model.Email) []model.Email {
 		out = append(out, e)
 	}
 	return out
+}
+
+func stripHTML(s string) string {
+	if s == "" || !strings.ContainsAny(s, "<>") {
+		return htmlparser.UnescapeString(s)
+	}
+	tokenizer := htmlparser.NewTokenizer(strings.NewReader(s))
+	var out strings.Builder
+	out.Grow(len(s))
+	for {
+		switch tokenizer.Next() {
+		case htmlparser.ErrorToken:
+			return htmlparser.UnescapeString(out.String())
+		case htmlparser.TextToken:
+			out.Write(tokenizer.Text())
+		default:
+			// skip tags, comments, doctype, etc.
+		}
+	}
 }
 
 func dedupWithinSite(in []model.JobPost) []model.JobPost {
