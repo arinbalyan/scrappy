@@ -35,10 +35,12 @@ When a required env var is missing, the engine skips that site with a WARN messa
 
 | Variable | Default | Description |
 |---|---|---|
-| `SCRAPPY_PROXIES` | — | Comma-separated SOCKS5/HTTP proxy URLs (e.g. `socks5://user:pass@host:1080`) |
+| `SCRAPPY_PROXIES` | — | Comma-separated SOCKS5/HTTP proxy URLs (lowest priority; overridden by `--proxy` CLI flag and `config.yaml proxy` field) |
 | `SCRAPPY_PROXY_ROTATE_EVERY_N` | — | Rotate to next proxy every N requests (0 = disabled) |
 | `SCRAPPY_PROXY_STICKY_WINDOW_N` | 20 | Minimum requests before rotating away from current proxy |
 | `SCRAPPY_LOG_LEVEL` | `INFO` | Log verbosity: `DEBUG`, `INFO`, `WARN`, `ERROR` |
+
+**Proxy precedence**: `--proxy` CLI flag > `config.yaml` `proxy:` field > `SCRAPPY_PROXIES` env var
 
 ### Site-specific overrides
 

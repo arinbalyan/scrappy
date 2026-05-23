@@ -68,14 +68,22 @@ sites:
     search:
       - "golang developer"
       - "rust engineer"
-    location: "San Francisco"
+    location: "Remote"
+    country: germany           # indeed-co: DE header, German search host
+  linkedin:
+    search: '"AI Engineer" OR "ML Engineer"'
+    location: Remote
   dice:
     search: "AI Engineer"
   reed:
-    location: "United Kingdom"
+    location: "United Kingdom"  # UK-only results
+  naukri:
+    search: ai engineer
+    location: India
+    country: india              # Indeed India endpoint
 ```
 
-Site-specific search/location replaces the global default for that site.
+Site-specific search/location replaces the global default for that site. The `country` field (supported by Indeed) sets the `indeed-co` header and search host for country-specific results.
 
 ## 5. Multi-value (cartesian product)
 
@@ -108,7 +116,32 @@ Concurrency scales automatically:
 
 A background goroutine checks heap usage every 10 seconds and warns at 80% of the cap.
 
-## 7. Docker
+## 7. Proxies
+
+Use proxies to avoid rate limits and IP blocks:
+
+```bash
+# Single SOCKS5 proxy
+scrappy --sites linkedin,indeed --search "AI Engineer" \
+  --proxy socks5://user:pass@proxy:1080 --results-wanted 500
+
+# Multi-proxy round-robin
+scrappy --sites linkedin,indeed,glassdoor --search "developer" \
+  --proxy socks5://proxy1:1080,socks5://proxy2:1080,socks5://proxy3:1080
+```
+
+Or set in config:
+
+```yaml
+defaults:
+  search: "AI Engineer"
+  location: "Remote"
+  proxy: socks5://user:pass@proxy:1080
+```
+
+At startup, scrappy TCP-dials each proxy (500ms timeout) and excludes unreachable ones. Priority: `--proxy` CLI flag > `config.yaml` > `SCRAPPY_PROXIES` env var.
+
+## 8. Docker
 
 Build and run with Docker:
 

@@ -87,17 +87,39 @@ Skip health checks with `--proxy-health-check=false` (default: `true`).
 ## CLI flags
 
 ```
---proxy socks5://host:port,...   # Comma-separated proxy list
---local-proxy-port 7890          # Auto-build socks5://localhost:<port>
---proxy-health-check true        # Pre-flight probe (default: true)
+--proxy socks5://host:port,...   # Comma-separated proxy list (overrides SCRAPPY_PROXIES env)
+```
+
+## Config YAML
+
+```yaml
+defaults:
+  proxy: socks5://host1:1080,socks5://host2:1080
+```
+
+Config value acts as fallback between CLI flag and environment variable.
+
+## Startup health check
+
+At startup, `runOnce()` parses the proxy string, TCP-dials each proxy (500ms timeout), and only passes reachable proxies to the HTTP transport. Unreachable proxies are logged as warnings and excluded.
+
+```
+WARN proxy_unreachable proxy=socks5://dead-proxy:1080 err="dial tcp: i/o timeout"
+INFO proxy_setup healthy=3 total=4 proxies=socks5://p1:1080,socks5://p2:1080,socks5://p3:1080
 ```
 
 ## Environment variables
 
 | Variable | Description |
 |---|---|
-| `SCRAPPY_PROXIES` | Comma-separated proxy URLs (fallback when `--proxy` not set) |
+| `SCRAPPY_PROXIES` | Comma-separated proxy URLs (lowest priority; overridden by `--proxy` and config) |
 | `SCRAPPY_PROXY_ROTATE_EVERY_N` | Rotate every N requests (0 = disabled) |
 | `SCRAPPY_PROXY_STICKY_WINDOW_N` | Min requests before rotating away (default 20) |
 
 The `SCRAPPY_PROXIES` env var is read by `internal/util.NewHTTPClient()` as a fallback. Proxy rotation and sticky-window settings are also read from env vars in `util.ClientOptions`.
+
+## Precedence
+
+```
+--proxy CLI flag  >  config.yaml proxy field  >  SCRAPPY_PROXIES env var
+```

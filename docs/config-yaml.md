@@ -58,6 +58,7 @@ sites:
 | `out` | string | Output file path. Empty = stdout. |
 | `format` | string | Output format: `jsonl`, `csv`, `xlsx`, `parquet`. |
 | `memory_cap` | string | Memory budget: `512MB`, `1GB`, or a plain number as MB. `0` = unlimited. |
+| `proxy` | string | Comma-separated proxy URLs (lower priority than `--proxy` CLI flag, higher than `SCRAPPY_PROXIES` env var). |
 | `is_remote` | bool | Only jobs flagged as remote (location-independent filter). |
 | `remote_only` | bool | Only truly remote jobs (no location filter applied). |
 | `job_type` | string | Filter: `fulltime`, `parttime`, `contract`, `internship`. |
@@ -113,6 +114,7 @@ sites:
 |-------|------|-------------|
 | `search` | string or list | Replaces `defaults.search` for this site only. |
 | `location` | string or list | Replaces `defaults.location` for this site only. |
+| `country` | string | Country override (e.g. `germany`, `uk`, `india`). Passed to scrapers that support per-country endpoints (Indeed, Glassdoor). |
 | `is_remote` | bool | Overrides the global `is_remote` for this site. |
 
 ### Per-site override rules
