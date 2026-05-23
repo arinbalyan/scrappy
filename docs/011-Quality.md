@@ -1,6 +1,6 @@
 # Quality Scoring
 
-`internal/quality/` — deterministic 0–100 score computed per posting, no LLM needed.
+`internal/quality/` -- deterministic 0-100 score computed per posting, no LLM needed.
 
 ## Formula
 
@@ -11,7 +11,7 @@ Email domain == company domain  +15    (emailMatchesCompanyDomain: any email @do
 Posted within last 24h          +15    (isFresh: DatePosted within 24h of now)
 Description length > 200 chars  +10    (len(trim(Description)) > 200)
 NOT a staffing/agency posting   +10    (!isAgency: domain not in blocklist AND company name has no staffing/recruiting/recruitment tokens)
-                                   ────
+                                   ____
                              Total 100
 ```
 
@@ -31,6 +31,16 @@ spencerogden.com
 ```
 
 Additionally, a company name containing any of the tokens `staffing`, `recruiting`, or `recruitment` is flagged as an agency.
+
+## Race safety
+
+The quality scoring implementation uses concurrent maps with atomic counters to ensure thread safety when scores are computed across multiple goroutines. Always validate with `go test -race ./...` when modifying scoring logic.
+
+## Domain match logic
+
+The `emailMatchesCompanyDomain` factor relies on domain population from the email pipeline. After email extraction, the email domain is stored on `JobPost.Domain`. The quality scorer compares each email's domain against `JobPost.Domain`. A match yields +15 points.
+
+See [010-Email.md](010-Email.md) for the email pipeline details.
 
 ## Usage
 
@@ -59,5 +69,5 @@ After filtering by `--min-score`, remaining jobs are passed to the export pipeli
 
 - Scores are computed after dedup, before filtering
 - The engine applies `--min-score` after cross-site aggregation, so the input to the score filter includes deduplicated jobs from all sites
-- There is no caching — scores are computed once per job per scrape run
+- There is no caching -- scores are computed once per job per scrape run
 - The 6 factors are independent; a job can score 100 if all criteria are met

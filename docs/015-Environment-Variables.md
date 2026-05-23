@@ -1,6 +1,6 @@
 # Environment Variables
 
-`scrappy` loads configuration from environment variables, `.env` files, and `config.yaml` — in that precedence order.
+`scrappy` loads configuration from environment variables, `.env` files, and `config.yaml` -- in that precedence order.
 
 ## Precedence
 
@@ -15,14 +15,14 @@ config.yaml directory/.env     # beside config.yaml
 ~/.scrappy/.env                # user-wide defaults
 ```
 
-The interactive wizard can write API keys to `~/.scrappy/.env` for you.
+The interactive wizard can write API keys to `~/.scrappy/.env` for you. An `.env.example` file is provided in the repository root.
 
 ## Reference
 
 ### Required for 5 sites
 
 | Variable | Site | Get it at |
-|---|---|---|
+|----------|------|-----------|
 | `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | Adzuna | https://developer.adzuna.com/ |
 | `CAREERJET_AFFID` | Careerjet | https://www.careerjet.com/partners/ |
 | `INFOJOBS_CLIENT_ID`, `INFOJOBS_CLIENT_SECRET` | InfoJobs | https://developer.infojobs.net/ |
@@ -31,12 +31,12 @@ The interactive wizard can write API keys to `~/.scrappy/.env` for you.
 
 When a required env var is missing, the engine skips that site with a WARN message instead of failing the run.
 
-### Proxy & network
+### Proxy and network
 
 | Variable | Default | Description |
-|---|---|---|
-| `SCRAPPY_PROXIES` | — | Comma-separated SOCKS5/HTTP proxy URLs (lowest priority; overridden by `--proxy` CLI flag and `config.yaml proxy` field) |
-| `SCRAPPY_PROXY_ROTATE_EVERY_N` | — | Rotate to next proxy every N requests (0 = disabled) |
+|----------|---------|-------------|
+| `SCRAPPY_PROXIES` | -- | Comma-separated SOCKS5/HTTP proxy URLs (lowest priority; overridden by `--proxy` CLI flag and `config.yaml proxy` field) |
+| `SCRAPPY_PROXY_ROTATE_EVERY_N` | -- | Rotate to next proxy every N requests (0 = disabled) |
 | `SCRAPPY_PROXY_STICKY_WINDOW_N` | 20 | Minimum requests before rotating away from current proxy |
 | `SCRAPPY_LOG_LEVEL` | `INFO` | Log verbosity: `DEBUG`, `INFO`, `WARN`, `ERROR` |
 
@@ -45,10 +45,18 @@ When a required env var is missing, the engine skips that site with a WARN messa
 ### Site-specific overrides
 
 | Variable | Default | Description |
-|---|---|---|
-| `SCRAPPY_GREENHOUSE_SEEDS` | — | Comma-separated company names for Greenhouse board discovery |
-| `SCRAPPY_INDEED_API_KEY` | — | Indeed partner API key (paid; optional, falls back to public GraphQL) |
-| `SCRAPPY_INDEED_CO` | — | Indeed country code override (e.g. `us`, `gb`) |
+|----------|---------|-------------|
+| `SCRAPPY_GREENHOUSE_SEEDS` | -- | Comma-separated company names for Greenhouse board discovery |
+| `SCRAPPY_INDEED_API_KEY` | -- | Indeed partner API key (paid; optional, falls back to public GraphQL) |
+| `SCRAPPY_INDEED_CO` | -- | Indeed country code override (e.g. `us`, `gb`, `de`) |
+
+Additional seed variables for job board discovery:
+
+| Variable | Description |
+|----------|-------------|
+| `SCRAPPY_LEVER_SEEDS` | Comma-separated company names for Lever board discovery |
+| `SCRAPPY_WORKABLE_SEEDS` | Comma-separated company names for Workable board discovery |
+| `SCRAPPY_WORKDAY_SEEDS` | Comma-separated company names for Workday board discovery |
 
 ## `.env` file format
 

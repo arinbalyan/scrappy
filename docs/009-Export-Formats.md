@@ -1,11 +1,11 @@
 # Export Formats
 
-`internal/export/` — four output writers: JSONL, CSV, XLSX, Parquet. All write to a local file path specified by `--out`.
+`internal/export/` -- four output writers: JSONL, CSV, XLSX, Parquet. All write to a local file path specified by `--out`.
 
 ## Format overview
 
 | Format | CLI value | Default | Best for |
-|---|---|---|---|
+|--------|-----------|---------|----------|
 | JSONL | `jsonl` | **Yes** | Pipelines, streaming, programmatic consumption |
 | CSV | `csv` | No | Spreadsheets, quick review, email marketing |
 | XLSX | `xlsx` | No | Excel users, formatted multi-sheet output |
@@ -13,7 +13,7 @@
 
 ## JSONL
 
-Line-delimited JSON — one `JobPost` object per line. Default format when `--format` is not set.
+Line-delimited JSON -- one `JobPost` object per line. Default format when `--format` is not set.
 
 ```
 {"site":"indeed","title":"Software Engineer","company_name":"Acme",...}
@@ -24,7 +24,7 @@ Line-delimited JSON — one `JobPost` object per line. Default format when `--fo
 scrappy --sites indeed,remoteok --search "golang" --out jobs.jsonl
 ```
 
-- Streaming writer — O(n) memory, one row at a time
+- Streaming writer -- O(n) memory, one row at a time
 - Preserves all nested structs (Compensation, Location, Emails)
 - Easy to pipe into `jq` or ingest into data pipelines
 
@@ -53,11 +53,11 @@ company_reviews_count, vacancy_count, work_from_home_type, quality_score
 
 ### Emails-only CSV
 
-When you only need contact data, use `--emails-only` to filter jobs with no email addresses:
+When you only need contact data, use `--email` to filter jobs with no email addresses:
 
 ```bash
 scrappy --sites linkedin --search "engineer" --format csv \
-  --out contacts.csv --emails-only
+  --out contacts.csv --email
 ```
 
 ## XLSX
@@ -81,7 +81,7 @@ scrappy --sites linkedin,indeed --search "data engineer" \
   --format parquet --out jobs.parquet
 ```
 
-- Snappy compression — 5–10x smaller than JSONL on text-heavy data
+- Snappy compression -- 5-10x smaller than JSONL on text-heavy data
 - Dictionary encoding on string columns (site, title, company_name)
 - Row group size: 128 MB
 - 4 concurrent row groups for balanced read/write
@@ -128,7 +128,7 @@ type parquetJobRow struct {
 Control how descriptions are rendered with `--description-format`:
 
 | Value | Behavior |
-|---|---|
+|-------|----------|
 | `plain` | HTML stripped, plain text (default) |
 | `markdown` | HTML stripped, minimal markdown preserved |
 | `html` | Raw HTML kept as-is |
@@ -138,7 +138,7 @@ The engine always strips HTML tags before output (via `golang.org/x/net/html` to
 ## Performance
 
 | Format | Write speed (1k jobs) | File size (1k jobs) | Memory |
-|---|---|---|---|
+|--------|----------------------|---------------------|--------|
 | JSONL | ~5 ms | ~800 KB | O(n) rows |
 | CSV | ~4 ms | ~750 KB | O(columns) |
 | XLSX | ~50 ms | ~1.2 MB | O(rows) in memory |

@@ -37,9 +37,15 @@ defaults:
   out: /data/jobs.jsonl
   format: jsonl
   memory_cap: 512MB
+  proxy: socks5://user:pass@proxy:1080
+  min_score: 60
   is_remote: false
   remote_only: false
   job_type: ""
+  dedup: true
+  dedup_by_company: false
+  max_rps: 0
+  site_rps: ""
 
 sites:
   site_name:
@@ -59,9 +65,14 @@ sites:
 | `format` | string | Output format: `jsonl`, `csv`, `xlsx`, `parquet`. |
 | `memory_cap` | string | Memory budget: `512MB`, `1GB`, or a plain number as MB. `0` = unlimited. |
 | `proxy` | string | Comma-separated proxy URLs (lower priority than `--proxy` CLI flag, higher than `SCRAPPY_PROXIES` env var). |
+| `min_score` | int | Minimum quality score (0-100). Jobs below this threshold are dropped before export. |
 | `is_remote` | bool | Only jobs flagged as remote (location-independent filter). |
 | `remote_only` | bool | Only truly remote jobs (no location filter applied). |
 | `job_type` | string | Filter: `fulltime`, `parttime`, `contract`, `internship`. |
+| `dedup` | bool | Drop duplicate job URLs across sites (default: true). |
+| `dedup_by_company` | bool | Keep only one posting per company across the entire result set. |
+| `max_rps` | int | Global maximum requests per second. Clamped between 2 and 16. |
+| `site_rps` | string | Per-site RPS overrides. Format: `site:rps,site:rps` (e.g. `linkedin:1,indeed:10`). |
 
 ### `multiString` format
 
@@ -88,7 +99,9 @@ defaults:
     - Hyderabad
 ```
 
-Each site iterates over every `(search, location)` pair — 3 × 3 = 9 passes per site.
+Each site iterates over every `(search, location)` pair -- 3 x 3 = 9 passes per site.
+
+See [007-Multi-Value.md](007-Multi-Value.md) for details.
 
 ## `sites:` block
 
@@ -134,9 +147,15 @@ defaults:
   out: /home/user/data/jobs.csv
   format: csv
   memory_cap: 0
+  proxy: socks5://user:pass@proxy:1080
+  min_score: 60
   is_remote: true
   remote_only: false
   job_type: fulltime
+  dedup: true
+  dedup_by_company: false
+  max_rps: 10
+  site_rps: "linkedin:1,indeed:5"
 
 sites:
   indeed:
@@ -255,7 +274,7 @@ defaults:
   search: '"AI Engineer" OR "ML Engineer" OR "LLM Engineer"'
 ```
 
-Quoting each term preserves the phrase for sites that pass the string directly to their search API. The quotes are sent as part of the HTTP request — they are **not** consumed by scrappy's YAML parser.
+Quoting each term preserves the phrase for sites that pass the string directly to their search API. The quotes are sent as part of the HTTP request -- they are **not** consumed by scrappy's YAML parser.
 
 ### Site-specific searches
 
@@ -274,4 +293,6 @@ sites:
 
 ### Save from interactive mode
 
-After completing a scrape in interactive mode, answer `y` to "Save these settings to ~/.scrappy/config.yaml?" — the wizard writes your current values as a config file automatically.
+After completing a scrape in interactive mode, answer `y` to "Save these settings to ~/.scrappy/config.yaml?" -- the wizard writes your current values as a config file automatically.
+
+See [005-Interactive-Mode.md](005-Interactive-Mode.md) for details.
