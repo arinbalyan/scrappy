@@ -285,6 +285,11 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 					baseInput.Location = v
 				}
 			}
+			if baseInput.SiteCountry != nil {
+				if c, ok := baseInput.SiteCountry[site]; ok && c != "" {
+					baseInput.Country = c
+				}
+			}
 
 			// Build terms list (per-site overrides, then global SearchTerms, then single SearchTerm).
 			terms := []string{strings.TrimSpace(baseInput.SearchTerm)}
