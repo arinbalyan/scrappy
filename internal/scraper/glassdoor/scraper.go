@@ -135,7 +135,10 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 
 	// Step 1: fetch CSRF token from the homepage.
-	csrfToken := fetchCSRFToken(ctx, s.client, baseURL)
+	csrfToken, challenge := fetchCSRFToken(ctx, s.client, baseURL)
+	if challenge != "" {
+		return nil, fmt.Errorf("glassdoor: blocked - %s challenge detected", challenge)
+	}
 	util.Debug("glassdoor_csrf", map[string]any{"token_prefix": safePrefix(csrfToken, 8)})
 
 	jobs := make([]model.JobPost, 0, wanted)
@@ -194,30 +197,36 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 // --- CSRF token ---
 
 // fetchCSRFToken extracts the gdCSRF token from the Glassdoor homepage HTML.
-// Returns the fallback token on any failure so the scraper can still attempt requests.
-func fetchCSRFToken(ctx context.Context, client *http.Client, baseURL string) string {
+// Returns (token, ""). On any failure the fallback token is returned so the
+// scraper can still attempt requests. When an anti-bot challenge page is
+// detected the second return value carries the challenge type.
+func fetchCSRFToken(ctx context.Context, client *http.Client, baseURL string) (string, string) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL, nil)
 	if err != nil {
-		return defaultCSRFToken
+		return defaultCSRFToken, ""
 	}
 	setDefaultHeaders(req)
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return defaultCSRFToken
+		return defaultCSRFToken, ""
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 512*1024))
 	if err != nil {
-		return defaultCSRFToken
+		return defaultCSRFToken, ""
+	}
+
+	if challenge := util.DetectAntiBotChallenge(body); challenge != "" {
+		return defaultCSRFToken, challenge
 	}
 
 	m := csrfRE.FindStringSubmatch(string(body))
 	if len(m) < 2 || m[1] == "" {
-		return defaultCSRFToken
+		return defaultCSRFToken, ""
 	}
-	return m[1]
+	return m[1], ""
 }
 
 // --- GraphQL page fetch ---

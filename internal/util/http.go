@@ -158,13 +158,14 @@ func isRetryableMethod(method string) bool {
 }
 
 func isRetryableStatus(code int) bool {
-	if code == http.StatusTooManyRequests {
+	// 429 (rate-limit) and 5xx (transient server errors) are retryable.
+	// 4xx client errors (403, 401, 406) are NOT retried because they
+	// indicate a permanent condition — retrying wastes time and the body
+	// (which may contain an anti-bot challenge) is lost.
+	if code >= 500 && code < 600 {
 		return true
 	}
-	if code >= 500 {
-		return true
-	}
-	return code == http.StatusForbidden || code == http.StatusUnauthorized || code == http.StatusNotAcceptable
+	return code == http.StatusTooManyRequests
 }
 
 func (s *smartRT) nextUserAgent() string {

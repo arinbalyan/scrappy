@@ -81,9 +81,16 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			return nil, fmt.Errorf("builtin status %d", resp.StatusCode)
 		}
 
+		if challenge := util.DetectAntiBotChallenge(body); challenge != "" {
+			return nil, fmt.Errorf("builtin: blocked - %s challenge detected", challenge)
+		}
+
 		pageJobs := parseBuiltinNextData(body)
 		if len(pageJobs) == 0 {
 			pageJobs = parseBuiltinHTML(body)
+		}
+		if len(pageJobs) == 0 {
+			pageJobs = util.ExtractJobPostingsJSONLD(body)
 		}
 		if len(pageJobs) == 0 {
 			break
