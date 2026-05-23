@@ -272,7 +272,9 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				}
 				if len(missing) > 0 {
 					st := SiteTelemetry{Site: site, Attempted: false, Success: false, Error: fmt.Sprintf("missing env vars: %s", strings.Join(missing, ", ")), FailOpenReason: "missing_credentials"}
+					allMu.Lock()
 					telemetryBySite[site] = st
+					allMu.Unlock()
 					util.Warn("skipping", map[string]any{"site": site, "reason": "missing required env var(s)", "vars": strings.Join(missing, ", ")})
 					resultsCh <- siteResult{site: site, st: st, ok: false}
 					return
@@ -542,6 +544,13 @@ func classifyFailOpenReason(err error) string {
 
 func enrichJobEmails(job *model.JobPost) {
 	job.Emails = dedupEmails(job.Emails)
+
+	// Populate Domain from first verified email if not already set.
+	if job.Domain == "" && len(job.Emails) > 0 {
+		if d := internalemail.DomainFrom(job.Emails[0].Addr); d != "" {
+			job.Domain = d
+		}
+	}
 
 	text := jobTextForEmailExtraction(job)
 	if text == "" {
