@@ -5,31 +5,37 @@
 ## Formula
 
 ```
-Salary mentioned                +30
-Direct apply link present       +20
-Email domain == company domain  +15
-Posted within last 24h          +15
-Description length > 200 chars  +10
-NOT a staffing/agency posting   +10
-                                  ────
-                            Total 100
+Salary mentioned                +30    (hasSalary: Compensation.MinAmount or MaxAmount > 0)
+Direct apply link present       +20    (hasDirectApply: ApplyMethod in easy_apply|email|direct_url|external_url)
+Email domain == company domain  +15    (emailMatchesCompanyDomain: any email @domain matches job.Domain)
+Posted within last 24h          +15    (isFresh: DatePosted within 24h of now)
+Description length > 200 chars  +10    (len(trim(Description)) > 200)
+NOT a staffing/agency posting   +10    (!isAgency: domain not in blocklist AND company name has no staffing/recruiting/recruitment tokens)
+                                   ────
+                             Total 100
 ```
 
-## Staffing/agency blocklist
+## Agency/staffing blocklist
 
-`internal/quality/agency_domains.txt` — flat file, one domain per line. Updated at build time via `go:embed`. Domains matched by suffix:
+Hardcoded in `internal/quality/score.go`. Domain-based detection:
 
 ```
-roberthalf.com
+randstad.com
+manpower.com
+adecco.com
 kellyservices.com
-randstadusa.com
-...
+hays.com
+michaelpage.com
+robertwalters.com
+spencerogden.com
 ```
+
+Additionally, a company name containing any of the tokens `staffing`, `recruiting`, or `recruitment` is flagged as an agency.
 
 ## Usage
 
 ```go
-score := quality.ComputeScore(job)
+score := quality.Score(job)
 if score < 60 {
     continue // skip, too low quality
 }
@@ -41,4 +47,17 @@ if score < 60 {
 --min-score 60     # Drop postings below this threshold before export
 ```
 
-After filtering by `--min-score`, remaining jobs are passed to the export pipeline and, if JobHunter is orchestrating, to the LLM reranker.
+After filtering by `--min-score`, remaining jobs are passed to the export pipeline. In library mode, call `quality.Score()` per job or rely on the engine (which computes scores automatically).
+
+```go
+// The engine sets JobPost.QualityScore automatically during Scrape().
+// You only need to call quality.Score() directly if using the scraper
+// package without the engine.
+```
+
+## Developer notes
+
+- Scores are computed after dedup, before filtering
+- The engine applies `--min-score` after cross-site aggregation, so the input to the score filter includes deduplicated jobs from all sites
+- There is no caching — scores are computed once per job per scrape run
+- The 6 factors are independent; a job can score 100 if all criteria are met

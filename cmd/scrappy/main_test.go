@@ -17,15 +17,24 @@ func TestLoadAppConfigParsesDefaultsAndSites(t *testing.T) {
 	}
 
 	cfg := loadAppConfig(p)
-	if cfg.Defaults.Search != "backend" || cfg.Defaults.Location != "Remote" || cfg.Defaults.ResultsWanted != 7 || cfg.Defaults.Out != "/tmp/jobs.csv" || cfg.Defaults.Format != "csv" {
+	if len(cfg.Defaults.Search) != 1 || cfg.Defaults.Search[0] != "backend" {
+		t.Fatalf("unexpected defaults.search: %v", cfg.Defaults.Search)
+	}
+	if len(cfg.Defaults.Location) != 1 || cfg.Defaults.Location[0] != "Remote" {
+		t.Fatalf("unexpected defaults.location: %v", cfg.Defaults.Location)
+	}
+	if cfg.Defaults.ResultsWanted != 7 || cfg.Defaults.Out != "/tmp/jobs.csv" || cfg.Defaults.Format != "csv" {
 		t.Fatalf("unexpected defaults: %+v", cfg.Defaults)
 	}
 	remoteok, ok := cfg.Sites["remoteok"]
 	if !ok {
 		t.Fatalf("missing remoteok site config")
 	}
-	if len(remoteok.Search) != 1 || remoteok.Search[0] != "golang" || remoteok.Location != "Remote" {
-		t.Fatalf("unexpected remoteok target: %+v", remoteok)
+	if len(remoteok.Search) != 1 || remoteok.Search[0] != "golang" {
+		t.Fatalf("unexpected remoteok search: %+v", remoteok.Search)
+	}
+	if len(remoteok.Location) != 1 || remoteok.Location[0] != "Remote" {
+		t.Fatalf("unexpected remoteok location: %+v", remoteok.Location)
 	}
 }
 
