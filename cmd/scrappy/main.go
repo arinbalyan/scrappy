@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
+	"net/url"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -70,6 +72,7 @@ FLAGS
   --format             Output: jsonl (default), csv, xlsx, parquet
   --out                Output file path (empty = stdout)
   --timeout            Scrape timeout in seconds (default 600)
+  --proxy              Comma-separated proxy URLs (socks5://, http://)
   --email              Only include jobs with >= 1 email
   --is-remote          Only jobs flagged as remote (location-independent filter)
   --remote-only        Only truly remote jobs (no location filter applied)
@@ -125,9 +128,25 @@ EXAMPLES
       --results-wanted 200 --format jsonl --out /data/jobs.jsonl \
       --non-interactive
 
+  Single SOCKS5 proxy (avoid rate limits):
+    scrappy --sites linkedin,indeed,glassdoor --search "AI Engineer" \
+      --location "Remote" --results-wanted 500 \
+      --proxy socks5://user:pass@proxy:1080
+
+  Multi-proxy round-robin:
+    scrappy --sites indeed,google,zip_recruiter --search "developer" \
+      --location "Remote" --results-wanted 300 \
+      --proxy socks5://proxy1:1080,socks5://proxy2:1080
+
+  Proxy from env / config (config.yaml overrides env, --proxy overrides both):
+    SCRAPPY_PROXIES=socks5://user:pass@proxy:1080 \
+      scrappy --sites linkedin --search "engineer" --results-wanted 100
+
 ENVIRONMENT
   SCRAPPY_LOG_LEVEL    Default log level
-  SCRAPPY_PROXIES      Comma-separated SOCKS5 proxy URLs`
+  SCRAPPY_PROXIES      Comma-separated SOCKS5/HTTP proxy URLs (lowest priority)
+
+  PROXY PRECEDENCE: --proxy CLI flag  >  config.yaml proxy: field  >  SCRAPPY_PROXIES env`
 
 func homeDir() string {
 	u, err := user.Current()
@@ -185,6 +204,7 @@ type cliConfig struct {
 	IsRemote       bool
 	RemoteOnly     bool
 	JobType        string
+	Proxy          string
 }
 
 type multiString []string
@@ -225,6 +245,7 @@ func (s *multiString) UnmarshalYAML(value *yaml.Node) error {
 type siteTarget struct {
 	Search   multiString `yaml:"search"`
 	Location multiString `yaml:"location"`
+	Country  string      `yaml:"country,omitempty"`
 	IsRemote *bool       `yaml:"is_remote,omitempty"`
 }
 
@@ -240,6 +261,7 @@ type appConfig struct {
 		RemoteOnly    bool        `yaml:"remote_only"`
 		JobType       string      `yaml:"job_type"`
 	} `yaml:"defaults"`
+	Proxy string                `yaml:"proxy,omitempty"`
 	Sites map[string]siteTarget `yaml:"sites"`
 }
 
@@ -305,6 +327,7 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().BoolVar(&cfg.IsRemote, "is-remote", false, "only jobs flagged as remote")
 	root.Flags().BoolVar(&cfg.RemoteOnly, "remote-only", false, "only truly remote jobs (no location)")
 	root.Flags().StringVar(&cfg.JobType, "job-type", "", "filter: fulltime|parttime|contract|internship")
+	root.Flags().StringVar(&cfg.Proxy, "proxy", os.Getenv("SCRAPPY_PROXIES"), "comma-separated proxy URLs (socks5://, http://); TCP-dial health check at startup, unhealthy proxies excluded; takes precedence over config.yaml proxy: and SCRAPPY_PROXIES env")
 	root.SetVersionTemplate("scrappy v{{.Version}}\n")
 	return root
 }
@@ -327,8 +350,14 @@ func runInteractive(cfg *cliConfig) {
 		if len(ac.Defaults.Location) > 0 && cfg.Location == "" {
 			cfg.Location = strings.Join(ac.Defaults.Location, ",")
 		}
+		if ac.Defaults.IsRemote {
+			cfg.IsRemote = true
+		}
 		if cfg.JobType == "" && ac.Defaults.JobType != "" {
 			cfg.JobType = ac.Defaults.JobType
+		}
+		if ac.Defaults.RemoteOnly {
+			cfg.RemoteOnly = true
 		}
 		if ac.Defaults.ResultsWanted > 0 && cfg.ResultsWanted <= 0 {
 			cfg.ResultsWanted = ac.Defaults.ResultsWanted
@@ -347,22 +376,29 @@ func runInteractive(cfg *cliConfig) {
 	}
 
 	reader := bufio.NewReader(os.Stdin)
-	cfg.Search = ask(reader, "Search term (e.g. \"software engineer\")", cfg.Search)
-	cfg.Location = ask(reader, "Location (e.g. \"San Francisco, CA\" or \"Remote\")", cfg.Location)
-	cfg.Sites = ask(reader, "Sites (comma-separated, empty=all)", cfg.Sites)
-	cfg.ResultsWanted = askInt(reader, "Results wanted", cfg.ResultsWanted)
-	cfg.Format = ask(reader, "Format (jsonl/csv/xlsx/parquet)", cfg.Format)
-	cfg.Out = ask(reader, "Output path (empty = stdout)", cfg.Out)
+	fmt.Println(" \033[38;5;117m╭─ Main Settings ───────────────────────────────────╮\033[0m")
+	cfg.Search = ask(reader, "  Search term (e.g. \"AI Engineer\" or \"software engineer\")", cfg.Search)
+	cfg.Location = ask(reader, "  Location (e.g. \"Remote\" or \"San Francisco, CA\")", cfg.Location)
+	cfg.Sites = ask(reader, "  Sites (comma-separated, empty=all 65+, e.g. linkedin,indeed)", cfg.Sites)
+	cfg.ResultsWanted = askInt(reader, "  Results wanted (0 = unlimited)", cfg.ResultsWanted)
+	fmt.Println(" \033[38;5;117m╰────────────────────────────────────────────────────╯\033[0m")
+
+	fmt.Println(" \033[38;5;117m╭─ Output Settings ───────────────────────────────────╮\033[0m")
+	cfg.Format = ask(reader, "  Format (jsonl/csv/xlsx/parquet)", cfg.Format)
+	cfg.Out = ask(reader, "  Output path (empty = stdout)", cfg.Out)
+	fmt.Println(" \033[38;5;117m╰────────────────────────────────────────────────────╯\033[0m")
+
+	fmt.Println(" \033[38;5;117m╭─ Filters ──────────────────────────────────────────╮\033[0m")
 	irDef := "n"
 	if cfg.IsRemote {
 		irDef = "y"
 	}
-	cfg.IsRemote = askBool(reader, "Only show remote jobs? (y/n)", irDef)
+	cfg.IsRemote = askBool(reader, "  Only remote jobs? (y/n)", irDef)
 	jtDef := cfg.JobType
 	if jtDef == "" {
 		jtDef = "any"
 	}
-	cfg.JobType = ask(reader, "Job type (fulltime/parttime/contract/internship/any)", jtDef)
+	cfg.JobType = ask(reader, "  Job type (fulltime/parttime/contract/internship/any)", jtDef)
 	if cfg.JobType == "any" {
 		cfg.JobType = ""
 	}
@@ -370,7 +406,31 @@ func runInteractive(cfg *cliConfig) {
 	if memDefault == "" {
 		memDefault = "0"
 	}
-	cfg.MemoryCap = ask(reader, "Memory cap (e.g. 512MB, 1GB, 0=unlimited)", memDefault)
+	cfg.MemoryCap = ask(reader, "  Memory cap (e.g. 512MB, 1GB, 0=unlimited)", memDefault)
+	fmt.Println(" \033[38;5;117m╰────────────────────────────────────────────────────╯\033[0m")
+
+	fmt.Println(" \033[38;5;117m╭─ Network ──────────────────────────────────────────╮\033[0m")
+	proxyDefault := cfg.Proxy
+	if proxyDefault == "" {
+		if v := os.Getenv("SCRAPPY_PROXIES"); v != "" {
+			proxyDefault = v
+		}
+	}
+	cfg.Proxy = ask(reader, "  Proxy (socks5://user:pass@host:port, comma-separated)", proxyDefault)
+	fmt.Println(" \033[38;5;117m╰────────────────────────────────────────────────────╯\033[0m")
+
+	fmt.Println()
+	fmt.Printf(" \033[38;5;240mTip:\033[0m For site-specific searches, add per-site config to \033[38;5;117m%s\033[0m\n", defaultConfigPath())
+	fmt.Println(" \033[38;5;240m     Example:\033[0m")
+	fmt.Println(" \033[38;5;240m       sites:\033[0m")
+	fmt.Println(" \033[38;5;240m         indeed:\033[0m")
+	fmt.Println(" \033[38;5;240m           search: '\"AI Engineer\" OR \"ML Engineer\"'\033[0m")
+	fmt.Println(" \033[38;5;240m           location: Remote\033[0m")
+	fmt.Println(" \033[38;5;240m           country: germany   # uses indeed-co header\033[0m")
+	fmt.Println(" \033[38;5;240m         linkedin:\033[0m")
+	fmt.Println(" \033[38;5;240m           search: 'AI Engineer OR ML Engineer'\033[0m")
+	fmt.Println(" \033[38;5;240m         reed:\033[0m")
+	fmt.Println(" \033[38;5;240m           location: United Kingdom\033[0m")
 	fmt.Println()
 }
 
@@ -413,13 +473,66 @@ func runOnce(cfg *cliConfig) error {
 		copy(sites, model.AllSites())
 	}
 	ac := loadAppConfig(cfg.ConfigPath)
+
+	// Proxy setup: CLI flag → config → env var
+	proxyRaw := strings.TrimSpace(cfg.Proxy)
+	if proxyRaw == "" {
+		proxyRaw = strings.TrimSpace(ac.Proxy)
+	}
+	if proxyRaw == "" {
+		proxyRaw = strings.TrimSpace(os.Getenv("SCRAPPY_PROXIES"))
+	}
+	if v := strings.TrimSpace(proxyRaw); v != "" {
+		parts := strings.Split(v, ",")
+		healthy := make([]string, 0, len(parts))
+		for _, p := range parts {
+			p = strings.TrimSpace(p)
+			if p == "" {
+				continue
+			}
+			u, err := url.Parse(p)
+			if err != nil || u == nil || u.Scheme == "" || u.Host == "" {
+				util.Warn("proxy_parse_fail", map[string]any{"proxy": p, "err": err})
+				continue
+			}
+			host := u.Hostname()
+			port := u.Port()
+			if port == "" {
+				switch u.Scheme {
+				case "http", "https":
+					port = "80"
+				case "socks5", "socks5h":
+					port = "1080"
+				default:
+					port = "80"
+				}
+			}
+			conn, dialErr := net.DialTimeout("tcp", net.JoinHostPort(host, port), 500*time.Millisecond)
+			if dialErr != nil {
+				util.Warn("proxy_unreachable", map[string]any{"proxy": p, "err": dialErr.Error()})
+				continue
+			}
+			conn.Close()
+			healthy = append(healthy, p)
+		}
+		if len(healthy) > 0 {
+			_ = os.Setenv("SCRAPPY_PROXIES", strings.Join(healthy, ","))
+			util.Info("proxy_setup", map[string]any{"healthy": len(healthy), "total": len(parts), "proxies": strings.Join(healthy, ",")})
+		} else {
+			util.Warn("proxy_no_healthy", map[string]any{"total": len(parts)})
+		}
+	}
+
 	// Collect global search terms (CLI comma-separated → slice).
 	var searchTerms []string
 	if v := strings.TrimSpace(cfg.Search); v != "" {
 		searchTerms = splitCommas(v)
 	}
 	if len(searchTerms) == 0 && len(ac.Defaults.Search) > 0 {
-		searchTerms = ac.Defaults.Search
+		searchTerms = make([]string, 0, len(ac.Defaults.Search))
+		for _, s := range ac.Defaults.Search {
+			searchTerms = append(searchTerms, splitCommas(s)...)
+		}
 	}
 
 	// Collect global locations (CLI comma-separated → slice).
@@ -428,7 +541,10 @@ func runOnce(cfg *cliConfig) error {
 		locations = splitCommas(v)
 	}
 	if len(locations) == 0 && len(ac.Defaults.Location) > 0 {
-		locations = ac.Defaults.Location
+		locations = make([]string, 0, len(ac.Defaults.Location))
+		for _, l := range ac.Defaults.Location {
+			locations = append(locations, splitCommas(l)...)
+		}
 	}
 
 	resultsWanted := cfg.ResultsWanted
@@ -451,9 +567,21 @@ func runOnce(cfg *cliConfig) error {
 	}
 	memoryCapMB := parseMemoryCap(memCapRaw)
 
+	// IsRemote / RemoteOnly / JobType from config defaults (CLI flag takes precedence).
+	if ac.Defaults.IsRemote {
+		cfg.IsRemote = true
+	}
+	if ac.Defaults.RemoteOnly {
+		cfg.RemoteOnly = true
+	}
+	if cfg.JobType == "" && ac.Defaults.JobType != "" {
+		cfg.JobType = ac.Defaults.JobType
+	}
+
 	siteSearch := map[model.Site][]string{}
 	siteLocations := map[model.Site][]string{}
 	siteLocation := map[model.Site]string{}
+	siteCountry := map[model.Site]model.Country{}
 	for _, s := range sites {
 		if t, ok := ac.Sites[string(s)]; ok {
 			if len(t.Search) > 0 {
@@ -471,9 +599,11 @@ func runOnce(cfg *cliConfig) error {
 			if len(t.Location) > 0 {
 				locs := make([]string, 0, len(t.Location))
 				for _, loc := range t.Location {
-					loc = strings.TrimSpace(loc)
-					if loc != "" {
-						locs = append(locs, loc)
+					for _, part := range splitCommas(loc) {
+						part = strings.TrimSpace(part)
+						if part != "" {
+							locs = append(locs, part)
+						}
 					}
 				}
 				if len(locs) > 0 {
@@ -481,6 +611,9 @@ func runOnce(cfg *cliConfig) error {
 				}
 				// Keep single-string SiteLocation for backward compat.
 				siteLocation[s] = strings.Join(locs, ", ")
+			}
+				if t.Country != "" {
+				siteCountry[s] = model.Country(t.Country)
 			}
 			if t.IsRemote != nil {
 				// Per-site is_remote override — used at engine/site level.
@@ -513,6 +646,7 @@ func runOnce(cfg *cliConfig) error {
 		SiteSearch:     siteSearch,
 		SiteLocation:   siteLocation,
 		SiteLocations:  siteLocations,
+		SiteCountry:    siteCountry,
 		MemoryCapMB:    memoryCapMB,
 		IsRemote:       cfg.IsRemote,
 		RemoteOnly:     cfg.RemoteOnly,
@@ -597,6 +731,7 @@ func promptSaveConfig(cfg *cliConfig) {
 	ac.Defaults.Format = cfg.Format
 	ac.Defaults.Out = cfg.Out
 	ac.Defaults.MemoryCap = cfg.MemoryCap
+	ac.Proxy = cfg.Proxy
 	ac.Defaults.IsRemote = cfg.IsRemote
 	ac.Defaults.RemoteOnly = cfg.RemoteOnly
 	ac.Defaults.JobType = cfg.JobType
