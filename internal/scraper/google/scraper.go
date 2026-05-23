@@ -56,6 +56,10 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	query := buildQuery(searchTerm, input)
 	jobs := make([]model.JobPost, 0, wanted)
 
+	// ---------------------------------------------------------------
+	// Primary parse: fetch with ibp=htl;jobs (legacy Jobs SERP) and
+	// extract using the inline-JSON regex.
+	// ---------------------------------------------------------------
 	body, err := s.fetchPage(ctx, query, 0)
 	if err != nil {
 		return nil, fmt.Errorf("google_jobs initial: %w", err)
@@ -69,33 +73,37 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		}
 	}
 
-	start := 10
-	retries := 0
-	maxRetries := 3
-	for len(jobs) < wanted && retries < maxRetries {
-		select {
-		case <-ctx.Done():
-			return jobs, ctx.Err()
-		case <-time.After(3*time.Second + time.Duration(time.Now().UnixNano()%3)*time.Second):
-		}
-
-		body, err := s.fetchPage(ctx, query, start)
-		if err != nil {
-			retries++
-			continue
-		}
-
-		page := parseJobs(body)
-		if len(page) == 0 {
-			break
-		}
+	// ---------------------------------------------------------------
+	// Fallback: if the legacy SERP returned no results (it may have
+	// been redirected to the standard udm=8 SERP), try JSON-LD
+	// extraction on the same body.
+	// ---------------------------------------------------------------
+	if len(jobs) == 0 {
+		page = util.ExtractJobPostingsJSONLD(body)
 		for _, j := range page {
 			jobs = append(jobs, j)
 			if len(jobs) >= wanted {
 				break
 			}
 		}
-		start += 10
+	}
+
+	// ---------------------------------------------------------------
+	// Secondary fallback: fetch a standard web SERP (udm=8) and try
+	// JSON-LD extraction.  The legacy async pagination endpoint is
+	// deprecated (returns 404), so skip multi-page pagination.
+	// ---------------------------------------------------------------
+	if len(jobs) < wanted {
+		body, err = s.fetchPageStandard(ctx, query)
+		if err == nil {
+			page = util.ExtractJobPostingsJSONLD(body)
+			for _, j := range page {
+				jobs = append(jobs, j)
+				if len(jobs) >= wanted {
+					break
+				}
+			}
+		}
 	}
 
 	if !util.HasMeaningfulJobs(jobs) {
@@ -133,14 +141,60 @@ func (s *Scraper) fetchPage(ctx context.Context, query string, start int) ([]byt
 		return nil, fmt.Errorf("google_jobs request: %w", err)
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("google_jobs status %d", resp.StatusCode)
-	}
 
 	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("google_jobs read: %w", err)
 	}
+
+	if challenge := util.DetectAntiBotChallenge(body); challenge != "" {
+		return nil, fmt.Errorf("blocked - %s challenge detected", challenge)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("google_jobs status %d", resp.StatusCode)
+	}
+
+	return body, nil
+}
+
+// fetchPageStandard fetches a standard Google web SERP (udm=8) — this is
+// the current default SERP format — and returns the body for JSON-LD parsing.
+func (s *Scraper) fetchPageStandard(ctx context.Context, query string) ([]byte, error) {
+	u, _ := url.Parse(s.searchURL)
+	q := u.Query()
+	q.Set("q", query)
+	q.Set("udm", "8")
+	q.Set("hl", "en")
+	u.RawQuery = q.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Accept", "text/html,application/xhtml+xml")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("google_jobs request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
+	if err != nil {
+		return nil, fmt.Errorf("google_jobs read: %w", err)
+	}
+
+	if challenge := util.DetectAntiBotChallenge(body); challenge != "" {
+		return nil, fmt.Errorf("blocked - %s challenge detected", challenge)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("google_jobs status %d", resp.StatusCode)
+	}
+
 	return body, nil
 }
 

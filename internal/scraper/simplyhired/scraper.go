@@ -154,14 +154,19 @@ func (s *Scraper) fetchPage(ctx context.Context, searchTerm, location string, pa
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("simplyhired status %d", resp.StatusCode)
-	}
-
 	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("simplyhired read: %w", err)
 	}
+
+	if challenge := util.DetectAntiBotChallenge(body); challenge != "" {
+		return nil, fmt.Errorf("blocked - %s challenge detected", challenge)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("simplyhired status %d", resp.StatusCode)
+	}
+
 	return body, nil
 }
 

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -172,7 +173,8 @@ func askInt(r *bufio.Reader, label string, def int) int {
 }
 
 func runOnce(cfg *cliConfig) error {
-	loadDotEnvOnce.Do(func() { loadDotEnv(".env") })
+	envPath := filepath.Join(filepath.Dir(cfg.ConfigPath), ".env")
+	loadDotEnvOnce.Do(func() { loadDotEnv(envPath) })
 	level := strings.TrimSpace(cfg.LogLevel)
 	if level == "" {
 		level = strings.TrimSpace(os.Getenv("SCRAPPY_LOG_LEVEL"))

@@ -3,6 +3,7 @@ package scrappy
 import (
 	"context"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 	"sync"
@@ -78,8 +79,20 @@ import (
 	findworkscraper "github.com/arinbalyan/scrappy/internal/scraper/findwork"
 	web3careerscraper "github.com/arinbalyan/scrappy/internal/scraper/web3career"
 	iosdevjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/iosdevjobs"
+	arbeitsagenturscraper "github.com/arinbalyan/scrappy/internal/scraper/arbeitsagentur"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
+
+// requiredEnvVars maps sites to environment variables that must be set
+// before the scraper can function.  The engine skips these sites with
+// a clear WARN message instead of wasting time on a doomed request.
+var requiredEnvVars = map[model.Site][]string{
+	model.SiteAdzuna:        {"ADZUNA_APP_ID", "ADZUNA_APP_KEY"},
+	model.SiteCareerjet:     {"CAREERJET_AFFID"},
+	model.SiteInfoJobs:      {"INFOJOBS_CLIENT_ID", "INFOJOBS_CLIENT_SECRET"},
+	model.SiteFindwork:      {"FINDWORK_API_KEY"},
+	model.SiteArbeitsagentur: {"ARBEITSAGENTUR_API_KEY"},
+}
 
 type PostProcessor func(context.Context, *model.JobPost) error
 
@@ -156,6 +169,7 @@ func NewEngine() *Engine {
 		web3careerscraper.New(nil),
 		academiccareersscraper.New(nil),
 		iosdevjobsscraper.New(nil),
+		arbeitsagenturscraper.New(nil),
 	}
 	m := make(map[model.Site]scraper.Scraper, len(s)+1)
 	for _, sc := range s {
@@ -203,7 +217,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		if !ok {
 			st := SiteTelemetry{Site: site, Attempted: false, Success: false, Error: "unsupported site", FailOpenReason: "unsupported_site", StatusCodeCount: map[int]int{}}
 			telemetryBySite[site] = st
-			util.Warn("site_scrape_fail_open", map[string]any{"site": site, "reason": "unsupported_site", "err": "unsupported site"})
+			util.Warn("unsupported", map[string]any{"site": site})
 			resultsCh <- siteResult{site: site, st: st, ok: false}
 			continue
 		}
@@ -215,6 +229,23 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			if sem, ok := siteSem[site]; ok {
 				sem <- struct{}{}
 				defer func() { <-sem }()
+			}
+
+			// Check required env vars before attempting scrape.
+			if vars, needsKey := requiredEnvVars[site]; needsKey {
+				missing := make([]string, 0, len(vars))
+				for _, ev := range vars {
+					if os.Getenv(ev) == "" {
+						missing = append(missing, ev)
+					}
+				}
+				if len(missing) > 0 {
+					st := SiteTelemetry{Site: site, Attempted: false, Success: false, Error: fmt.Sprintf("missing env vars: %s", strings.Join(missing, ", ")), FailOpenReason: "missing_credentials"}
+					telemetryBySite[site] = st
+					util.Warn("skipping", map[string]any{"site": site, "reason": "missing required env var(s)", "vars": strings.Join(missing, ", ")})
+					resultsCh <- siteResult{site: site, st: st, ok: false}
+					return
+				}
 			}
 
 			baseInput := input
@@ -245,15 +276,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			for _, term := range terms {
 				siteInput := baseInput
 				siteInput.SearchTerm = term
-				util.Info("site_scrape_start", map[string]any{"site": site})
-				util.Debug("site_scrape_context", map[string]any{
-					"site":           site,
-					"search_term":    siteInput.SearchTerm,
-					"location":       siteInput.Location,
-					"results_wanted": siteInput.ResultsWanted,
-					"hours_old":      siteInput.HoursOld,
-					"is_remote":      siteInput.IsRemote,
-				})
+				util.Info("Scraping", map[string]any{"site": site, "search": siteInput.SearchTerm, "location": siteInput.Location})
 				jobs, err := sc.Scrape(ctx, siteInput)
 				aggregated = append(aggregated, jobs...)
 				if err != nil {
@@ -262,9 +285,9 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 					st.ChallengeDetected = containsAny(st.Error, "captcha", "cloudflare", "attention required", "forbidden", "blocked")
 					if e.siteFailOpen {
 						st.FailOpenReason = classifyFailOpenReason(err)
-						util.Warn("site_scrape_fail_open", map[string]any{"site": site, "reason": st.FailOpenReason, "err": st.Error, "partial": len(aggregated)})
+						util.Warn("fail_open", map[string]any{"site": site, "reason": st.FailOpenReason, "err": st.Error, "partial": len(aggregated)})
 					} else {
-						util.Error("site_scrape_failed", map[string]any{"site": site, "err": st.Error, "partial": len(aggregated)})
+						util.Error("scrape_failed", map[string]any{"site": site, "err": st.Error, "partial": len(aggregated)})
 					}
 					allMu.Lock()
 					e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], err)
@@ -274,7 +297,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 						resultsCh <- siteResult{site: site, st: st, ok: false}
 						return
 					}
-					util.Info("site_scrape_partial", map[string]any{"site": site, "jobs": len(aggregated), "err": err.Error()})
+					util.Warn("partial_results", map[string]any{"site": site, "jobs": len(aggregated), "err": err.Error()})
 					break
 				}
 			}
@@ -284,10 +307,10 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			st.ResultCount = len(aggregated)
 			if st.Success && len(aggregated) == 0 {
 				st.EmptyPageRate = 1
-				util.APIMiss("site_scrape_empty", map[string]any{"site": site})
+				util.APIMiss("no_results", map[string]any{"site": site})
 			}
 			if st.Error == "" || len(aggregated) > 0 {
-				util.Info("site_scrape_success", map[string]any{"site": site, "jobs": len(aggregated)})
+				util.Info("scraped", map[string]any{"site": site, "jobs": len(aggregated)})
 			}
 			allMu.Lock()
 			e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], nil)
@@ -326,13 +349,13 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			for _, h := range e.hooks {
 				if err := h(ctx, &jobs[i]); err != nil {
 					if e.siteFailOpen {
-						util.Warn("post_process_fail_open", map[string]any{"site": res.site, "job_id": jobs[i].ID, "err": err.Error()})
+						util.Warn("hook_failed", map[string]any{"site": res.site, "job_id": jobs[i].ID, "err": err.Error()})
 						continue
 					}
 					return nil, fmt.Errorf("post-process %s: %w", jobs[i].ID, err)
 				}
 			}
-			util.Debug("job_processed", map[string]any{"site": res.site, "job_id": jobs[i].ID, "title": jobs[i].Title})
+			util.Debug("job", map[string]any{"site": res.site, "job_id": jobs[i].ID, "title": jobs[i].Title})
 		}
 		processedBySite[res.site] = dedupWithinSite(jobs)
 	}
@@ -437,7 +460,7 @@ func classifyFailOpenReason(err error) string {
 	}
 	e := strings.ToLower(err.Error())
 	switch {
-	case containsAny(e, "captcha", "cloudflare", "attention required", "bot"):
+	case containsAny(e, "captcha", "cloudflare", "attention required", "bot", "blocked", "datadome"):
 		return "challenge_detected"
 	case containsAny(e, "429", "too many requests", "rate"):
 		return "rate_limited"

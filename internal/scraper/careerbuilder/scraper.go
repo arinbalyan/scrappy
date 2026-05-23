@@ -24,7 +24,6 @@ const (
 var defaultHeaders = map[string]string{
 	"Accept":          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
 	"Accept-Language": "en-US,en;q=0.9",
-	"Accept-Encoding": "gzip, deflate, br",
 	"User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
 	"Cache-Control":   "no-cache",
 	"Sec-Fetch-Dest":  "document",
@@ -175,14 +174,19 @@ func (s *Scraper) fetchPage(ctx context.Context, searchTerm, location string, pa
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("careerbuilder status %d", resp.StatusCode)
-	}
-
 	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("careerbuilder read: %w", err)
 	}
+
+	if challenge := util.DetectAntiBotChallenge(body); challenge != "" {
+		return nil, fmt.Errorf("blocked - %s challenge detected", challenge)
+	}
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("careerbuilder status %d", resp.StatusCode)
+	}
+
 	return body, nil
 }
 
