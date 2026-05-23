@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -212,6 +213,36 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	}
 	resultsCh := make(chan siteResult, len(sites))
 
+	// Memory-pressure monitor (only when cap is set).
+	if input.MemoryCapMB > 0 {
+		memThreshold := uint64(input.MemoryCapMB) * 1024 * 1024 * 8 / 10 // 80%
+		memDone := make(chan struct{})
+		defer close(memDone)
+		go func() {
+			ticker := time.NewTicker(10 * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-memDone:
+					return
+				case <-ticker.C:
+				}
+				var m runtime.MemStats
+				runtime.ReadMemStats(&m)
+				if m.Alloc > memThreshold {
+					util.Warn("memory_pressure", map[string]any{
+						"alloc_mb":   m.Alloc / 1024 / 1024,
+						"cap_mb":     input.MemoryCapMB,
+						"pct":        m.Alloc * 100 / (uint64(input.MemoryCapMB) * 1024 * 1024),
+						"gc_cycles":  m.NumGC,
+					})
+				}
+			}
+		}()
+	}
+
 	for _, site := range sites {
 		sc, ok := e.scrapers[site]
 		if !ok {
@@ -255,51 +286,69 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				}
 			}
 
+			// Build terms list (per-site overrides, then global SearchTerms, then single SearchTerm).
 			terms := []string{strings.TrimSpace(baseInput.SearchTerm)}
 			if baseInput.SiteSearch != nil {
 				if vs, ok := baseInput.SiteSearch[site]; ok {
-					terms = terms[:0]
-					for _, v := range vs {
-						v = strings.TrimSpace(v)
-						if v != "" {
-							terms = append(terms, v)
-						}
-					}
+					terms = vs
+				} else if len(baseInput.SearchTerms) > 0 {
+					terms = baseInput.SearchTerms
 				}
+			} else if len(baseInput.SearchTerms) > 0 {
+				terms = baseInput.SearchTerms
 			}
 			if len(terms) == 0 {
 				terms = []string{""}
 			}
 
+			// Build locations list (per-site multi, then global Locations, then single Location).
+			locs := []string{strings.TrimSpace(baseInput.Location)}
+			if len(baseInput.SiteLocations) > 0 {
+				if vs, ok := baseInput.SiteLocations[site]; ok && len(vs) > 0 {
+					locs = vs
+				}
+			} else if len(baseInput.Locations) > 0 {
+				locs = baseInput.Locations
+			}
+			if len(locs) == 0 {
+				locs = []string{""}
+			}
+
 			st := SiteTelemetry{Site: site, Attempted: true, StatusCodeCount: map[int]int{}}
 			aggregated := make([]model.JobPost, 0)
+			var lastErr error
 			for _, term := range terms {
-				siteInput := baseInput
-				siteInput.SearchTerm = term
-				util.Info("Scraping", map[string]any{"site": site, "search": siteInput.SearchTerm, "location": siteInput.Location})
-				jobs, err := sc.Scrape(ctx, siteInput)
-				aggregated = append(aggregated, jobs...)
-				if err != nil {
-					st.Error = err.Error()
-					st.Success = false
-					st.ChallengeDetected = containsAny(st.Error, "captcha", "cloudflare", "attention required", "forbidden", "blocked")
-					if e.siteFailOpen {
-						st.FailOpenReason = classifyFailOpenReason(err)
-						util.Warn("fail_open", map[string]any{"site": site, "reason": st.FailOpenReason, "err": st.Error, "partial": len(aggregated)})
-					} else {
-						util.Error("scrape_failed", map[string]any{"site": site, "err": st.Error, "partial": len(aggregated)})
+				for _, loc := range locs {
+					siteInput := baseInput
+					siteInput.SearchTerm = term
+					siteInput.Location = loc
+					util.Info("Scraping", map[string]any{"site": site, "search": siteInput.SearchTerm, "location": siteInput.Location})
+					jobs, err := sc.Scrape(ctx, siteInput)
+					aggregated = append(aggregated, jobs...)
+					if err != nil {
+						lastErr = err
+						st.Error = err.Error()
+						st.Success = false
+						st.ChallengeDetected = containsAny(st.Error, "captcha", "cloudflare", "attention required", "forbidden", "blocked")
+						if e.siteFailOpen {
+							st.FailOpenReason = classifyFailOpenReason(err)
+							util.Warn("fail_open", map[string]any{"site": site, "reason": st.FailOpenReason, "err": st.Error, "partial": len(aggregated), "term": term, "location": loc})
+						} else {
+							util.Error("scrape_failed", map[string]any{"site": site, "err": st.Error, "partial": len(aggregated), "term": term, "location": loc})
+						}
+						allMu.Lock()
+						e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], err)
+						telemetryBySite[site] = st
+						allMu.Unlock()
+						// Continue to next (term, loc) combo — don't break.
+						continue
 					}
-					allMu.Lock()
-					e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], err)
-					telemetryBySite[site] = st
-					allMu.Unlock()
-					if len(aggregated) == 0 {
-						resultsCh <- siteResult{site: site, st: st, ok: false}
-						return
-					}
-					util.Warn("partial_results", map[string]any{"site": site, "jobs": len(aggregated), "err": err.Error()})
-					break
 				}
+			}
+			if lastErr != nil && len(aggregated) == 0 {
+				// All (term, loc) combos failed with zero results.
+				resultsCh <- siteResult{site: site, st: st, ok: false}
+				return
 			}
 			if st.Error == "" {
 				st.Success = true
@@ -427,6 +476,19 @@ func containsAny(s string, vals ...string) bool {
 }
 
 func globalConcurrency(input model.ScraperInput) int {
+	// Scale concurrency based on memory cap if set.
+	if input.MemoryCapMB > 0 {
+		switch {
+		case input.MemoryCapMB <= 256:
+			return 3
+		case input.MemoryCapMB <= 512:
+			return 5
+		case input.MemoryCapMB <= 1024:
+			return 8
+		default:
+			return 12
+		}
+	}
 	if input.MaxRPS > 0 {
 		if input.MaxRPS < 2 {
 			return 2
