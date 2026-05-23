@@ -33,11 +33,13 @@ Run without any flags:
 scrappy
 ```
 
-You'll see the ASCII logo and an interactive wizard. Enter search terms, location, sites, output format, and filters. When you're done, scrappy asks if you want to save settings to `~/.scrappy/config.yaml`.
+The interactive wizard guides you through search terms, location, sites, output format, and filters. When you finish, scrappy asks if you want to save settings to `~/.scrappy/config.yaml`.
+
+See [005-Interactive-Mode.md](005-Interactive-Mode.md) for details.
 
 ## 4. Config file
 
-Save a config to `~/.scrappy/config.yaml` or `./config.yaml` and scrappy will load it automatically:
+Save a config to `~/.scrappy/config.yaml` or `./config.yaml` and scrappy loads it automatically:
 
 ```yaml
 defaults:
@@ -55,7 +57,7 @@ Now you can just run:
 scrappy --non-interactive
 ```
 
-scrappy auto-detects the config by looking for `config.yaml` in the current directory first, then `~/.scrappy/config.yaml`.
+scrappy auto-detects the config by looking for `config.yaml` in the current directory first, then `~/.scrappy/config.yaml`. The `.env` file is loaded from the same directory as the config (see [015-Environment-Variables.md](015-Environment-Variables.md)).
 
 ### Per-site overrides
 
@@ -69,7 +71,7 @@ sites:
       - "golang developer"
       - "rust engineer"
     location: "Remote"
-    country: germany           # indeed-co: DE header, German search host
+    country: germany           # Sets indeed-co: DE header, German search host
   linkedin:
     search: '"AI Engineer" OR "ML Engineer"'
     location: Remote
@@ -85,6 +87,8 @@ sites:
 
 Site-specific search/location replaces the global default for that site. The `country` field (supported by Indeed) sets the `indeed-co` header and search host for country-specific results.
 
+For full config file reference, see [008-Configuration.md](008-Configuration.md).
+
 ## 5. Multi-value (cartesian product)
 
 Pass multiple search terms and locations with commas:
@@ -94,7 +98,9 @@ scrappy --sites indeed --search "AI Engineer,Software Developer" \
   --location "Remote,New York" --results-wanted 500
 ```
 
-This produces 4 scrape passes per site: (AI Engineer × Remote), (AI Engineer × New York), (Software Developer × Remote), (Software Developer × New York). Results are aggregated; errors on one combo don't fail the others.
+This produces 4 scrape passes per site: (AI Engineer x Remote), (AI Engineer x New York), (Software Developer x Remote), (Software Developer x New York). Results are aggregated; errors on one combination do not fail the others.
+
+See [007-Multi-Value.md](007-Multi-Value.md) for details.
 
 ## 6. Memory cap
 
@@ -108,15 +114,26 @@ scrappy --sites linkedin,indeed,glassdoor --search "golang" \
 Concurrency scales automatically:
 
 | Memory cap | Concurrent scrapers |
-|---|---|
-| ≤256 MB | 3 |
-| ≤512 MB | 5 |
-| ≤1 GB | 8 |
-| >1 GB | 12 |
+|------------|---------------------|
+| up to 256 MB | 3 |
+| up to 512 MB | 5 |
+| up to 1 GB | 8 |
+| more than 1 GB | 12 |
 
-A background goroutine checks heap usage every 10 seconds and warns at 80% of the cap.
+A background goroutine checks heap usage every 10 seconds and warns at 80% of the cap. See [016-Memory-Management.md](016-Memory-Management.md).
 
-## 7. Proxies
+## 7. Quality score filtering
+
+Filter low-quality postings before export:
+
+```bash
+scrappy --sites remoteok --search "golang" --results-wanted 100 \
+  --min-score 60
+```
+
+The deterministic score (0-100) factors salary presence, direct apply links, email-domain match with company domain, posting freshness, description length, and agency status. See [011-Quality.md](011-Quality.md).
+
+## 8. Proxies
 
 Use proxies to avoid rate limits and IP blocks:
 
@@ -139,11 +156,27 @@ defaults:
   proxy: socks5://user:pass@proxy:1080
 ```
 
-At startup, scrappy TCP-dials each proxy (500ms timeout) and excludes unreachable ones. Priority: `--proxy` CLI flag > `config.yaml` > `SCRAPPY_PROXIES` env var.
+At startup, scrappy TCP-dials each proxy (500ms timeout) and excludes unreachable ones. Priority: `--proxy` CLI flag overrides `config.yaml`, which overrides `SCRAPPY_PROXIES` env var.
 
-## 8. Docker
+See [013-Proxy.md](013-Proxy.md) for detailed guidance.
 
-Build and run with Docker:
+## 9. Deduplication
+
+Deduplicate across sites by job URL or company name:
+
+```bash
+# URL dedup (default: on)
+scrappy --sites linkedin,indeed --search "engineer" --dedup
+
+# URL + company dedup (keeps one posting per company)
+scrappy --sites linkedin,indeed --search "engineer" --dedup --dedup-by-company
+```
+
+See [014-Dedup.md](014-Dedup.md).
+
+## 10. Docker
+
+Build and run with Docker (Dockerfile provided):
 
 ```bash
 # Build
@@ -159,9 +192,11 @@ docker run -v $PWD/data:/out scrappy \
   --format csv --out /out/jobs.csv
 ```
 
+See [003-Installation.md](003-Installation.md) for Docker Compose and CI setup.
+
 ## Next steps
 
-- [Installation](installation.md) — detailed setup for dev, CI, and Docker
-- [Architecture](architecture.md) — pipeline data flow, packages, design decisions
-- [CLI reference](cli.md) — full flag reference
-- [Scraping](scraping.md) — per-site notes, rate limits, API keys
+- [003-Installation.md](003-Installation.md) -- detailed setup for dev, CI, and Docker
+- [002-Architecture-Overview.md](002-Architecture-Overview.md) -- pipeline data flow, packages, design decisions
+- [004-CLI-Reference.md](004-CLI-Reference.md) -- full flag reference
+- [012-Scraping.md](012-Scraping.md) -- per-site notes, rate limits, API keys
