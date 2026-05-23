@@ -1,0 +1,11 @@
+services:
+  scrappy:
+    build: .
+    volumes:
+      - ./data:/out
+    command: scrape --sites linkedin,indeed,glassdoor,remoteok \
+                    --search "software engineer" --location "Remote" \
+                    --results-wanted 1000 --format jsonl --out /out/jobs.jsonl
+    environment:
+      - SCRAPPY_PROXIES=${SCRAPPY_PROXIES:-}
+      - SCRAPPY_RETRIES=3

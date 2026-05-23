@@ -82,7 +82,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		if err != nil {
 			retries++
 			util.Warn("scraper_reed_fetch_error", map[string]any{"page": pageno, "err": err.Error()})
-			backoff(retries)
+			if err := backoff(ctx, retries); err != nil {
+				return jobs, err
+			}
 			continue
 		}
 
@@ -90,7 +92,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		if err != nil {
 			retries++
 			util.Warn("scraper_reed_parse_error", map[string]any{"page": pageno, "err": err.Error()})
-			backoff(retries)
+			if err := backoff(ctx, retries); err != nil {
+				return jobs, err
+			}
 			continue
 		}
 		if len(page) == 0 {
@@ -107,7 +111,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 		pageno++
 		// Rate limit: 3 requests per second
-		time.Sleep(rateLimitDelay)
+		if err := util.SleepWithContext(ctx, rateLimitDelay); err != nil {
+			return jobs, err
+		}
 	}
 
 	if !util.HasMeaningfulJobs(jobs) {
@@ -249,13 +255,13 @@ func parseJobs(raw []byte) ([]model.JobPost, error) {
 	return jobs, nil
 }
 
-// backoff sleeps for increasingly longer durations.
-func backoff(retries int) {
+// backoff sleeps for increasingly longer durations, respecting ctx cancellation.
+func backoff(ctx context.Context, retries int) error {
 	if retries <= 0 {
-		return
+		return nil
 	}
 	d := time.Duration(retries) * time.Second
-	time.Sleep(d)
+	return util.SleepWithContext(ctx, d)
 }
 
 // --- JSON structures for __NEXT_DATA__ ---

@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
@@ -151,7 +152,11 @@ func ExtractJobPostingsJSONLD(body []byte) []model.JobPost {
 func hashShort(s string) string {
 	h := fnv.New64a()
 	h.Write([]byte(s))
-	return fmt.Sprintf("%x", h.Sum64())[:12]
+	hex := fmt.Sprintf("%x", h.Sum64())
+	if len(hex) > 12 {
+		hex = hex[:12]
+	}
+	return hex
 }
 
 func normalizeLDEmploymentType(et string) string {
@@ -192,4 +197,14 @@ func HasMeaningfulJobs(jobs []model.JobPost) bool {
 		return true
 	}
 	return false
+}
+
+// SleepWithContext sleeps for the given duration, returning early if ctx is cancelled.
+func SleepWithContext(ctx context.Context, d time.Duration) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(d):
+		return nil
+	}
 }

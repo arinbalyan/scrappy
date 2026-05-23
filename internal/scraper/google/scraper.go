@@ -258,9 +258,6 @@ func extractPairs(html string) []pair {
 		}
 		out = append(out, pair{title: t, company: c})
 	}
-	if len(out) > 20 {
-		out = out[:20]
-	}
 	return out
 }
 
