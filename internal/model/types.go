@@ -8,21 +8,71 @@ import (
 type Site string
 
 const (
-	SiteLinkedIn        Site = "linkedin"
-	SiteIndeed          Site = "indeed"
-	SiteGreenhouse      Site = "greenhouse"
-	SiteGunIO           Site = "gunio"
-	SiteHimalayas       Site = "himalayas"
-	SiteHiringCafe      Site = "hiringcafe"
-	SiteHuggingFaceJobs Site = "huggingfacejobs"
-	SiteJobindex        Site = "jobindex"
-	SiteRemoteOK        Site = "remoteok"
-	SiteRemotive        Site = "remotive"
-	SiteAIJobs          Site = "aijobs"
-	SiteWorkingNomads   Site = "workingnomads"
-	SiteWuzzuf          Site = "wuzzuf"
-	SiteYCJobs          Site = "ycjobs"
-	SiteUKVisaJobs      Site = "ukvisajobs"
+	SiteLinkedIn           Site = "linkedin"
+	SiteIndeed             Site = "indeed"
+	SiteZipRecruiter       Site = "zip_recruiter"
+	SiteBayt               Site = "bayt"
+	SiteBDJobs             Site = "bdjobs"
+	SiteNaukri             Site = "naukri"
+	SiteInternshala        Site = "internshala"
+	SiteBuiltin            Site = "builtin"
+	SiteStartupJobs        Site = "startupjobs"
+	SiteGreenhouse         Site = "greenhouse"
+	SiteGunIO              Site = "gunio"
+	SiteHimalayas          Site = "himalayas"
+	SiteHiringCafe         Site = "hiringcafe"
+	SiteHuggingFaceJobs    Site = "huggingfacejobs"
+	SiteJobindex           Site = "jobindex"
+	SiteRemoteOK           Site = "remoteok"
+	SiteRemotive           Site = "remotive"
+	SiteRemoteFirstJobs    Site = "remotefirstjobs"
+	SiteJobspresso         Site = "jobspresso"
+	SiteHasJob             Site = "hasjob"
+	SiteVueJobs            Site = "vuejobs"
+	SiteLaraJobs           Site = "larajobs"
+	SiteArbeitnow          Site = "arbeitnow"
+	SiteHackerNews         Site = "hackernews"
+	SiteCryptocurrencyJobs Site = "cryptocurrencyjobs"
+	SiteAndroidJobs        Site = "androidjobs"
+	SiteJobicy             Site = "jobicy"
+	SiteDevOpsJobs         Site = "devopsjobs"
+	SiteCrunchboard        Site = "crunchboard"
+	SiteIOSDevJobs         Site = "iosdevjobs"
+	SiteSwissDevJobs       Site = "swissdevjobs"
+	SiteCryptoJobsList     Site = "cryptojobslist"
+	SiteDevITJobs          Site = "devitjobs"
+	SiteDribbble           Site = "dribbble"
+	SiteAIJobs             Site = "aijobs"
+	SiteWorkingNomads      Site = "workingnomads"
+	SiteWuzzuf             Site = "wuzzuf"
+	SiteYCJobs             Site = "ycjobs"
+	SiteUKVisaJobs         Site = "ukvisajobs"
+	SiteGoogle             Site = "google"
+	SiteGlassdoor          Site = "glassdoor"
+	SiteAdzuna             Site = "adzuna"
+	SiteSimplyHired        Site = "simplyhired"
+	SiteCareerBuilder      Site = "careerbuilder"
+	SiteCareerjet          Site = "careerjet"
+	SiteJooble             Site = "jooble"
+	SiteDice               Site = "dice"
+	SiteMonster            Site = "monster"
+	SiteStepStone          Site = "stepstone"
+	SiteInfoJobs           Site = "infojobs"
+	SiteReed               Site = "reed"
+	SiteTheMuse            Site = "themuse"
+	SiteJobsDB             Site = "jobsdb"
+	SiteSnagajob           Site = "snagajob"
+	SiteDjinni             Site = "djinni"
+	SiteHeadHunter         Site = "headhunter"
+	SiteMyCareersFuture    Site = "mycareersfuture"
+	SiteJobStreet          Site = "jobstreet"
+	SiteUpwork             Site = "upwork"
+	Site4DayWeek           Site = "4dayweek"
+	SiteEuroJobs           Site = "eurojobs"
+	SiteFindwork           Site = "findwork"
+	SiteAcademicCareers   Site = "academiccareers"
+	SiteArbeitsagentur    Site = "arbeitsagentur"
+	SiteWeb3Career        Site = "web3career"
 )
 
 // AllSites returns every known site.
@@ -30,6 +80,13 @@ func AllSites() []Site {
 	return []Site{
 		SiteLinkedIn,
 		SiteIndeed,
+		SiteZipRecruiter,
+		SiteBayt,
+		SiteBDJobs,
+		SiteNaukri,
+		SiteInternshala,
+		SiteBuiltin,
+		SiteStartupJobs,
 		SiteGreenhouse,
 		SiteGunIO,
 		SiteHimalayas,
@@ -38,15 +95,58 @@ func AllSites() []Site {
 		SiteJobindex,
 		SiteRemoteOK,
 		SiteRemotive,
+		SiteRemoteFirstJobs,
+		SiteJobspresso,
+		SiteHasJob,
+		SiteVueJobs,
+		SiteLaraJobs,
+		SiteArbeitnow,
+		SiteArbeitsagentur,
+		SiteHackerNews,
+		SiteCryptocurrencyJobs,
+		SiteAndroidJobs,
+		SiteJobicy,
+		SiteDevOpsJobs,
+		SiteCrunchboard,
+		SiteIOSDevJobs,
+		SiteSwissDevJobs,
+		SiteCryptoJobsList,
+		SiteDevITJobs,
+		SiteDribbble,
 		SiteAIJobs,
 		SiteWorkingNomads,
 		SiteWuzzuf,
 		SiteYCJobs,
 		SiteUKVisaJobs,
+		SiteGoogle,
+		SiteGlassdoor,
+		SiteAdzuna,
+		SiteSimplyHired,
+		SiteCareerBuilder,
+		SiteCareerjet,
+		SiteJooble,
+		SiteDice,
+		SiteMonster,
+		SiteStepStone,
+		SiteInfoJobs,
+		SiteReed,
+		SiteTheMuse,
+		SiteJobsDB,
+		SiteSnagajob,
+		SiteDjinni,
+		SiteHeadHunter,
+		SiteMyCareersFuture,
+		SiteJobStreet,
+		SiteUpwork,
+		Site4DayWeek,
+		SiteAcademicCareers,
+		SiteEuroJobs,
+		SiteFindwork,
+		SiteWeb3Career,
 	}
 }
 
-// Country enumerates supported search countries (mirrors JobSpy).
+// Country enumerates supported search countries.
 type Country string
 
 const (
@@ -113,7 +213,7 @@ type Compensation struct {
 	Currency  string               `json:"currency,omitempty"` // default USD
 }
 
-// JobType mirrors JobSpy's enum.
+// JobType matches the job-type enum.
 type JobType string
 
 const (
@@ -132,7 +232,7 @@ type Email struct {
 	Role     bool   `json:"role,omitempty"` // info@, admin@, support@, etc.
 }
 
-// JobPost is the canonical scraped-job record, extending JobSpy's model.
+// JobPost is the canonical scraped-job record.
 type JobPost struct {
 	ID           string     `json:"id,omitempty"`
 	Title        string     `json:"title"`
@@ -145,6 +245,8 @@ type JobPost struct {
 	Description  string     `json:"description,omitempty"`
 	JobType      string     `json:"job_type,omitempty"`
 	DatePosted   *time.Time `json:"date_posted,omitempty"`
+	Site         string     `json:"site"`
+	FetchedAt    *time.Time `json:"fetched_at,omitempty"`
 
 	Emails         []Email       `json:"emails,omitempty"`
 	Compensation   *Compensation `json:"compensation,omitempty"`
@@ -180,7 +282,7 @@ type JobPost struct {
 	QualityScore int `json:"quality_score,omitempty"`
 }
 
-// JobResponse wraps a slice of JobPost (mirrors JobSpy model).
+// JobResponse wraps a slice of JobPost.
 type JobResponse struct {
 	Jobs []JobPost `json:"jobs"`
 }

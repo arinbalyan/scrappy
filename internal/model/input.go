@@ -1,6 +1,6 @@
 package model
 
-// ScraperInput holds all parameters for a scraping run (mirrors JobSpy's ScraperInput).
+// ScraperInput holds all parameters for a scraping run.
 type ScraperInput struct {
 	Sites               []Site  `json:"sites"`
 	SearchTerm          string  `json:"search_term,omitempty"`
@@ -36,11 +36,24 @@ type ScraperInput struct {
 	SiteRPS            map[Site]int `json:"site_rps,omitempty"`
 
 	// proxies and resilience
-	Proxy            string `json:"-"` // not serialised; consumed by transport layer
-	LocalProxyPort   int    `json:"-"`
-	ProxyHealthCheck bool   `json:"proxy_health_check"`
-	Retries          int    `json:"retries"`
-	LogLevel         string          `json:"log_level,omitempty"`
-	SiteSearch       map[Site]string `json:"site_search,omitempty"`
-	SiteLocation     map[Site]string `json:"site_location,omitempty"`
+	Proxy            string            `json:"-"` // not serialised; consumed by transport layer
+	LocalProxyPort   int               `json:"-"`
+	ProxyHealthCheck bool              `json:"proxy_health_check"`
+	Retries          int               `json:"retries"`
+	LogLevel         string            `json:"log_level,omitempty"`
+	SiteSearch       map[Site][]string `json:"site_search,omitempty"`
+	SiteLocation     map[Site]string   `json:"site_location,omitempty"`
+
+	// 	// Multi-value fields — populated from comma-separated CLI / multi-value config.
+	// When non-empty, the engine generates the cartesian product
+	// of SearchTerms × Locations per site.
+	SearchTerms    []string            `json:"search_terms,omitempty"`
+	Locations      []string            `json:"locations,omitempty"`
+	SiteLocations  map[Site][]string   `json:"site_locations,omitempty"`
+	SiteCountry    map[Site]Country    `json:"site_country,omitempty"`
+
+	// Memory cap in MB.  0 = unlimited (default).
+	// When set, concurrency is scaled and periodic heap checks
+	// may throttle or defer new scrape launches.
+	MemoryCapMB int `json:"memory_cap_mb,omitempty"`
 }

@@ -35,7 +35,7 @@ func WriteCSV(path string, jobs []model.JobPost) error {
 
 	for _, job := range jobs {
 		row := []string{
-			"", // site is resolved by scraper pipeline later
+			string(job.Site),
 			job.Title,
 			job.CompanyName,
 			job.Location.Display(),

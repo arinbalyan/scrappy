@@ -1,51 +1,513 @@
 defaults:
-  search: "AI automation engineer"
-  location: "Remote"
-  results_wanted: 25
-
+  search: AI Engineer
+  location:
+    # Country-level locations (for Indeed/Glassdoor which support these)
+    - Argentina
+    - Australia
+    - Austria
+    - Bahrain
+    - Belgium
+    - Brazil
+    - Canada
+    - Chile
+    - China
+    - Colombia
+    - Costa Rica
+    - Czech Republic
+    - Denmark
+    - Ecuador
+    - Egypt
+    - Finland
+    - France
+    - Germany
+    - Greece
+    - Hong Kong
+    - Hungary
+    - India
+    - Indonesia
+    - Ireland
+    - Israel
+    - Italy
+    - Japan
+    - Kuwait
+    - Luxembourg
+    - Malaysia
+    - Mexico
+    - Morocco
+    - Netherlands
+    - New Zealand
+    - Nigeria
+    - Norway
+    - Oman
+    - Pakistan
+    - Panama
+    - Peru
+    - Philippines
+    - Poland
+    - Portugal
+    - Qatar
+    - Romania
+    - Saudi Arabia
+    - Singapore
+    - South Africa
+    - South Korea
+    - Spain
+    - Sweden
+    - Switzerland
+    - Taiwan
+    - Thailand
+    - Turkey
+    - Ukraine
+    - United Arab Emirates
+    - United Kingdom
+    - United States
+    - Uruguay
+    - Venezuela
+    - Vietnam
+    # Tech hub cities
+    - San Francisco
+    - New York
+    - London
+    - Berlin
+    - Bangalore
+    - Mumbai
+    - Remote
+  is_remote: true
+  results_wanted: 100000
+  out: /home/nemesis/code/data/jobs.csv
+  format: csv
 sites:
   indeed:
-    search: '"ai automation engineer" ("ai agent" OR "llm" OR "machine learning") -marketing -sales'
-    location: "United States"
+    search:
+    - '"AI Engineer" OR "ML Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    - '"AI Agent Engineer" OR "AI Product Engineer" OR "AI/ML Engineer"'
+    location:
+    - Remote
   linkedin:
-    search: '"AI Engineer" OR "ML Engineer" OR "AI Agent Engineer"'
-    location: "United States"
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    - '"AI Agent Engineer" OR "AI Product Engineer" OR "AI/ML Engineer"'
+    - '"Applied Scientist" OR "Research Scientist" OR "Generative AI Engineer"'
+  glassdoor:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    - '"AI Agent Engineer" OR "AI Product Engineer" OR "AI/ML Engineer"'
+  zip_recruiter:
+    search:
+    - '"AI Engineer" OR "ML Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    - '"AI Agent Engineer" OR "AI/ML Engineer"'
+  builtin:
+    search:
+    - '"AI Engineer" OR "ML Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    - '"AI Agent Engineer" OR "AI Product Engineer" OR "AI/ML Engineer"'
+    - '"Generative AI Engineer" OR "Machine Learning Engineer"'
   greenhouse:
-    search: '"AI Engineer" OR "Machine Learning Engineer"'
-    location: "United States"
-  gunio:
-    search: "ai engineer"
-    location: "Remote"
-  himalayas:
-    search: "llm engineer"
-    location: "Remote"
-  hiringcafe:
-    search: "ai automation engineer"
-    location: "Remote"
-  huggingfacejobs:
-    search: "machine learning engineer"
-    location: "Remote"
-  jobindex:
-    search: "machine learning engineer"
-    location: "Denmark"
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    - '"AI Agent Engineer" OR "LLM Engineer"'
+  google:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    - '"AI Agent Engineer" OR "AI Product Engineer" OR "AI/ML Engineer"'
+  themuse:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "AI Automation Engineer" OR "AI Product Engineer"'
+  dice:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  monster:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  careerbuilder:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  simplyhired:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  careerjet:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  jooble:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  reed:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    location: United Kingdom
+  stepstone:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    location: Germany
+  infojobs:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    location: Spain
+  jobstreet:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  adzuna:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  upwork:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    location: Remote
   remoteok:
-    search: "ai engineer"
-    location: "Remote"
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - forward deployed
+    - gtm engineer
+    location: Remote
   remotive:
-    search: "machine learning engineer"
-    location: "Remote"
+    search:
+    - machine learning engineer
+    - ai engineer
+    - ai developer
+    - llm engineer
+    - forward deployed
+    - gtm engineer
+    location: Remote
   workingnomads:
-    search: "llm engineer"
-    location: "Remote"
-  wuzzuf:
-    search: "ai engineer"
-    location: "Egypt"
+    search:
+    - llm engineer
+    - ai engineer
+    - ai developer
+    - machine learning
+    - forward deployed
+    - gtm engineer
+    location: Remote
+  remotefirstjobs:
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - forward deployed
+    - gtm engineer
+    location: Remote
   ycjobs:
-    search: "ai agent engineer"
-    location: "United States"
-  ukvisajobs:
-    search: "machine learning engineer"
-    location: "United Kingdom"
+    search:
+    - ai agent engineer
+    - ai engineer
+    - ai developer
+    - llm engineer
+    - forward deployed engineer
+    - gtm engineer
+    location: Remote
   aijobs:
-    search: "ai engineer"
-    location: "Remote"
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - forward deployed
+    - gtm engineer
+    location: Remote
+  arbeitnow:
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - forward deployed
+    - gtm engineer
+    location: Remote
+  himalayas:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - forward deployed engineer
+    - gtm engineer
+    location: Remote
+  devopsjobs:
+    search:
+    - ai engineer
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    - machine learning
+    location: Remote
+  gunio:
+    search:
+    - ai engineer
+    - ai developer
+    - llm engineer
+    - machine learning
+    - gtm engineer
+  hiringcafe:
+    search:
+    - ai automation engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - gtm engineer
+  huggingfacejobs:
+    search:
+    - machine learning engineer
+    - ai engineer
+    - ai developer
+    - llm engineer
+    - forward deployed engineer
+    - ai agent engineer
+    location: Remote
+  jobspresso:
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    location: Remote
+  hackernews:
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - forward deployed
+    - gtm engineer
+    location: Remote
+  startupjobs:
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    location: Remote
+  mycareersfuture:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  jobindex:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    - forward deployed
+  djinni:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - forward deployed engineer
+    - gtm engineer
+  snagajob:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    - '"Software Engineer" OR "Backend Engineer" OR "Full Stack Engineer"'
+  bayt:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    - '"Software Engineer" OR "Full Stack Engineer"'
+  4dayweek:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - forward deployed
+    - gtm engineer
+    location: Remote
+  eurojobs:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - forward deployed
+    - gtm engineer
+    location: Remote
+  hasjob:
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    location: Remote
+  iosdevjobs:
+    search:
+    - ai engineer
+    - ai developer
+    - llm engineer
+    - machine learning
+    - gtm engineer
+    location: Remote
+  swissdevjobs:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    location: Switzerland
+  devitjobs:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    - backend engineer
+    location: Switzerland
+  cryptojobslist:
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    location: Remote
+  cryptocurrencyjobs:
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    location: Remote
+  dribbble:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "AI Automation Engineer"'
+  naukri:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    - forward deployed engineer
+    location: India
+  internshala:
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    location: India
+  vuejobs:
+    search:
+    - ai engineer
+    - ai developer
+    - machine learning
+    - llm engineer
+    - gtm engineer
+    location: Remote
+  larajobs:
+    search:
+    - ai engineer
+    - ai developer
+    - machine learning
+    - llm engineer
+    - gtm engineer
+    location: Remote
+  androidjobs:
+    search:
+    - ai engineer
+    - ai developer
+    - machine learning
+    - llm engineer
+    location: Remote
+  web3career:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "AI Automation Engineer"'
+    location: Remote
+  crunchboard:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    location: Remote
+  jobicy:
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    location: Remote
+  academiccareers:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Research Scientist"'
+    location: Remote
+  arbeitsagentur:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    location: Germany
+  bdjobs:
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    location: Bangladesh
+  headhunter:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - gtm engineer
+  jobsdb:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    location: Singapore
+  findwork:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ukvisajobs:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Software Engineer"'
+    location: United Kingdom
+  wuzzuf:
+    search:
+    - ai engineer
+    - machine learning
+    - ai developer
+    - llm engineer
+    - gtm engineer
+    location: Egypt
