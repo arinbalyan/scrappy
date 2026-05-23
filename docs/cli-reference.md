@@ -27,6 +27,7 @@ scrappy
 | `--format` | string | `""` | Output format: `jsonl`, `csv`, `xlsx`, `parquet`. |
 | `--out` | string | `""` | Output file path. Empty = stdout (JSON pretty-printed). |
 | `--timeout` | int | `600` | Scrape timeout in seconds. |
+| `--proxy` | string | `SCRAPPY_PROXIES` | Comma-separated proxy URLs (`socks5://`, `http://`). Overrides `SCRAPPY_PROXIES` env var and config `proxy` field. TCP-dial health check at startup filters unreachable proxies. |
 | `--email` | bool | `false` | Only include jobs that have at least one email address. |
 | `--is-remote` | bool | `false` | Only jobs flagged as remote (location-independent filter). |
 | `--remote-only` | bool | `false` | Only truly remote jobs (no location filter applied). |
@@ -194,4 +195,71 @@ scrappy --search "AI Engineer" --location "Remote" \
 ```bash
 scrappy --config /etc/scrappy/production.yaml \
         --log-level DEBUG --non-interactive
+```
+
+### 11. With SOCKS5 proxy
+
+```bash
+scrappy --sites linkedin,indeed,glassdoor --search "AI Engineer" \
+        --location "Remote" --results-wanted 500 \
+        --proxy socks5://user:pass@proxy:1080
+```
+
+### 12. Multi-proxy round-robin
+
+```bash
+scrappy --sites zip_recruiter,monster --search "developer" \
+        --location "Remote" --results-wanted 200 \
+        --proxy socks5://proxy1:1080,socks5://proxy2:1080
+```
+
+### 13. Site-specific searches with country override (config.yaml)
+
+```yaml
+# config.yaml
+defaults:
+  search: AI Engineer
+  location: Remote
+  results_wanted: 1000
+  out: /data/jobs.csv
+  format: csv
+
+sites:
+  indeed:
+    search:
+      - '"AI Engineer" OR "ML Engineer"'
+      - '"GTM Engineer" OR "Forward Deployed Engineer"'
+    location: Remote
+    country: germany           # Sets indeed-co: DE header
+  linkedin:
+    search: '"AI Engineer" OR "Machine Learning Engineer"'
+    location: Remote
+  reed:
+    search: '"AI Engineer" OR "ML Engineer"'
+    location: United Kingdom   # UK-only results
+  internshala:
+    search:
+      - ai engineer
+      - machine learning
+    location: India
+  naukri:
+    country: india
+```
+
+### 14. Site-specific searches from CLI with config
+
+```bash
+# CLI search/location apply to all sites except those with overrides in config
+scrappy --config my-sites.yaml --results-wanted 500 --format jsonl
+```
+
+### 15. With proxy from config
+
+```yaml
+# config.yaml
+defaults:
+  search: AI Engineer
+  location: Remote
+  results_wanted: 1000
+  proxy: socks5://user:pass@proxy:1080
 ```
