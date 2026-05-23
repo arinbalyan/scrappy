@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	searchURL    = "https://jooble.com/Search"
+	searchURL    = "https://jooble.org/Search"
 	pageSize     = 20
 	maxPages     = 100
 	resultsLimit = 15
@@ -312,7 +312,7 @@ func findJobCards(re *regexp.Regexp, html string) []jobCard {
 		}
 		// Make relative URLs absolute.
 		if strings.HasPrefix(u, "/") {
-			u = "https://jooble.com" + u
+			u = "https://jooble.org" + u
 		}
 		out = append(out, jobCard{title: t, url: u})
 	}
