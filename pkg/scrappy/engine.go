@@ -389,6 +389,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	}
 
 	processedBySite := make(map[model.Site][]model.JobPost, len(sites))
+	mxVerifier := internalemail.NewMXVerifier()
 	for res := range resultsCh {
 		if !res.ok {
 			continue
@@ -400,7 +401,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			jobs[i].Site = string(res.site)
 			now := time.Now()
 			jobs[i].FetchedAt = &now
-			enrichJobEmails(&jobs[i])
+			enrichJobEmails(&jobs[i], mxVerifier, ctx)
 			jobs[i].QualityScore = quality.Score(&jobs[i])
 			for _, h := range e.hooks {
 				if err := h(ctx, &jobs[i]); err != nil {
@@ -542,28 +543,37 @@ func classifyFailOpenReason(err error) string {
 	}
 }
 
-func enrichJobEmails(job *model.JobPost) {
+func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, ctx context.Context) {
 	job.Emails = dedupEmails(job.Emails)
 
-	// Populate Domain from first verified email if not already set.
+	text := jobTextForEmailExtraction(job)
+	if text != "" {
+		found := internalemail.Extract(text)
+		for _, e := range found {
+			job.Emails = append(job.Emails, model.Email{
+				Addr:   e.Addr,
+				Source: e.Source,
+				Role:   e.Role,
+			})
+		}
+		job.Emails = dedupEmails(job.Emails)
+	}
+
+	// Populate Domain from first email if not already set.
 	if job.Domain == "" && len(job.Emails) > 0 {
 		if d := internalemail.DomainFrom(job.Emails[0].Addr); d != "" {
 			job.Domain = d
 		}
 	}
 
-	text := jobTextForEmailExtraction(job)
-	if text == "" {
-		return
+	// Run MX verification to set Verified field on each email.
+	if verifier != nil {
+		for i := range job.Emails {
+			if !job.Emails[i].Verified {
+				job.Emails[i].Verified = verifier.Verify(ctx, job.Emails[i].Addr)
+			}
+		}
 	}
-	found := internalemail.Extract(text)
-	if len(found) == 0 {
-		return
-	}
-	for _, e := range found {
-		job.Emails = append(job.Emails, model.Email{Addr: e.Addr, Source: e.Source, Role: e.Role})
-	}
-	job.Emails = dedupEmails(job.Emails)
 }
 
 func jobTextForEmailExtraction(job *model.JobPost) string {

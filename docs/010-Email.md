@@ -1,15 +1,16 @@
 # Email Pipeline
 
-`internal/email/` -- extract, normalize, validate, enrich.
+`internal/email/` — extract, normalize, validate, enrich.
 
 ## Pipeline stages
 
 ```
 extract_emails()          -- regex from description + mailto links
 normalize_emails()        -- [at] -> @, strip whitespace, lowercase domain
-validate_mx_async()       -- net.LookupMX(domain), semaphore-bounded fan-out
+validate_mx()             -- net.LookupMX(domain) with context-aware timeout
 enrich_company_pages()    -- fetch careers@/contact@ pages for additional addresses
-populate_domain()         -- set JobPost.Domain from email domain
+populate_domain()         -- set JobPost.Domain from first email address
+set_verified()            -- set Email.Verified from MX lookup result
 ```
 
 ## Email type
@@ -42,19 +43,24 @@ Candidates are discarded before DNS lookup:
 
 1. **Role-only addresses**: `info@`, `admin@`, `support@`, `contact@`, `sales@`, `hello@`, `careers@`, `press@`, `marketing@`, `jobs@`, `hr@`, `recruiting@`, `noreply@`, `no-reply@`, `help@`, `enquiries@`, `enquiry@`, `billing@` -- tagged with `Role: true`
 2. **Platform routing addresses**: Domains matching `*@indeed.com`, `*@glassdoor.com`, `*@linkedin.com` -- always discarded
-3. **Disposable TLDs**: `guerrillamail.com`, `mailinator.com`, `trashmail.com`, `tempmail.com`, `10minutemail.com`, `yopmail.com`, `sharklasers.com`, `throwam.com`, `fakeinbox.com` -- hardcoded blocklist
+3. **Disposable TLDs**: `guerrillamail.com`, `mailinator.com`, `trashmail.com`, `tempmail.com`, `10minutemail.com`, `yopmail.com`, `sharklasers.com`, `throwam.com`, `fakeinbox.com`, `maildrop.cc`, `getnada.com`, `burnermail.io`, `emailondeck.com`, `mohmal.com`, `temp-mail.org` -- hardcoded blocklist
 
 ## MX verification
 
 ```go
-type EmailMXVerifier struct {
-    LookupMX func(domain string) (mxEntries []string, gotMX bool)
+type MXVerifier struct {
+    Resolver *net.Resolver          // DNS resolver (defaults to net.DefaultResolver)
+    Timeout  time.Duration          // per-lookup timeout (defaults to 10s)
+    LookupMX func(domain string) (hosts []string, ok bool) // optional test stub
 }
+
+func NewMXVerifier() *MXVerifier
+func (v *MXVerifier) Verify(ctx context.Context, addr string) bool
 ```
 
-`net.LookupMX(domain)` checks for MX records. When a verifier is wired via `EnrichEmailStage()`, company-page enrichment results are validated before being added to the job.
+`net.LookupMX(domain)` checks for MX records. The verifier is created once per scrape run and shared across all jobs. A `LookupMX` function field allows tests to inject a stub without touching the network.
 
-**Performance**: ~100 ms per domain. 50 concurrent lookups per batch (`--verify-concurrency 50`).
+**Performance**: ~100 ms per domain. The verifier is shared across all jobs in a batch, so DNS-level OS caching reduces repeated lookups for the same domain. The `Verify` method accepts a `context.Context` so lookups are cancelled when the parent scrape is cancelled.
 
 ## Company-page enrichment
 
@@ -68,7 +74,7 @@ Domains to probe are configured via `--email-enrich-domains careers,contact,abou
 
 ## Domain population
 
-After email extraction and verification, the email domain is stored on `JobPost.Domain`. This domain is used by the quality scoring pipeline to compute the +15 point bonus for email-domain/company-domain match. See [011-Quality.md](011-Quality.md).
+After email extraction, the domain from the first email address is stored on `JobPost.Domain`. This domain is used by the quality scoring pipeline to compute the +15 point bonus for email-domain/company-domain match. See [011-Quality.md](011-Quality.md).
 
 ## Extracted-emails coverage
 
