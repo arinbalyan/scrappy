@@ -1,6 +1,6 @@
 # Memory Management
 
-`scrappy` schedules 65+ scrapers concurrently, each loading pages, parsing HTML/JSON, and accumulating results. Without a memory budget, the runtime can consume hundreds of MB — especially when many sites return large descriptions or company pages.
+`scrappy` schedules 65+ scrapers concurrently, each loading pages, parsing HTML/JSON, and accumulating results. Without a memory budget, the runtime can consume hundreds of MB -- especially when many sites return large descriptions or company pages.
 
 ## `--memory-cap` flag
 
@@ -18,11 +18,11 @@ Limits total Go heap by scaling global concurrency. Accepts:
 When `--memory-cap` is set, `globalConcurrency` is pinned to a safe level:
 
 | Memory cap | Max concurrent scrapers |
-|---|---|
-| ≤256 MB | 3 |
-| ≤512 MB | 5 |
-| ≤1 GB | 8 |
-| >1 GB | 12 |
+|------------|------------------------|
+| up to 256 MB | 3 |
+| up to 512 MB | 5 |
+| up to 1 GB | 8 |
+| more than 1 GB | 12 |
 
 Without a cap (default), the engine uses **8 concurrent scrapers**, or `--max-rps` if set (clamped between 2 and 16).
 
@@ -34,14 +34,14 @@ When a memory cap is configured, a background goroutine runs every 10 seconds an
 memory_pressure: alloc_mb=450 cap_mb=512 pct=88 gc_cycles=42
 ```
 
-This is advisory only — the engine does not kill scrapers. Use it to tune your cap or reduce the number of sites.
+This is advisory only -- the engine does not kill scrapers. Use it to tune your cap or reduce the number of sites.
 
 ## Recommended caps
 
 | Environment | Recommended cap | Reasoning |
-|---|---|---|
-| Laptop (8–16 GB RAM) | 512 MB | Leaves room for browser, editor, other apps |
-| VPS / dedicated (2–4 GB) | 1 GB | Can use higher concurrency for throughput |
+|-------------|----------------|-----------|
+| Laptop (8-16 GB RAM) | 512 MB | Leaves room for browser, editor, other apps |
+| VPS / dedicated (2-4 GB) | 1 GB | Can use higher concurrency for throughput |
 | Docker container | 256 MB | Tight budget, best-effort scraping |
 | CI runner | 256 MB | Shared resources, avoid OOM kills |
 

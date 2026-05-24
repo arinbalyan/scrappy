@@ -272,7 +272,9 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				}
 				if len(missing) > 0 {
 					st := SiteTelemetry{Site: site, Attempted: false, Success: false, Error: fmt.Sprintf("missing env vars: %s", strings.Join(missing, ", ")), FailOpenReason: "missing_credentials"}
+					allMu.Lock()
 					telemetryBySite[site] = st
+					allMu.Unlock()
 					util.Warn("skipping", map[string]any{"site": site, "reason": "missing required env var(s)", "vars": strings.Join(missing, ", ")})
 					resultsCh <- siteResult{site: site, st: st, ok: false}
 					return
@@ -387,6 +389,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	}
 
 	processedBySite := make(map[model.Site][]model.JobPost, len(sites))
+	mxVerifier := internalemail.NewMXVerifier()
 	for res := range resultsCh {
 		if !res.ok {
 			continue
@@ -398,7 +401,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			jobs[i].Site = string(res.site)
 			now := time.Now()
 			jobs[i].FetchedAt = &now
-			enrichJobEmails(&jobs[i])
+			enrichJobEmails(&jobs[i], mxVerifier, ctx)
 			jobs[i].QualityScore = quality.Score(&jobs[i])
 			for _, h := range e.hooks {
 				if err := h(ctx, &jobs[i]); err != nil {
@@ -540,21 +543,40 @@ func classifyFailOpenReason(err error) string {
 	}
 }
 
-func enrichJobEmails(job *model.JobPost) {
+func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, ctx context.Context) {
 	job.Emails = dedupEmails(job.Emails)
 
 	text := jobTextForEmailExtraction(job)
-	if text == "" {
-		return
+	if text != "" {
+		found := internalemail.Extract(text)
+		for _, e := range found {
+			job.Emails = append(job.Emails, model.Email{
+				Addr:   e.Addr,
+				Source: e.Source,
+				Role:   e.Role,
+			})
+		}
+		job.Emails = dedupEmails(job.Emails)
 	}
-	found := internalemail.Extract(text)
-	if len(found) == 0 {
-		return
+
+	// Populate Domain from first email if not already set.
+	if job.Domain == "" && len(job.Emails) > 0 {
+		if d := internalemail.DomainFrom(job.Emails[0].Addr); d != "" {
+			job.Domain = d
+		}
 	}
-	for _, e := range found {
-		job.Emails = append(job.Emails, model.Email{Addr: e.Addr, Source: e.Source, Role: e.Role})
+
+	// Run MX verification to set Verified field on each email.
+	if verifier != nil {
+		for i := range job.Emails {
+			if ctx.Err() != nil {
+				return
+			}
+			if !job.Emails[i].Verified {
+				job.Emails[i].Verified = verifier.Verify(ctx, job.Emails[i].Addr)
+			}
+		}
 	}
-	job.Emails = dedupEmails(job.Emails)
 }
 
 func jobTextForEmailExtraction(job *model.JobPost) string {

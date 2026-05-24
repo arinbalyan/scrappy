@@ -205,6 +205,11 @@ type cliConfig struct {
 	RemoteOnly     bool
 	JobType        string
 	Proxy          string
+	MinScore       int
+	MaxRPS         int
+	SiteRPS        string
+	Dedup          bool
+	DedupByCompany bool
 }
 
 type multiString []string
@@ -299,6 +304,12 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 			if cfg.NonInteractive {
 				cfg.Interactive = false
 			}
+			// Auto-detect interactive mode: enable when no search term given, on a TTY.
+			if !cfg.Interactive && !cfg.NonInteractive && cfg.Search == "" && cfg.Sites == "" {
+				if fi, err := os.Stdin.Stat(); err == nil && (fi.Mode()&os.ModeCharDevice) != 0 {
+					cfg.Interactive = true
+				}
+			}
 			if cfg.Interactive {
 				if fi, err := os.Stdin.Stat(); err != nil || (fi.Mode()&os.ModeCharDevice) == 0 {
 					cfg.Interactive = false
@@ -317,7 +328,7 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().IntVar(&cfg.ResultsWanted, "results-wanted", 0, "max results")
 	root.Flags().StringVar(&cfg.Format, "format", "", "output format: jsonl|csv|xlsx|parquet")
 	root.Flags().StringVar(&cfg.Out, "out", "", "output path (empty = stdout)")
-	root.Flags().BoolVar(&cfg.Interactive, "interactive", true, "interactive wizard mode")
+	root.Flags().BoolVar(&cfg.Interactive, "interactive", false, "interactive wizard mode (auto-detected when no args given on TTY)")
 	root.Flags().BoolVar(&cfg.NonInteractive, "non-interactive", false, "disable interactive wizard")
 	root.Flags().StringVar(&cfg.LogLevel, "log-level", "", "log level: DEBUG|INFO|WARN|ERROR")
 	root.Flags().StringVar(&cfg.ConfigPath, "config", defaultConfigPath(), "path to config yaml")
@@ -328,6 +339,11 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().BoolVar(&cfg.RemoteOnly, "remote-only", false, "only truly remote jobs (no location)")
 	root.Flags().StringVar(&cfg.JobType, "job-type", "", "filter: fulltime|parttime|contract|internship")
 	root.Flags().StringVar(&cfg.Proxy, "proxy", os.Getenv("SCRAPPY_PROXIES"), "comma-separated proxy URLs (socks5://, http://); TCP-dial health check at startup, unhealthy proxies excluded; takes precedence over config.yaml proxy: and SCRAPPY_PROXIES env")
+	root.Flags().IntVar(&cfg.MinScore, "min-score", 0, "quality score floor (0-100)")
+	root.Flags().IntVar(&cfg.MaxRPS, "max-rps", 0, "global max requests per second (overrides per-site defaults)")
+	root.Flags().StringVar(&cfg.SiteRPS, "site-rps", "", "per-site RPS overrides, e.g. linkedin:1,indeed:10")
+	root.Flags().BoolVar(&cfg.Dedup, "dedup", true, "deduplicate jobs by URL across sites")
+	root.Flags().BoolVar(&cfg.DedupByCompany, "dedup-by-company", false, "keep only one posting per company")
 	root.SetVersionTemplate("scrappy v{{.Version}}\n")
 	return root
 }
@@ -517,7 +533,15 @@ func runOnce(cfg *cliConfig) error {
 		}
 		if len(healthy) > 0 {
 			_ = os.Setenv("SCRAPPY_PROXIES", strings.Join(healthy, ","))
-			util.Info("proxy_setup", map[string]any{"healthy": len(healthy), "total": len(parts), "proxies": strings.Join(healthy, ",")})
+			var redacted []string
+		for _, p := range healthy {
+			if u, err := url.Parse(p); err == nil {
+				redacted = append(redacted, u.Redacted())
+			} else {
+				redacted = append(redacted, p)
+			}
+		}
+		util.Info("proxy_setup", map[string]any{"healthy": len(healthy), "total": len(parts), "proxies": strings.Join(redacted, ",")})
 		} else {
 			util.Warn("proxy_no_healthy", map[string]any{"total": len(parts)})
 		}
@@ -631,6 +655,7 @@ func runOnce(cfg *cliConfig) error {
 		firstLoc = locations[0]
 	}
 
+	siteRPS := parseSiteRPS(cfg.SiteRPS)
 	input := model.ScraperInput{
 		Sites:          sites,
 		SearchTerm:     firstSearch,
@@ -638,9 +663,11 @@ func runOnce(cfg *cliConfig) error {
 		SearchTerms:    searchTerms,
 		Locations:      locations,
 		ResultsWanted:  resultsWanted,
-		Dedup:          true,
-		DedupByCompany: false,
-		MinScore:       0,
+		Dedup:          cfg.Dedup,
+		DedupByCompany: cfg.DedupByCompany,
+		MinScore:       cfg.MinScore,
+		MaxRPS:         cfg.MaxRPS,
+		SiteRPS:        siteRPS,
 		EmailsOnly:     cfg.EmailOnly,
 		LogLevel:       level,
 		SiteSearch:     siteSearch,
@@ -743,11 +770,11 @@ func promptSaveConfig(cfg *cliConfig) {
 	}
 
 	cfgPath := filepath.Join(dir, "config.yaml")
-	if err := os.WriteFile(cfgPath, b, 0644); err != nil {
+	if err := os.WriteFile(cfgPath, b, 0600); err != nil {
 		fmt.Fprintf(os.Stderr, "  \033[31mError\033[0m writing %s: %v\n", cfgPath, err)
 		return
 	}
-	fmt.Printf("  \033[38;5;117m✓\033[0m Saved to %s\n", cfgPath)
+	fmt.Printf("  \033[38;5;117m✓\033[0m Saved to %s (restricted permissions — may contain proxy credentials)\n", cfgPath)
 
 	// Update config path so next run picks it up.
 	cfg.ConfigPath = cfgPath
@@ -813,11 +840,11 @@ func runAPIKeyWizard() {
 
 	envPath := filepath.Join(dir, ".env")
 	content := strings.Join(envLines, "\n") + "\n"
-	if err := os.WriteFile(envPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(envPath, []byte(content), 0600); err != nil {
 		fmt.Fprintf(os.Stderr, "  \033[31mError\033[0m writing %s: %v\n", envPath, err)
 		return
 	}
-	fmt.Printf("\n  \033[38;5;117m✓\033[0m Saved to %s\n", envPath)
+	fmt.Printf("\n  \033[38;5;117m✓\033[0m Saved to %s (restricted permissions — may contain credentials)\n", envPath)
 	fmt.Println("  Keys will load automatically on next run.")
 }
 
@@ -833,6 +860,30 @@ func splitCommas(v string) []string {
 		}
 	}
 	return out
+}
+
+func parseSiteRPS(v string) map[model.Site]int {
+	m := map[model.Site]int{}
+	if v == "" {
+		return m
+	}
+	for _, p := range strings.Split(v, ",") {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		parts := strings.SplitN(p, ":", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		site := model.Site(strings.TrimSpace(parts[0]))
+		rps, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+		if err != nil || rps <= 0 || site == "" {
+			continue
+		}
+		m[site] = rps
+	}
+	return m
 }
 
 func parseSites(v string) []model.Site {

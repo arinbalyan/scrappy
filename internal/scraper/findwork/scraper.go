@@ -110,7 +110,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 		if !isFirstPage {
 			// Rate limit: ~3 req/s
-			time.Sleep(rateLimitGap)
+			if err := util.SleepWithContext(ctx, rateLimitGap); err != nil {
+				return nil, err
+			}
 		}
 		isFirstPage = false
 

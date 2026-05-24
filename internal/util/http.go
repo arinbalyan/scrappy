@@ -102,7 +102,7 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 	if req.Header.Get("User-Agent") == "" {
 		req.Header.Set("User-Agent", s.nextUserAgent())
 	}
-	Debug("http_roundtrip_start", map[string]any{"method": req.Method, "url": req.URL.String()})
+	Debug("http_roundtrip_start", map[string]any{"method": req.Method, "url": redactURL(req.URL)})
 
 	attempts := s.opts.Retries + 1
 	if attempts < 1 {
@@ -118,7 +118,7 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 		attemptReq := req.Clone(req.Context())
 		resp, err := s.base.RoundTrip(attemptReq)
 		if err == nil && resp != nil && !isRetryableStatus(resp.StatusCode) {
-			Debug("http_roundtrip_success", map[string]any{"method": req.Method, "url": req.URL.String(), "status": resp.StatusCode, "attempt": i + 1})
+			Debug("http_roundtrip_success", map[string]any{"method": req.Method, "url": redactURL(req.URL), "status": resp.StatusCode, "attempt": i + 1})
 			s.maybeResetCookies(attemptReq)
 			return resp, nil
 		}
@@ -210,7 +210,7 @@ func parseProxyList(raw string) []*url.URL {
 			continue
 		}
 		if !proxyReachable(u) {
-			Warn("proxy_unreachable_skip", map[string]any{"proxy": u.String()})
+			Warn("proxy_unreachable_skip", map[string]any{"proxy": redactURL(u)})
 			continue
 		}
 		out = append(out, u)
@@ -259,6 +259,15 @@ func (s *smartRT) maybeRotateProxy() {
 		atomic.StoreInt64(&s.proxyIdx, next)
 		s.base.Proxy = http.ProxyURL(s.proxyList[next])
 	}
+}
+
+// redactURL strips credentials from a URL for safe logging.
+// Uses url.URL.Redacted() which replaces userinfo with "xxxxx".
+func redactURL(u *url.URL) string {
+	if u == nil {
+		return ""
+	}
+	return u.Redacted()
 }
 
 func (s *smartRT) retryDelay(attempt int, resp *http.Response) time.Duration {

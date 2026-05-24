@@ -21,7 +21,7 @@ Check the telemetry output for `fail_open_reason`: `missing_credentials` means a
 
 ## LinkedIn returns 429
 
-**Cause:** Too many requests too fast. LinkedIn rate-limits aggressively — typically after ~10 pages (100 jobs).
+**Cause:** Too many requests too fast. LinkedIn rate-limits aggressively -- typically after ~10 pages (100 jobs).
 
 **Solution:**
 
@@ -36,7 +36,7 @@ scrappy --sites linkedin --search "engineer" --linkedin-strategy rotate
 scrappy --proxy socks5://localhost:7890 --sites linkedin --search "engineer"
 ```
 
-LinkedIn 429s are handled silently (fail-open) — the run continues for other sites.
+LinkedIn 429s are handled silently (fail-open) -- the run continues for other sites.
 
 ## Indeed returns empty company names
 
@@ -52,7 +52,7 @@ LinkedIn 429s are handled silently (fail-open) — the run continues for other s
 
 ```bash
 # Verify Go version matches go.mod
-go version  # should be 1.24+
+go version  # should be 1.26+
 
 # Build with explicit flags
 CGO_ENABLED=0 go build -ldflags="-s -w" -o scrappy ./cmd/scrappy
@@ -84,7 +84,7 @@ scrappy --config /path/to/config.yaml --search "engineer"
 
 ## Email extraction shows no results
 
-**Cause:** Many job boards hide contact emails by design (LinkedIn Easy Apply, Indeed direct apply). Emails in descriptions are rare (~10–25%).
+**Cause:** Many job boards hide contact emails by design (LinkedIn Easy Apply, Indeed direct apply). Emails in descriptions are rare (~10-25%).
 
 **Solution:**
 
@@ -111,7 +111,7 @@ scrappy --memory-cap 512MB --sites linkedin,indeed,remoteok --search "engineer"
 scrappy --sites indeed,remoteok --search "rust" --memory-cap 256MB
 ```
 
-See [Memory Management](memory-management.md).
+See [016-Memory-Management.md](016-Memory-Management.md).
 
 ## Scrape is too slow
 
@@ -152,7 +152,7 @@ scrappy --sites indeed --search "engineer" --results-wanted 10
 
 ## JSONL file is huge
 
-**Cause:** JSONL is uncompressed text. Descriptions can be 10–50 KB each.
+**Cause:** JSONL is uncompressed text. Descriptions can be 10-50 KB each.
 
 **Solution:**
 
@@ -172,8 +172,8 @@ scrappy --sites indeed --search "engineer" --out /dev/stdout | gzip > jobs.jsonl
 Run with `--log-level DEBUG` to see detailed telemetry per site. Common patterns:
 
 | FailOpenReason | Meaning | Fix |
-|---|---|---|
-| `missing_credentials` | API key not set | Set the required env var (see [Environment Variables](environment-variables.md)) |
+|----------------|---------|-----|
+| `missing_credentials` | API key not set | Set the required env var (see [015-Environment-Variables.md](015-Environment-Variables.md)) |
 | `challenge_detected` | CAPTCHA or Cloudflare | Use proxies, reduce rate |
 | `rate_limited` | HTTP 429 | Lower `--site-rps` for this site |
 | `access_denied` | HTTP 403/401 | Check geo-restrictions or API key validity |

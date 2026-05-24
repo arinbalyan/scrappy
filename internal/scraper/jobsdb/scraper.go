@@ -122,7 +122,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 		page++
 		// Rate limit: ~3 requests per second
-		time.Sleep(rateLimitDelay)
+		if err := util.SleepWithContext(ctx, rateLimitDelay); err != nil {
+			return jobs, err
+		}
 	}
 
 	if !util.HasMeaningfulJobs(jobs) {

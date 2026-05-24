@@ -74,7 +74,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		}
 
 		if page > 0 {
-			time.Sleep(rateLimitDelay)
+			if err := util.SleepWithContext(ctx, rateLimitDelay); err != nil {
+				return nil, err
+			}
 		}
 
 		body, err := s.fetchPage(ctx, input.SearchTerm, input.Location, page)

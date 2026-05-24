@@ -1,6 +1,13 @@
 # Deduplication
 
-`internal/dedup/` — removes duplicate postings before output.
+`internal/dedup/` -- removes duplicate postings before output.
+
+## CLI flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--dedup` | `true` | Drop duplicate job URLs across sites. |
+| `--dedup-by-company` | `false` | Keep only one posting per company across the entire result set. |
 
 ## Strategies
 
@@ -23,7 +30,7 @@ func (s *Set) Add(url string) bool {
 }
 ```
 
-**Edge case**: Same URL from different sites → first seen wins (order is undefined, depends on goroutine scheduling). Different URLs pointing to the same job are not deduplicated.
+**Edge case**: Same URL from different sites -- first seen wins (order is undefined, depends on goroutine scheduling). Different URLs pointing to the same job are not deduplicated.
 
 ### Company dedup
 
@@ -65,13 +72,6 @@ func DedupFilters(jobs []JobPost, skipURLDedup bool, companyDedup, dedupNullComp
 4. Quality score filtering (--min-score)
 5. Emails-only filtering (--email)
 6. Results-wanted truncation
-```
-
-## CLI flags
-
-```
---dedup                Drop duplicate job URLs across sites (default: true)
---dedup-by-company     Keep 1 posting per company (default: false)
 ```
 
 ## Examples
