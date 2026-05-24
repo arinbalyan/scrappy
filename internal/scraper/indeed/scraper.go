@@ -132,6 +132,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		cursor = nextCursor
 	}
 
+	if len(jobs) == 0 {
+		return nil, fmt.Errorf("indeed: no jobs found")
+	}
 	start := input.Offset
 	if start > len(jobs) {
 		start = len(jobs)

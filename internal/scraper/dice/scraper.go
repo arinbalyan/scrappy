@@ -28,7 +28,7 @@ const (
 var apiHeaders = map[string]string{
 	"Accept":       "application/json",
 	"Content-Type": "application/json",
-	"x-api-key":    "1YAt0R9wBg4WfsF9VB2778F5CHLAPMVW3WAZcKd8",
+	"x-api-key":    "1YAt0R9wBg4WfsF9VB2778F5CHLAPMVW3WAZcKd8", // gitleaks:allow - publicly known client-side key used by dice.com
 	"User-Agent":   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 }
 
