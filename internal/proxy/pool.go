@@ -19,13 +19,20 @@ type ProxyURL struct {
 	Mu       sync.RWMutex
 }
 
+func redactProxyURL(raw string) string {
+	if u, err := url.Parse(raw); err == nil {
+		return u.Redacted()
+	}
+	return raw
+}
+
 func NewProxyURL(raw string) (*ProxyURL, error) {
 	if !strings.Contains(raw, "://") {
-		return nil, fmt.Errorf("proxy URL missing scheme: %q", raw)
+		return nil, fmt.Errorf("proxy URL missing scheme: %q", redactProxyURL(raw))
 	}
 	scheme, rest, ok := strings.Cut(raw, "://")
 	if !ok {
-		return nil, fmt.Errorf("cannot parse scheme from %q", raw)
+		return nil, fmt.Errorf("cannot parse scheme from %q", redactProxyURL(raw))
 	}
 	// strip optional auth prefix
 	hostPort := rest

@@ -123,19 +123,9 @@ type parquetJobRow struct {
 }
 ```
 
-## Description format
+The engine always strips HTML tags before output (via `golang.org/x/net/html` tokenizer).
 
-Control how descriptions are rendered with `--description-format`:
-
-| Value | Behavior |
-|-------|----------|
-| `plain` | HTML stripped, plain text (default) |
-| `markdown` | HTML stripped, minimal markdown preserved |
-| `html` | Raw HTML kept as-is |
-
-The engine always strips HTML tags before output (via `golang.org/x/net/html` tokenizer). The format flag controls additional whitespace and structure normalization.
-
-## Performance
+## Performance (approximate)
 
 | Format | Write speed (1k jobs) | File size (1k jobs) | Memory |
 |--------|----------------------|---------------------|--------|
@@ -144,4 +134,4 @@ The engine always strips HTML tags before output (via `golang.org/x/net/html` to
 | XLSX | ~50 ms | ~1.2 MB | O(rows) in memory |
 | Parquet | ~60 ms | ~120 KB | O(row group) |
 
-Parquet is the most space-efficient but slower to write due to columnar encoding. JSONL is the fastest and most pipeline-friendly.
+> **Note:** Values are approximate and depend on hardware, description length, and concurrency settings. Parquet is the most space-efficient but slower to write due to columnar encoding. JSONL is the fastest and most pipeline-friendly.

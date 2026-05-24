@@ -38,3 +38,6 @@ tmp/
 
 # Go workspace (if any)
 go.work
+
+# Compiled binary (repo root)
+/scrappy

@@ -202,11 +202,7 @@ func (s *Scraper) adaptiveBackoff(ctx context.Context, start int) {
 	}
 	jitter := time.Duration(rand.Intn(700)) * time.Millisecond
 	wait := base + jitter
-	select {
-	case <-ctx.Done():
-		return
-	case <-time.After(wait):
-	}
+	_ = util.SleepWithContext(ctx, wait)
 }
 
 func (s *Scraper) fetchSearchPage(ctx context.Context, input model.ScraperInput, start int) (string, error) {

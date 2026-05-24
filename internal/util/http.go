@@ -210,7 +210,7 @@ func parseProxyList(raw string) []*url.URL {
 			continue
 		}
 		if !proxyReachable(u) {
-			Warn("proxy_unreachable_skip", map[string]any{"proxy": u.String()})
+			Warn("proxy_unreachable_skip", map[string]any{"proxy": redactURL(u)})
 			continue
 		}
 		out = append(out, u)
