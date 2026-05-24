@@ -22,7 +22,7 @@ scrappy
 |------|------|---------|-------------|
 | `--search` | string | `""` | Search term(s). Comma-separated for multi-value cartesian product. |
 | `--location` | string | `""` | Location(s). Comma-separated for multi-value cartesian product. |
-| `--sites` | string | `""` (all 65+) | Comma-separated site names. Omit to scrape every supported board. |
+| `--sites` | string | `""` (all 62+) | Comma-separated site names. Omit to scrape every supported board. |
 | `--results-wanted` | int | `0` | Maximum number of results total across all sites. |
 | `--format` | string | `""` | Output format: `jsonl`, `csv`, `xlsx`, `parquet`. |
 | `--out` | string | `""` | Output file path. Empty = stdout (JSON pretty-printed). |
@@ -49,7 +49,7 @@ scrappy
 
 - CLI flags **override** config YAML values.
 - Config YAML values are used as **fallback defaults** when flags are omitted.
-- `--sites` empty = all 65+ sites (from `model.AllSites()`).
+- `--sites` empty = all 62+ sites (from \`model.AllSites()\`).
 - `--out` empty = JSON array written to stdout.
 - `--non-interactive` disables the wizard even on a TTY; required for piped output.
 
@@ -86,7 +86,7 @@ Env vars can be set in `.env` files (auto-loaded beside config.yaml) or exported
 
 ## SITES
 
-scrappy supports **65 job boards**:
+scrappy supports **62 job boards**:
 
 ```
 linkedin          indeed            zip_recruiter     bayt
@@ -96,8 +96,8 @@ hiringcafe        huggingfacejobs   jobindex          remoteok
 remotive          remotefirstjobs   jobspresso        hasjob
 vuejobs           larajobs          arbeitnow         arbeitsagentur
 hackernews        cryptocurrencyjobs androidjobs      jobicy
-devopsjobs        crunchboard       iosdevjobs        swissdevjobs
-cryptojobslist    devitjobs         dribbble          aijobs
+devopsjobs        crunchboard       cryptojobslist    dribbble
+aijobs            workingnomads     wuzzuf            ycjobs
 workingnomads     wuzzuf            ycjobs            ukvisajobs
 google            glassdoor         adzuna            simplyhired
 careerbuilder     careerjet         jooble            dice
@@ -116,7 +116,7 @@ scrappy --sites linkedin,indeed,remoteok,glassdoor \
         --results-wanted 200
 ```
 
-Omit `--sites` entirely to scrape all 65+.
+Omit \`--sites\` entirely to scrape all 62+.
 
 ## EXIT CODES
 
@@ -187,7 +187,7 @@ scrappy --sites remoteok --search "rust" --results-wanted 10 \
         --non-interactive | jq '.title'
 ```
 
-### 9. All 65+ sites, email filter, remote-only
+### 9. All 62+ sites, email filter, remote-only
 
 ```bash
 scrappy --search "AI Engineer" --location "Remote" \

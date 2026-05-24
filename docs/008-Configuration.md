@@ -232,12 +232,6 @@ sites:
       - '"AI Engineer" OR "Machine Learning Engineer"'
       - '"GTM Engineer" OR "Forward Deployed Engineer"'
     location: Singapore
-  swissdevjobs:
-    search:
-      - ai engineer
-      - machine learning engineer
-      - llm engineer
-    location: Switzerland
   ukvisajobs:
     search:
       - '"AI Engineer" OR "Machine Learning Engineer"'

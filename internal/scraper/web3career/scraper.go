@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -78,7 +79,14 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 	u, _ := url.Parse(s.apiURL)
 	q := u.Query()
-	q.Set("token", "public")
+	token := strings.TrimSpace(os.Getenv("WEB3CAREER_API_TOKEN"))
+	if token == "" {
+		token = "public"
+		util.Warn("web3career_api_token_missing", map[string]any{
+			"warning": "WEB3CAREER_API_TOKEN not set; using fallback 'public' token which may be revoked. Get a free API key from https://web3.career/web3-jobs-api",
+		})
+	}
+	q.Set("token", token)
 	u.RawQuery = q.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)

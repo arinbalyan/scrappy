@@ -19,7 +19,7 @@ The interactive wizard can write API keys to `~/.scrappy/.env` for you. An `.env
 
 ## Reference
 
-### Required for 5 sites
+### Required for 6 sites
 
 | Variable | Site | Get it at |
 |----------|------|-----------|
@@ -28,6 +28,7 @@ The interactive wizard can write API keys to `~/.scrappy/.env` for you. An `.env
 | `INFOJOBS_CLIENT_ID`, `INFOJOBS_CLIENT_SECRET` | InfoJobs | https://developer.infojobs.net/ |
 | `FINDWORK_API_KEY` | Findwork | https://findwork.dev/developers/ |
 | `ARBEITSAGENTUR_API_KEY` | Arbeitsagentur | https://rest.arbeitsagentur.de/ |
+| `WEB3CAREER_API_TOKEN` | Web3Career | https://web3.career/web3-jobs-api |
 
 When a required env var is missing, the engine skips that site with a WARN message instead of failing the run.
 
@@ -74,7 +75,7 @@ Lines starting with `#` are ignored. Existing env vars are never overwritten by 
 
 ```bash
 # Check which env vars are set
-env | grep -E '^(ADZUNA_|CAREERJET_|INFOJOBS_|FINDWORK_|ARBEITSAGENTUR_|SCRAPPY_)'
+env | grep -E '^(ADZUNA_|CAREERJET_|INFOJOBS_|FINDWORK_|ARBEITSAGENTUR_|WEB3CAREER_|SCRAPPY_)'
 
 # Set a variable for a single run
 ADZUNA_APP_ID=xxx scrappy --sites adzuna --search "engineer" --results-wanted 100

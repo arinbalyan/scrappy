@@ -171,10 +171,14 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 }
 
 func applyNaukriHeaders(req *http.Request) {
-	req.Header.Set("User-Agent", "Mozilla/5.0")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
 	req.Header.Set("appid", "109")
 	req.Header.Set("systemid", "Naukri")
-	req.Header.Set("accept", "application/json,text/plain,*/*")
+	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("Origin", "https://www.naukri.com")
+	req.Header.Set("Referer", "https://www.naukri.com/")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 }
 
 func makeNaukriURL(jdURL, id string) string {

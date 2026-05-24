@@ -27,7 +27,7 @@ func (s *IndeedScraper) Scrape(ctx context.Context, input ScraperInput) ([]JobPo
 
 Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses between requests, ensuring timely cancellation when a scrape is terminated.
 
-## All 65+ sites
+## All 62+ sites
 
 ### High-yield (general boards, largest result sets)
 
@@ -92,10 +92,7 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | Jobicy | Remote/creative | Offset |
 | DevOpsJobs | DevOps specific | Offset |
 | Crunchboard | Tech/startup | Offset |
-| IOSDevJobs | iOS dev | Offset |
-| SwissDevJobs | Switzerland | Offset |
 | CryptoJobsList | Crypto | RSS feed |
-| DevITJobs | Germany/Dev | Offset |
 | Dribbble | Design jobs | Offset |
 | AIJobs | AI/ML | Offset |
 | Wuzzuf | Egypt/MENA | Offset |

@@ -19,7 +19,7 @@ set -euo pipefail
 
 REPORT_DIR="testruns/site-check-$(date +%Y%m%d-%H%M%S)"
 RESULTS_WANTED=5
-TIMEOUT_SECONDS=300  # 5 minutes per site
+TIMEOUT_SECONDS=60   # 60 seconds per site
 SEARCH_TERM="software engineer"
 VERBOSE=false
 SINGLE_SITE=""
@@ -53,14 +53,14 @@ ALL_SITES=(
   linkedin indeed zip_recruiter bayt bdjobs naukri internshala
   builtin startupjobs greenhouse gunio himalayas hiringcafe
   huggingfacejobs jobindex remoteok remotive remotefirstjobs
-  jobspresso hasjob vuejs larajobs arbeitnow arbeitsagentur
+  jobspresso hasjob vuejobs larajobs arbeitnow arbeitsagentur
   hackernews cryptocurrencyjobs androidjobs jobicy devopsjobs
   crunchboard iosdevjobs swissdevjobs cryptojobslist devitjobs
   dribbble aijobs workingnomads wuzzuf ycjobs ukvisajobs google
   glassdoor adzuna simplyhired careerbuilder careerjet jooble
   dice monster stepstone infojobs reed themuse jobsdb snagajob
   djinni headhunter mycareersfuture jobstreet upwork 4dayweek
-  academiccareers eurojobs findwork web3career glassdoor
+  academiccareers eurojobs findwork web3career
 )
 
 # Relevancy keywords for tech/software jobs (lowercase match on job title)
@@ -293,7 +293,7 @@ generate_report() {
     echo "- **OFF_TOPIC** = <50% relevant (many non-tech jobs returned)"
     echo "- **EMPTY** = Site returned 0 jobs"
     echo "- **FAIL** = Site returned an error"
-    echo "- **TIMEOUT** = Site did not respond within ${TIMEOUTS_SECONDS}s"
+    echo "- **TIMEOUT** = Site did not respond within ${TIMEOUT_SECONDS}s"
     echo "- **NO_DATA** = No output file was created"
   } > /tmp/summary_header.txt
 

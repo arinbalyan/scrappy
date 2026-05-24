@@ -126,7 +126,7 @@ scrappy --sites glassdoor --search "software engineer" \
         --location "Remote,New York,Hyderabad" --results-wanted 300
 ```
 
-### All 65+ sites with multiple terms
+### All 62+ sites with multiple terms
 
 ```bash
 scrappy --search "AI Engineer,Rust Developer" \

@@ -62,7 +62,7 @@ Remote,New York,Hyderabad
 ? Sites (comma-separated, empty=all) [linkedin,indeed]:
 ```
 
-Leave empty to scrape all 65+ sites. Enter specific names to limit.
+Leave empty to scrape all 62+ sites. Enter specific names to limit.
 
 ### Step 4 -- Results wanted
 

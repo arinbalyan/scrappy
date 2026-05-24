@@ -1,6 +1,6 @@
 # Architecture Overview
 
-`scrappy` is a bulk-first job-board scraper written in Go. It fans out across 65+ sites concurrently, processes thousands of postings per run, and ships results to disk without materializing everything in memory.
+`scrappy` is a bulk-first job-board scraper written in Go. It fans out across 62+ sites concurrently, processes thousands of postings per run, and ships results to disk without materializing everything in memory.
 
 ```bash
 scrappy --sites linkedin,indeed,remoteok --search "golang" \
@@ -23,7 +23,7 @@ scrappy --sites linkedin,indeed,remoteok --search "golang" \
 
 ## Feature highlights
 
-- **65+ scrapers** -- built-in support for LinkedIn, Indeed, Glassdoor, Google, ZipRecruiter, and 60+ niche/regional boards
+- **62+ scrapers** -- built-in support for LinkedIn, Indeed, Glassdoor, Google, ZipRecruiter, and 57+ niche/regional boards
 - **Bulk-first design** -- fan-out across all sites concurrently, aggregate thousands of postings in a single run
 - **Email enrichment** -- regex extraction + MX DNS validation + company-page follow-up (catches ~60-80% of postings with a contact address)
 - **Deterministic quality score** -- 0-100 per posting based on salary presence, apply method, email-domain/company-domain match, freshness, description length, agency check
@@ -110,7 +110,7 @@ All HTTP, JSON, CSV, and concurrency primitives use Go standard library.
 
 ## Sites supported
 
-65+ job boards across general, remote, startup, niche, and regional categories. Run `scrappy --help` to see the full list. All implement the same `Scraper` interface:
+62+ job boards across general, remote, startup, niche, and regional categories. Run `scrappy --help` to see the full list. All implement the same `Scraper` interface:
 
 ```go
 type Scraper interface {

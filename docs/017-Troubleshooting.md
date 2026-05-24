@@ -99,7 +99,7 @@ scrappy --sites remoteok --search "golang" --email-max-per-job 10
 
 ## Out of memory
 
-**Cause:** Running 65+ scrapers without a memory cap can consume 500+ MB.
+**Cause:** Running 62+ scrapers without a memory cap can consume 500+ MB.
 
 **Solution:**
 
