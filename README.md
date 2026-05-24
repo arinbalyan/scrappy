@@ -15,13 +15,39 @@ Bulk job-board scraper for 65+ sites, written in Go.
 
 ## Quick start
 
+### One-line install
+
+```bash
+# Linux (x86_64)
+curl -fsSL https://github.com/arinbalyan/scrappy/releases/download/v0.1.0/scrappy_linux_amd64.tar.gz | tar xz && sudo mv scrappy /usr/local/bin/
+
+# macOS (Apple Silicon)
+curl -fsSL https://github.com/arinbalyan/scrappy/releases/download/v0.1.0/scrappy_darwin_arm64.tar.gz | tar xz && sudo mv scrappy /usr/local/bin/
+
+# macOS (Intel)
+curl -fsSL https://github.com/arinbalyan/scrappy/releases/download/v0.1.0/scrappy_darwin_amd64.tar.gz | tar xz && sudo mv scrappy /usr/local/bin/
+```
+
+```powershell
+# Windows (PowerShell)
+curl.exe -LO https://github.com/arinbalyan/scrappy/releases/download/v0.1.0/scrappy_windows_amd64.zip
+Expand-Archive scrappy_windows_amd64.zip -DestinationPath .
+```
+
+### Or install with Go
+
 ```
 go install github.com/arinbalyan/scrappy/cmd/scrappy@latest
+```
+
+### First scrape
+
+```bash
 scrappy --sites remoteok --search "golang" --results-wanted 50
 ```
 
-For the interactive wizard:
-```
+For the interactive wizard, run without arguments:
+```bash
 scrappy
 ```
 
