@@ -3,7 +3,7 @@
 ## Requirements
 
 - Go 1.26+ (see `go.mod` for exact toolchain version)
-- No Python or external runtime required — scrappy is a single static binary
+- No Python or external runtime required -- scrappy is a single static binary
 
 ## Go install (CLI binary)
 
@@ -57,6 +57,10 @@ git clone git@github.com:arinbalyan/scrappy.git
 cd scrappy
 go mod tidy
 
+# Copy the environment template
+cp .env.example .env
+# Edit .env with your API keys
+
 # Run all unit tests
 go test ./...
 
@@ -77,7 +81,7 @@ No code generation or build tools are needed beyond the Go toolchain.
 
 ## Docker
 
-A Dockerfile is provided for containerized builds. The image uses a multi-stage build for a small static binary (~10 MB).
+A `Dockerfile` is provided for containerized builds. The image uses a multi-stage build for a small static binary (~10 MB).
 
 ```bash
 # Build the image
@@ -98,6 +102,8 @@ docker run -e SCRAPPY_PROXIES=socks5://host:7890 scrappy \
 ```
 
 ### Docker Compose for scheduled runs
+
+A `docker-compose.yml` is provided for scheduled bulk scraping:
 
 ```yaml
 services:
@@ -140,7 +146,7 @@ The CI workflow also runs a gitleaks secrets scan on every push.
 scrappy keeps its dependency tree minimal:
 
 | Dependency | Purpose |
-|---|---|
+|------------|---------|
 | `github.com/spf13/cobra` | CLI framework (flags, commands) |
 | `gopkg.in/yaml.v3` | Parse config.yaml |
 | `golang.org/x/time/rate` | Per-site token-bucket rate limiter |
@@ -148,18 +154,20 @@ scrappy keeps its dependency tree minimal:
 | `github.com/xitongsys/parquet-go` | Parquet export |
 | `github.com/stretchr/testify` | Test assertions (dev only) |
 
-All HTTP, JSON, CSV, and concurrency primitives use Go standard library — nothing beyond these direct dependencies.
+All HTTP, JSON, CSV, and concurrency primitives use Go standard library -- nothing beyond these direct dependencies.
 
 ## Environment variables
 
+See [015-Environment-Variables.md](015-Environment-Variables.md) for the complete reference. Key variables:
+
 | Variable | Purpose |
-|---|---|
+|----------|---------|
 | `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | Adzuna API credentials |
 | `CAREERJET_AFFID` | CareerJet partner ID |
 | `INFOJOBS_CLIENT_ID`, `INFOJOBS_CLIENT_SECRET` | InfoJobs API credentials |
 | `FINDWORK_API_KEY` | Findwork API key |
 | `ARBEITSAGENTUR_API_KEY` | Arbeitsagentur API key |
 | `SCRAPPY_PROXIES` | Comma-separated SOCKS5 proxy URLs |
-| `SCRAPPY_LOG_LEVEL` | Default log level (DEBUG\|INFO\|WARN\|ERROR) |
+| `SCRAPPY_LOG_LEVEL` | Default log level (DEBUG|INFO|WARN|ERROR) |
 
-Variables can be set in the environment or in a `.env` file beside `config.yaml`.
+Variables can be set in the environment, in a `.env` file beside `config.yaml`, or in `~/.scrappy/.env`.

@@ -1,6 +1,6 @@
 # Scraping
 
-`internal/scraper/` — site-specific scrapers that implement the `Scraper` interface.
+`internal/scraper/` -- site-specific scrapers that implement the `Scraper` interface.
 
 ## Interface
 
@@ -25,15 +25,17 @@ func (s *IndeedScraper) Scrape(ctx context.Context, input ScraperInput) ([]JobPo
 }
 ```
 
+Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses between requests, ensuring timely cancellation when a scrape is terminated.
+
 ## All 65+ sites
 
 ### High-yield (general boards, largest result sets)
 
 | Site | Page size | Pagination | Hard cap | Notes |
-|---|---|---|---|---|
+|------|-----------|------------|----------|-------|
 | Indeed | 100 | Cursor (`nextCursor`) | None observed | GraphQL; best yield per RPS |
 | LinkedIn | 10 | Offset (`start`) | 1,000 | Use `--linkedin-strategy rotate` |
-| Google | ~10 | Offset (SERP) | Best-effort | Aggressive rate-limiting |
+| Google | ~10 | Offset (SERP) | Best-effort | No longer capped at 20; aggressive rate-limiting |
 | Glassdoor | ~30 | Cursor | ~1,000 | Dates rounded to next day |
 | ZipRecruiter | ~20 | Cursor | ~1,000 | US/Canada only |
 | Adzuna | ~50 | Offset | ~1,000 | Requires `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` |
@@ -50,7 +52,7 @@ func (s *IndeedScraper) Scrape(ctx context.Context, input ScraperInput) ([]JobPo
 ### Medium-yield (remote-first, startup, niche)
 
 | Site | Page size | Pagination | Notes |
-|---|---|---|---|
+|------|-----------|------------|-------|
 | RemoteOK | 50 | Offset | JSON in `<script id="job-map">` tag |
 | Remotive | ~30 | Offset | JSON API at `remotive.com/api/remote-jobs` |
 | RemoteFirstJobs | ~20 | Offset | Remote-only board |
@@ -71,10 +73,10 @@ func (s *IndeedScraper) Scrape(ctx context.Context, input ScraperInput) ([]JobPo
 | Web3Career | ~20 | Offset | Web3/crypto jobs |
 | Upwork | ~20 | Offset | Freelance/contract |
 
-### Niche & regional
+### Niche and regional
 
 | Site | Region / Niche | Pagination |
-|---|---|---|
+|------|----------------|------------|
 | Bayt | Middle East | Offset |
 | BDJobs | Bangladesh | Offset |
 | Naukri | India | Offset |
@@ -109,32 +111,34 @@ func (s *IndeedScraper) Scrape(ctx context.Context, input ScraperInput) ([]JobPo
 ### Requires API keys
 
 | Site | Env vars | Sign up |
-|---|---|---|
+|------|----------|---------|
 | Adzuna | `ADZUNA_APP_ID`, `ADZUNA_APP_KEY` | https://developer.adzuna.com/ |
 | Careerjet | `CAREERJET_AFFID` | https://www.careerjet.com/partners/ |
 | InfoJobs | `INFOJOBS_CLIENT_ID`, `INFOJOBS_CLIENT_SECRET` | https://developer.infojobs.net/ |
 | Findwork | `FINDWORK_API_KEY` | https://findwork.dev/developers/ |
 | Arbeitsagentur | `ARBEITSAGENTUR_API_KEY` | https://rest.arbeitsagentur.de/ |
 
-When a required env var is missing, the engine skips the site with a WARN — it does not fail the run.
+When a required env var is missing, the engine skips the site with a WARN -- it does not fail the run.
 
 ## Multi-value cartesian product
 
-Pass comma-separated search terms and locations to generate N×M passes per site:
+Pass comma-separated search terms and locations to generate NxM passes per site:
 
 ```bash
-# 2 search terms × 2 locations = 4 passes for each site
+# 2 search terms x 2 locations = 4 passes for each site
 scrappy --sites indeed --search "AI Engineer,Software Engineer" \
   --location "Remote,New York" --results-wanted 500
 ```
 
-Each (term, location) pair is an independent scrape. Errors on one pair don't fail others.
+Each (term, location) pair is an independent scrape. Errors on one pair do not fail others.
+
+See [007-Multi-Value.md](007-Multi-Value.md).
 
 ## Per-site concurrency defaults
 
 | Site | Max concurrent | Max RPS |
-|---|---|---|
-| LinkedIn | 1–2 | 1 req/3s |
+|------|---------------|---------|
+| LinkedIn | 1-2 | 1 req/3s |
 | Indeed | 10 | 3 req/s |
 | Glassdoor | 4 | 2 req/s |
 | Google | 2 | 1 req/2s |
@@ -142,13 +146,15 @@ Each (term, location) pair is an independent scrape. Errors on one pair don't fa
 | Adzuna | 4 | 2 req/s |
 | Careerjet | 4 | 2 req/s |
 | Wellfound / RemoteOK / Remotive | 8 | 5 req/s |
-| All others | 4–8 | 3 req/s (default) |
+| All others | 4-8 | 3 req/s (default) |
 
 Per-semaphore limits are configurable via `--site-rps`:
 
 ```bash
 scrappy --site-rps linkedin:1,indeed:10 --sites linkedin,indeed --search "engineer"
 ```
+
+Global concurrency is governed by a semaphore sized according to `--max-rps` or `--memory-cap`. See [016-Memory-Management.md](016-Memory-Management.md).
 
 ## Fail-open behavior
 
@@ -160,6 +166,18 @@ A site error (429, 5xx, CAPTCHA, timeout) does **not** abort the entire run. The
 4. Reports partial results for that site if any were collected
 
 `SuggestRPS` automatically ratchets down after 429/rate-limit errors and ratchets up on success.
+
+## Rate limiting via `--max-rps` and `--site-rps`
+
+In addition to per-site defaults, two CLI flags provide rate control:
+
+- `--max-rps`: Global maximum requests per second, clamped between 2 and 16. Overrides the default concurrency of 8.
+- `--site-rps`: Per-site overrides in `site:rps` format (e.g. `linkedin:1,indeed:10`). These replace the per-site defaults.
+
+```bash
+scrappy --max-rps 10 --site-rps linkedin:1,indeed:5 \
+  --sites linkedin,indeed --search "engineer"
+```
 
 ## Telemetry
 
@@ -183,6 +201,8 @@ type SiteTelemetry struct {
 
 Access via `engine.Telemetry()` in library mode, or enable `--log-level DEBUG` in CLI mode.
 
-## Rate limiting
+## Country pass-through for Indeed
 
-Each site's HTTP session respects a `rate.Limiter` injected via context. The limiter is a `golang.org/x/time/rate.Limiter` (token bucket) keyed by hostname, configurable via `--site-rps`. Global concurrency is governed by a semaphore sized according to `--max-rps` or `--memory-cap`.
+The `country` field in config.yaml (and the `SCRAPPY_INDEED_CO` env var) sets the `indeed-co` header and search host for country-specific results. Supported values include `germany`, `uk`, `india`, `australia`, `canada`, and others. This is passed through to the Indeed scraper via `ScraperInput.Country`.
+
+See [008-Configuration.md](008-Configuration.md) for usage examples.

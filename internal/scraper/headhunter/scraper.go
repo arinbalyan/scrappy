@@ -111,7 +111,9 @@ func (s *Scraper) fetchVacancies(ctx context.Context, searchTerm string, perPage
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", "scrappy/0.1.0 (job-aggregator)")
 
-	time.Sleep(rateLimitDelay)
+	if err := util.SleepWithContext(ctx, rateLimitDelay); err != nil {
+		return nil, err
+	}
 
 	resp, err := s.client.Do(req)
 	if err != nil {

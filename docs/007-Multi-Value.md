@@ -8,11 +8,11 @@ A single scrape run is limited to one search term and one location:
 scrappy --sites indeed --search "AI Engineer" --location "Remote"
 ```
 
-If you want AI Engineer jobs in both Remote AND New York, you'd need to run the tool twice. If you also want to search for "Software Engineer" in both locations, that's four separate runs.
+If you want AI Engineer jobs in both Remote AND New York, you would need to run the tool twice. If you also want to search for "Software Engineer" in both locations, that is four separate runs.
 
 ## The solution
 
-scrappy accepts **comma-separated values** for `--search` and `--location`. It generates the cartesian product of all terms × all locations and iterates over every combination for each site.
+scrappy accepts **comma-separated values** for `--search` and `--location`. It generates the cartesian product of all terms x all locations and iterates over every combination for each site.
 
 ```bash
 scrappy --sites indeed --search "AI Engineer,Software Engineer" \
@@ -34,7 +34,7 @@ Results from all passes are pooled, deduplicated (by job URL), and returned as a
 
 1. CLI parses `--search "AI Engineer,Software Dev"` into `["AI Engineer", "Software Dev"]`.
 2. CLI parses `--location "Remote,New York"` into `["Remote", "New York"]`.
-3. The engine iterates over `SearchTerms × Locations` for each site.
+3. The engine iterates over `SearchTerms x Locations` for each site.
 4. For each `(term, location)` pair, the site scraper runs a full pagination loop.
 5. Results are appended to a shared pool, deduplicated by `job_url`.
 6. The pool is trimmed to `results-wanted` total.
@@ -45,8 +45,8 @@ The relevant struct fields in `ScraperInput`:
 type ScraperInput struct {
     SearchTerm  string   // single fallback (first of SearchTerms)
     Location    string   // single fallback (first of Locations)
-    SearchTerms []string // multi-value — cartesian product source
-    Locations   []string // multi-value — cartesian product source
+    SearchTerms []string // multi-value -- cartesian product source
+    Locations   []string // multi-value -- cartesian product source
     // ...
 }
 ```
@@ -71,7 +71,7 @@ You can mix CLI and config: CLI flags override config entirely. If you set `--se
 
 ## Per-site override behaviour
 
-When a site has its own `search` or `location` in the `sites:` block, the **site-specific values replace the global ones** for that site only — the cartesian product is still computed.
+When a site has its own `search` or `location` in the `sites:` block, the **site-specific values replace the global ones** for that site only -- the cartesian product is still computed.
 
 ```yaml
 defaults:
@@ -101,25 +101,25 @@ For `indeed`, the cartesian product is:
 | 3 | "GTM Engineer" | Remote |
 | 4 | "GTM Engineer" | San Francisco |
 
-Other sites (e.g. `linkedin`, `glassdoor`) still use `[AI Engineer, Software Engineer] × [Remote, New York]`.
+Other sites (e.g. `linkedin`, `glassdoor`) still use `[AI Engineer, Software Engineer] x [Remote, New York]`.
 
 ## Examples
 
-### 2 terms × 2 locations (4 passes)
+### 2 terms x 2 locations (4 passes)
 
 ```bash
 scrappy --sites indeed --search "AI Engineer,Rust Developer" \
         --location "Remote,San Francisco" --results-wanted 400
 ```
 
-### 3 terms × 1 location (3 passes)
+### 3 terms x 1 location (3 passes)
 
 ```bash
 scrappy --sites linkedin --search "AI Engineer,ML Engineer,LLM Engineer" \
         --location "Remote" --results-wanted 300
 ```
 
-### 1 term × 3 locations (3 passes)
+### 1 term x 3 locations (3 passes)
 
 ```bash
 scrappy --sites glassdoor --search "software engineer" \
@@ -152,16 +152,16 @@ defaults:
 scrappy --sites linkedin,indeed,glassdoor
 ```
 
-Generates 3 × 2 = 6 passes per site (18 total).
+Generates 3 x 2 = 6 passes per site (18 total).
 
 ## Best practices
 
-### Don't overdo it
+### Do not overdo it
 
-Each combination is a full pagination loop against that site. A 5-term × 5-location config generates **25 passes per site**. With 10 sites, that's 250 pagination cycles.
+Each combination is a full pagination loop against that site. A 5-term x 5-location config generates **25 passes per site**. With 10 sites, that is 250 pagination cycles.
 
 ```yaml
-# Reasonable for a daily bulk run: 3 × 2 = 6 passes per site
+# Reasonable for a daily bulk run: 3 x 2 = 6 passes per site
 defaults:
   search:
     - AI Engineer
@@ -173,7 +173,7 @@ defaults:
 ```
 
 ```yaml
-# Ambitious — expect long runtimes: 5 × 4 = 20 passes per site
+# Ambitious -- expect long runtimes: 5 x 4 = 20 passes per site
 defaults:
   search:
     - AI Engineer
@@ -190,12 +190,14 @@ defaults:
 
 ### Watch rate limits
 
-More passes = more requests per site. If a site rate-limits at N requests/second, each pass consumes N requests × pages per pass. For 20 passes on a site with 10 pages each and 3 req/s:
+More passes = more requests per site. If a site rate-limits at N requests/second, each pass consumes N requests x pages per pass. For 20 passes on a site with 10 pages each and 3 req/s:
 
 ```
-20 passes × 10 pages = 200 requests
-200 requests ÷ 3 req/s ≈ 67 seconds for that site
+20 passes x 10 pages = 200 requests
+200 requests / 3 req/s = ~67 seconds for that site
 ```
+
+Use `--site-rps` to control per-site rates. See [012-Scraping.md](012-Scraping.md).
 
 ### Use site-specific overrides for targeted combos
 
@@ -236,4 +238,13 @@ scrappy --sites remoteok,remotive,arbeitnow \
         --location "Remote" --results-wanted 500 --email
 ```
 
-Only jobs with at least one email address are returned — useful when the output feeds a lead-generation pipeline.
+Only jobs with at least one email address are returned -- useful when the output feeds a lead-generation pipeline.
+
+### Combine with quality filtering
+
+```bash
+scrappy --sites remoteok,remotive \
+        --search "golang developer,rust developer" \
+        --location "Remote" --results-wanted 500 \
+        --min-score 60
+```

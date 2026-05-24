@@ -32,13 +32,18 @@ scrappy
 | `--is-remote` | bool | `false` | Only jobs flagged as remote (location-independent filter). |
 | `--remote-only` | bool | `false` | Only truly remote jobs (no location filter applied). |
 | `--job-type` | string | `""` | Filter: `fulltime`, `parttime`, `contract`, `internship`. |
+| `--min-score` | int | `0` | Minimum quality score (0-100). Jobs below this threshold are dropped before export. See [011-Quality.md](011-Quality.md). |
+| `--dedup` | bool | `true` | Drop duplicate job URLs across sites. See [014-Dedup.md](014-Dedup.md). |
+| `--dedup-by-company` | bool | `false` | Keep only one posting per company across the entire result set. |
+| `--max-rps` | int | `0` | Global maximum requests per second. Clamped between 2 and 16. Overrides the default concurrency of 8. |
+| `--site-rps` | string | `""` | Per-site RPS overrides. Format: `site:rps,site:rps` (e.g. `linkedin:1,indeed:10`). |
 | `--log-level` | string | `""` | Log verbosity: `DEBUG`, `INFO`, `WARN`, `ERROR`. |
-| `--config` | string | auto | Path to config YAML. Auto-detects: `./config.yaml` → `~/.scrappy/config.yaml`. |
-| `--memory-cap` | string | `""` | Memory budget. Examples: `512MB`, `1GB`, `256` (plain = MB). `0` or empty = unlimited. |
+| `--config` | string | auto | Path to config YAML. Auto-detects: `./config.yaml` then `~/.scrappy/config.yaml`. |
+| `--memory-cap` | string | `""` | Memory budget. Examples: `512MB`, `1GB`, `256` (plain = MB). `0` or empty = unlimited. See [016-Memory-Management.md](016-Memory-Management.md). |
 | `--non-interactive` | bool | `false` | Disable the interactive wizard. Required for cron, CI, Docker. |
 | `--interactive` | bool | `true` | Force interactive wizard mode (auto-detected when TTY is available). |
-| `--help` | — | — | Print help text and exit. |
-| `--version` | — | — | Print version (`scrappy v0.1.0`) and exit. |
+| `--help` | -- | -- | Print help text and exit. |
+| `--version` | -- | -- | Print version (`scrappy v0.1.0`) and exit. |
 
 ### Flag behaviour
 
@@ -54,7 +59,7 @@ scrappy
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `SCRAPPY_PROXIES` | Comma-separated SOCKS5 proxy URLs | `socks5://user:pass@proxy1:8080,...` |
+| `SCRAPPY_PROXIES` | Comma-separated SOCKS5 proxy URLs (lowest priority) | `socks5://user:pass@proxy1:8080,...` |
 | `SCRAPPY_PROXY_ROTATE_EVERY_N` | Rotate proxy every N requests | `10` |
 | `SCRAPPY_PROXY_STICKY_WINDOW_N` | Sticky proxy window in seconds | `60` |
 
@@ -77,7 +82,7 @@ scrappy
 | `SCRAPPY_LOG_LEVEL` | Default log level: `DEBUG`, `INFO`, `WARN`, `ERROR` |
 | `SCRAPPY_GREENHOUSE_SEEDS` | Comma-separated company names for Greenhouse scraping |
 
-Env vars can be set in `~/.scrappy/.env` (auto-loaded) or exported in the shell.
+Env vars can be set in `.env` files (auto-loaded beside config.yaml) or exported in the shell. See [015-Environment-Variables.md](015-Environment-Variables.md).
 
 ## SITES
 
@@ -117,8 +122,8 @@ Omit `--sites` entirely to scrape all 65+.
 
 | Code | Meaning |
 |------|---------|
-| `0` | Success — jobs scraped and written. |
-| `1` | General error — invalid flags, network failure, config parse error, constraint violation. Non-zero exits from underlying tools propagate. |
+| `0` | Success -- jobs scraped and written. |
+| `1` | General error -- invalid flags, network failure, config parse error, constraint violation. Non-zero exits from underlying tools propagate. |
 
 ## EXAMPLES
 
@@ -159,12 +164,12 @@ scrappy --sites indeed --search "AI Engineer,Software Engineer" \
         --location "Remote,New York" --results-wanted 500
 ```
 
-### 6. Filter by remote + full-time only
+### 6. Filter by remote + full-time + min quality score
 
 ```bash
 scrappy --sites linkedin,indeed,google \
         --search "rust developer" --is-remote \
-        --job-type fulltime --results-wanted 200
+        --job-type fulltime --min-score 60 --results-wanted 200
 ```
 
 ### 7. Non-interactive for cron
@@ -213,7 +218,22 @@ scrappy --sites zip_recruiter,monster --search "developer" \
         --proxy socks5://proxy1:1080,socks5://proxy2:1080
 ```
 
-### 13. Site-specific searches with country override (config.yaml)
+### 13. With max RPS and per-site overrides
+
+```bash
+scrappy --sites linkedin,indeed,remoteok --search "engineer" \
+        --location "Remote" --results-wanted 500 \
+        --max-rps 10 --site-rps linkedin:1,indeed:5
+```
+
+### 14. Dedup by company
+
+```bash
+scrappy --sites linkedin,indeed --search "engineer" \
+        --results-wanted 200 --dedup --dedup-by-company
+```
+
+### 15. Site-specific searches with country override (config.yaml)
 
 ```yaml
 # config.yaml
@@ -246,14 +266,14 @@ sites:
     country: india
 ```
 
-### 14. Site-specific searches from CLI with config
+### 16. Site-specific searches from CLI with config
 
 ```bash
 # CLI search/location apply to all sites except those with overrides in config
 scrappy --config my-sites.yaml --results-wanted 500 --format jsonl
 ```
 
-### 15. With proxy from config
+### 17. With proxy from config
 
 ```yaml
 # config.yaml

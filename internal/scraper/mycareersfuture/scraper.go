@@ -124,7 +124,9 @@ func (s *Scraper) fetchPage(ctx context.Context, searchTerm string, limit int) (
 	u.RawQuery = q.Encode()
 
 	// Rate limit: 3 req/s
-	time.Sleep(333 * time.Millisecond)
+	if err := util.SleepWithContext(ctx, 333*time.Millisecond); err != nil {
+		return nil, err
+	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 	if err != nil {
