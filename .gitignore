@@ -41,3 +41,7 @@ go.work
 
 # Compiled binary (repo root)
 /scrappy
+
+# Site health check script & test runs
+scripts/site-check.sh
+testruns/
