@@ -1,0 +1,8 @@
+# Gitleaks configuration for scrappy.
+# Dice x-api-key is a publicly known client-side key used by dice.com
+# (same as in the TypeScript source). Gitleaks flags it as generic-api-key.
+[allowlist]
+description = "Dice public API key (client-side, not a secret)"
+paths = [
+  '''internal/scraper/dice/scraper.go''',
+]
