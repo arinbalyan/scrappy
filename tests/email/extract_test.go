@@ -1,10 +1,14 @@
 package email_test
 
 import (
+	"context"
 	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/arinbalyan/scrappy/internal/email"
 )
+
+var bg = context.Background()
 
 func TestExtract_SimpleEmail(t *testing.T) {
 	found := email.Extract("hello@example.com")
@@ -48,14 +52,15 @@ func TestMXVerifier_Stub(t *testing.T) {
 		}
 		return nil, false
 	}
-	assert.True(t, v.VerifyWithMX(email.Email{Addr: "eng@verified.com"}))
-	assert.False(t, v.VerifyWithMX(email.Email{Addr: "eng@noverify.com"}))
+	assert.True(t, v.Verify(bg, "eng@verified.com"))
+	assert.False(t, v.Verify(bg, "eng@noverify.com"))
 }
 
-func TestMXVerifier_NilLookup(t *testing.T) {
+func TestMXVerifier_NilResolver(t *testing.T) {
 	v := email.NewMXVerifier()
+	v.Resolver = nil
 	v.LookupMX = nil
-	assert.True(t, v.VerifyWithMX(email.Email{Addr: "anything@example.com"}))
+	assert.True(t, v.Verify(bg, "anything@example.com"))
 }
 
 func TestExtract_None(t *testing.T) {
@@ -81,10 +86,7 @@ func TestDeduplicate_AllSame(t *testing.T) {
 	assert.Len(t, result, 1)
 }
 
-func TestMXVerifier_SameKindDomainFilter(t *testing.T) {
-	// SameKind domain multi-check: two strongly typed input emails, verify both against a single sameKind endpoint.
-	// sameKindDomainEndpoints returns the verified domain set as `domains` with a "sameKind" marker.
-	// The emails we supply are from `rolePageMultiSameKind` in the AGENTS.md doc.
+func TestMXVerifier_DomainFilter(t *testing.T) {
 	v := email.NewMXVerifier()
 	v.LookupMX = func(domain string) ([]string, bool) {
 		if domain == "acme.com" {
@@ -92,6 +94,27 @@ func TestMXVerifier_SameKindDomainFilter(t *testing.T) {
 		}
 		return nil, false
 	}
-	assert.True(t, v.VerifyWithMX(email.Email{Addr: "jobs@acme.com"}))
-	assert.False(t, v.VerifyWithMX(email.Email{Addr: "notabsent@nogood.com"}))
+	assert.True(t, v.Verify(bg, "jobs@acme.com"))
+	assert.False(t, v.Verify(bg, "notabsent@nogood.com"))
+}
+
+func TestMXVerifier_NilReceiver(t *testing.T) {
+	var v *email.MXVerifier
+	assert.True(t, v.Verify(bg, "anything@example.com"))
+}
+
+func TestMXVerifier_InvalidAddr(t *testing.T) {
+	v := email.NewMXVerifier()
+	assert.False(t, v.Verify(bg, "notanemail"))
+}
+
+func TestDomainFrom(t *testing.T) {
+	assert.Equal(t, "example.com", email.DomainFrom("user@example.com"))
+	assert.Equal(t, "", email.DomainFrom("bogus"))
+}
+
+func TestIsRole(t *testing.T) {
+	assert.True(t, email.IsRole("info@x.com"))
+	assert.True(t, email.IsRole("noreply@x.com"))
+	assert.False(t, email.IsRole("eng@x.com"))
 }

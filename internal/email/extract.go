@@ -11,36 +11,36 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/arinbalyan/scrappy/internal/util"
 )
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
 
-// RoleEmailSource is the Source value for emails found in a job description.
 const RoleEmailSource = "description"
 
 // ─── Patterns ─────────────────────────────────────────────────────────────────
 
 var (
-	// mailRegex handles dot-obfuscated addresses ([at] or [dot] replaced with ---) and plain RFC addresses.
 	mailRegex = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+(?:---[a-zA-Z0-9._%+\-]+)*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)
-
-	rolePrefixes = regexp.MustCompile(`(?i)^(info|admin|support|contact|sales|hello|careers|press|marketing|jobs|hr|recruiting|noreply|no-reply|help|enquiries|enquiry|billing)@`)
-
-	disposableDomains = map[string]bool{
-		"guerrillamail.com": true, "mailinator.com": true, "trashmail.com": true,
-		"tempmail.com": true, "10minutemail.com": true, "yopmail.com": true,
-		"sharklasers.com": true, "throwam.com": true, "fakeinbox.com": true,
-	}
 )
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Internal helpers ─────────────────────────────────────────────────────────
 
 func isDisposableDomain(addr string) bool {
 	parts := strings.Split(addr, "@")
 	if len(parts) != 2 {
 		return true
 	}
-	return disposableDomains[strings.ToLower(parts[1])]
+	switch strings.ToLower(parts[1]) {
+	case "guerrillamail.com", "mailinator.com", "trashmail.com",
+		"tempmail.com", "10minutemail.com", "yopmail.com",
+		"sharklasers.com", "throwam.com", "fakeinbox.com",
+		"maildrop.cc", "getnada.com", "burnermail.io",
+		"emailondeck.com", "mohmal.com", "temp-mail.org":
+		return true
+	}
+	return false
 }
 
 func isValidEmail(addr string) bool {
@@ -52,7 +52,6 @@ func normalizeAddr(s string) string {
 	return strings.ToLower(strings.TrimSpace(s))
 }
 
-// domainFrom returns the hostname part of addr.
 func domainFrom(addr string) string {
 	parts := strings.Split(strings.ToLower(addr), "@")
 	if len(parts) != 2 {
@@ -73,9 +72,9 @@ func isRoleAddr(addr string) bool {
 	return rolePrefixes[strings.ToLower(local)]
 }
 
-// ─── Core types ───────────────────────────────────────────────────────────────
+// ─── Core type ────────────────────────────────────────────────────────────────
 
-// Email is the canonical email record embedded in a JobPost.
+// Email is a single extracted email address with metadata.
 type Email struct {
 	Addr   string `json:"addr"`
 	Role   bool   `json:"role,omitempty"`
@@ -104,12 +103,14 @@ func Extract(text string) []Email {
 		}
 		out = append(out, Email{
 			Addr:   addr,
-			Role:   rolePrefixes.MatchString(addr),
+			Role:   isRoleAddr(addr),
 			Source: RoleEmailSource,
 		})
 	}
 	return out
 }
+
+// ─── Dedup and filter ─────────────────────────────────────────────────────────
 
 // Deduplicate removes exact-address duplicates.
 func Deduplicate(emails []Email) []Email {
@@ -129,7 +130,7 @@ func DomainFrom(addr string) string {
 	return domainFrom(addr)
 }
 
-// IsRole returns true for role-based addresses.
+// IsRole returns true for role-based addresses (info@, admin@, etc.).
 func IsRole(addr string) bool {
 	return isRoleAddr(addr)
 }
@@ -147,40 +148,59 @@ func FilterRole(emails []Email) []Email {
 
 // ─── MX verification ──────────────────────────────────────────────────────────
 
-// EmailMXVerifier wraps MX lookups so tests can supply a stub.
-type EmailMXVerifier struct {
-	LookupMX func(domain string) (mxEntries []string, gotMX bool)
+// MXVerifier performs DNS MX lookups with configurable timeout.
+type MXVerifier struct {
+	// Resolver is the DNS resolver used for MX lookups. Defaults to net.DefaultResolver.
+	Resolver *net.Resolver
+
+	// Timeout is the per-lookup timeout. Defaults to 10s when zero.
+	Timeout time.Duration
+
+	// LookupMX is an optional stub for tests. When set, it is used instead of Resolver.
+	// The function receives the domain and returns MX host strings and whether any exist.
+	LookupMX func(domain string) (hosts []string, ok bool)
 }
 
-// NewMXVerifier returns a verifier wired to live MX lookups.
-func NewMXVerifier() *EmailMXVerifier {
-	return &EmailMXVerifier{LookupMX: lookupMXLive}
-}
-
-func lookupMXLive(domain string) (mxEntries []string, gotMX bool) {
-	mxs, err := net.LookupMX(domain)
-	if err != nil || len(mxs) == 0 {
-		return nil, false
+// NewMXVerifier returns an MXVerifier with default settings.
+func NewMXVerifier() *MXVerifier {
+	return &MXVerifier{
+		Resolver: net.DefaultResolver,
+		Timeout:  10 * time.Second,
 	}
-	out := make([]string, len(mxs))
-	for i, m := range mxs {
-		out[i] = m.Host
-	}
-	return out, true
 }
 
-// VerifyWithMX returns true only when the domain has MX records.
-// When LookupMX is nil (not wired) it returns true to avoid false drops.
-func (v *EmailMXVerifier) VerifyWithMX(e Email) bool {
-	if v.LookupMX == nil {
+// Verify checks whether the domain of addr has MX records.
+//
+// When ctx is nil, a background context with DefaultTimeout is used.
+// Nil Resolver with no LookupMX stub returns true (safe mode for tests/offline).
+// A LookupMX stub takes precedence over Resolver when set.
+func (v *MXVerifier) Verify(ctx context.Context, addr string) bool {
+	if v == nil {
 		return true
 	}
-	d := domainFrom(e.Addr)
+	d := domainFrom(addr)
 	if d == "" {
 		return false
 	}
-	_, ok := v.LookupMX(d)
-	return ok
+
+	// Use test stub when provided.
+	if v.LookupMX != nil {
+		_, ok := v.LookupMX(d)
+		return ok
+	}
+
+	// Nil resolver with no stub = safe mode.
+	if v.Resolver == nil {
+		return true
+	}
+
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	lookupCtx, cancel := context.WithTimeout(ctx, v.Timeout)
+	defer cancel()
+	mxs, err := v.Resolver.LookupMX(lookupCtx, d)
+	return err == nil && len(mxs) > 0
 }
 
 // ─── Company-page enrichment ──────────────────────────────────────────────────
@@ -190,10 +210,12 @@ func (v *EmailMXVerifier) VerifyWithMX(e Email) bool {
 type CompanyPageEnricher struct {
 	HTTPClient  *http.Client
 	Concurrency int
+	Verifier    *MXVerifier
 	sem         chan struct{}
 	PauseMs     int
 }
 
+// NewCompanyPageEnricher returns an enricher with the given concurrency and pause.
 func NewCompanyPageEnricher(client *http.Client, concurrency int, pauseMs int) *CompanyPageEnricher {
 	if concurrency < 1 {
 		concurrency = 1
@@ -201,6 +223,7 @@ func NewCompanyPageEnricher(client *http.Client, concurrency int, pauseMs int) *
 	return &CompanyPageEnricher{
 		HTTPClient:  client,
 		Concurrency: concurrency,
+		Verifier:    NewMXVerifier(),
 		sem:         make(chan struct{}, concurrency),
 		PauseMs:     pauseMs,
 	}
@@ -216,7 +239,9 @@ func (e *CompanyPageEnricher) Enrich(ctx context.Context, companyURL string) ([]
 	defer func() { <-e.sem }()
 
 	if e.PauseMs > 0 {
-		time.Sleep(time.Duration(e.PauseMs) * time.Millisecond)
+		if err := util.SleepWithContext(ctx, time.Duration(e.PauseMs)*time.Millisecond); err != nil {
+			return nil, err
+		}
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, companyURL, nil)
@@ -236,39 +261,29 @@ func (e *CompanyPageEnricher) Enrich(ctx context.Context, companyURL string) ([]
 	if err != nil {
 		return nil, err
 	}
-	return mxVerify(Extract(string(b))), nil
+	return e.filterVerified(Extract(string(b))), nil
 }
 
-// mxVerify re-runs MX checks only after EnrichPageMX filtering, which removes duplicates
-// and keeps company_page-sourced addresses only.
-func mxVerify(candidates []Email) []Email {
-	if globalVerifier == nil {
+// filterVerified runs MX verification on candidates and keeps only those that pass.
+func (e *CompanyPageEnricher) filterVerified(candidates []Email) []Email {
+	if e.Verifier == nil {
 		return candidates
 	}
-	var out []Email
 	seen := make(map[string]bool)
+	var out []Email
 	for _, c := range candidates {
 		if seen[c.Addr] {
 			continue
 		}
 		seen[c.Addr] = true
-		if globalVerifier.VerifyWithMX(c) {
+		if e.Verifier.Verify(context.Background(), c.Addr) {
 			out = append(out, c)
 		}
 	}
 	return out
 }
 
-// ─── Wiring ───────────────────────────────────────────────────────────────────
-
-var globalVerifier *EmailMXVerifier
-
-// EnrichEmailStage wires the global MX verifier used by mxcEnrichPage.
-func EnrichEmailStage(verifier *EmailMXVerifier) {
-	globalVerifier = verifier
-}
-
-// BuildURLFromDomainAndSite constructs a company URL from a domain and site.
+// BuildURLFromDomainAndSite constructs a best-guess company URL from a domain.
 func BuildURLFromDomainAndSite(domain, site string) string {
 	if domain == "" {
 		return ""
