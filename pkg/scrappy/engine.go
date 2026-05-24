@@ -569,6 +569,9 @@ func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, ctx
 	// Run MX verification to set Verified field on each email.
 	if verifier != nil {
 		for i := range job.Emails {
+			if ctx.Err() != nil {
+				return
+			}
 			if !job.Emails[i].Verified {
 				job.Emails[i].Verified = verifier.Verify(ctx, job.Emails[i].Addr)
 			}

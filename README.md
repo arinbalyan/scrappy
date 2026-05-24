@@ -60,11 +60,14 @@ See [docs/003-Installation.md](docs/003-Installation.md) for Go, Docker, and CI 
 ## Go library usage
 
 ```go
-import "github.com/arinbalyan/scrappy/pkg/scrappy"
+import (
+    "github.com/arinbalyan/scrappy/internal/model"
+    "github.com/arinbalyan/scrappy/pkg/scrappy"
+)
 
 engine := scrappy.NewEngine()
-jobs, err := engine.Scrape(ctx, scrappy.ScraperInput{
-    Sites:        []model.Site{model.LinkedIn, model.Indeed},
+jobs, err := engine.Scrape(ctx, model.ScraperInput{
+    Sites:        []model.Site{model.SiteLinkedIn, model.SiteIndeed},
     SearchTerm:   "software engineer",
     Location:     "San Francisco, CA",
     ResultsWanted: 500,

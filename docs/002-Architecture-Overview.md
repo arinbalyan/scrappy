@@ -68,7 +68,7 @@ scrappy/
     scrappy/            # Public Go library (Engine, ScraperInput)
   internal/
     model/              # JobPost, ScraperInput, Site, Country, Email
-    scraper/            # 66 site-specific scraper packages
+    scraper/            # 65 site-specific scraper packages
       scraper.go        # Scraper interface
       linkedin/         # LinkedIn scraper
       indeed/           # Indeed scraper
@@ -82,7 +82,6 @@ scrappy/
     dedup/              # Thread-safe URL + company deduplication
     quality/            # Deterministic quality score (0-100)
     export/             # Writers: jsonl, csv, xlsx, parquet
-    normalize/          # Salary/title normalization
     util/               # HTTP client, logging, retry helpers, context-aware sleep
   tests/
     scraper/            # Contract tests per scraper

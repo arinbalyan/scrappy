@@ -35,7 +35,7 @@ type Email struct {
 
 ## Extraction
 
-The regex `[a-zA-Z0-9._%+\-]+(?:---[a-zA-Z0-9._%+\-]+)*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}` handles plain addresses and dot-obfuscated `[at]` patterns (`user---example---com` becomes `user@example.com`). Each candidate is validated via `net/mail.ParseAddress` and checked against the disposable domain blocklist before being returned.
+The regex `[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}` matches standard email addresses in text. It does **not** handle `[at]` obfuscation patterns. Each candidate is validated via `net/mail.ParseAddress` and checked against the disposable domain blocklist before being returned.
 
 ## Pre-MX exclusions
 
@@ -89,13 +89,11 @@ After email extraction, the domain from the first email address is stored on `Jo
 
 | Flag | Default | Description |
 |------|---------|-------------|
-| `--verify-email` | `true` | Enable MX DNS lookup |
-| `--verify-concurrency` | `50` | Concurrent MX lookups per batch |
+| `--verify-email` | `true` | Enable MX DNS lookup (runs synchronously per job) |
 | `--exclude-roles` | `true` | Skip info@, admin@, support@, etc. |
-| `--email-max-per-job` | `3` | Cap extracted emails per posting |
-| `--email-enrich` | `true` | Enable company-page follow-up |
-| `--email-enrich-domains` | `careers,contact,about,team` | Pages to probe |
 | `--email` | `false` | Only include jobs with at least 1 email |
+
+> **Note:** MX verification runs synchronously per job. Flags `--verify-concurrency`, `--email-max-per-job`, `--email-enrich`, and `--email-enrich-domains` are not currently wired in the CLI.
 
 ## Output
 

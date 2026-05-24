@@ -770,11 +770,11 @@ func promptSaveConfig(cfg *cliConfig) {
 	}
 
 	cfgPath := filepath.Join(dir, "config.yaml")
-	if err := os.WriteFile(cfgPath, b, 0644); err != nil {
+	if err := os.WriteFile(cfgPath, b, 0600); err != nil {
 		fmt.Fprintf(os.Stderr, "  \033[31mError\033[0m writing %s: %v\n", cfgPath, err)
 		return
 	}
-	fmt.Printf("  \033[38;5;117m✓\033[0m Saved to %s\n", cfgPath)
+	fmt.Printf("  \033[38;5;117m✓\033[0m Saved to %s (restricted permissions — may contain proxy credentials)\n", cfgPath)
 
 	// Update config path so next run picks it up.
 	cfg.ConfigPath = cfgPath
@@ -840,11 +840,11 @@ func runAPIKeyWizard() {
 
 	envPath := filepath.Join(dir, ".env")
 	content := strings.Join(envLines, "\n") + "\n"
-	if err := os.WriteFile(envPath, []byte(content), 0644); err != nil {
+	if err := os.WriteFile(envPath, []byte(content), 0600); err != nil {
 		fmt.Fprintf(os.Stderr, "  \033[31mError\033[0m writing %s: %v\n", envPath, err)
 		return
 	}
-	fmt.Printf("\n  \033[38;5;117m✓\033[0m Saved to %s\n", envPath)
+	fmt.Printf("\n  \033[38;5;117m✓\033[0m Saved to %s (restricted permissions — may contain credentials)\n", envPath)
 	fmt.Println("  Keys will load automatically on next run.")
 }
 

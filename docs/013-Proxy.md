@@ -40,6 +40,8 @@ defaults:
 
 Config value acts as fallback between CLI flag and environment variable.
 
+> ⚠️ **Security**: Proxy credentials stored in `config.yaml` or `.env` files are saved with `0600` permissions when written via the interactive wizard. Avoid committing proxy credentials to version control.
+
 ## Environment variables
 
 | Variable | Description |
