@@ -23,7 +23,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const version = "0.1.0"
+var version = "0.1.0" // overridden at build via -ldflags="-X main.version=x.y.z"
 const ascii = "\033[38;5;117m" + `
   ███████╗ ██████╗██████╗  █████╗ ██████╗ ██████╗ ██╗   ██╗
   ██╔════╝██╔════╝██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗ ██╔╝

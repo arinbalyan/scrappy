@@ -19,19 +19,20 @@ Bulk job-board scraper for 65+ sites, written in Go.
 
 ```bash
 # Linux (x86_64)
-curl -fsSL https://github.com/arinbalyan/scrappy/releases/download/v0.1.0/scrappy_linux_amd64.tar.gz | tar xz && sudo mv scrappy /usr/local/bin/
+curl -fsSL https://github.com/arinbalyan/scrappy/releases/latest/download/scrappy_linux_amd64.tar.gz | tar xz && sudo mv scrappy_linux_amd64 /usr/local/bin/scrappy
 
 # macOS (Apple Silicon)
-curl -fsSL https://github.com/arinbalyan/scrappy/releases/download/v0.1.0/scrappy_darwin_arm64.tar.gz | tar xz && sudo mv scrappy /usr/local/bin/
+curl -fsSL https://github.com/arinbalyan/scrappy/releases/latest/download/scrappy_darwin_arm64.tar.gz | tar xz && sudo mv scrappy_darwin_arm64 /usr/local/bin/scrappy
 
 # macOS (Intel)
-curl -fsSL https://github.com/arinbalyan/scrappy/releases/download/v0.1.0/scrappy_darwin_amd64.tar.gz | tar xz && sudo mv scrappy /usr/local/bin/
+curl -fsSL https://github.com/arinbalyan/scrappy/releases/latest/download/scrappy_darwin_amd64.tar.gz | tar xz && sudo mv scrappy_darwin_amd64 /usr/local/bin/scrappy
 ```
 
 ```powershell
 # Windows (PowerShell)
-curl.exe -LO https://github.com/arinbalyan/scrappy/releases/download/v0.1.0/scrappy_windows_amd64.zip
+curl.exe -LO https://github.com/arinbalyan/scrappy/releases/latest/download/scrappy_windows_amd64.zip
 Expand-Archive scrappy_windows_amd64.zip -DestinationPath .
+.\scrappy_windows_amd64.exe --help
 ```
 
 ### Or install with Go
