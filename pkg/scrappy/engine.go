@@ -447,6 +447,16 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		}
 		all = filtered
 	}
+	if input.HoursOld > 0 {
+		cutoff := time.Now().Add(-time.Duration(input.HoursOld) * time.Hour)
+		filtered := all[:0]
+		for _, j := range all {
+			if j.DatePosted != nil && !j.DatePosted.IsZero() && j.DatePosted.After(cutoff) {
+				filtered = append(filtered, j)
+			}
+		}
+		all = filtered
+	}
 
 	sort.SliceStable(all, func(i, j int) bool { return all[i].ID < all[j].ID })
 	if input.ResultsWanted > 0 && len(all) > input.ResultsWanted {

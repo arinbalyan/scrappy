@@ -3,6 +3,7 @@ package scrappy
 import (
 	"context"
 	"testing"
+	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/scraper"
@@ -110,5 +111,75 @@ func TestEngineEmailsOnlyFiltersAndExtractsFromDescriptionAndCompanyDescription(
 		if len(j.Emails) == 0 {
 			t.Fatalf("emails-only result contains job without emails: %s", j.ID)
 		}
+	}
+}
+
+func TestEngineHoursOldFilter(t *testing.T) {
+	now := time.Now()
+	young := &time.Time{}
+	*young = now.Add(-6 * time.Hour)
+	old := &time.Time{}
+	*old = now.Add(-48 * time.Hour)
+
+	s := &fakeScraper{
+		site: model.SiteIndeed,
+		jobs: map[string][]model.JobPost{
+			"dev": {
+				{ID: "1", Title: "Recent Posting", JobURL: "https://example.com/1", DatePosted: young},
+				{ID: "2", Title: "Old Posting", JobURL: "https://example.com/2", DatePosted: old},
+				{ID: "3", Title: "No Date", JobURL: "https://example.com/3"},
+			},
+		},
+	}
+	e := &Engine{scrapers: map[model.Site]scraper.Scraper{model.SiteIndeed: s}, siteFailOpen: true}
+	input := model.ScraperInput{
+		Sites:      []model.Site{model.SiteIndeed},
+		SearchTerm: "dev",
+		HoursOld:   24,
+		Dedup:      true,
+	}
+
+	jobs, err := e.Scrape(context.Background(), input)
+	if err != nil {
+		t.Fatalf("scrape: %v", err)
+	}
+	if len(jobs) != 1 {
+		t.Fatalf("expected 1 job within 24h, got %d", len(jobs))
+	}
+	if jobs[0].ID != "1" {
+		t.Fatalf("expected job ID '1' (recent), got %q", jobs[0].ID)
+	}
+}
+
+func TestEngineHoursOldZeroIsNoFilter(t *testing.T) {
+	now := time.Now()
+	young := &time.Time{}
+	*young = now.Add(-6 * time.Hour)
+	old := &time.Time{}
+	*old = now.Add(-72 * time.Hour)
+
+	s := &fakeScraper{
+		site: model.SiteIndeed,
+		jobs: map[string][]model.JobPost{
+			"dev": {
+				{ID: "1", Title: "Recent", JobURL: "https://example.com/1", DatePosted: young},
+				{ID: "2", Title: "Old", JobURL: "https://example.com/2", DatePosted: old},
+			},
+		},
+	}
+	e := &Engine{scrapers: map[model.Site]scraper.Scraper{model.SiteIndeed: s}, siteFailOpen: true}
+	input := model.ScraperInput{
+		Sites:      []model.Site{model.SiteIndeed},
+		SearchTerm: "dev",
+		HoursOld:   0,
+		Dedup:      true,
+	}
+
+	jobs, err := e.Scrape(context.Background(), input)
+	if err != nil {
+		t.Fatalf("scrape: %v", err)
+	}
+	if len(jobs) != 2 {
+		t.Fatalf("expected all 2 jobs when HoursOld=0, got %d", len(jobs))
 	}
 }
