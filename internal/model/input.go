@@ -13,6 +13,7 @@ type ScraperInput struct {
 	ResultsWanted       int     `json:"results_wanted"`
 	Offset              int     `json:"offset"`
 	HoursOld            int     `json:"hours_old,omitempty"`
+	SinceDate           string  `json:"since_date,omitempty"` // RFC3339 or YYYY-MM-DD
 	DescriptionFormat   string  `json:"description_format,omitempty"` // markdown | html | plain
 	EnforceAnnualSalary bool    `json:"enforce_annual_salary"`
 	LinkedInFetchDesc   bool    `json:"linkedin_fetch_description"`
