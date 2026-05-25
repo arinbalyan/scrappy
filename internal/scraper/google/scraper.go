@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/arinbalyan/scrappy/internal/browser"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
@@ -106,7 +107,54 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		}
 	}
 
-	if !util.HasMeaningfulJobs(jobs) {
+	// ---------------------------------------------------------------
+	// Tertiary fallback: render in headless Chromium if plain HTTP
+	// returned anti-bot challenges or empty results.
+	// ---------------------------------------------------------------
+	if !util.HasMeaningfulJobs(jobs) && browser.IsAvailable() {
+		u, _ := url.Parse(s.searchURL)
+		q := u.Query()
+		q.Set("q", buildQuery(input.SearchTerm, input))
+		q.Set("ibp", "htl;jobs")
+		q.Set("hl", "en")
+		u.RawQuery = q.Encode()
+
+		result, bErr := browser.FetchPage(ctx, u.String(), "")
+		if bErr == nil && result.Status == 200 {
+			page = parseJobs([]byte(result.HTML))
+			for _, j := range page {
+				jobs = append(jobs, j)
+				if len(jobs) >= wanted {
+					break
+				}
+			}
+		}
+	}
+
+	// ---------------------------------------------------------------
+	// Quaternary fallback: browser render with standard SERP (udm=8).
+	// ---------------------------------------------------------------
+	if !util.HasMeaningfulJobs(jobs) && browser.IsAvailable() {
+		u, _ := url.Parse(s.searchURL)
+		q := u.Query()
+		q.Set("q", buildQuery(input.SearchTerm, input))
+		q.Set("udm", "8")
+		q.Set("hl", "en")
+		u.RawQuery = q.Encode()
+
+		result, bErr := browser.FetchPage(ctx, u.String(), "")
+		if bErr == nil && result.Status == 200 {
+			page = util.ExtractJobPostingsJSONLD([]byte(result.HTML))
+			for _, j := range page {
+				jobs = append(jobs, j)
+				if len(jobs) >= wanted {
+					break
+				}
+			}
+		}
+	}
+
+	if !util.HasMeaningfulJobs(jobs) && len(jobs) == 0 {
 		return nil, fmt.Errorf("google_jobs no parseable jobs")
 	}
 	if len(jobs) > wanted {

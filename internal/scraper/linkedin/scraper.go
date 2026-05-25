@@ -13,13 +13,16 @@ import (
 	"sync"
 	"time"
 
+	"github.com/arinbalyan/scrappy/internal/browser"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
 const (
-	baseURL        = "https://www.linkedin.com"
-	jobsSearchPath = "/jobs-guest/jobs/api/seeMoreJobPostings/search"
+	baseURL              = "https://www.linkedin.com"
+	jobsSearchPath       = "/jobs-guest/jobs/api/seeMoreJobPostings/search"
+	maxConsecutive429    = 5
+	browserFallbackAfter = 3
 )
 
 var (
@@ -37,11 +40,12 @@ var (
 )
 
 type Scraper struct {
-	client      *http.Client
-	baseURL     string
-	delay       time.Duration
-	warmupOnce  sync.Once
-	warmupError error
+	client         *http.Client
+	baseURL        string
+	delay          time.Duration
+	warmupOnce     sync.Once
+	warmupError    error
+	cookieOverride string
 }
 
 func New(client *http.Client) *Scraper {
@@ -81,16 +85,26 @@ func (s *Scraper) scrapeSinglePass(ctx context.Context, input model.ScraperInput
 	if input.Offset > 0 {
 		start = (input.Offset / 10) * 10
 	}
+	consecutive429 := 0
 
 	for len(jobs) < input.Offset+input.ResultsWanted && start < 1000 {
 		htmlBody, err := s.fetchSearchPage(ctx, input, start)
 		if err != nil {
 			if strings.Contains(strings.ToLower(err.Error()), "status 429") {
-				s.adaptiveBackoff(ctx, start)
+				consecutive429++
+				if consecutive429 >= maxConsecutive429 {
+					util.Warn("linkedin too many 429s, giving up", nil)
+					break
+				}
+				if consecutive429 >= browserFallbackAfter && s.cookieOverride == "" {
+					s.tryBrowserFallback(ctx)
+				}
+				s.adaptiveBackoff(ctx, consecutive429)
 				continue
 			}
 			return nil, err
 		}
+		consecutive429 = 0
 		parsed := parseJobCards(htmlBody, s.baseURL)
 		if len(parsed) == 0 {
 			break
@@ -195,14 +209,30 @@ func (s *Scraper) scrapeRotateStrategy(ctx context.Context, input model.ScraperI
 	return all, nil
 }
 
-func (s *Scraper) adaptiveBackoff(ctx context.Context, start int) {
-	base := 900 * time.Millisecond
-	if start > 200 {
-		base = 1300 * time.Millisecond
+func (s *Scraper) adaptiveBackoff(ctx context.Context, retry int) {
+	// Exponential: 500ms * 2^retry, capped at 4s
+	base := time.Duration(500*(1<<retry)) * time.Millisecond
+	if base > 4*time.Second {
+		base = 4 * time.Second
 	}
-	jitter := time.Duration(rand.Intn(700)) * time.Millisecond
+	jitter := time.Duration(rand.Intn(500)) * time.Millisecond
 	wait := base + jitter
 	_ = util.SleepWithContext(ctx, wait)
+}
+
+func (s *Scraper) tryBrowserFallback(ctx context.Context) {
+	util.Info("linkedin attempting browser fallback for session cookies", nil)
+	result, err := browser.FetchPage(ctx, s.baseURL+"/", "")
+	if err != nil || result == nil || result.Status != 200 {
+		util.Warn("linkedin browser fallback failed", nil)
+		return
+	}
+	var parts []string
+	for _, c := range result.Cookies {
+		parts = append(parts, fmt.Sprintf("%s=%s", c.Name, c.Value))
+	}
+	s.cookieOverride = strings.Join(parts, ";") + ";"
+	util.Info("linkedin browser fallback obtained fresh session cookies", nil)
 }
 
 func (s *Scraper) fetchSearchPage(ctx context.Context, input model.ScraperInput, start int) (string, error) {
@@ -445,7 +475,11 @@ func (s *Scraper) bootstrapSession(ctx context.Context) error {
 		}
 		req.Header.Set("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
 		req.Header.Set("accept-language", "en-US,en;q=0.9")
-		req.Header.Set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+
+	if s.cookieOverride != "" {
+		req.Header.Set("Cookie", s.cookieOverride)
+	}
 		resp, err := s.client.Do(req)
 		if err != nil {
 			return err

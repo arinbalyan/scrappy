@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/arinbalyan/scrappy/internal/browser"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
@@ -93,8 +94,9 @@ const jobSearchQuery = `query JobSearchQuery(
 
 // Scraper implements the scraper.Scraper interface for Glassdoor.
 type Scraper struct {
-	client  *http.Client
-	baseURL string
+	client        *http.Client
+	baseURL       string
+	cookieOverride string // set by browser fallback
 }
 
 // New creates a new Glassdoor scraper with the given HTTP client.
@@ -136,6 +138,10 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 	// Step 1: fetch CSRF token from the homepage.
 	csrfToken, challenge := fetchCSRFToken(ctx, s.client, baseURL)
+	if challenge != "" && browser.IsAvailable() {
+		// Browser fallback: render homepage to extract CSRF + cookies.
+		csrfToken, challenge = s.fetchCSRFTokenViaBrowser(ctx, baseURL)
+	}
 	if challenge != "" {
 		return nil, fmt.Errorf("glassdoor: blocked - %s challenge detected", challenge)
 	}
@@ -229,6 +235,34 @@ func fetchCSRFToken(ctx context.Context, client *http.Client, baseURL string) (s
 	return m[1], ""
 }
 
+// fetchCSRFTokenViaBrowser renders the Glassdoor homepage in headless
+// Chromium and extracts the CSRF token from the rendered HTML plus any
+// cookies set by the browser. It updates s.cookieOverride so subsequent
+// GraphQL requests include the browser's session cookies.
+func (s *Scraper) fetchCSRFTokenViaBrowser(ctx context.Context, baseURL string) (string, string) {
+	result, err := browser.FetchPage(ctx, baseURL, "")
+	if err != nil {
+		return defaultCSRFToken, fmt.Sprintf("browser fetch error: %v", err)
+	}
+	if result.Status != 200 {
+		return defaultCSRFToken, fmt.Sprintf("browser fetch status %d", result.Status)
+	}
+
+	m := csrfRE.FindStringSubmatch(result.HTML)
+	if len(m) < 2 || m[1] == "" {
+		return defaultCSRFToken, fmt.Sprintf("browser fetch no csrf found")
+	}
+
+	// Serialize browser cookies for subsequent requests.
+	cookieParts := make([]string, 0, len(result.Cookies))
+	for _, c := range result.Cookies {
+		cookieParts = append(cookieParts, fmt.Sprintf("%s=%s", c.Name, c.Value))
+	}
+	s.cookieOverride = strings.Join(cookieParts, "; ")
+
+	return m[1], ""
+}
+
 // --- GraphQL page fetch ---
 
 // fetchPage executes one GraphQL page request and returns parsed jobs plus
@@ -287,6 +321,9 @@ func (s *Scraper) fetchPage(
 	}
 	setDefaultHeaders(req)
 	req.Header.Set("gd-csrf-token", csrfToken)
+	if s.cookieOverride != "" {
+		req.Header.Set("Cookie", s.cookieOverride)
+	}
 
 	resp, err := s.client.Do(req)
 	if err != nil {
