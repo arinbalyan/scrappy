@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/arinbalyan/scrappy/internal/browser"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
@@ -23,8 +24,9 @@ type placeholder struct {
 }
 
 type Scraper struct {
-	client *http.Client
-	apiURL string
+	client         *http.Client
+	apiURL         string
+	browserCookies []browser.Cookie // cached from browser fallback
 }
 
 func New(client *http.Client) *Scraper {
@@ -84,10 +86,38 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
 		applyNaukriHeaders(req)
+
+		// If we have pre-fetched browser cookies, attach them.
+		if s.browserCookies != nil {
+			for _, c := range s.browserCookies {
+				req.AddCookie(&http.Cookie{Name: c.Name, Value: c.Value})
+			}
+		}
+
 		resp, err := s.client.Do(req)
 		if err != nil {
 			return nil, fmt.Errorf("naukri request: %w", err)
 		}
+
+		// On 406 (recaptcha required), try browser to get cookies and retry once.
+		if resp.StatusCode == 406 && s.browserCookies == nil && browser.IsAvailable() {
+			resp.Body.Close()
+			if result, bErr := browser.FetchPage(ctx, "https://www.naukri.com", ""); bErr == nil && result.Status == 200 {
+				s.browserCookies = result.Cookies
+				// Retry this page with cookies.
+				req2, _ := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+				applyNaukriHeaders(req2)
+				for _, c := range result.Cookies {
+					req2.AddCookie(&http.Cookie{Name: c.Name, Value: c.Value})
+				}
+				resp2, retryErr := s.client.Do(req2)
+				if retryErr != nil {
+					return nil, fmt.Errorf("naukri request (with cookies): %w", retryErr)
+				}
+				resp = resp2
+			}
+		}
+
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			resp.Body.Close()
 			return nil, fmt.Errorf("naukri status %d", resp.StatusCode)
@@ -171,10 +201,14 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 }
 
 func applyNaukriHeaders(req *http.Request) {
-	req.Header.Set("User-Agent", "Mozilla/5.0")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
 	req.Header.Set("appid", "109")
 	req.Header.Set("systemid", "Naukri")
-	req.Header.Set("accept", "application/json,text/plain,*/*")
+	req.Header.Set("Accept", "application/json, text/plain, */*")
+	req.Header.Set("Origin", "https://www.naukri.com")
+	req.Header.Set("Referer", "https://www.naukri.com/")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 }
 
 func makeNaukriURL(jdURL, id string) string {

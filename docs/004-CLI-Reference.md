@@ -22,7 +22,7 @@ scrappy
 |------|------|---------|-------------|
 | `--search` | string | `""` | Search term(s). Comma-separated for multi-value cartesian product. |
 | `--location` | string | `""` | Location(s). Comma-separated for multi-value cartesian product. |
-| `--sites` | string | `""` (all 65+) | Comma-separated site names. Omit to scrape every supported board. |
+| `--sites` | string | `""` (all 55+) | Comma-separated site names. Omit to scrape every supported board. |
 | `--results-wanted` | int | `0` | Maximum number of results total across all sites. |
 | `--format` | string | `""` | Output format: `jsonl`, `csv`, `xlsx`, `parquet`. |
 | `--out` | string | `""` | Output file path. Empty = stdout (JSON pretty-printed). |
@@ -49,7 +49,7 @@ scrappy
 
 - CLI flags **override** config YAML values.
 - Config YAML values are used as **fallback defaults** when flags are omitted.
-- `--sites` empty = all 65+ sites (from `model.AllSites()`).
+- `--sites` empty = all 55+ sites (from \`model.AllSites()\`).
 - `--out` empty = JSON array written to stdout.
 - `--non-interactive` disables the wizard even on a TTY; required for piped output.
 
@@ -86,26 +86,23 @@ Env vars can be set in `.env` files (auto-loaded beside config.yaml) or exported
 
 ## SITES
 
-scrappy supports **65 job boards**:
+scrappy supports **55+ job boards**:
 
 ```
-linkedin          indeed            zip_recruiter     bayt
-bdjobs            naukri            internshala       builtin
-startupjobs       greenhouse        gunio             himalayas
-hiringcafe        huggingfacejobs   jobindex          remoteok
-remotive          remotefirstjobs   jobspresso        hasjob
-vuejobs           larajobs          arbeitnow         arbeitsagentur
-hackernews        cryptocurrencyjobs androidjobs      jobicy
-devopsjobs        crunchboard       iosdevjobs        swissdevjobs
-cryptojobslist    devitjobs         dribbble          aijobs
-workingnomads     wuzzuf            ycjobs            ukvisajobs
-google            glassdoor         adzuna            simplyhired
-careerbuilder     careerjet         jooble            dice
-monster           stepstone         infojobs          reed
+linkedin          indeed            naukri            internshala
+builtin           startupjobs       greenhouse        gunio
+himalayas         hiringcafe        huggingfacejobs   jobindex
+remoteok          remotive          remotefirstjobs   jobspresso
+hasjob            vuejobs           larajobs          arbeitnow
+arbeitsagentur    hackernews        cryptocurrencyjobs androidjobs
+jobicy            devopsjobs        crunchboard       cryptojobslist
+dribbble          aijobs            workingnomads     ycjobs
+ukvisajobs        google            glassdoor         adzuna
+simplyhired       careerbuilder     careerjet         jooble
+dice              monster           infojobs          reed
 themuse           jobsdb            snagajob          djinni
-headhunter        mycareersfuture   jobstreet         upwork
-4dayweek          academiccareers   eurojobs          findwork
-web3career
+headhunter        mycareersfuture   jobstreet         4dayweek
+eurojobs          findwork          web3career
 ```
 
 Pass them to `--sites` as comma-separated lowercase names:
@@ -116,7 +113,9 @@ scrappy --sites linkedin,indeed,remoteok,glassdoor \
         --results-wanted 200
 ```
 
-Omit `--sites` entirely to scrape all 65+.
+Omit \`--sites\` entirely to scrape all 55+.
+
+> **Browser fallback:** Sites behind anti-bot challenges (naukri [reCAPTCHA], monster [DataDome], jooble [Cloudflare]) can use an optional Playwright headless Chromium fallback. Install with `cd scripts && npm install`. See [docs/012-Scraping.md](012-Scraping.md#browser-fallback-anti-bot).
 
 ## EXIT CODES
 
@@ -187,7 +186,7 @@ scrappy --sites remoteok --search "rust" --results-wanted 10 \
         --non-interactive | jq '.title'
 ```
 
-### 9. All 65+ sites, email filter, remote-only
+### 9. All 55+ sites, email filter, remote-only
 
 ```bash
 scrappy --search "AI Engineer" --location "Remote" \
@@ -213,7 +212,7 @@ scrappy --sites linkedin,indeed,glassdoor --search "AI Engineer" \
 ### 12. Multi-proxy round-robin
 
 ```bash
-scrappy --sites zip_recruiter,monster --search "developer" \
+scrappy --sites indeed,monster --search "developer" \
         --location "Remote" --results-wanted 200 \
         --proxy socks5://proxy1:1080,socks5://proxy2:1080
 ```

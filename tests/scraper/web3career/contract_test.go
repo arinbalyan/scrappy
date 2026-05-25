@@ -78,9 +78,10 @@ const sampleObjectPayload = `{
 }`
 
 func TestWeb3CareerHappyPath(t *testing.T) {
+	t.Setenv("WEB3CAREER_API_TOKEN", "test-token")
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Query().Get("token") != "public" {
-			t.Errorf("expected token=public param, got %s", r.URL.RawQuery)
+		if r.URL.Query().Get("token") != "test-token" {
+			t.Errorf("expected token=test-token param, got %s", r.URL.RawQuery)
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -120,6 +121,7 @@ func TestWeb3CareerHappyPath(t *testing.T) {
 }
 
 func TestWeb3CareerHappyPathNoFilter(t *testing.T) {
+	t.Setenv("WEB3CAREER_API_TOKEN", "test-token")
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -141,6 +143,7 @@ func TestWeb3CareerHappyPathNoFilter(t *testing.T) {
 }
 
 func TestWeb3CareerHappyPathObjectResponse(t *testing.T) {
+	t.Setenv("WEB3CAREER_API_TOKEN", "test-token")
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -165,6 +168,7 @@ func TestWeb3CareerHappyPathObjectResponse(t *testing.T) {
 }
 
 func TestWeb3CareerErrorHandling429(t *testing.T) {
+	t.Setenv("WEB3CAREER_API_TOKEN", "test-token")
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTooManyRequests)
 	}))
@@ -178,6 +182,7 @@ func TestWeb3CareerErrorHandling429(t *testing.T) {
 }
 
 func TestWeb3CareerErrorHandling503(t *testing.T) {
+	t.Setenv("WEB3CAREER_API_TOKEN", "test-token")
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusServiceUnavailable)
 	}))
@@ -191,6 +196,7 @@ func TestWeb3CareerErrorHandling503(t *testing.T) {
 }
 
 func TestWeb3CareerEmptyResponse(t *testing.T) {
+	t.Setenv("WEB3CAREER_API_TOKEN", "test-token")
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -206,6 +212,7 @@ func TestWeb3CareerEmptyResponse(t *testing.T) {
 }
 
 func TestWeb3CareerContextCancellation(t *testing.T) {
+	t.Setenv("WEB3CAREER_API_TOKEN", "test-token")
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel() // immediately cancel
 
