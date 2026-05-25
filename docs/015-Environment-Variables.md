@@ -19,7 +19,7 @@ The interactive wizard can write API keys to `~/.scrappy/.env` for you. An `.env
 
 ## Reference
 
-### Required for 6 sites
+### Required for 7 sites
 
 | Variable | Site | Get it at |
 |----------|------|-----------|
@@ -29,6 +29,7 @@ The interactive wizard can write API keys to `~/.scrappy/.env` for you. An `.env
 | `FINDWORK_API_KEY` | Findwork | https://findwork.dev/developers/ |
 | `ARBEITSAGENTUR_API_KEY` | Arbeitsagentur | https://rest.arbeitsagentur.de/ |
 | `WEB3CAREER_API_TOKEN` | Web3Career | https://web3.career/web3-jobs-api |
+| `AUTHENTICJOBS_API_KEY` | AuthenticJobs | https://authenticjobs.com/api/ |
 
 When a required env var is missing, the engine skips that site with a WARN message instead of failing the run.
 

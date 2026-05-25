@@ -77,6 +77,11 @@ import (
 	web3careerscraper "github.com/arinbalyan/scrappy/internal/scraper/web3career"
 
 	arbeitsagenturscraper "github.com/arinbalyan/scrappy/internal/scraper/arbeitsagentur"
+	authenticjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/authenticjobs"
+	ecojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ecojobs"
+	golangjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/golangjobs"
+	landingjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/landingjobs"
+	realworkfromanywherescraper "github.com/arinbalyan/scrappy/internal/scraper/realworkfromanywhere"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
@@ -91,6 +96,7 @@ var requiredEnvVars = map[model.Site][]string{
 	model.SiteArbeitsagentur: {"ARBEITSAGENTUR_API_KEY"},
 	model.SiteWeb3Career:     {"WEB3CAREER_API_TOKEN"},
 	model.SiteJobTechDev:    {"JOBTECHDEV_API_KEY"},
+	model.SiteAuthenticJobs: {"AUTHENTICJOBS_API_KEY"},
 }
 
 type PostProcessor func(context.Context, *model.JobPost) error
@@ -162,6 +168,11 @@ func NewEngine() *Engine {
 		findworkscraper.New(nil),
 		web3careerscraper.New(nil),
 		arbeitsagenturscraper.New(nil),
+		authenticjobsscraper.New(nil),
+		ecojobsscraper.New(nil),
+		golangjobsscraper.New(nil),
+		landingjobsscraper.New(nil),
+		realworkfromanywherescraper.New(nil),
 	}
 	m := make(map[model.Site]scraper.Scraper, len(s)+1)
 	for _, sc := range s {

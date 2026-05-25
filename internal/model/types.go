@@ -66,6 +66,11 @@ const (
 	SiteEchoJobs          Site = "echojobs"
 	SiteNoDesk            Site = "nodesk"
 	SiteJobTechDev        Site = "jobtechdev"
+	SiteAuthenticJobs     Site = "authenticjobs"
+	SiteEcoJobs           Site = "ecojobs"
+	SiteGolangJobs        Site = "golangjobs"
+	SiteLandingJobs       Site = "landingjobs"
+	SiteRealWorkFromAnywhere Site = "realworkfromanywhere"
 )
 
 // AllSites returns every known site.
@@ -129,6 +134,11 @@ func AllSites() []Site {
 		SiteEchoJobs,
 		SiteNoDesk,
 		SiteJobTechDev,
+		SiteAuthenticJobs,
+		SiteEcoJobs,
+		SiteGolangJobs,
+		SiteLandingJobs,
+		SiteRealWorkFromAnywhere,
 	}
 }
 

@@ -27,7 +27,7 @@ func (s *IndeedScraper) Scrape(ctx context.Context, input ScraperInput) ([]JobPo
 
 Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses between requests, ensuring timely cancellation when a scrape is terminated.
 
-## All 55+ sites
+## All 60+ sites
 
 ### High-yield (general boards, largest result sets)
 
@@ -68,6 +68,8 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | EuroJobs | ~30 | RSS feed | European job board |
 | 4 Day Week | ~20 | Offset | 4-day work week companies |
 | Web3Career | ~20 | Offset | Web3/crypto jobs |
+| Landing.jobs | 50 | Offset | Tech jobs, paginated (max 250) |
+| Real Work From Anywhere | ~50 | RSS feed | Remote-only board |
 
 ### Niche and regional
 
@@ -84,6 +86,8 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | CryptocurrencyJobs | Crypto/web3 | Offset |
 | AndroidJobs | Android dev | Offset |
 | Jobicy | Remote/creative | Offset |
+| EcoJobs | Environment/green | RSS feed |
+| Golang Jobs | Go-specific | RSS feed |
 | DevOpsJobs | DevOps specific | Offset |
 | Crunchboard | Tech/startup | Offset |
 | CryptoJobsList | Crypto | RSS feed |
@@ -106,6 +110,7 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | Careerjet | `CAREERJET_AFFID` | https://www.careerjet.com/partners/ |
 | InfoJobs | `INFOJOBS_CLIENT_ID`, `INFOJOBS_CLIENT_SECRET` | https://developer.infojobs.net/ |
 | Findwork | `FINDWORK_API_KEY` | https://findwork.dev/developers/ |
+| AuthenticJobs | `AUTHENTICJOBS_API_KEY` | https://authenticjobs.com/api/ |
 | Arbeitsagentur | `ARBEITSAGENTUR_API_KEY` | https://rest.arbeitsagentur.de/ |
 
 When a required env var is missing, the engine skips the site with a WARN -- it does not fail the run.

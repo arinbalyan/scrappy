@@ -48,6 +48,51 @@ One page per site. Each page covers: how it works, pagination, rate limits, know
 - Seed inputs: `--workday-seeds` / `SCRAPPY_WORKDAY_SEEDS`.
 - Role filtering: flexible title/description contains + synonym expansion.
 
+## AuthenticJobs
+
+- API endpoint: `https://authenticjobs.com/api/`.
+- Requires `AUTHENTICJOBS_API_KEY` env var; skipped with WARN if missing.
+- Page-based pagination (`page` param). Default page size: 25.
+- Fields: id, title, company, description, perks, howto_apply, post_date, telecommuting, location.
+
+## EcoJobs
+
+- RSS feed: `https://www.ecojobs.com/rss.xml`.
+- No server-side search or pagination; client-side filter on title + description.
+- ID extracted from URL path segment.
+
+## Golang Jobs
+
+- RSS feed: `https://www.golangprojects.com/rss.xml`.
+- No server-side search or pagination; client-side filter on title + description + category.
+- Niche Go-specific board; may have feed availability issues.
+
+## Landing.jobs
+
+- JSON API: `https://landing.jobs/api/v1/jobs`.
+- Offset-based pagination (`offset`, `limit`). Max 5 pages, page size 50.
+- Compensation fields: `salary_low`, `salary_high` (EUR default).
+- Client-side search filter on title, role_description, and tags.
+
+## Himalayas
+
+- JSON API: `https://himalayas.app/jobs/api`.
+- Offset-based pagination (`offset`, `limit`). Max 10 pages, page size 20.
+- Remote-only board. `pubDate` is a Unix timestamp.
+- Compensation fields: `minSalary`, `maxSalary` (USD default).
+
+## CryptoJobsList
+
+- RSS feed: `https://api.cryptojobslist.com/jobs.rss`.
+- Extended extraction: `CompanyLogoURL` (`media:content`), `Location.City` (`media:location`).
+- `dc:creator` maps to company name.
+
+## Real Work From Anywhere
+
+- RSS feed: `https://www.realworkfromanywhere.com/rss.xml`.
+- Remote-only board; `IsRemote` always `true`.
+- ID falls back to GUID, then simple hash of the URL.
+
 ## Otta (planned)
 
 - `otta.com` — AI talent matching. May require a cookie from a logged-in browser session.

@@ -1,10 +1,10 @@
 # scrappy
 
-Bulk job-board scraper for 55+ sites, written in Go.
+Bulk job-board scraper for 60+ sites, written in Go.
 
 ## Features
 
-- **55+ job boards** -- LinkedIn, Indeed, Glassdoor, Google Jobs, and more
+- **60+ job boards** -- LinkedIn, Indeed, Glassdoor, Google Jobs, and more
 - **Bulk-first** -- fan out across all sites concurrently, process thousands of postings
 - **Go-native** -- static binary (~10 MB), zero Python dependency
 - **Email enrichment** -- MX-validated contact addresses from descriptions and company pages
@@ -79,7 +79,7 @@ scrappy
 
 ## Sites supported
 
-All 55+ sites with per-board notes in [docs/012-Scraping.md](docs/012-Scraping.md) and per-site documentation in [docs/sites/](docs/sites/).
+All 60+ sites with per-board notes in [docs/012-Scraping.md](docs/012-Scraping.md) and per-site documentation in [docs/sites/](docs/sites/).
 
 ## Installation
 
