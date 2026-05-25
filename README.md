@@ -12,6 +12,7 @@ Bulk job-board scraper for 55+ sites, written in Go.
 - **Multiple exports** -- JSONL, CSV, XLSX, Parquet
 - **Proxy support** -- SOCKS5/HTTP with TCP-dial health checks and round-robin
 - **Memory-aware** -- configurable memory cap with automatic concurrency scaling
+- **Browser fallback** -- optional Playwright-based rendering for anti-bot sites (naukri, monster, jooble)
 
 ## Quick start
 

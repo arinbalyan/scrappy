@@ -44,6 +44,7 @@ go.work
 # Compiled binary (repo root)
 /scrappy
 
-# Site health check script & test runs
+# Node / Playwright scripts
+scripts/node_modules/
 scripts/site-check.sh
 testruns/

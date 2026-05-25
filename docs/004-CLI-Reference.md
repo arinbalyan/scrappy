@@ -115,6 +115,8 @@ scrappy --sites linkedin,indeed,remoteok,glassdoor \
 
 Omit \`--sites\` entirely to scrape all 55+.
 
+> **Browser fallback:** Sites behind anti-bot challenges (naukri [reCAPTCHA], monster [DataDome], jooble [Cloudflare]) can use an optional Playwright headless Chromium fallback. Install with `cd scripts && npm install`. See [docs/012-Scraping.md](012-Scraping.md#browser-fallback-anti-bot).
+
 ## EXIT CODES
 
 | Code | Meaning |

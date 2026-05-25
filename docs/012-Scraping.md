@@ -110,6 +110,27 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 
 When a required env var is missing, the engine skips the site with a WARN -- it does not fail the run.
 
+## Browser fallback (anti-bot)
+
+Some sites block plain HTTP requests with JavaScript-based challenges (reCAPTCHA, DataDome, Cloudflare). `scrappy` includes an optional browser fallback that renders these pages in headless Chromium via Playwright:
+
+| Site | Challenge | Browser Strategy |
+|------|-----------|------------------|
+| Naukri | HTTP 406 (reCAPTCHA) | Fetch landing page via browser to get session cookies, then retry API |
+| Monster | HTTP 403 (DataDome) | Render search page in browser and parse the HTML |
+| Jooble | HTTP 403 (Cloudflare) | Render search page in browser and parse the HTML |
+
+The fallback is **optional** and **silent** -- if Playwright is not installed, the scraper returns the standard blocked error and the site is skipped normally.
+
+### Install browser support
+
+```bash
+cd scripts/
+npm install
+```
+
+The Playwright script at `scripts/fetch-page.mjs` is auto-detected at runtime via `internal/browser/client.go`. It requires Node.js 18+ and is never called when the plain HTTP path succeeds.
+
 ## Multi-value cartesian product
 
 Pass comma-separated search terms and locations to generate NxM passes per site:
