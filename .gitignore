@@ -35,9 +35,16 @@ AGENTS.md
 
 # Temporary / generated
 tmp/
+.tmp/
+dist/
 
 # Go workspace (if any)
 go.work
 
 # Compiled binary (repo root)
 /scrappy
+
+# Node / Playwright scripts
+scripts/node_modules/
+scripts/site-check.sh
+testruns/

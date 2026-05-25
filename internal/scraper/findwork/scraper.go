@@ -17,7 +17,8 @@ import (
 const (
 	defaultAPIBase = "https://findwork.dev/api/jobs/"
 	defaultResults = 25
-	rateLimitGap   = 350 * time.Millisecond // ~3 req/s
+	rateLimitGapMin = 200 * time.Millisecond
+	rateLimitGapMax = 500 * time.Millisecond // 200-500ms jitter
 )
 
 // apiResponse is the top-level FindWork API response envelope.
@@ -110,7 +111,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 		if !isFirstPage {
 			// Rate limit: ~3 req/s
-			if err := util.SleepWithContext(ctx, rateLimitGap); err != nil {
+			if err := util.JitterSleep(ctx, rateLimitGapMin, rateLimitGapMax-rateLimitGapMin); err != nil {
 				return nil, err
 			}
 		}

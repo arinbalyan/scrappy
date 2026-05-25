@@ -27,7 +27,7 @@ func (s *IndeedScraper) Scrape(ctx context.Context, input ScraperInput) ([]JobPo
 
 Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses between requests, ensuring timely cancellation when a scrape is terminated.
 
-## All 65+ sites
+## All 60+ sites
 
 ### High-yield (general boards, largest result sets)
 
@@ -37,7 +37,6 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | LinkedIn | 10 | Offset (`start`) | 1,000 | Use `--linkedin-strategy rotate` |
 | Google | ~10 | Offset (SERP) | Best-effort | No longer capped at 20; aggressive rate-limiting |
 | Glassdoor | ~30 | Cursor | ~1,000 | Dates rounded to next day |
-| ZipRecruiter | ~20 | Cursor | ~1,000 | US/Canada only |
 | Adzuna | ~50 | Offset | ~1,000 | Requires `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` |
 | Careerjet | ~20 | Offset | ~1,000 | Requires `CAREERJET_AFFID` |
 | SimplyHired | ~20 | Offset | Best-effort | Public HTML, US-focused |
@@ -46,7 +45,6 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | Dice | ~20 | Offset | ~1,000 | US tech-focused |
 | Monster | ~25 | Offset | ~1,000 | US-focused |
 | Reed | ~25 | Offset | ~1,000 | UK-focused |
-| StepStone | ~20 | Offset | ~1,000 | Germany/Austria |
 | InfoJobs | ~20 | Offset | ~1,000 | Requires `INFOJOBS_CLIENT_ID` + `INFOJOBS_CLIENT_SECRET` |
 
 ### Medium-yield (remote-first, startup, niche)
@@ -69,16 +67,14 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | The Muse | ~20 | API offset | Company profiles + jobs |
 | EuroJobs | ~30 | RSS feed | European job board |
 | 4 Day Week | ~20 | Offset | 4-day work week companies |
-| Academic Careers | ~20 | RSS feed | Academia/research positions |
 | Web3Career | ~20 | Offset | Web3/crypto jobs |
-| Upwork | ~20 | Offset | Freelance/contract |
+| Landing.jobs | 50 | Offset | Tech jobs, paginated (max 250) |
+| Real Work From Anywhere | ~50 | RSS feed | Remote-only board |
 
 ### Niche and regional
 
 | Site | Region / Niche | Pagination |
 |------|----------------|------------|
-| Bayt | Middle East | Offset |
-| BDJobs | Bangladesh | Offset |
 | Naukri | India | Offset |
 | Internshala | India (internships) | Offset |
 | StartupJobs | Central Europe | Offset |
@@ -90,15 +86,13 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | CryptocurrencyJobs | Crypto/web3 | Offset |
 | AndroidJobs | Android dev | Offset |
 | Jobicy | Remote/creative | Offset |
+| EcoJobs | Environment/green | RSS feed |
+| Golang Jobs | Go-specific | RSS feed |
 | DevOpsJobs | DevOps specific | Offset |
 | Crunchboard | Tech/startup | Offset |
-| IOSDevJobs | iOS dev | Offset |
-| SwissDevJobs | Switzerland | Offset |
 | CryptoJobsList | Crypto | RSS feed |
-| DevITJobs | Germany/Dev | Offset |
 | Dribbble | Design jobs | Offset |
 | AIJobs | AI/ML | Offset |
-| Wuzzuf | Egypt/MENA | Offset |
 | UKVisaJobs | UK visa sponsors | Offset |
 | JobsDB | SE Asia | Offset |
 | Snagajob | Hourly/retail | Offset |
@@ -116,9 +110,31 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | Careerjet | `CAREERJET_AFFID` | https://www.careerjet.com/partners/ |
 | InfoJobs | `INFOJOBS_CLIENT_ID`, `INFOJOBS_CLIENT_SECRET` | https://developer.infojobs.net/ |
 | Findwork | `FINDWORK_API_KEY` | https://findwork.dev/developers/ |
+| AuthenticJobs | `AUTHENTICJOBS_API_KEY` | https://authenticjobs.com/api/ |
 | Arbeitsagentur | `ARBEITSAGENTUR_API_KEY` | https://rest.arbeitsagentur.de/ |
 
 When a required env var is missing, the engine skips the site with a WARN -- it does not fail the run.
+
+## Browser fallback (anti-bot)
+
+Some sites block plain HTTP requests with JavaScript-based challenges (reCAPTCHA, DataDome, Cloudflare). `scrappy` includes an optional browser fallback that renders these pages in headless Chromium via Playwright:
+
+| Site | Challenge | Browser Strategy |
+|------|-----------|------------------|
+| Naukri | HTTP 406 (reCAPTCHA) | Fetch landing page via browser to get session cookies, then retry API |
+| Monster | HTTP 403 (DataDome) | Render search page in browser and parse the HTML |
+| Jooble | HTTP 403 (Cloudflare) | Render search page in browser and parse the HTML |
+
+The fallback is **optional** and **silent** -- if Playwright is not installed, the scraper returns the standard blocked error and the site is skipped normally.
+
+### Install browser support
+
+```bash
+cd scripts/
+npm install
+```
+
+The Playwright script at `scripts/fetch-page.mjs` is auto-detected at runtime via `internal/browser/client.go`. It requires Node.js 18+ and is never called when the plain HTTP path succeeds.
 
 ## Multi-value cartesian product
 

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/arinbalyan/scrappy/internal/browser"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
@@ -198,6 +199,15 @@ func (s *Scraper) fetchPage(ctx context.Context, searchTerm, location string, pa
 	// Check for anti-bot / WAF challenge page even on non-2xx responses
 	// (DataDome / Cloudflare often return 403 with a challenge body).
 	if challenge := util.DetectAntiBotChallenge(body); challenge != "" {
+		// Try browser fallback if available.
+		if browser.IsAvailable() {
+			browserCtx, cancel := context.WithTimeout(ctx, 35*time.Second)
+			defer cancel()
+			result, bErr := browser.FetchPage(browserCtx, u.String(), "data-testid")
+			if bErr == nil && result.Status == 200 && len(result.HTML) > 0 {
+				return []byte(result.HTML), nil
+			}
+		}
 		return nil, fmt.Errorf("blocked - %s challenge detected", challenge)
 	}
 
