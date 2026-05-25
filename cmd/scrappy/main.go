@@ -63,6 +63,8 @@ CONFIGURATION FILES (auto-detected)
 
 COMMANDS
   scrape    Run a scraping job (default command)
+  doctor    Run diagnostics on your scrappy setup (config, env, network)
+  setup     Interactive setup wizard to create your configuration
 
 FLAGS
   --search             Comma-separated search terms (e.g. "AI Engineer,Software Dev")
@@ -292,13 +294,21 @@ var apiKeySites = []struct {
 	{Site: "arbeitsagentur", EnvVars: []string{"ARBEITSAGENTUR_API_KEY"}, SetupURL: "https://rest.arbeitsagentur.de/"},
 }
 
+var rootCmd *cobra.Command
+
 func main() {
 	cfg := &cliConfig{}
-	root := newRootCommand(cfg)
-	if err := root.Execute(); err != nil {
+	rootCmd = newRootCommand(cfg)
+	registerSubcommands()
+	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func registerSubcommands() {
+	rootCmd.AddCommand(newDoctorCommand())
+	rootCmd.AddCommand(newSetupCommand())
 }
 
 func newRootCommand(cfg *cliConfig) *cobra.Command {
