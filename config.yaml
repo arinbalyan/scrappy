@@ -95,11 +95,6 @@ sites:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
     - '"AI Agent Engineer" OR "AI Product Engineer" OR "AI/ML Engineer"'
-  zip_recruiter:
-    search:
-    - '"AI Engineer" OR "ML Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-    - '"AI Agent Engineer" OR "AI/ML Engineer"'
   builtin:
     search:
     - '"AI Engineer" OR "ML Engineer" OR "AI Developer" OR "LLM Engineer"'
@@ -149,11 +144,6 @@ sites:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
     location: United Kingdom
-  stepstone:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-    location: Germany
   infojobs:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
@@ -167,11 +157,6 @@ sites:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  upwork:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-    location: Remote
   remoteok:
     search:
     - ai engineer
@@ -325,11 +310,6 @@ sites:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
     - '"Software Engineer" OR "Backend Engineer" OR "Full Stack Engineer"'
-  bayt:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-    - '"Software Engineer" OR "Full Stack Engineer"'
   4dayweek:
     search:
     - ai engineer
@@ -462,11 +442,6 @@ sites:
     - llm engineer
     - gtm engineer
     location: Remote
-  academiccareers:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Research Scientist"'
-    location: Remote
   arbeitsagentur:
     search:
     - ai engineer
@@ -474,14 +449,6 @@ sites:
     - ai developer
     - llm engineer
     location: Germany
-  bdjobs:
-    search:
-    - ai engineer
-    - machine learning
-    - ai developer
-    - llm engineer
-    - gtm engineer
-    location: Bangladesh
   headhunter:
     search:
     - ai engineer
@@ -503,11 +470,4 @@ sites:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Software Engineer"'
     location: United Kingdom
-  wuzzuf:
-    search:
-    - ai engineer
-    - machine learning
-    - ai developer
-    - llm engineer
-    - gtm engineer
-    location: Egypt
+

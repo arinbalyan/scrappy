@@ -118,9 +118,9 @@ sites:
   linkedin:
     search: "AI Engineer OR Machine Learning Engineer"
     location: Remote
-  stepstone:
+  mycareersfuture:
     search: "AI Engineer"
-    location: Germany
+    location: Singapore
 ```
 
 | Field | Type | Description |
@@ -177,7 +177,7 @@ sites:
       - '"GTM Engineer" OR "Forward Deployed Engineer"'
       - '"AI Agent Engineer" OR "AI Product Engineer"'
     location: Remote
-  zip_recruiter:
+  indeed:
     search:
       - '"AI Engineer" OR "ML Engineer" OR "LLM Engineer"'
       - '"GTM Engineer" OR "Forward Deployed Engineer"'
@@ -206,11 +206,6 @@ sites:
       - llm engineer
       - forward deployed engineer
     location: Remote
-  stepstone:
-    search:
-      - '"AI Engineer" OR "Machine Learning Engineer"'
-      - '"GTM Engineer" OR "Forward Deployed Engineer"'
-    location: Germany
   reed:
     search:
       - '"AI Engineer" OR "Machine Learning Engineer"'
@@ -237,24 +232,12 @@ sites:
       - '"AI Engineer" OR "Machine Learning Engineer"'
       - '"GTM Engineer" OR "Software Engineer"'
     location: United Kingdom
-  bdjobs:
-    search:
-      - ai engineer
-      - machine learning
-      - llm engineer
-    location: Bangladesh
   internshala:
     search:
       - ai engineer
       - machine learning
       - llm engineer
     location: India
-  wuzzuf:
-    search:
-      - ai engineer
-      - machine learning
-      - llm engineer
-    location: Egypt
 ```
 
 ## Tips
@@ -280,9 +263,9 @@ sites:
     search: '"AI Engineer" OR "Machine Learning Engineer" OR "Applied Scientist"'
   remoteok:
     search: ai engineer   # simpler syntax, no OR needed
-  stepstone:
+  findwork:
     search: '"AI Engineer" OR "ML Engineer"'
-    location: Germany     # country-specific location
+    location: Remote
 ```
 
 ### Save from interactive mode

@@ -35,6 +35,8 @@ AGENTS.md
 
 # Temporary / generated
 tmp/
+.tmp/
+dist/
 
 # Go workspace (if any)
 go.work

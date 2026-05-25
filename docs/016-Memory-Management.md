@@ -1,6 +1,6 @@
 # Memory Management
 
-`scrappy` schedules 62+ scrapers concurrently, each loading pages, parsing HTML/JSON, and accumulating results. Without a memory budget, the runtime can consume hundreds of MB -- especially when many sites return large descriptions or company pages.
+`scrappy` schedules 55+ scrapers concurrently, each loading pages, parsing HTML/JSON, and accumulating results. Without a memory budget, the runtime can consume hundreds of MB -- especially when many sites return large descriptions or company pages.
 
 ## `--memory-cap` flag
 

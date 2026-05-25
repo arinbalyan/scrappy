@@ -27,43 +27,12 @@ One page per site. Each page covers: how it works, pagination, rate limits, know
 - Uses `savedSearchId` in the query for recent postings filter.
 - Dates are rounded up to the next day (hence `--hours-old` is approximate).
 
-## ZipRecruiter
-
-- Search API at `www.ziprecruiter.com/candidate/search`.
-- US/Canada only (`country_indeed` not applicable).
-- Aggressive anti-bot; proxy required for any sustained run.
-- Pagination: cursor-based through an API endpoint.
-
 ## Google Jobs
 
 - Embedded in Google SERP HTML — no separate API endpoint.
 - Use `--google-search-term "..."` (not plain `--search`). Copy the full Google Jobs search-box string from your browser's URL bar when a search is active.
 - Rate-limited aggressively; treat as best-effort.
 - `--max-rps google:2` recommended maximum.
-
-## Wellfound (planned)
-
-- Wellfound public job listings (`wellfound.com/j-loc/{slug}`).
-- Startup-focused, remote-friendly.
-- Effort: easy — public HTML, no auth.
-
-## RemoteOK (planned)
-
-- Single-page application, jobs embedded as JSON in a `<script id="job-map">` tag.
-- 50 jobs per JSON blob; paginate via `?page=N`.
-- Effort: easy.
-
-## Remotive (planned)
-
-- Remotive provides a JSON API at `remotive.com/api/remote-jobs`.
-- Filter by category, salary range, date.
-- Effort: easy.
-
-## BuiltIn (planned)
-
-- School-specific boards: `builtin.com/school/{san-francisco|boston|new-york|austin}`.
-- Public HTML, tech-focused.
-- Effort: easy-medium.
 
 ## Workable Jobs
 

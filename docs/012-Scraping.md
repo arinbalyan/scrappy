@@ -27,7 +27,7 @@ func (s *IndeedScraper) Scrape(ctx context.Context, input ScraperInput) ([]JobPo
 
 Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses between requests, ensuring timely cancellation when a scrape is terminated.
 
-## All 62+ sites
+## All 55+ sites
 
 ### High-yield (general boards, largest result sets)
 
@@ -37,7 +37,6 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | LinkedIn | 10 | Offset (`start`) | 1,000 | Use `--linkedin-strategy rotate` |
 | Google | ~10 | Offset (SERP) | Best-effort | No longer capped at 20; aggressive rate-limiting |
 | Glassdoor | ~30 | Cursor | ~1,000 | Dates rounded to next day |
-| ZipRecruiter | ~20 | Cursor | ~1,000 | US/Canada only |
 | Adzuna | ~50 | Offset | ~1,000 | Requires `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` |
 | Careerjet | ~20 | Offset | ~1,000 | Requires `CAREERJET_AFFID` |
 | SimplyHired | ~20 | Offset | Best-effort | Public HTML, US-focused |
@@ -46,7 +45,6 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | Dice | ~20 | Offset | ~1,000 | US tech-focused |
 | Monster | ~25 | Offset | ~1,000 | US-focused |
 | Reed | ~25 | Offset | ~1,000 | UK-focused |
-| StepStone | ~20 | Offset | ~1,000 | Germany/Austria |
 | InfoJobs | ~20 | Offset | ~1,000 | Requires `INFOJOBS_CLIENT_ID` + `INFOJOBS_CLIENT_SECRET` |
 
 ### Medium-yield (remote-first, startup, niche)
@@ -69,16 +67,12 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | The Muse | ~20 | API offset | Company profiles + jobs |
 | EuroJobs | ~30 | RSS feed | European job board |
 | 4 Day Week | ~20 | Offset | 4-day work week companies |
-| Academic Careers | ~20 | RSS feed | Academia/research positions |
 | Web3Career | ~20 | Offset | Web3/crypto jobs |
-| Upwork | ~20 | Offset | Freelance/contract |
 
 ### Niche and regional
 
 | Site | Region / Niche | Pagination |
 |------|----------------|------------|
-| Bayt | Middle East | Offset |
-| BDJobs | Bangladesh | Offset |
 | Naukri | India | Offset |
 | Internshala | India (internships) | Offset |
 | StartupJobs | Central Europe | Offset |
@@ -95,7 +89,6 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | CryptoJobsList | Crypto | RSS feed |
 | Dribbble | Design jobs | Offset |
 | AIJobs | AI/ML | Offset |
-| Wuzzuf | Egypt/MENA | Offset |
 | UKVisaJobs | UK visa sponsors | Offset |
 | JobsDB | SE Asia | Offset |
 | Snagajob | Hourly/retail | Offset |

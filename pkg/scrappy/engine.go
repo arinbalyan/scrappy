@@ -19,8 +19,6 @@ import (
 	aijobsscraper "github.com/arinbalyan/scrappy/internal/scraper/aijobs"
 	androidjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/androidjobs"
 	arbeitnowscraper "github.com/arinbalyan/scrappy/internal/scraper/arbeitnow"
-	baytscraper "github.com/arinbalyan/scrappy/internal/scraper/bayt"
-	bdjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/bdjobs"
 	builtinscraper "github.com/arinbalyan/scrappy/internal/scraper/builtin"
 	crunchboardscraper "github.com/arinbalyan/scrappy/internal/scraper/crunchboard"
 	cryptocurrencyjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/cryptocurrencyjobs"
@@ -55,10 +53,7 @@ import (
 	ukvisajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ukvisajobs"
 	vuejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/vuejobs"
 	workingnomadsscraper "github.com/arinbalyan/scrappy/internal/scraper/workingnomads"
-	wuzzufscraper "github.com/arinbalyan/scrappy/internal/scraper/wuzzuf"
 	ycjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ycjobs"
-	ziprecruiterscraper "github.com/arinbalyan/scrappy/internal/scraper/ziprecruiter"
-	academiccareersscraper "github.com/arinbalyan/scrappy/internal/scraper/academiccareers"
 	adzunascraper "github.com/arinbalyan/scrappy/internal/scraper/adzuna"
 	simplyhiredscraper "github.com/arinbalyan/scrappy/internal/scraper/simplyhired"
 	careerbuilderscraper "github.com/arinbalyan/scrappy/internal/scraper/careerbuilder"
@@ -66,7 +61,6 @@ import (
 	careerjetscraper "github.com/arinbalyan/scrappy/internal/scraper/careerjet"
 	jooblescraper "github.com/arinbalyan/scrappy/internal/scraper/jooble"
 	monsterscraper "github.com/arinbalyan/scrappy/internal/scraper/monster"
-	stepstonescraper "github.com/arinbalyan/scrappy/internal/scraper/stepstone"
 	themusescraper "github.com/arinbalyan/scrappy/internal/scraper/themuse"
 	infojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/infojobs"
 	jobsscraper "github.com/arinbalyan/scrappy/internal/scraper/jobsdb"
@@ -74,7 +68,6 @@ import (
 	djinniscraper "github.com/arinbalyan/scrappy/internal/scraper/djinni"
 	headhunterscraper "github.com/arinbalyan/scrappy/internal/scraper/headhunter"
 	mycareersfuturescraper "github.com/arinbalyan/scrappy/internal/scraper/mycareersfuture"
-	upworkscraper "github.com/arinbalyan/scrappy/internal/scraper/upwork"
 	eurojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/eurojobs"
 	fwdayweekscraper "github.com/arinbalyan/scrappy/internal/scraper/4dayweek"
 	findworkscraper "github.com/arinbalyan/scrappy/internal/scraper/findwork"
@@ -108,8 +101,6 @@ func NewEngine() *Engine {
 	s := []scraper.Scraper{
 		indeedscraper.New(nil),
 		linkedinscraper.New(nil),
-		baytscraper.New(nil),
-		bdjobsscraper.New(nil),
 		naukriscraper.New(nil),
 		internshalascraper.New(nil),
 		builtinscraper.New(nil),
@@ -139,9 +130,7 @@ func NewEngine() *Engine {
 		devopsjobsscraper.New(nil),
 		crunchboardscraper.New(nil),
 		cryptojobslistscraper.New(nil),
-		ziprecruiterscraper.New(nil),
 		workingnomadsscraper.New(nil),
-		wuzzufscraper.New(nil),
 		ycjobsscraper.New(nil),
 		ukvisajobsscraper.New(nil),
 		glassdoorscraper.New(nil),
@@ -153,7 +142,6 @@ func NewEngine() *Engine {
 		careerjetscraper.New(nil),
 		jooblescraper.New(nil),
 		monsterscraper.New(nil),
-		stepstonescraper.New(nil),
 		themusescraper.New(nil),
 		infojobsscraper.New(nil),
 		jobsscraper.New(nil),
@@ -161,12 +149,10 @@ func NewEngine() *Engine {
 		djinniscraper.New(nil),
 		headhunterscraper.New(nil),
 		mycareersfuturescraper.New(nil),
-		upworkscraper.New(nil),
 		eurojobsscraper.New(nil),
 		fwdayweekscraper.New(nil),
 		findworkscraper.New(nil),
 		web3careerscraper.New(nil),
-		academiccareersscraper.New(nil),
 		arbeitsagenturscraper.New(nil),
 	}
 	m := make(map[model.Site]scraper.Scraper, len(s)+1)

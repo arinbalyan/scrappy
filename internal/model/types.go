@@ -10,9 +10,6 @@ type Site string
 const (
 	SiteLinkedIn           Site = "linkedin"
 	SiteIndeed             Site = "indeed"
-	SiteZipRecruiter       Site = "zip_recruiter"
-	SiteBayt               Site = "bayt"
-	SiteBDJobs             Site = "bdjobs"
 	SiteNaukri             Site = "naukri"
 	SiteInternshala        Site = "internshala"
 	SiteBuiltin            Site = "builtin"
@@ -41,7 +38,6 @@ const (
 	SiteDribbble           Site = "dribbble"
 	SiteAIJobs             Site = "aijobs"
 	SiteWorkingNomads      Site = "workingnomads"
-	SiteWuzzuf             Site = "wuzzuf"
 	SiteYCJobs             Site = "ycjobs"
 	SiteUKVisaJobs         Site = "ukvisajobs"
 	SiteGoogle             Site = "google"
@@ -53,7 +49,6 @@ const (
 	SiteJooble             Site = "jooble"
 	SiteDice               Site = "dice"
 	SiteMonster            Site = "monster"
-	SiteStepStone          Site = "stepstone"
 	SiteInfoJobs           Site = "infojobs"
 	SiteReed               Site = "reed"
 	SiteTheMuse            Site = "themuse"
@@ -63,11 +58,9 @@ const (
 	SiteHeadHunter         Site = "headhunter"
 	SiteMyCareersFuture    Site = "mycareersfuture"
 	SiteJobStreet          Site = "jobstreet"
-	SiteUpwork             Site = "upwork"
 	Site4DayWeek           Site = "4dayweek"
 	SiteEuroJobs           Site = "eurojobs"
 	SiteFindwork           Site = "findwork"
-	SiteAcademicCareers   Site = "academiccareers"
 	SiteArbeitsagentur    Site = "arbeitsagentur"
 	SiteWeb3Career        Site = "web3career"
 )
@@ -77,9 +70,6 @@ func AllSites() []Site {
 	return []Site{
 		SiteLinkedIn,
 		SiteIndeed,
-		SiteZipRecruiter,
-		SiteBayt,
-		SiteBDJobs,
 		SiteNaukri,
 		SiteInternshala,
 		SiteBuiltin,
@@ -109,7 +99,6 @@ func AllSites() []Site {
 		SiteDribbble,
 		SiteAIJobs,
 		SiteWorkingNomads,
-		SiteWuzzuf,
 		SiteYCJobs,
 		SiteUKVisaJobs,
 		SiteGoogle,
@@ -121,7 +110,6 @@ func AllSites() []Site {
 		SiteJooble,
 		SiteDice,
 		SiteMonster,
-		SiteStepStone,
 		SiteInfoJobs,
 		SiteReed,
 		SiteTheMuse,
@@ -131,9 +119,7 @@ func AllSites() []Site {
 		SiteHeadHunter,
 		SiteMyCareersFuture,
 		SiteJobStreet,
-		SiteUpwork,
 		Site4DayWeek,
-		SiteAcademicCareers,
 		SiteEuroJobs,
 		SiteFindwork,
 		SiteWeb3Career,
