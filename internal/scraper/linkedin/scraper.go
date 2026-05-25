@@ -280,6 +280,13 @@ func (s *Scraper) fetchSearchPage(ctx context.Context, input model.ScraperInput,
 	req.Header.Set("cache-control", "max-age=0")
 	req.Header.Set("upgrade-insecure-requests", "1")
 	req.Header.Set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("sec-fetch-dest", "document")
+	req.Header.Set("sec-fetch-mode", "navigate")
+	req.Header.Set("sec-fetch-site", "none")
+	req.Header.Set("sec-fetch-user", "?1")
+	req.Header.Set("sec-ch-ua", `"Not_A Brand";v="99", "Google Chrome";v="120", "Chromium";v="120"`)
+	req.Header.Set("sec-ch-ua-mobile", "?0")
+	req.Header.Set("sec-ch-ua-platform", `"macOS"`)
 
 	resp, err := s.client.Do(req)
 	if err != nil {
