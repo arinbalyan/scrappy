@@ -41,6 +41,10 @@ type parquetJobRow struct {
 	VacancyCount       int64  `parquet:"name=vacancy_count, type=INT64"`
 	WorkFromHomeType   string `parquet:"name=work_from_home_type, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 	QualityScore       int64  `parquet:"name=quality_score, type=INT64"`
+	SalaryInterval     string `parquet:"name=salary_interval, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	SalaryMin          string `parquet:"name=salary_min, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	SalaryMax          string `parquet:"name=salary_max, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
+	SalaryCurrency     string `parquet:"name=salary_currency, type=BYTE_ARRAY, convertedtype=UTF8, encoding=PLAIN_DICTIONARY"`
 }
 
 func WriteParquet(path string, jobs []model.JobPost) error {
@@ -91,6 +95,10 @@ func WriteParquet(path string, jobs []model.JobPost) error {
 			VacancyCount:       int64(job.VacancyCount),
 			WorkFromHomeType:   job.WorkFromHome,
 			QualityScore:       int64(job.QualityScore),
+			SalaryInterval:     formatCompInterval(job.Compensation),
+			SalaryMin:          formatCompMin(job.Compensation),
+			SalaryMax:          formatCompMax(job.Compensation),
+			SalaryCurrency:     formatCompCurrency(job.Compensation),
 		}
 
 		if err := pw.Write(row); err != nil {
