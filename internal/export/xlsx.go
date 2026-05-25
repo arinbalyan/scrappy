@@ -21,6 +21,7 @@ func WriteXLSX(path string, jobs []model.JobPost) error {
 		"company_logo", "company_revenue", "company_num_employees", "company_addresses",
 		"company_description", "skills", "experience_range", "company_rating",
 		"company_reviews_count", "vacancy_count", "work_from_home_type", "quality_score",
+		"salary_interval", "salary_min", "salary_max", "salary_currency",
 	}
 
 	for i, h := range headers {
@@ -62,6 +63,10 @@ func WriteXLSX(path string, jobs []model.JobPost) error {
 			strconv.Itoa(job.VacancyCount),
 			job.WorkFromHome,
 			strconv.Itoa(job.QualityScore),
+			formatCompInterval(job.Compensation),
+			formatCompMin(job.Compensation),
+			formatCompMax(job.Compensation),
+			formatCompCurrency(job.Compensation),
 		}
 
 		for col, val := range row {

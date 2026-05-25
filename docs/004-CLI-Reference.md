@@ -32,6 +32,7 @@ scrappy
 | `--is-remote` | bool | `false` | Only jobs flagged as remote (location-independent filter). |
 | `--remote-only` | bool | `false` | Only truly remote jobs (no location filter applied). |
 | `--job-type` | string | `""` | Filter: `fulltime`, `parttime`, `contract`, `internship`. |
+| `--hours-old` | int | `0` | Only jobs posted within this many hours. `0` = no filter. Jobs without a `date_posted` field are excluded when filtered. |
 | `--min-score` | int | `0` | Minimum quality score (0-100). Jobs below this threshold are dropped before export. See [011-Quality.md](011-Quality.md). |
 | `--dedup` | bool | `true` | Drop duplicate job URLs across sites. See [014-Dedup.md](014-Dedup.md). |
 | `--dedup-by-company` | bool | `false` | Keep only one posting per company across the entire result set. |
@@ -39,9 +40,11 @@ scrappy
 | `--site-rps` | string | `""` | Per-site RPS overrides. Format: `site:rps,site:rps` (e.g. `linkedin:1,indeed:10`). |
 | `--log-level` | string | `""` | Log verbosity: `DEBUG`, `INFO`, `WARN`, `ERROR`. |
 | `--config` | string | auto | Path to config YAML. Auto-detects: `./config.yaml` then `~/.scrappy/config.yaml`. |
-| `--memory-cap` | string | `""` | Memory budget. Examples: `512MB`, `1GB`, `256` (plain = MB). `0` or empty = unlimited. See [016-Memory-Management.md](016-Memory-Management.md). |
+| `--memory-cap` | string | `""` | Memory budget. Examples: `512MB`, `1GB`, `256` (plain = MB). `0` or empty = unlimited. Enables memory-pressure monitor that auto-scales concurrency. See [016-Memory-Management.md](016-Memory-Management.md). |
 | `--non-interactive` | bool | `false` | Disable the interactive wizard. Required for cron, CI, Docker. |
 | `--interactive` | bool | `true` | Force interactive wizard mode (auto-detected when TTY is available). |
+| `--json-pretty` | bool | `false` | Pretty-print JSON output on stdout (auto-detected; default indentation on TTY). |
+| `--json-minify` | bool | `false` | Force minified JSON output even on TTY stdout. Overrides `--json-pretty`. |
 | `--help` | -- | -- | Print help text and exit. |
 | `--version` | -- | -- | Print version (`scrappy v0.1.0`) and exit. |
 
@@ -50,7 +53,7 @@ scrappy
 - CLI flags **override** config YAML values.
 - Config YAML values are used as **fallback defaults** when flags are omitted.
 - `--sites` empty = all 55+ sites (from \`model.AllSites()\`).
-- `--out` empty = JSON array written to stdout.
+- `--out` empty = JSON array written to stdout (pretty-printed by default; use `--json-minify` for compact output).
 - `--non-interactive` disables the wizard even on a TTY; required for piped output.
 
 ## ENVIRONMENT VARIABLES

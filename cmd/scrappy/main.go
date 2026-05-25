@@ -77,9 +77,13 @@ FLAGS
   --is-remote          Only jobs flagged as remote (location-independent filter)
   --remote-only        Only truly remote jobs (no location filter applied)
   --job-type           Filter: fulltime|parttime|contract|internship
+  --hours-old          Only jobs posted within this many hours (0 = no filter)
   --log-level          Log verbosity: DEBUG|INFO|WARN|ERROR
   --config             Path to per-site config yaml
-  --memory-cap         Memory budget: "512MB", "1GB", "256"=MB (0=unlimited)
+  --memory-cap         Memory budget: "512MB", "1GB", "256"=MB (0=unlimited).
+                       Enables memory-pressure monitor; auto-scales concurrency.
+  --json-pretty        Pretty-print JSON output on stdout (default: auto-detect)
+  --json-minify        Force minified JSON output even on TTY stdout
   --non-interactive    Disable interactive wizard (for scripts)
   --interactive        Force interactive mode (default: auto)
 
@@ -205,11 +209,14 @@ type cliConfig struct {
 	RemoteOnly     bool
 	JobType        string
 	Proxy          string
-	MinScore       int
-	MaxRPS         int
-	SiteRPS        string
-	Dedup          bool
-	DedupByCompany bool
+	MinScore         int
+	MaxRPS           int
+	SiteRPS          string
+	Dedup            bool
+	DedupByCompany   bool
+	HoursOld         int
+	JSONPretty       bool
+	JSONMinify       bool
 }
 
 type multiString []string
@@ -342,6 +349,9 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().IntVar(&cfg.MinScore, "min-score", 0, "quality score floor (0-100)")
 	root.Flags().IntVar(&cfg.MaxRPS, "max-rps", 0, "global max requests per second (overrides per-site defaults)")
 	root.Flags().StringVar(&cfg.SiteRPS, "site-rps", "", "per-site RPS overrides, e.g. linkedin:1,indeed:10")
+	root.Flags().IntVar(&cfg.HoursOld, "hours-old", 0, "only jobs posted within this many hours (0 = no filter)")
+	root.Flags().BoolVar(&cfg.JSONPretty, "json-pretty", false, "pretty-print JSON output (stdout only, default: minified)")
+	root.Flags().BoolVar(&cfg.JSONMinify, "json-minify", false, "force minified JSON output even on stdout")
 	root.Flags().BoolVar(&cfg.Dedup, "dedup", true, "deduplicate jobs by URL across sites")
 	root.Flags().BoolVar(&cfg.DedupByCompany, "dedup-by-company", false, "keep only one posting per company")
 	root.SetVersionTemplate("scrappy v{{.Version}}\n")
@@ -418,6 +428,7 @@ func runInteractive(cfg *cliConfig) {
 	if cfg.JobType == "any" {
 		cfg.JobType = ""
 	}
+	cfg.HoursOld = askInt(reader, "  Only jobs posted within last N hours (0 = no filter)", cfg.HoursOld)
 	memDefault := cfg.MemoryCap
 	if memDefault == "" {
 		memDefault = "0"
@@ -663,6 +674,7 @@ func runOnce(cfg *cliConfig) error {
 		SearchTerms:    searchTerms,
 		Locations:      locations,
 		ResultsWanted:  resultsWanted,
+		HoursOld:       cfg.HoursOld,
 		Dedup:          cfg.Dedup,
 		DedupByCompany: cfg.DedupByCompany,
 		MinScore:       cfg.MinScore,
@@ -703,7 +715,9 @@ func runOnce(cfg *cliConfig) error {
 
 	if outPath == "" {
 		enc := json.NewEncoder(os.Stdout)
-		enc.SetIndent("", "  ")
+		if cfg.JSONPretty || (!cfg.JSONMinify) {
+			enc.SetIndent("", "  ")
+		}
 		return enc.Encode(jobs)
 	}
 
