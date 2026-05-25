@@ -2,7 +2,6 @@ package cryptojobslist
 
 import (
 	"context"
-	"encoding/xml"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -15,16 +14,21 @@ import (
 
 const feedURL = "https://api.cryptojobslist.com/jobs.rss"
 
-var stripTags = regexp.MustCompile(`(?is)<[^>]+>`)
+var (
+	rssItemRe  = regexp.MustCompile(`(?is)<item>(.*?)</item>`)
+	stripTagRe = regexp.MustCompile(`(?is)<[^>]+>`)
+)
 
 type rssItem struct {
-	Title       string `xml:"title"`
-	Link        string `xml:"link"`
-	GUID        string `xml:"guid"`
-	Description string `xml:"description"`
-	PubDate     string `xml:"pubDate"`
-	Category    string `xml:"category"`
-	Creator     string `xml:"creator"`
+	Title           string
+	Link            string
+	GUID            string
+	Description     string
+	PubDate         string
+	Category        string
+	Creator         string
+	MediaContentURL string
+	MediaLocation   string
 }
 
 type Scraper struct {
@@ -67,24 +71,16 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("cryptojobslist status %d", resp.StatusCode)
 	}
+	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
+	if err != nil {
+		return nil, fmt.Errorf("cryptojobslist read: %w", err)
+	}
 
-	dec := xml.NewDecoder(resp.Body)
+	items := parseItems(string(body))
 	jobs := make([]model.JobPost, 0, wanted)
-	for {
-		tok, err := dec.Token()
-		if err != nil {
-			if err.Error() == "EOF" {
-				break
-			}
-			return nil, fmt.Errorf("cryptojobslist decode: %w", err)
-		}
-		se, ok := tok.(xml.StartElement)
-		if !ok || !strings.EqualFold(se.Name.Local, "item") {
-			continue
-		}
-		var it rssItem
-		if err := dec.DecodeElement(&it, &se); err != nil {
-			continue
+	for _, it := range items {
+		if len(jobs) >= wanted {
+			break
 		}
 		title := strings.TrimSpace(it.Title)
 		link := strings.TrimSpace(it.Link)
@@ -98,19 +94,18 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			}
 		}
 		job := model.JobPost{
-			ID:          "cryptojobslist-" + idFromURL(firstNonEmpty(it.GUID, link)),
-			Title:       title,
-			CompanyName: strings.TrimSpace(it.Creator),
-			JobURL:      link,
-			Description: htmlToText(it.Description),
+			ID:            "cryptojobslist-" + idFromURL(firstNonEmpty(it.GUID, link)),
+			Title:         title,
+			CompanyName:   strings.TrimSpace(it.Creator),
+			JobURL:        link,
+			CompanyLogoURL: strings.TrimSpace(it.MediaContentURL),
+			Description:   htmlToText(it.Description),
+			Location:      model.Location{City: strings.TrimSpace(it.MediaLocation)},
 		}
 		if t := parseRSSDate(it.PubDate); t != nil {
 			job.DatePosted = t
 		}
 		jobs = append(jobs, job)
-		if len(jobs) >= wanted {
-			break
-		}
 	}
 	if !util.HasMeaningfulJobs(jobs) {
 		return nil, fmt.Errorf("cryptojobslist no parseable jobs")
@@ -118,11 +113,53 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	return jobs, nil
 }
 
+func parseItems(xml string) []rssItem {
+	blocks := rssItemRe.FindAllStringSubmatch(xml, -1)
+	out := make([]rssItem, 0, len(blocks))
+	for _, b := range blocks {
+		chunk := b[1]
+		out = append(out, rssItem{
+			Title:           extractTag(chunk, "title"),
+			Link:            extractTag(chunk, "link"),
+			GUID:            extractTag(chunk, "guid"),
+			Description:     extractTag(chunk, "description"),
+			PubDate:         extractTag(chunk, "pubDate"),
+			Category:        extractTag(chunk, "category"),
+			Creator:         extractTag(chunk, "dc:creator"),
+			MediaContentURL: extractMediaContentURL(chunk),
+			MediaLocation:   extractTag(chunk, "media:location"),
+		})
+	}
+	return out
+}
+
+func extractTag(xml, tag string) string {
+	esc := regexp.QuoteMeta(tag)
+	cdata := regexp.MustCompile(`(?is)<` + esc + `[^>]*>\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*</` + esc + `>`)
+	if m := cdata.FindStringSubmatch(xml); len(m) == 2 {
+		return strings.TrimSpace(m[1])
+	}
+	plain := regexp.MustCompile(`(?is)<` + esc + `[^>]*>([\s\S]*?)</` + esc + `>`)
+	if m := plain.FindStringSubmatch(xml); len(m) == 2 {
+		return strings.TrimSpace(m[1])
+	}
+	return ""
+}
+
+func extractMediaContentURL(xml string) string {
+	re := regexp.MustCompile(`(?i)<media:content[^>]+url="([^"]+)"`)
+	m := re.FindStringSubmatch(xml)
+	if len(m) == 2 {
+		return strings.TrimSpace(m[1])
+	}
+	return ""
+}
+
 func htmlToText(v string) string {
 	if strings.TrimSpace(v) == "" {
 		return ""
 	}
-	v = stripTags.ReplaceAllString(v, " ")
+	v = stripTagRe.ReplaceAllString(v, " ")
 	return strings.Join(strings.Fields(strings.TrimSpace(v)), " ")
 }
 

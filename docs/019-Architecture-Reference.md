@@ -158,7 +158,7 @@ The pipeline runs per-job (steps 1-5) in a loop over results, then runs cross-si
 | `cmd/scrappy/` | CLI entrypoint: cobra flags, config loading, interactive wizard, output dispatch |
 | `pkg/scrappy/` | Public Engine: orchestrates scrape runs, post-processing pipelines, telemetry |
 | `internal/model/` | Core types: `JobPost`, `ScraperInput`, `Site`, `Country`, `Email`, `Compensation` |
-| `internal/scraper/` | `Scraper` interface + 66 site-specific scraper packages |
+| `internal/scraper/` | `Scraper` interface + 55+ site-specific scraper packages |
 | `internal/rate/` | Per-site token-bucket rate limiters (`golang.org/x/time/rate`) |
 | `internal/proxy/` | Proxy pool: SOCKS5/HTTP URL parsing, TCP-dial + HEAD health checking, rotate/stickiness |
 | `internal/email/` | Email pipeline: regex extraction, RFC validation, MX DNS lookup, company-page enrichment, domain population |

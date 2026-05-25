@@ -11,51 +11,60 @@ import (
 	sut "github.com/arinbalyan/scrappy/internal/scraper/jobsdb"
 )
 
-// validJobsJSON is a minimal JobsDB Chalice API response with 3 jobs.
+// validJobsJSON is a minimal SEEK v5 API response with 3 jobs.
 const validJobsJSON = `{
   "data": [
     {
-      "id": "job-001",
+      "id": "12345",
       "title": "Software Engineer",
-      "companyName": "Tech Corp",
-      "location": "Singapore",
-      "salary": "SGD 5000 - 8000",
-      "jobType": "full_time",
-      "listingDate": "2026-05-20T10:00:00Z",
+      "advertiser": { "description": "Tech Corp" },
       "teaser": "Join our engineering team to build great products.",
-      "jobUrl": "/job/software-engineer/001",
-      "description": "<p>We are looking for a software engineer.</p>",
-      "workType": "on_site",
-      "isRemote": false
+      "listingDate": "2026-05-25T05:29:09Z",
+      "locations": [{"label": "Singapore", "countryCode": "SG"}],
+      "salaryLabel": "SGD 5,000 – SGD 8,000 per month",
+      "workTypes": ["Full time"],
+      "workArrangements": {"displayText": "On-site"},
+      "classifications": [
+        {
+          "classification": {"id": "6281", "description": "Information & Communication Technology"},
+          "subclassification": {"id": "6287", "description": "Developers/Programmers"}
+        }
+      ],
+      "bulletPoints": ["Great team", "Flexible hours"],
+      "branding": {"serpLogoUrl": "https://logo.example.com/corp.png"}
     },
     {
-      "id": "job-002",
+      "id": "67890",
       "title": "Senior Developer",
       "companyName": "Beta Ltd",
-      "location": "Hong Kong",
-      "salary": "HKD 40000 - 60000",
-      "jobType": "full_time",
-      "listingDate": "2026-05-19T15:30:00Z",
-      "description": "Senior developer with Go experience needed.",
-      "jobUrl": "/job/senior-developer/002",
-      "workType": "remote",
-      "isRemote": false
+      "teaser": "Senior Go developer needed for our platform team.",
+      "listingDate": "2026-05-24T15:30:00Z",
+      "locations": [{"label": "Hong Kong", "countryCode": "HK"}],
+      "salaryLabel": "HKD 40,000 – HKD 60,000 per month",
+      "workTypes": ["Full time"],
+      "workArrangements": {"displayText": "Remote"},
+      "classifications": [
+        {
+          "classification": {"id": "6281", "description": "Information & Communication Technology"},
+          "subclassification": {"id": "6287", "description": "Developers/Programmers"}
+        }
+      ]
     },
     {
-      "id": "job-003",
+      "id": "11111",
       "title": "DevOps Engineer",
       "companyName": "Gamma Inc",
-      "location": "Remote",
-      "listingDate": "2026-05-18T09:00:00Z",
-      "description": "Join our infrastructure team.",
-      "workType": "on_site",
-      "isRemote": true
+      "listingDate": "2026-05-23T09:00:00Z",
+      "locations": [{"label": "Singapore", "countryCode": "SG"}],
+      "workTypes": ["Contract"],
+      "workArrangements": {"displayText": "Work from home"}
     }
-  ]
+  ],
+  "totalCount": 3
 }`
 
 // emptyJobsJSON has valid structure but no job listings.
-const emptyJobsJSON = `{"data": []}`
+const emptyJobsJSON = `{"data": [], "totalCount": 0}`
 
 func TestJobsDBHappyPath(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -75,7 +84,7 @@ func TestJobsDBHappyPath(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	jobs, err := s.Scrape(ctx, model.ScraperInput{SearchTerm: "engineer", ResultsWanted: 3})
+	jobs, err := s.Scrape(ctx, model.ScraperInput{SearchTerm: "engineer", ResultsWanted: 5})
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -84,8 +93,8 @@ func TestJobsDBHappyPath(t *testing.T) {
 	}
 
 	// Validate first job fields
-	if jobs[0].ID != "jobsdb-job-001" {
-		t.Errorf("expected ID jobsdb-job-001, got %s", jobs[0].ID)
+	if jobs[0].ID != "jobsdb-12345" {
+		t.Errorf("expected ID jobsdb-12345, got %s", jobs[0].ID)
 	}
 	if jobs[0].Title != "Software Engineer" {
 		t.Errorf("expected title 'Software Engineer', got %s", jobs[0].Title)
@@ -93,40 +102,80 @@ func TestJobsDBHappyPath(t *testing.T) {
 	if jobs[0].CompanyName != "Tech Corp" {
 		t.Errorf("expected company 'Tech Corp', got %s", jobs[0].CompanyName)
 	}
-	if jobs[0].JobURL != "https://www.jobsdb.com/job/software-engineer/001" {
+	if jobs[0].JobURL != "https://www.jobsdb.com/job/12345" {
 		t.Errorf("unexpected job URL: %s", jobs[0].JobURL)
 	}
 	if jobs[0].Location.City != "Singapore" {
 		t.Errorf("expected location 'Singapore', got %s", jobs[0].Location.City)
 	}
 	if jobs[0].IsRemote {
-		t.Error("expected IsRemote=false for on_site workType")
+		t.Error("expected IsRemote=false for on-site work arrangement")
 	}
 	if jobs[0].DatePosted == nil {
-		t.Fatal("expected date posted for job-001")
+		t.Fatal("expected date posted for job-12345")
 	}
-	if jobs[0].JobType != "full_time" {
-		t.Errorf("expected job type 'full_time', got %s", jobs[0].JobType)
+	if jobs[0].JobType != "Full time" {
+		t.Errorf("expected job type 'Full time', got %s", jobs[0].JobType)
+	}
+	if jobs[0].Compensation == nil {
+		t.Fatal("expected compensation")
+	}
+	if jobs[0].Compensation.Currency != "SGD" {
+		t.Errorf("expected SGD currency, got %s", jobs[0].Compensation.Currency)
+	}
+	if jobs[0].Department != "Developers/Programmers" {
+		t.Errorf("expected department 'Developers/Programmers', got %s", jobs[0].Department)
+	}
+	if jobs[0].Industry != "Information & Communication Technology" {
+		t.Errorf("expected industry 'Information & Communication Technology', got %s", jobs[0].Industry)
+	}
+	if jobs[0].CompanyLogoURL != "https://logo.example.com/corp.png" {
+		t.Errorf("unexpected logo URL: %s", jobs[0].CompanyLogoURL)
+	}
+	if !stringsContains(jobs[0].Description, "Great team") {
+		t.Errorf("expected description to contain bullet points, got %s", jobs[0].Description)
+	}
+	if !stringsContains(jobs[0].Description, "Join our engineering team") {
+		t.Errorf("expected description to contain teaser, got %s", jobs[0].Description)
 	}
 
-	// Validate second job (remote via workType field)
+	// Validate second job (remote via workArrangements)
 	if !jobs[1].IsRemote {
-		t.Error("expected IsRemote=true for workType=remote")
+		t.Error("expected IsRemote=true for workArrangements.displayText=Remote")
 	}
-	if jobs[1].JobURL != "https://www.jobsdb.com/job/senior-developer/002" {
-		t.Errorf("expected job URL with prefix, got %s", jobs[1].JobURL)
+	if jobs[1].CompanyName != "Beta Ltd" {
+		t.Errorf("expected company 'Beta Ltd', got %s", jobs[1].CompanyName)
+	}
+	if jobs[1].Location.City != "Hong Kong" {
+		t.Errorf("expected location 'Hong Kong', got %s", jobs[1].Location.City)
+	}
+	if jobs[1].JobURL != "https://www.jobsdb.com/job/67890" {
+		t.Errorf("expected job URL https://www.jobsdb.com/job/67890, got %s", jobs[1].JobURL)
 	}
 
-	// Validate third job (isRemote=true directly, missing optional fields)
-	if !jobs[2].IsRemote {
-		t.Error("expected IsRemote=true for isRemote=true")
-	}
-	if jobs[2].JobURL != "https://www.jobsdb.com/job/job-003" {
-		t.Errorf("expected fallback job URL, got %s", jobs[2].JobURL)
+	// Validate third job (no salary, no advertiser, contract)
+	if jobs[2].IsRemote {
+		t.Error("expected IsRemote=false for workArrangements.displayText=Work from home (not strictly Remote)")
 	}
 	if jobs[2].CompanyName != "Gamma Inc" {
 		t.Errorf("expected company 'Gamma Inc', got %s", jobs[2].CompanyName)
 	}
+	if jobs[2].JobType != "Contract" {
+		t.Errorf("expected job type 'Contract', got %s", jobs[2].JobType)
+	}
+}
+
+func stringsContains(s, substr string) bool {
+	return len(s) >= len(substr) && containsStr(s, substr)
+}
+
+func containsStr(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
 }
 
 func TestJobsDBFailsOn429And503(t *testing.T) {

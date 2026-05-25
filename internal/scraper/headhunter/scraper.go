@@ -16,7 +16,8 @@ import (
 const (
 	searchURL       = "https://api.hh.ru/vacancies"
 	defaultResults  = 25
-	rateLimitDelay  = 333 * time.Millisecond // ~3 req/s
+	rateLimitDelayMin = 200 * time.Millisecond
+	rateLimitDelayMax = 500 * time.Millisecond // 200-500ms jitter
 	maxRetries      = 3
 )
 
@@ -111,7 +112,7 @@ func (s *Scraper) fetchVacancies(ctx context.Context, searchTerm string, perPage
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", "scrappy/0.1.0 (job-aggregator)")
 
-	if err := util.SleepWithContext(ctx, rateLimitDelay); err != nil {
+	if err := util.JitterSleep(ctx, rateLimitDelayMin, rateLimitDelayMax-rateLimitDelayMin); err != nil {
 		return nil, err
 	}
 
