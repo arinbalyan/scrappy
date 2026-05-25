@@ -6,7 +6,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
 )
@@ -28,6 +27,7 @@ func WriteCSV(path string, jobs []model.JobPost) error {
 		"company_logo", "company_revenue", "company_num_employees", "company_addresses",
 		"company_description", "skills", "experience_range", "company_rating",
 		"company_reviews_count", "vacancy_count", "work_from_home_type", "quality_score",
+		"salary_interval", "salary_min", "salary_max", "salary_currency",
 	}
 	if err := w.Write(headers); err != nil {
 		return fmt.Errorf("write csv headers: %w", err)
@@ -65,6 +65,10 @@ func WriteCSV(path string, jobs []model.JobPost) error {
 			strconv.Itoa(job.VacancyCount),
 			job.WorkFromHome,
 			strconv.Itoa(job.QualityScore),
+			formatCompInterval(job.Compensation),
+			formatCompMin(job.Compensation),
+			formatCompMax(job.Compensation),
+			formatCompCurrency(job.Compensation),
 		}
 		if err := w.Write(row); err != nil {
 			return fmt.Errorf("write csv row: %w", err)
@@ -78,44 +82,4 @@ func WriteCSV(path string, jobs []model.JobPost) error {
 	return nil
 }
 
-func formatDate(t *time.Time) string {
-	if t == nil || t.IsZero() {
-		return ""
-	}
-	return t.UTC().Format(time.RFC3339)
-}
 
-func joinEmails(emails []model.Email) string {
-	vals := make([]string, 0, len(emails))
-	for _, e := range emails {
-		if e.Addr != "" {
-			vals = append(vals, e.Addr)
-		}
-	}
-	return strings.Join(vals, ";")
-}
-
-func joinEmailVerified(emails []model.Email) string {
-	vals := make([]string, 0, len(emails))
-	for _, e := range emails {
-		vals = append(vals, strconv.FormatBool(e.Verified))
-	}
-	return strings.Join(vals, ";")
-}
-
-func joinEmailSources(emails []model.Email) string {
-	vals := make([]string, 0, len(emails))
-	for _, e := range emails {
-		if e.Source != "" {
-			vals = append(vals, e.Source)
-		}
-	}
-	return strings.Join(vals, ";")
-}
-
-func formatRating(r *float64) string {
-	if r == nil {
-		return ""
-	}
-	return strconv.FormatFloat(*r, 'f', -1, 64)
-}
