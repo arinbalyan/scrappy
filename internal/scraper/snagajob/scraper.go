@@ -17,7 +17,8 @@ import (
 const (
 	searchURL      = "https://www.snagajob.com/api/search"
 	pageSize       = 20
-	rateLimitDelay = 333 * time.Millisecond // ~3 req/s
+	rateLimitDelayMin = 200 * time.Millisecond
+	rateLimitDelayMax = 500 * time.Millisecond // 200-500ms jitter
 	maxRetries     = 3
 )
 
@@ -74,7 +75,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		}
 
 		if page > 0 {
-			if err := util.SleepWithContext(ctx, rateLimitDelay); err != nil {
+			if err := util.JitterSleep(ctx, rateLimitDelayMin, rateLimitDelayMax-rateLimitDelayMin); err != nil {
 				return nil, err
 			}
 		}

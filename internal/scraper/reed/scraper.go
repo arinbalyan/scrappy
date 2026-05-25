@@ -27,7 +27,8 @@ const (
 	reedCurrency       = "GBP"
 	maxRetries         = 3
 	maxConsecutive429  = 3
-	rateLimitDelay     = 350 * time.Millisecond // ~3 req/s
+	rateLimitDelayMin  = 200 * time.Millisecond
+	rateLimitDelayMax  = 500 * time.Millisecond // 200-500ms jitter vs fixed 350ms
 )
 
 // Scraper scrapes Reed.co.uk job listings.
@@ -115,8 +116,8 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		}
 
 		pageno++
-		// Rate limit: 3 requests per second
-		if err := util.SleepWithContext(ctx, rateLimitDelay); err != nil {
+		// Rate limit: 200-500ms jittered delay
+		if err := util.JitterSleep(ctx, rateLimitDelayMin, rateLimitDelayMax-rateLimitDelayMin); err != nil {
 			return jobs, err
 		}
 	}

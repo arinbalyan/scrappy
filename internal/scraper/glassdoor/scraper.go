@@ -185,11 +185,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 		page++
 
-		// Rate-limit: 5-second delay between pages (from TypeScript source).
-		select {
-		case <-ctx.Done():
-			return jobs, ctx.Err()
-		case <-time.After(5 * time.Second):
+		// Rate-limit: 3-7s jittered delay between pages.
+		if err := util.JitterSleep(ctx, 3*time.Second, 4*time.Second); err != nil {
+			return jobs, err
 		}
 	}
 

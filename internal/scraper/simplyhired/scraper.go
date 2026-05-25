@@ -108,12 +108,10 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 		page++
 
-		// Rate limit: ~333ms per request (3 req/s max), with jitter
-		if len(jobs) < wanted && page <= maxPages {
-			select {
-			case <-ctx.Done():
-				return jobs, ctx.Err()
-			case <-time.After(300*time.Millisecond + time.Duration(time.Now().UnixNano()%300)*time.Millisecond):
+		// Rate limit: 200-600ms jittered delay between pages
+		if page > 0 && len(jobs) < wanted && page <= maxPages {
+			if err := util.JitterSleep(ctx, 200*time.Millisecond, 400*time.Millisecond); err != nil {
+				return jobs, err
 			}
 		}
 	}
