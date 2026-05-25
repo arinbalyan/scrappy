@@ -38,6 +38,7 @@ async function main() {
       "--disable-setuid-sandbox",
       "--disable-dev-shm-usage",
       "--disable-gpu",
+      "--disable-blink-features=AutomationControlled",
     ],
   });
 
@@ -46,6 +47,81 @@ async function main() {
       "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36",
     viewport: { width: 1920, height: 1080 },
     locale: "en-US",
+  });
+
+  // Stealth init script — patches browser fingerprinting surfaces to reduce
+  // anti-bot detection risk. Mirrors the upstream ever-jobs patches.
+  await context.addInitScript(() => {
+    // 1. Hide automation flag
+    Object.defineProperty(navigator, "webdriver", { get: () => undefined });
+
+    // 2. Fake window.chrome runtime
+    if (!window.chrome) {
+      window.chrome = { runtime: {} };
+    }
+
+    // 3. Spoof navigator.plugins with 3 common entries
+    const fakePlugins = [
+      { name: "Chrome PDF Plugin", filename: "internal-pdf-viewer" },
+      { name: "Chrome PDF Viewer", filename: "pdf-viewer" },
+      { name: "Native Client", filename: "nacl" },
+    ];
+    const pluginArray = Object.assign([], {
+      item: (i) => pluginArray[i] || null,
+      namedItem: (n) => pluginArray.find((p) => p.name === n) || null,
+      refresh: () => {},
+      length: fakePlugins.length,
+      [Symbol.iterator]: function* () {
+        for (let i = 0; i < fakePlugins.length; i++) yield pluginArray[i];
+      },
+    });
+    for (let i = 0; i < fakePlugins.length; i++) {
+      const p = Object.assign(new Plugin(), fakePlugins[i], {
+        item: (j) => null,
+        namedItem: () => null,
+        length: 0,
+        [Symbol.iterator]: function* () {},
+      });
+      pluginArray[i] = p;
+    }
+    Object.defineProperty(navigator, "plugins", {
+      get: () => pluginArray,
+    });
+
+    // 4. Override languages
+    Object.defineProperty(navigator, "languages", {
+      get: () => ["en-US", "en"],
+    });
+
+    // 5. Intercept notifications permission
+    const originalQuery = navigator.permissions.query;
+    navigator.permissions.query = (p) =>
+      p.name === "notifications"
+        ? Promise.resolve({ state: "denied", onchange: null })
+        : originalQuery.call(navigator.permissions, p);
+
+    // 6. Canvas fingerprint noise — add imperceptible pixel variation
+    const originalToDataURL = HTMLCanvasElement.prototype.toDataURL;
+    HTMLCanvasElement.prototype.toDataURL = function (...args) {
+      const canvas = this;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        if (imageData.data.length > 0) {
+          imageData.data[0] = Math.min(255, imageData.data[0] + 1);
+          ctx.putImageData(imageData, 0, 0);
+        }
+      }
+      return originalToDataURL.apply(canvas, args);
+    };
+
+    // 7. Patch WebGL renderer info
+    const origGetParam = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function (param) {
+      if (param === 37445) return "Intel Inc.";
+      if (param === 37446) return "Intel Iris OpenGL Engine";
+      return origGetParam.call(this, param);
+    };
   });
 
   const page = await context.newPage();
