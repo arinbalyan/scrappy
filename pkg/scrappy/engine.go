@@ -58,6 +58,9 @@ import (
 	simplyhiredscraper "github.com/arinbalyan/scrappy/internal/scraper/simplyhired"
 	careerbuilderscraper "github.com/arinbalyan/scrappy/internal/scraper/careerbuilder"
 	dicescraper "github.com/arinbalyan/scrappy/internal/scraper/dice"
+	echojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/echojobs"
+	nodeskscraper "github.com/arinbalyan/scrappy/internal/scraper/nodesk"
+	jobtechdevscraper "github.com/arinbalyan/scrappy/internal/scraper/jobtechdev"
 	careerjetscraper "github.com/arinbalyan/scrappy/internal/scraper/careerjet"
 	jooblescraper "github.com/arinbalyan/scrappy/internal/scraper/jooble"
 	monsterscraper "github.com/arinbalyan/scrappy/internal/scraper/monster"
@@ -87,6 +90,7 @@ var requiredEnvVars = map[model.Site][]string{
 	model.SiteFindwork:      {"FINDWORK_API_KEY"},
 	model.SiteArbeitsagentur: {"ARBEITSAGENTUR_API_KEY"},
 	model.SiteWeb3Career:     {"WEB3CAREER_API_TOKEN"},
+	model.SiteJobTechDev:    {"JOBTECHDEV_API_KEY"},
 }
 
 type PostProcessor func(context.Context, *model.JobPost) error
@@ -150,6 +154,9 @@ func NewEngine() *Engine {
 		djinniscraper.New(nil),
 		headhunterscraper.New(nil),
 		mycareersfuturescraper.New(nil),
+		echojobsscraper.New(nil),
+		nodeskscraper.New(nil),
+		jobtechdevscraper.New(nil),
 		eurojobsscraper.New(nil),
 		fwdayweekscraper.New(nil),
 		findworkscraper.New(nil),

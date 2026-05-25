@@ -461,6 +461,15 @@ sites:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
     location: Singapore
+  echojobs:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - forward deployed
+    - gtm engineer
+    location: Remote
   findwork:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
@@ -470,4 +479,18 @@ sites:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Software Engineer"'
     location: United Kingdom
+  nodesk:
+    search:
+    - ai engineer
+    - machine learning engineer
+    - ai developer
+    - llm engineer
+    - forward deployed
+    - gtm engineer
+    location: Remote
+  jobtechdev:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+    location: Sweden
 

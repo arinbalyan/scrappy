@@ -63,6 +63,9 @@ const (
 	SiteFindwork           Site = "findwork"
 	SiteArbeitsagentur    Site = "arbeitsagentur"
 	SiteWeb3Career        Site = "web3career"
+	SiteEchoJobs          Site = "echojobs"
+	SiteNoDesk            Site = "nodesk"
+	SiteJobTechDev        Site = "jobtechdev"
 )
 
 // AllSites returns every known site.
@@ -123,6 +126,9 @@ func AllSites() []Site {
 		SiteEuroJobs,
 		SiteFindwork,
 		SiteWeb3Career,
+		SiteEchoJobs,
+		SiteNoDesk,
+		SiteJobTechDev,
 	}
 }
 
