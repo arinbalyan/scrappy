@@ -36,7 +36,7 @@ Flat table, one row per job. Nested fields (Emails, skills) are semicolon-joined
 scrappy --sites indeed --search "rust" --format csv --out jobs.csv
 ```
 
-### Column schema (30 columns)
+### Column schema (34 columns)
 
 ```
 site, title, company_name, location, is_remote, job_type, date_posted,
@@ -44,7 +44,8 @@ description, job_url, emails, emails_verified, email_source, apply_method,
 seniority, department, company_url, job_url_direct, company_industry,
 company_logo, company_revenue, company_num_employees, company_addresses,
 company_description, skills, experience_range, company_rating,
-company_reviews_count, vacancy_count, work_from_home_type, quality_score
+company_reviews_count, vacancy_count, work_from_home_type, quality_score,
+salary_interval, salary_min, salary_max, salary_currency
 ```
 
 - Array fields (emails, skills) are semicolon-delimited
@@ -134,4 +135,4 @@ The engine always strips HTML tags before output (via `golang.org/x/net/html` to
 | XLSX | ~50 ms | ~1.2 MB | O(rows) in memory |
 | Parquet | ~60 ms | ~120 KB | O(row group) |
 
-> **Note:** Values are approximate and depend on hardware, description length, and concurrency settings. Parquet is the most space-efficient but slower to write due to columnar encoding. JSONL is the fastest and most pipeline-friendly.
+> **Note:** Values are approximate and depend on hardware, description length, and concurrency settings. Parquet is the most space-efficient but slower to write due to columnar encoding. JSONL is the fastest and most pipeline-friendly. Skills and compensation are included in all output formats: CSV/XLSX/Parquet have `salary_*` columns and semicolon-joined skills; JSONL preserves the native `Skills []string` and `Compensation *Compensation` structs.
