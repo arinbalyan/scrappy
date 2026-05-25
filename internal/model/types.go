@@ -245,7 +245,7 @@ type JobPost struct {
 	FetchedAt    *time.Time `json:"fetched_at,omitempty"`
 
 	Emails         []Email       `json:"emails,omitempty"`
-	Compensation   *Compensation `json:"compensation,omitempty"`
+	Compensation   *Compensation `json:"compensation"`
 	Seniority      string        `json:"seniority,omitempty"`  // entry | mid | senior | lead
 	Department     string        `json:"department,omitempty"` // eng | data | product | ...
 	Domain         string        `json:"domain,omitempty"`     // company domain from email / URL
@@ -267,7 +267,7 @@ type JobPost struct {
 	CompanyLogo         string `json:"company_logo,omitempty"`
 
 	// Naukri-specific
-	Skills          []string `json:"skills,omitempty"`
+	Skills          []string `json:"skills"`
 	ExperienceRange string   `json:"experience_range,omitempty"`
 	CompanyRating   *float64 `json:"company_rating,omitempty"`
 	CompanyReviews  int      `json:"company_reviews_count,omitempty"`

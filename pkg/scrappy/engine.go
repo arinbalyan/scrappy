@@ -398,6 +398,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		}
 		jobs := res.jobs
 		for i := range jobs {
+			normalizeJobPost(&jobs[i])
 			jobs[i].Description = stripHTML(jobs[i].Description)
 			jobs[i].CompanyDescription = stripHTML(jobs[i].CompanyDescription)
 			jobs[i].Site = string(res.site)
@@ -447,8 +448,18 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		}
 		all = filtered
 	}
-	if input.HoursOld > 0 {
-		cutoff := time.Now().Add(-time.Duration(input.HoursOld) * time.Hour)
+	// Apply recency filters: HoursOld (relative) and SinceDate (absolute).
+	if input.HoursOld > 0 || input.SinceDate != "" {
+		var cutoff time.Time
+		if input.HoursOld > 0 {
+			cutoff = time.Now().Add(-time.Duration(input.HoursOld) * time.Hour)
+		}
+		if input.SinceDate != "" {
+			since, err := parseSinceDate(input.SinceDate)
+			if err == nil && (cutoff.IsZero() || since.After(cutoff)) {
+				cutoff = since
+			}
+		}
 		filtered := all[:0]
 		for _, j := range all {
 			if j.DatePosted != nil && !j.DatePosted.IsZero() && j.DatePosted.After(cutoff) {
@@ -639,6 +650,14 @@ func stripHTML(s string) string {
 	}
 }
 
+// normalizeJobPost ensures fields that consumers expect are never nil/empty
+// when they should have a predictable zero value.
+func normalizeJobPost(j *model.JobPost) {
+	if j.Skills == nil {
+		j.Skills = []string{}
+	}
+}
+
 func dedupWithinSite(in []model.JobPost) []model.JobPost {
 	seen := map[string]struct{}{}
 	out := make([]model.JobPost, 0, len(in))
@@ -658,4 +677,19 @@ func dedupWithinSite(in []model.JobPost) []model.JobPost {
 		out = append(out, j)
 	}
 	return out
+}
+
+// parseSinceDate parses a --since flag value, accepting RFC3339 or YYYY-MM-DD.
+func parseSinceDate(s string) (time.Time, error) {
+	// Try RFC3339 first (full datetime with timezone)
+	t, err := time.Parse(time.RFC3339, s)
+	if err == nil {
+		return t, nil
+	}
+	// Try YYYY-MM-DD (start of day)
+	t, err = time.Parse("2006-01-02", s)
+	if err == nil {
+		return t, nil
+	}
+	return time.Time{}, fmt.Errorf("invalid --since date %q: expected RFC3339 or YYYY-MM-DD", s)
 }
