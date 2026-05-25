@@ -14,16 +14,77 @@ import (
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
-const searchURL = "https://www.jobstreet.com/api/chalice-search/v4/search"
+// SEEK v5 API constants.
+const (
+	apiURL         = "https://www.seek.com.au/api/jobsearch/v5/search"
+	defaultSiteKey = "MY-Main"
+	maxPages       = 10
+	rateLimitDelayMin = 200 * time.Millisecond
+	rateLimitDelayMax = 500 * time.Millisecond // 200-500ms jitter
+	resultsPerPage = 30
+)
 
-// salaryRE parses salary strings like "MYR 5,000 - MYR 8,000" or "MYR 5000-MYR 8000".
-// Captures: currency1, minAmount, currency2, maxAmount.
-var salaryRE = regexp.MustCompile(`([A-Z]{3})?\s*\$?([\d,]+)\s*[–-]\s*([A-Z]{3})?\s*\$?([\d,]+)`)
+// salaryRE parses salaryLabel like "RM 5,000 – RM 8,000 per month" or
+// "MYR 5,000 - MYR 8,000 per month".
+var salaryRE = regexp.MustCompile(`([A-Z]{2,})?\s*\$?([\d,]+)\s*[–-]\s*([A-Z]{2,})?\s*\$?([\d,]+)`)
 
-// Scraper scrapes JobStreet.com job listings via their Chalice search API.
+// intervalRE detects the pay interval from a salaryLabel.
+var intervalRE = regexp.MustCompile(`(?i)(per\s+year|per\s+month|per\s+hour|per\s+week|per\s+day|annum|annual|yearly|monthly|hourly)`)
+
+// --- SEEK v5 API response types ---
+
+type seekResponse struct {
+	Data       []seekJob `json:"data"`
+	TotalCount int       `json:"totalCount"`
+}
+
+type seekJob struct {
+	ID               string            `json:"id"`
+	Title            string            `json:"title"`
+	Advertiser       *seekAdvertiser   `json:"advertiser,omitempty"`
+	CompanyName      string            `json:"companyName,omitempty"`
+	Teaser           string            `json:"teaser,omitempty"`
+	ListingDate      string            `json:"listingDate,omitempty"`
+	Locations        []seekLocation    `json:"locations,omitempty"`
+	SalaryLabel      string            `json:"salaryLabel,omitempty"`
+	WorkTypes        []string          `json:"workTypes,omitempty"`
+	WorkArrangements *seekWorkArr      `json:"workArrangements,omitempty"`
+	Classifications []seekClassGroup  `json:"classifications,omitempty"`
+	BulletPoints    []string          `json:"bulletPoints,omitempty"`
+	Branding        *seekBranding     `json:"branding,omitempty"`
+}
+
+type seekAdvertiser struct {
+	Description string `json:"description"`
+}
+
+type seekLocation struct {
+	Label       string `json:"label"`
+	CountryCode string `json:"countryCode,omitempty"`
+}
+
+type seekWorkArr struct {
+	Data        []any  `json:"data,omitempty"`
+	DisplayText string `json:"displayText,omitempty"`
+}
+
+type seekClassGroup struct {
+	Classification    *seekClass `json:"classification,omitempty"`
+	SubClassification *seekClass `json:"subclassification,omitempty"`
+}
+
+type seekClass struct {
+	Description string `json:"description"`
+}
+
+type seekBranding struct {
+	SerpLogoURL string `json:"serpLogoUrl,omitempty"`
+}
+
+// Scraper scrapes JobStreet via the SEEK v5 REST API.
 type Scraper struct {
-	client    *http.Client
-	searchURL string
+	client  *http.Client
+	apiURL  string
 }
 
 // New creates a new JobStreet scraper with the given HTTP client.
@@ -31,14 +92,14 @@ func New(client *http.Client) *Scraper {
 	if client == nil {
 		client = util.NewHTTPClient(util.ClientOptions{Retries: 3, Timeout: 25 * time.Second})
 	}
-	return &Scraper{client: client, searchURL: searchURL}
+	return &Scraper{client: client, apiURL: apiURL}
 }
 
 // NewWithURLs creates a scraper with an overridable endpoint (used in tests).
 func NewWithURLs(client *http.Client, endpoint string) *Scraper {
 	s := New(client)
 	if strings.TrimSpace(endpoint) != "" {
-		s.searchURL = strings.TrimSpace(endpoint)
+		s.apiURL = strings.TrimSpace(endpoint)
 	}
 	return s
 }
@@ -46,29 +107,65 @@ func NewWithURLs(client *http.Client, endpoint string) *Scraper {
 // SiteName returns the site identifier.
 func (s *Scraper) SiteName() model.Site { return model.SiteJobStreet }
 
-// Scrape fetches job listings from JobStreet with the given input.
+// Scrape fetches job listings from the SEEK v5 search API with pagination.
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	wanted := input.ResultsWanted
 	if wanted <= 0 {
-		wanted = 25
+		wanted = 15
 	}
+
+	util.Debug("scraper_jobstreet_start", map[string]any{
+		"search_term":    input.SearchTerm,
+		"location":       input.Location,
+		"results_wanted": wanted,
+	})
 
 	jobs := make([]model.JobPost, 0, wanted)
+	page := 1
 
-	body, err := s.fetchPage(ctx, input.SearchTerm, input.Location, wanted)
-	if err != nil {
-		return nil, fmt.Errorf("jobstreet: %w", err)
-	}
+	for len(jobs) < wanted && page <= maxPages {
+		select {
+		case <-ctx.Done():
+			util.Debug("scraper_jobstreet_cancelled", map[string]any{"jobs_found": len(jobs)})
+			return jobs, ctx.Err()
+		default:
+		}
 
-	page, err := parseJobs(body)
-	if err != nil {
-		return nil, fmt.Errorf("jobstreet parse: %w", err)
-	}
+		body, err := s.fetchPage(ctx, input.SearchTerm, input.Location, page, wanted)
+		if err != nil {
+			util.Warn("scraper_jobstreet_fetch_error", map[string]any{"page": page, "err": err.Error()})
+			return nil, fmt.Errorf("jobstreet page %d: %w", page, err)
+		}
 
-	for _, j := range page {
-		jobs = append(jobs, j)
-		if len(jobs) >= wanted {
+		pageJobs, total, err := parseResponse(body)
+		if err != nil {
+			util.Warn("scraper_jobstreet_parse_error", map[string]any{"page": page, "err": err.Error()})
+			return nil, fmt.Errorf("jobstreet parse page %d: %w", page, err)
+		}
+
+		if len(pageJobs) == 0 {
+			util.Debug("scraper_jobstreet_no_more_results", map[string]any{"page": page})
 			break
+		}
+
+		for _, j := range pageJobs {
+			if len(jobs) >= wanted {
+				break
+			}
+			job := mapJob(j)
+			if job != nil {
+				jobs = append(jobs, *job)
+			}
+		}
+
+		// Stop if we've exhausted all results.
+		if len(jobs) >= total || len(pageJobs) < resultsPerPage {
+			break
+		}
+
+		page++
+		if err := util.JitterSleep(ctx, rateLimitDelayMin, rateLimitDelayMax-rateLimitDelayMin); err != nil {
+			return jobs, err
 		}
 	}
 
@@ -78,18 +175,25 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if len(jobs) > wanted {
 		jobs = jobs[:wanted]
 	}
+
+	util.Debug("scraper_jobstreet_done", map[string]any{"jobs": len(jobs)})
 	return jobs, nil
 }
 
-// fetchPage calls the JobStreet Chalice search API.
-func (s *Scraper) fetchPage(ctx context.Context, searchTerm, location string, pageSize int) ([]byte, error) {
-	u, _ := url.Parse(s.searchURL)
+// fetchPage makes a GET request to the SEEK v5 API for a given page.
+func (s *Scraper) fetchPage(ctx context.Context, searchTerm, location string, page, wantedSize int) ([]byte, error) {
+	u, err := url.Parse(s.apiURL)
+	if err != nil {
+		return nil, fmt.Errorf("jobstreet parse url: %w", err)
+	}
+
 	q := u.Query()
-	q.Set("siteKey", "MY-Main")
-	q.Set("pageSize", fmt.Sprintf("%d", pageSize))
 	if v := strings.TrimSpace(searchTerm); v != "" {
 		q.Set("keywords", v)
 	}
+	q.Set("pagesize", fmt.Sprintf("%d", wantedSize))
+	q.Set("page", fmt.Sprintf("%d", page))
+	q.Set("siteKey", defaultSiteKey)
 	if v := strings.TrimSpace(location); v != "" {
 		q.Set("where", v)
 	}
@@ -100,15 +204,16 @@ func (s *Scraper) fetchPage(ctx context.Context, searchTerm, location string, pa
 		return nil, err
 	}
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129 Safari/537.36")
-	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
+	req.Header.Set("Referer", "https://www.jobstreet.com/")
+	req.Header.Set("Origin", "https://www.jobstreet.com")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("jobstreet request: %w", err)
 	}
 	defer resp.Body.Close()
+
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("jobstreet status %d", resp.StatusCode)
 	}
@@ -120,150 +225,116 @@ func (s *Scraper) fetchPage(ctx context.Context, searchTerm, location string, pa
 	return body, nil
 }
 
-// parseJobs unmarshals the JSON response into JobPost records.
-// The response can be either a raw array or an object with data/jobs fields.
-func parseJobs(raw []byte) ([]model.JobPost, error) {
-	rawJobs, err := unmarshalJobs(raw)
-	if err != nil {
-		return nil, err
+// parseResponse extracts jobs from the SEEK v5 JSON response.
+func parseResponse(raw []byte) ([]seekJob, int, error) {
+	var resp seekResponse
+	if err := json.Unmarshal(raw, &resp); err != nil {
+		return nil, 0, fmt.Errorf("jobstreet decode: %w", err)
 	}
-	if len(rawJobs) == 0 {
-		return nil, nil
+	if resp.Data == nil {
+		return nil, 0, nil
 	}
-
-	jobs := make([]model.JobPost, 0, len(rawJobs))
-	for _, rj := range rawJobs {
-		j, err := mapJob(rj)
-		if err != nil {
-			continue
-		}
-		if j != nil {
-			jobs = append(jobs, *j)
-		}
-	}
-	return jobs, nil
+	return resp.Data, resp.TotalCount, nil
 }
 
-// unmarshalJobs handles both array and object response shapes.
-func unmarshalJobs(raw []byte) ([]rawJob, error) {
-	// Try direct array first.
-	var arr []rawJob
-	if err := json.Unmarshal(raw, &arr); err == nil {
-		return arr, nil
-	}
-
-	// Try object with data or jobs field.
-	var obj struct {
-		Data []rawJob `json:"data"`
-		Jobs []rawJob `json:"jobs"`
-	}
-	if err := json.Unmarshal(raw, &obj); err != nil {
-		return nil, fmt.Errorf("unmarshal response: %w", err)
-	}
-	if len(obj.Data) > 0 {
-		return obj.Data, nil
-	}
-	return obj.Jobs, nil
-}
-
-// mapJob converts a raw JobStreet job into a model.JobPost.
-func mapJob(rj rawJob) (*model.JobPost, error) {
-	if strings.TrimSpace(rj.Title) == "" {
-		return nil, fmt.Errorf("missing title")
-	}
-
-	// Resolve company name: advertiser.description -> companyName -> company.
-	companyName := rj.CompanyName
-	if companyName == "" && rj.Advertiser != nil && strings.TrimSpace(rj.Advertiser.Description) != "" {
-		companyName = rj.Advertiser.Description
-	}
-	if companyName == "" && rj.Company != "" {
-		companyName = rj.Company
-	}
-
-	// Resolve job URL: listingUrl -> jobUrl -> construct from id.
-	jobURL := strings.TrimSpace(rj.ListingURL)
-	if jobURL == "" {
-		jobURL = strings.TrimSpace(rj.JobURL)
-	}
-	if jobURL == "" && toStr(rj.ID) != "" {
-		jobURL = fmt.Sprintf("https://www.jobstreet.com/job/%s", toStr(rj.ID))
-	}
-	if jobURL == "" {
-		return nil, fmt.Errorf("missing job URL")
-	}
-
-	// ID: use provided id.
-	idStr := toStr(rj.ID)
-	if idStr == "" {
-		return nil, fmt.Errorf("missing job ID")
-	}
-	fullID := fmt.Sprintf("jobstreet-%s", idStr)
-
-	// Description: teaser -> description.
-	description := ""
-	if strings.TrimSpace(rj.Teaser) != "" {
-		description = strings.TrimSpace(rj.Teaser)
-	} else if strings.TrimSpace(rj.Description) != "" {
-		description = strings.TrimSpace(rj.Description)
-	}
-
-	// Location: locationWhereValue -> location.
-	locationStr := ""
-	if strings.TrimSpace(rj.LocationWhereValue) != "" {
-		locationStr = strings.TrimSpace(rj.LocationWhereValue)
-	} else if strings.TrimSpace(rj.Location) != "" {
-		locationStr = strings.TrimSpace(rj.Location)
-	}
-
-	// Salary.
-	comp := parseSalary(rj.Salary, rj.SalaryLabel)
-
-	// Date posted.
-	var datePosted *time.Time
-	if v := strings.TrimSpace(rj.ListingDate); v != "" {
-		datePosted = util.ParseDatePosted(v)
-	}
-
-	// Classification (work type / department).
-	department := ""
-	if rj.Classification != nil && strings.TrimSpace(rj.Classification.Description) != "" {
-		department = rj.Classification.Description
-	}
-
-	// Work type.
-	jobType := ""
-	if strings.TrimSpace(rj.WorkType) != "" {
-		jobType = strings.TrimSpace(rj.WorkType)
-	}
-
-	return &model.JobPost{
-		ID:          fullID,
-		Title:       strings.TrimSpace(rj.Title),
-		CompanyName: companyName,
-		JobURL:      jobURL,
-		Location:    model.Location{City: locationStr},
-		Description: description,
-		Compensation: comp,
-		DatePosted:  datePosted,
-		IsRemote:    rj.IsRemote,
-		Department:  department,
-		JobType:     jobType,
-	}, nil
-}
-
-// parseSalary parses a salary string like "MYR 5,000 - MYR 8,000" into Compensation.
-func parseSalary(salary, salaryLabel string) *model.Compensation {
-	text := salary
-	if strings.TrimSpace(text) == "" {
-		text = salaryLabel
-	}
-	text = strings.TrimSpace(text)
-	if text == "" || len(text) > 200 {
+// mapJob converts a SEEK v5 API job to a model.JobPost.
+func mapJob(j seekJob) *model.JobPost {
+	if strings.TrimSpace(j.ID) == "" || strings.TrimSpace(j.Title) == "" {
 		return nil
 	}
 
-	m := salaryRE.FindStringSubmatch(text)
+	// Resolve company name: advertiser.description -> companyName.
+	companyName := strings.TrimSpace(j.CompanyName)
+	if companyName == "" && j.Advertiser != nil {
+		companyName = strings.TrimSpace(j.Advertiser.Description)
+	}
+
+	// Build job URL.
+	jobURL := fmt.Sprintf("https://www.jobstreet.com/job/%s", strings.TrimSpace(j.ID))
+
+	// Parse location.
+	var locationCity string
+	if len(j.Locations) > 0 {
+		locationCity = strings.TrimSpace(j.Locations[0].Label)
+	}
+
+	// Parse listing date (RFC3339 format).
+	var datePosted *time.Time
+	if v := strings.TrimSpace(j.ListingDate); v != "" {
+		if t, err := time.Parse(time.RFC3339, v); err == nil {
+			datePosted = &t
+		}
+	}
+
+	// Determine remote status from workArrangements.
+	isRemote := false
+	if j.WorkArrangements != nil {
+		text := strings.ToLower(strings.TrimSpace(j.WorkArrangements.DisplayText))
+		isRemote = strings.Contains(text, "remote")
+	}
+
+	// Determine job type (workTypes[0]).
+	jobType := ""
+	if len(j.WorkTypes) > 0 {
+		jobType = strings.TrimSpace(j.WorkTypes[0])
+	}
+
+	// Parse compensation from salaryLabel.
+	comp := parseSalary(j.SalaryLabel)
+
+	// Department from classification > subclassification.
+	department := ""
+	// Industry from classification > classification.description.
+	industry := ""
+	if len(j.Classifications) > 0 {
+		if j.Classifications[0].SubClassification != nil {
+			department = strings.TrimSpace(j.Classifications[0].SubClassification.Description)
+		}
+		if j.Classifications[0].Classification != nil {
+			industry = strings.TrimSpace(j.Classifications[0].Classification.Description)
+		}
+	}
+
+	// Company logo from branding.
+	logoURL := ""
+	if j.Branding != nil {
+		logoURL = strings.TrimSpace(j.Branding.SerpLogoURL)
+	}
+
+	// Description: teaser + bulletPoints.
+	description := strings.TrimSpace(j.Teaser)
+	if len(j.BulletPoints) > 0 {
+		if description != "" {
+			description += "\n"
+		}
+		description += strings.Join(j.BulletPoints, "\n")
+	}
+
+	return &model.JobPost{
+		ID:             "jobstreet-" + strings.TrimSpace(j.ID),
+		Title:          strings.TrimSpace(j.Title),
+		CompanyName:    companyName,
+		JobURL:         jobURL,
+		Location:       model.Location{City: locationCity},
+		Description:    description,
+		DatePosted:     datePosted,
+		IsRemote:       isRemote,
+		JobType:        jobType,
+		Compensation:   comp,
+		Department:     department,
+		Industry:       industry,
+		CompanyLogoURL: logoURL,
+	}
+}
+
+// parseSalary extracts compensation data from a SEEK salaryLabel.
+func parseSalary(label string) *model.Compensation {
+	label = strings.TrimSpace(label)
+	if label == "" || len(label) > 200 {
+		return nil
+	}
+
+	m := salaryRE.FindStringSubmatch(label)
 	if len(m) < 5 {
 		return nil
 	}
@@ -287,60 +358,25 @@ func parseSalary(salary, salaryLabel string) *model.Compensation {
 		return nil
 	}
 
+	// Detect interval from label.
+	interval := model.IntervalYearly // default
+	if im := intervalRE.FindStringSubmatch(label); len(im) > 1 {
+		switch strings.ToLower(strings.TrimSpace(im[1])) {
+		case "per month", "monthly":
+			interval = model.IntervalMonthly
+		case "per hour", "hourly":
+			interval = model.IntervalHourly
+		case "per week", "weekly":
+			interval = model.IntervalWeekly
+		case "per day", "daily":
+			interval = model.IntervalDaily
+		}
+	}
+
 	return &model.Compensation{
-		Interval:  model.IntervalYearly,
+		Interval:  interval,
 		MinAmount: &minF,
 		MaxAmount: &maxF,
 		Currency:  currency,
-	}
-}
-
-// --- JSON response types ---
-
-// rawJob maps a single JobStreet job listing.
-type rawJob struct {
-	// ID can be a string or number in the API response.
-	ID                 interface{}   `json:"id"`
-	Title              string        `json:"title"`
-	Advertiser         *advertiser   `json:"advertiser,omitempty"`
-	CompanyName        string        `json:"companyName,omitempty"`
-	Company            string        `json:"company,omitempty"`
-	JobURL             string        `json:"jobUrl,omitempty"`
-	ListingURL         string        `json:"listingUrl,omitempty"`
-	Teaser             string        `json:"teaser,omitempty"`
-	Description        string        `json:"description,omitempty"`
-	Location           string        `json:"location,omitempty"`
-	LocationWhereValue string        `json:"locationWhereValue,omitempty"`
-	Salary             string        `json:"salary,omitempty"`
-	SalaryLabel        string        `json:"salaryLabel,omitempty"`
-	WorkType           string        `json:"workType,omitempty"`
-	Classification     *classification `json:"classification,omitempty"`
-	ListingDate        string        `json:"listingDate,omitempty"`
-	IsRemote           bool          `json:"isRemote,omitempty"`
-}
-
-type advertiser struct {
-	Description string `json:"description"`
-}
-
-type classification struct {
-	Description string `json:"description"`
-}
-
-// toStr converts an interface{} value to a string for fields that may be
-// either string or number in the API response (e.g. job IDs).
-func toStr(v interface{}) string {
-	if v == nil {
-		return ""
-	}
-	switch s := v.(type) {
-	case string:
-		return s
-	case float64:
-		return fmt.Sprintf("%.0f", s)
-	case json.Number:
-		return s.String()
-	default:
-		return fmt.Sprintf("%v", s)
 	}
 }

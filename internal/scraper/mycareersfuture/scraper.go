@@ -123,8 +123,8 @@ func (s *Scraper) fetchPage(ctx context.Context, searchTerm string, limit int) (
 	}
 	u.RawQuery = q.Encode()
 
-	// Rate limit: 3 req/s
-	if err := util.SleepWithContext(ctx, 333*time.Millisecond); err != nil {
+	// Rate limit: 200-500ms jittered delay
+	if err := util.JitterSleep(ctx, 200*time.Millisecond, 300*time.Millisecond); err != nil {
 		return nil, err
 	}
 

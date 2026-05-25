@@ -99,7 +99,7 @@ scrappy --sites remoteok --search "golang" --email-max-per-job 10
 
 ## Out of memory
 
-**Cause:** Running 65+ scrapers without a memory cap can consume 500+ MB.
+**Cause:** Running 55+ scrapers without a memory cap can consume 500+ MB.
 
 **Solution:**
 
@@ -166,6 +166,29 @@ scrappy --min-score 60 --sites indeed --search "engineer" --format jsonl --out /
 # Pipe through gzip
 scrappy --sites indeed --search "engineer" --out /dev/stdout | gzip > jobs.jsonl.gz
 ```
+
+## Browser fallback not working (naukri, monster, jooble)
+
+**Cause:** Playwright is not installed, or Chromium is missing.
+
+**Solution:**
+
+```bash
+# Install Node.js dependencies in the scripts directory
+cd scripts/
+npm install
+```
+
+The browser fallback is auto-detected at runtime. After installing Playwright, no configuration is needed -- scrapers will automatically use the browser when a plain HTTP request is blocked.
+
+To verify the setup:
+
+```bash
+scrappy --help | grep Browser
+# Output: --browser-enable  Enable Playwright browser fallback (default: true)
+```
+
+If the site still fails, the anti-bot protection may require additional browser fingerprinting (always-on for enterprise WAF). These sites fail open and do not block other scrapers.
 
 ## Per-site telemetry shows errors
 

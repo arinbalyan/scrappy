@@ -33,7 +33,7 @@ const ascii = "\033[38;5;117m" + `
   ╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝        ╚═╝
 ` + "\033[0m"
 
-const longHelp = `Bulk job-board scraper for 65+ sites — Go-native, high concurrency,
+const longHelp = `Bulk job-board scraper for 55+ sites — Go-native, high concurrency,
 low memory, and bulk-first design.
 
 SETUP
@@ -67,7 +67,7 @@ COMMANDS
 FLAGS
   --search             Comma-separated search terms (e.g. "AI Engineer,Software Dev")
   --location           Comma-separated locations (e.g. "Remote,New York,Hyderabad")
-  --sites              Comma-separated site names (empty = all 65+)
+  --sites              Comma-separated site names (empty = all 55+)
   --results-wanted     Max results total
   --format             Output: jsonl (default), csv, xlsx, parquet
   --out                Output file path (empty = stdout)
@@ -83,20 +83,20 @@ FLAGS
   --non-interactive    Disable interactive wizard (for scripts)
   --interactive        Force interactive mode (default: auto)
 
-SITES (65 total)
-  linkedin, indeed, zip_recruiter, bayt, bdjobs, naukri,
+SITES (55 total)
+  linkedin, indeed, naukri,
   internshala, builtin, startupjobs, greenhouse, gunio,
   himalayas, hiringcafe, huggingfacejobs, jobindex, remoteok,
   remotive, remotefirstjobs, jobspresso, hasjob,
   vuejobs, larajobs, arbeitnow, hackernews,
   cryptocurrencyjobs, androidjobs, jobicy, devopsjobs,
-  crunchboard, iosdevjobs, swissdevjobs, cryptojobslist,
-  devitjobs, dribbble, aijobs, workingnomads, wuzzuf,
+  crunchboard, cryptojobslist,
+  dribbble, aijobs, workingnomads,
   ycjobs, ukvisajobs, google, glassdoor, adzuna,
   simplyhired, careerbuilder, careerjet, jooble, dice,
-  monster, stepstone, infojobs, reed, themuse, jobsdb,
+  monster, infojobs, reed, themuse, jobsdb,
   snagajob, djinni, headhunter, mycareersfuture, jobstreet,
-  upwork, 4dayweek, academiccareers, eurojobs, findwork,
+  4dayweek, eurojobs, findwork,
   web3career, arbeitsagentur
 
 EXAMPLES
@@ -297,7 +297,7 @@ func main() {
 func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root := &cobra.Command{
 		Use:     "scrappy",
-		Short:   "Bulk job-board scraper for 65+ sites",
+		Short:   "Bulk job-board scraper for 55+ sites",
 		Long:    longHelp,
 		Version: version,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -324,7 +324,7 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 
 	root.Flags().StringVar(&cfg.Search, "search", "", "search term (e.g. \"software engineer\")")
 	root.Flags().StringVar(&cfg.Location, "location", "", "search location (e.g. \"San Francisco, CA\")")
-	root.Flags().StringVar(&cfg.Sites, "sites", "", "comma-separated site names (empty = all 65+)")
+	root.Flags().StringVar(&cfg.Sites, "sites", "", "comma-separated site names (empty = all 55+)")
 	root.Flags().IntVar(&cfg.ResultsWanted, "results-wanted", 0, "max results")
 	root.Flags().StringVar(&cfg.Format, "format", "", "output format: jsonl|csv|xlsx|parquet")
 	root.Flags().StringVar(&cfg.Out, "out", "", "output path (empty = stdout)")
@@ -395,7 +395,7 @@ func runInteractive(cfg *cliConfig) {
 	fmt.Println(" \033[38;5;117m╭─ Main Settings ───────────────────────────────────╮\033[0m")
 	cfg.Search = ask(reader, "  Search term (e.g. \"AI Engineer\" or \"software engineer\")", cfg.Search)
 	cfg.Location = ask(reader, "  Location (e.g. \"Remote\" or \"San Francisco, CA\")", cfg.Location)
-	cfg.Sites = ask(reader, "  Sites (comma-separated, empty=all 65+, e.g. linkedin,indeed)", cfg.Sites)
+	cfg.Sites = ask(reader, "  Sites (comma-separated, empty=all 55+, e.g. linkedin,indeed)", cfg.Sites)
 	cfg.ResultsWanted = askInt(reader, "  Results wanted (0 = unlimited)", cfg.ResultsWanted)
 	fmt.Println(" \033[38;5;117m╰────────────────────────────────────────────────────╯\033[0m")
 

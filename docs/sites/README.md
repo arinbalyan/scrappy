@@ -27,43 +27,12 @@ One page per site. Each page covers: how it works, pagination, rate limits, know
 - Uses `savedSearchId` in the query for recent postings filter.
 - Dates are rounded up to the next day (hence `--hours-old` is approximate).
 
-## ZipRecruiter
-
-- Search API at `www.ziprecruiter.com/candidate/search`.
-- US/Canada only (`country_indeed` not applicable).
-- Aggressive anti-bot; proxy required for any sustained run.
-- Pagination: cursor-based through an API endpoint.
-
 ## Google Jobs
 
 - Embedded in Google SERP HTML — no separate API endpoint.
 - Use `--google-search-term "..."` (not plain `--search`). Copy the full Google Jobs search-box string from your browser's URL bar when a search is active.
 - Rate-limited aggressively; treat as best-effort.
 - `--max-rps google:2` recommended maximum.
-
-## Wellfound (planned)
-
-- Wellfound public job listings (`wellfound.com/j-loc/{slug}`).
-- Startup-focused, remote-friendly.
-- Effort: easy — public HTML, no auth.
-
-## RemoteOK (planned)
-
-- Single-page application, jobs embedded as JSON in a `<script id="job-map">` tag.
-- 50 jobs per JSON blob; paginate via `?page=N`.
-- Effort: easy.
-
-## Remotive (planned)
-
-- Remotive provides a JSON API at `remotive.com/api/remote-jobs`.
-- Filter by category, salary range, date.
-- Effort: easy.
-
-## BuiltIn (planned)
-
-- School-specific boards: `builtin.com/school/{san-francisco|boston|new-york|austin}`.
-- Public HTML, tech-focused.
-- Effort: easy-medium.
 
 ## Workable Jobs
 
@@ -78,6 +47,51 @@ One page per site. Each page covers: how it works, pagination, rate limits, know
 - Native endpoint pattern: Workday CXS JSON endpoint (`.../wday/cxs/.../jobs`).
 - Seed inputs: `--workday-seeds` / `SCRAPPY_WORKDAY_SEEDS`.
 - Role filtering: flexible title/description contains + synonym expansion.
+
+## AuthenticJobs
+
+- API endpoint: `https://authenticjobs.com/api/`.
+- Requires `AUTHENTICJOBS_API_KEY` env var; skipped with WARN if missing.
+- Page-based pagination (`page` param). Default page size: 25.
+- Fields: id, title, company, description, perks, howto_apply, post_date, telecommuting, location.
+
+## EcoJobs
+
+- RSS feed: `https://www.ecojobs.com/rss.xml`.
+- No server-side search or pagination; client-side filter on title + description.
+- ID extracted from URL path segment.
+
+## Golang Jobs
+
+- RSS feed: `https://www.golangprojects.com/rss.xml`.
+- No server-side search or pagination; client-side filter on title + description + category.
+- Niche Go-specific board; may have feed availability issues.
+
+## Landing.jobs
+
+- JSON API: `https://landing.jobs/api/v1/jobs`.
+- Offset-based pagination (`offset`, `limit`). Max 5 pages, page size 50.
+- Compensation fields: `salary_low`, `salary_high` (EUR default).
+- Client-side search filter on title, role_description, and tags.
+
+## Himalayas
+
+- JSON API: `https://himalayas.app/jobs/api`.
+- Offset-based pagination (`offset`, `limit`). Max 10 pages, page size 20.
+- Remote-only board. `pubDate` is a Unix timestamp.
+- Compensation fields: `minSalary`, `maxSalary` (USD default).
+
+## CryptoJobsList
+
+- RSS feed: `https://api.cryptojobslist.com/jobs.rss`.
+- Extended extraction: `CompanyLogoURL` (`media:content`), `Location.City` (`media:location`).
+- `dc:creator` maps to company name.
+
+## Real Work From Anywhere
+
+- RSS feed: `https://www.realworkfromanywhere.com/rss.xml`.
+- Remote-only board; `IsRemote` always `true`.
+- ID falls back to GUID, then simple hash of the URL.
 
 ## Otta (planned)
 

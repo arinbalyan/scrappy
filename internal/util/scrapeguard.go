@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"hash/fnv"
 	"io"
+	"math/rand"
 	"regexp"
 	"strings"
 	"time"
@@ -201,6 +202,22 @@ func HasMeaningfulJobs(jobs []model.JobPost) bool {
 
 // SleepWithContext sleeps for the given duration, returning early if ctx is cancelled.
 func SleepWithContext(ctx context.Context, d time.Duration) error {
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-time.After(d):
+		return nil
+	}
+}
+
+// JitterSleep sleeps for a random duration between base and base+spread, returning
+// early if ctx is cancelled. Useful for human-like delay patterns that are harder
+// to fingerprint than fixed intervals.
+func JitterSleep(ctx context.Context, base, spread time.Duration) error {
+	if spread <= 0 {
+		return SleepWithContext(ctx, base)
+	}
+	d := base + time.Duration(rand.Int63n(int64(spread)))
 	select {
 	case <-ctx.Done():
 		return ctx.Err()

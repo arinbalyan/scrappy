@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -78,7 +79,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 	u, _ := url.Parse(s.apiURL)
 	q := u.Query()
-	q.Set("token", "public")
+	token := strings.TrimSpace(os.Getenv("WEB3CAREER_API_TOKEN"))
+	if token == "" {
+		return nil, fmt.Errorf("web3career: missing WEB3CAREER_API_TOKEN env var — get one from https://docs.bondex.app/api-reference")
+	}
+	q.Set("token", token)
 	u.RawQuery = q.Encode()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
