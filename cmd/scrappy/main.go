@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -217,8 +218,11 @@ type cliConfig struct {
 	Dedup            bool
 	DedupByCompany   bool
 	HoursOld         int
+	SinceDate        string
 	JSONPretty       bool
 	JSONMinify       bool
+	Schema           bool
+	VersionJSON      bool
 }
 
 type multiString []string
@@ -318,6 +322,15 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 		Long:    longHelp,
 		Version: version,
 		RunE: func(cmd *cobra.Command, args []string) error {
+			// Early exits before any scraping logic.
+			if cfg.Schema {
+				printSchema()
+				return nil
+			}
+			if cfg.VersionJSON {
+				printVersionJSON(cfg.JSONPretty, cfg.JSONMinify)
+				return nil
+			}
 			if cfg.NonInteractive {
 				cfg.Interactive = false
 			}
@@ -360,8 +373,11 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().IntVar(&cfg.MaxRPS, "max-rps", 0, "global max requests per second (overrides per-site defaults)")
 	root.Flags().StringVar(&cfg.SiteRPS, "site-rps", "", "per-site RPS overrides, e.g. linkedin:1,indeed:10")
 	root.Flags().IntVar(&cfg.HoursOld, "hours-old", 0, "only jobs posted within this many hours (0 = no filter)")
-	root.Flags().BoolVar(&cfg.JSONPretty, "json-pretty", false, "pretty-print JSON output (stdout only, default: minified)")
+	root.Flags().StringVar(&cfg.SinceDate, "since", "", "only jobs posted on or after this date (RFC3339 or YYYY-MM-DD)")
+	root.Flags().BoolVar(&cfg.JSONPretty, "json-pretty", false, "pretty-print JSON output (stdout only, default: auto-detect)")
 	root.Flags().BoolVar(&cfg.JSONMinify, "json-minify", false, "force minified JSON output even on stdout")
+	root.Flags().BoolVar(&cfg.Schema, "schema", false, "print JSON Schema for JobPost type and exit")
+	root.Flags().BoolVar(&cfg.VersionJSON, "version-json", false, "print version info as JSON and exit")
 	root.Flags().BoolVar(&cfg.Dedup, "dedup", true, "deduplicate jobs by URL across sites")
 	root.Flags().BoolVar(&cfg.DedupByCompany, "dedup-by-company", false, "keep only one posting per company")
 	root.SetVersionTemplate("scrappy v{{.Version}}\n")
@@ -685,6 +701,7 @@ func runOnce(cfg *cliConfig) error {
 		Locations:      locations,
 		ResultsWanted:  resultsWanted,
 		HoursOld:       cfg.HoursOld,
+		SinceDate:      cfg.SinceDate,
 		Dedup:          cfg.Dedup,
 		DedupByCompany: cfg.DedupByCompany,
 		MinScore:       cfg.MinScore,
@@ -991,4 +1008,25 @@ func loadDotEnv(path string) {
 		}
 		_ = os.Setenv(k, v)
 	}
+}
+
+// printVersionJSON outputs version information as JSON.  Used by --version-json flag.
+func printVersionJSON(pretty bool, minify bool) {
+	info := map[string]interface{}{
+		"version":   version,
+		"sites":     len(model.AllSites()),
+		"go":        strings.TrimPrefix(runtime.Version(), "go"),
+		"formats":   []string{"jsonl", "csv", "xlsx", "parquet"},
+	}
+	if exe, err := os.Executable(); err == nil {
+		if fi, err := os.Stat(exe); err == nil {
+			info["binary_size_bytes"] = fi.Size()
+			info["build_time"] = fi.ModTime().UTC().Format(time.RFC3339)
+		}
+	}
+	enc := json.NewEncoder(os.Stdout)
+	if pretty || !minify {
+		enc.SetIndent("", "  ")
+	}
+	_ = enc.Encode(info)
 }
