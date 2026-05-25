@@ -81,10 +81,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	q := u.Query()
 	token := strings.TrimSpace(os.Getenv("WEB3CAREER_API_TOKEN"))
 	if token == "" {
-		token = "public"
-		util.Warn("web3career_api_token_missing", map[string]any{
-			"warning": "WEB3CAREER_API_TOKEN not set; using fallback 'public' token which may be revoked. Get a free API key from https://web3.career/web3-jobs-api",
-		})
+		return nil, fmt.Errorf("web3career: missing WEB3CAREER_API_TOKEN env var — get one from https://docs.bondex.app/api-reference")
 	}
 	q.Set("token", token)
 	u.RawQuery = q.Encode()

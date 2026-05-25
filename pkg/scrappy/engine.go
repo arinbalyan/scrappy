@@ -86,6 +86,7 @@ var requiredEnvVars = map[model.Site][]string{
 	model.SiteInfoJobs:      {"INFOJOBS_CLIENT_ID", "INFOJOBS_CLIENT_SECRET"},
 	model.SiteFindwork:      {"FINDWORK_API_KEY"},
 	model.SiteArbeitsagentur: {"ARBEITSAGENTUR_API_KEY"},
+	model.SiteWeb3Career:     {"WEB3CAREER_API_TOKEN"},
 }
 
 type PostProcessor func(context.Context, *model.JobPost) error
