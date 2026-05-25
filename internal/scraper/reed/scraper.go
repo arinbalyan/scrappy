@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -21,11 +22,12 @@ const searchURL = "https://www.reed.co.uk/jobs"
 var nextDataRe = regexp.MustCompile(`<script id="__NEXT_DATA__" type="application/json">(?s)(.*?)</script>`)
 
 const (
-	salaryTypeDaily  = 2
-	salaryTypeAnnual = 5
-	reedCurrency     = "GBP"
-	maxRetries       = 3
-	rateLimitDelay   = 350 * time.Millisecond // ~3 req/s
+	salaryTypeDaily    = 2
+	salaryTypeAnnual   = 5
+	reedCurrency       = "GBP"
+	maxRetries         = 3
+	maxConsecutive429  = 3
+	rateLimitDelay     = 350 * time.Millisecond // ~3 req/s
 )
 
 // Scraper scrapes Reed.co.uk job listings.
@@ -68,9 +70,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 	jobs := make([]model.JobPost, 0, wanted)
 	pageno := 1
-	retries := 0
+	consecutive429 := 0
 
-	for len(jobs) < wanted && retries < maxRetries {
+	for len(jobs) < wanted {
 		select {
 		case <-ctx.Done():
 			util.Debug("scraper_reed_cancelled", map[string]any{"jobs_found": len(jobs)})
@@ -80,22 +82,25 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 		body, err := s.fetchPage(ctx, input.SearchTerm, input.Location, pageno)
 		if err != nil {
-			retries++
-			util.Warn("scraper_reed_fetch_error", map[string]any{"page": pageno, "err": err.Error()})
-			if err := backoff(ctx, retries); err != nil {
-				return jobs, err
+			if strings.Contains(err.Error(), "status 429") {
+				consecutive429++
+				util.Warn("reed_rate_limited", map[string]any{"consecutive": consecutive429, "page": pageno})
+				if consecutive429 >= maxConsecutive429 {
+					util.Warn("reed too many 429s, giving up", nil)
+					break
+				}
+				exponentialBackoff(ctx, consecutive429)
+				continue
 			}
-			continue
+			util.Debug("reed non-429 error, stopping", map[string]any{"err": err.Error()})
+			break
 		}
+		consecutive429 = 0
 
 		page, err := parseJobs(body)
 		if err != nil {
-			retries++
 			util.Warn("scraper_reed_parse_error", map[string]any{"page": pageno, "err": err.Error()})
-			if err := backoff(ctx, retries); err != nil {
-				return jobs, err
-			}
-			continue
+			break
 		}
 		if len(page) == 0 {
 			util.Debug("scraper_reed_no_more", map[string]any{"page": pageno})
@@ -255,13 +260,16 @@ func parseJobs(raw []byte) ([]model.JobPost, error) {
 	return jobs, nil
 }
 
-// backoff sleeps for increasingly longer durations, respecting ctx cancellation.
-func backoff(ctx context.Context, retries int) error {
-	if retries <= 0 {
-		return nil
+// exponentialBackoff sleeps with exponential delay + jitter, respecting ctx cancellation.
+func exponentialBackoff(ctx context.Context, retry int) {
+	// Exponential: 500ms * 2^retry, capped at 4s
+	base := time.Duration(500*(1<<retry)) * time.Millisecond
+	if base > 4*time.Second {
+		base = 4 * time.Second
 	}
-	d := time.Duration(retries) * time.Second
-	return util.SleepWithContext(ctx, d)
+	jitter := time.Duration(rand.Intn(500)) * time.Millisecond
+	wait := base + jitter
+	_ = util.SleepWithContext(ctx, wait)
 }
 
 // --- JSON structures for __NEXT_DATA__ ---
