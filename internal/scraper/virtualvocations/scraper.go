@@ -13,23 +13,14 @@ import (
 )
 
 const (
-	rssURL        = "https://www.virtualvocations.com/jobs/rss"
+	rssURL       = "https://www.virtualvocations.com/jobs/rss"
 	defaultWanted = 25
 )
 
 var (
 	itemBlockRe = regexp.MustCompile(`(?is)<item>(.*?)</item>`)
-	stripHTMLRe = regexp.MustCompile(`(?is)<[^>]+>`)
+	cdataRe     = regexp.MustCompile(`(?is)^\s*<!\[CDATA\[(.*?)\]\]>\s*$`)
 )
-
-// rssItem holds fields extracted from an RSS <item> block.
-type rssItem struct {
-	title       string
-	link        string
-	guid        string
-	description string
-	pubDate     string
-}
 
 // Scraper fetches jobs from the VirtualVocations RSS feed.
 type Scraper struct {
@@ -40,16 +31,19 @@ type Scraper struct {
 // New creates a new VirtualVocations scraper.
 func New(client *http.Client) *Scraper {
 	if client == nil {
-		client = util.NewHTTPClient(util.ClientOptions{Timeout: 20 * time.Second})
+		client = util.NewHTTPClient(util.ClientOptions{
+			Timeout: 20 * time.Second,
+			Retries: 2,
+		})
 	}
 	return &Scraper{client: client, rssURL: rssURL}
 }
 
-// NewWithRSSURL creates a new scraper with a custom endpoint (used in tests).
-func NewWithRSSURL(client *http.Client, endpoint string) *Scraper {
+// NewWithRSSURL creates a scraper with a custom RSS URL (used in tests).
+func NewWithRSSURL(client *http.Client, rssURL string) *Scraper {
 	s := New(client)
-	if strings.TrimSpace(endpoint) != "" {
-		s.rssURL = endpoint
+	if strings.TrimSpace(rssURL) != "" {
+		s.rssURL = strings.TrimSpace(rssURL)
 	}
 	return s
 }
@@ -57,7 +51,7 @@ func NewWithRSSURL(client *http.Client, endpoint string) *Scraper {
 // SiteName returns the site identifier.
 func (s *Scraper) SiteName() model.Site { return model.SiteVirtualVocations }
 
-// Scrape fetches jobs from the VirtualVocations RSS feed.
+// Scrape fetches jobs from VirtualVocations RSS feed.
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	util.Debug("scraper_start", map[string]any{
 		"site":           s.SiteName(),
@@ -65,17 +59,12 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		"search_term":    input.SearchTerm,
 	})
 
-	wanted := input.ResultsWanted
-	if wanted <= 0 {
-		wanted = defaultWanted
-	}
-
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.rssURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("virtualvocations: build request: %w", err)
 	}
 	req.Header.Set("Accept", "application/rss+xml, application/xml, text/xml")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; scrappy/1.0)")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -95,31 +84,45 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	items := parseRSSItems(string(body))
 	util.Debug("virtualvocations: parsed items", map[string]any{"count": len(items)})
 
-	if len(items) == 0 {
-		return nil, fmt.Errorf("virtualvocations: no jobs in RSS feed")
-	}
-
 	term := strings.ToLower(strings.TrimSpace(input.SearchTerm))
-	limit := wanted
-	if limit > len(items) {
-		limit = len(items)
+	wanted := input.ResultsWanted
+	if wanted <= 0 {
+		wanted = defaultWanted
 	}
 
-	out := make([]model.JobPost, 0, limit)
+	out := make([]model.JobPost, 0, wanted)
 	for _, item := range items {
-		if len(out) >= limit {
+		if len(out) >= wanted {
 			break
 		}
 
-		// Client-side search filter
-		if term != "" && !matchesSearch(item, term) {
+		title := strings.TrimSpace(item.title)
+		link := strings.TrimSpace(item.link)
+		if title == "" || link == "" {
 			continue
 		}
 
-		job, err := mapJob(item)
-		if err != nil {
-			continue
+		// Client-side search term filtering
+		if term != "" {
+			hay := strings.ToLower(title + " " + item.description)
+			if !strings.Contains(hay, term) {
+				continue
+			}
 		}
+
+		job := model.JobPost{
+			ID:          "virtualvocations-" + extractID(item.guid, item.link),
+			Title:       title,
+			JobURL:      link,
+			Description: strings.TrimSpace(item.description),
+			Site:        string(s.SiteName()),
+			IsRemote:    true,
+		}
+
+		if item.pubDate != "" {
+			job.DatePosted = parseDate(item.pubDate)
+		}
+
 		out = append(out, job)
 	}
 
@@ -134,7 +137,16 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	return out, nil
 }
 
-// parseRSSItems extracts RSS <item> blocks from XML.
+// --- RSS parsing ---
+
+type rssItem struct {
+	title       string
+	link        string
+	guid        string
+	description string
+	pubDate     string
+}
+
 func parseRSSItems(xml string) []rssItem {
 	blocks := itemBlockRe.FindAllStringSubmatch(xml, -1)
 	items := make([]rssItem, 0, len(blocks))
@@ -154,87 +166,49 @@ func parseRSSItems(xml string) []rssItem {
 	return items
 }
 
-// extractTag extracts text content from an XML tag, handling CDATA.
 func extractTag(xml, tag string) string {
-	// CDATA version
 	re := regexp.MustCompile(fmt.Sprintf(`(?is)<%s[^>]*>\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*</%s>`, regexp.QuoteMeta(tag), regexp.QuoteMeta(tag)))
 	if m := re.FindStringSubmatch(xml); len(m) == 2 {
 		return strings.TrimSpace(m[1])
 	}
-	// Plain version
 	re = regexp.MustCompile(fmt.Sprintf(`(?is)<%s[^>]*>([\s\S]*?)</%s>`, regexp.QuoteMeta(tag), regexp.QuoteMeta(tag)))
 	if m := re.FindStringSubmatch(xml); len(m) == 2 {
-		return strings.TrimSpace(m[1])
+		v := strings.TrimSpace(m[1])
+		if cm := cdataRe.FindStringSubmatch(v); len(cm) == 2 {
+			return strings.TrimSpace(cm[1])
+		}
+		return v
 	}
 	return ""
 }
 
-// matchesSearch checks if an item matches the search term.
-func matchesSearch(item rssItem, term string) bool {
-	return strings.Contains(strings.ToLower(item.title), term) ||
-		strings.Contains(strings.ToLower(item.description), term)
-}
-
-// mapJob converts an rssItem to a model.JobPost.
-func mapJob(item rssItem) (model.JobPost, error) {
-	if strings.TrimSpace(item.title) == "" || strings.TrimSpace(item.link) == "" {
-		return model.JobPost{}, fmt.Errorf("empty title or link")
-	}
-
-	desc := stripHTML(item.description)
-	id := idFromURL(item.guid)
-	if id == "" {
-		id = idFromURL(item.link)
-	}
-	if id == "" {
-		id = simpleHash(item.title)
-	}
-
-	return model.JobPost{
-		ID:          "virtualvocations-" + id,
-		Title:       strings.TrimSpace(item.title),
-		JobURL:      strings.TrimSpace(item.link),
-		Description: desc,
-		IsRemote:    true,
-		Site:        string(model.SiteVirtualVocations),
-		ApplyMethod: "external_url",
-		DatePosted:  parseDate(strings.TrimSpace(item.pubDate)),
-	}, nil
-}
-
-// stripHTML removes HTML tags.
-func stripHTML(s string) string {
-	return strings.TrimSpace(stripHTMLRe.ReplaceAllString(s, " "))
-}
-
-// idFromURL extracts a short ID from a URL path.
-func idFromURL(raw string) string {
-	if raw == "" {
-		return ""
-	}
-	u := strings.TrimRight(raw, "/")
-	parts := strings.Split(u, "/")
-	for i := len(parts) - 1; i >= 0; i-- {
-		if p := strings.TrimSpace(parts[i]); p != "" {
-			return p
+func extractID(guid, link string) string {
+	// Try GUID first
+	if guid != "" {
+		if idx := strings.LastIndex(guid, "/"); idx >= 0 {
+			id := guid[idx+1:]
+			if id != "" {
+				return id
+			}
 		}
 	}
-	return ""
+	// Fallback to link
+	if link != "" {
+		u := strings.TrimRight(link, "/")
+		parts := strings.Split(u, "/")
+		for i := len(parts) - 1; i >= 0; i-- {
+			if p := strings.TrimSpace(parts[i]); p != "" {
+				// Remove query string
+				if qIdx := strings.Index(p, "?"); qIdx >= 0 {
+					p = p[:qIdx]
+				}
+				return p
+			}
+		}
+	}
+	return "unknown"
 }
 
-// simpleHash produces a hash string for fallback IDs.
-func simpleHash(s string) string {
-	var h int
-	for i := 0; i < len(s); i++ {
-		h = (h<<5 - h) + int(s[i])
-	}
-	if h < 0 {
-		h = -h
-	}
-	return fmt.Sprintf("%x", h)
-}
-
-// parseDate parses a date string.
 func parseDate(v string) *time.Time {
 	v = strings.TrimSpace(v)
 	if v == "" {
@@ -243,6 +217,8 @@ func parseDate(v string) *time.Time {
 	formats := []string{
 		time.RFC1123Z,
 		time.RFC1123,
+		time.RFC822Z,
+		time.RFC822,
 		"Mon, 02 Jan 2006 15:04:05 -0700",
 		"Mon, 02 Jan 2006 15:04:05 MST",
 		time.RFC3339,
