@@ -3,7 +3,6 @@ package google
 import (
 	"context"
 	"fmt"
-	"hash/fnv"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -283,7 +282,7 @@ func parseJobs(raw []byte) []model.JobPost {
 			jobURL = fmt.Sprintf("https://www.google.com/search?q=%s", url.QueryEscape(p.title+" "+p.company+" jobs"))
 		}
 		jobs = append(jobs, model.JobPost{
-			ID:          "go-" + hashID(jobURL),
+			ID:          "go-" + util.HashID(jobURL),
 			Title:       p.title,
 			CompanyName: p.company,
 			JobURL:      jobURL,
@@ -315,8 +314,4 @@ func extractPairs(html string) []pair {
 	return out
 }
 
-func hashID(s string) string {
-	h := fnv.New64a()
-	h.Write([]byte(s))
-	return fmt.Sprintf("%d", h.Sum64())
-}
+

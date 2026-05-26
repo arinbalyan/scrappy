@@ -218,6 +218,11 @@ func parseProxyList(raw string) []*url.URL {
 	return out
 }
 
+// proxyReachable checks whether the proxy host:port is reachable via TCP.
+// For HTTP/HTTPS proxies this is a reasonable health probe.  For SOCKS5
+// proxies a simple TCP dial only confirms the port is open — it does not
+// validate that a full SOCKS handshake succeeds.  Full SOCKS handshake
+// validation requires a SOCKS library and is not attempted here.
 func proxyReachable(u *url.URL) bool {
 	if u == nil {
 		return false
@@ -237,7 +242,8 @@ func proxyReachable(u *url.URL) bool {
 			port = "80"
 		}
 	}
-	c, err := net.DialTimeout("tcp", net.JoinHostPort(host, port), 500*time.Millisecond)
+	addr := net.JoinHostPort(host, port)
+	c, err := net.DialTimeout("tcp", addr, 500*time.Millisecond)
 	if err != nil {
 		return false
 	}
@@ -249,14 +255,25 @@ func (s *smartRT) maybeRotateProxy() {
 	if len(s.proxyList) <= 1 {
 		return
 	}
+	rotateEveryN := s.opts.ProxyRotateEveryN
 	stickyN := s.opts.ProxyStickyWindowN
-	if stickyN <= 0 {
-		stickyN = 1
+	if rotateEveryN <= 0 && stickyN <= 0 {
+		return
 	}
+
 	n := atomic.AddInt64(&s.proxyReqN, 1)
-	if n == 1 || (s.opts.ProxyRotateEveryN > 0 && n%s.opts.ProxyRotateEveryN == 0) || n%stickyN == 0 {
-		next := (atomic.LoadInt64(&s.proxyIdx) + 1) % int64(len(s.proxyList))
-		atomic.StoreInt64(&s.proxyIdx, next)
+
+	// Determine if this request should trigger a rotation.
+	rotate := false
+	if rotateEveryN > 0 && n%rotateEveryN == 0 {
+		rotate = true
+	}
+	if stickyN > 0 && n%stickyN == 0 {
+		rotate = true
+	}
+
+	if rotate {
+		next := atomic.AddInt64(&s.proxyIdx, 1) % int64(len(s.proxyList))
 		s.base.Proxy = http.ProxyURL(s.proxyList[next])
 	}
 }

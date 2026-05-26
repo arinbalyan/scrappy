@@ -37,6 +37,8 @@ var (
 	reApplyURLCode  = regexp.MustCompile(`<code id="applyUrl">([\s\S]*?)</code>`)
 	reApplyURLParam = regexp.MustCompile(`\?url=([^"]+)`)
 	reDescription   = regexp.MustCompile(`show-more-less-html__markup[\s\S]*?<span>([\s\S]*?)</span>`)
+	reCard          = regexp.MustCompile(`(?s)<li[^>]*>[\s\S]*?<div[^>]*class="[^"]*base-search-card[^"]*"[\s\S]*?</li>`)
+	reLegacyCard    = regexp.MustCompile(`(?s)<div[^>]*class="[^"]*base-search-card[^"]*"[\s\S]*?</div>`)
 )
 
 type Scraper struct {
@@ -346,11 +348,9 @@ func (s *Scraper) fetchJobDetails(ctx context.Context, jobID string) (details, e
 }
 
 func parseJobCards(htmlBody, base string) []model.JobPost {
-	reCard := regexp.MustCompile(`(?s)<li[^>]*>[\s\S]*?<div[^>]*class="[^"]*base-search-card[^"]*"[\s\S]*?</li>`)
 	cards := reCard.FindAllString(htmlBody, -1)
 	if len(cards) == 0 {
-		reLegacy := regexp.MustCompile(`(?s)<div[^>]*class="[^"]*base-search-card[^"]*"[\s\S]*?</div>`)
-		cards = reLegacy.FindAllString(htmlBody, -1)
+		cards = reLegacyCard.FindAllString(htmlBody, -1)
 	}
 	jobs := make([]model.JobPost, 0, len(cards))
 	for _, c := range cards {

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"strings"
 	"time"
 )
 
@@ -164,7 +165,7 @@ type Location struct {
 }
 
 func (l Location) Display() string {
-	parts := []string{}
+	parts := make([]string, 0, 3)
 	if l.City != "" {
 		parts = append(parts, l.City)
 	}
@@ -174,20 +175,7 @@ func (l Location) Display() string {
 	if l.Country != "" {
 		parts = append(parts, l.Country)
 	}
-	return join(parts, ", ")
-}
-
-func join(parts []string, sep string) string {
-	switch len(parts) {
-	case 0:
-		return ""
-	case 1:
-		return parts[0]
-	case 2:
-		return parts[0] + sep + parts[1]
-	default:
-		return parts[0] + sep + parts[1] + sep + parts[2]
-	}
+	return strings.Join(parts, ", ")
 }
 
 // CompensationInterval is the pay period.

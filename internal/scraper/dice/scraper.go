@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"hash/fnv"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -693,12 +692,7 @@ func diceID(id, jobID, url string) string {
 	if key == "" {
 		key = url
 	}
-	return "dice-" + hashID(key)
+	return "dice-" + util.HashID(key)
 }
 
-// hashID generates a stable hash string for deduplication.
-func hashID(s string) string {
-	h := fnv.New64a()
-	h.Write([]byte(s))
-	return fmt.Sprintf("%d", h.Sum64())
-}
+
