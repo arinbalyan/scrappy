@@ -116,6 +116,17 @@ const (
 	SiteStepStone            Site = "stepstone"
 	SiteSwissDevJobs         Site = "swissdevjobs"
 	SiteTalroo               Site = "talroo"
+
+	// Batch 2 — additional sources
+	SiteTechCareers         Site = "techcareers"
+	SiteTesla               Site = "tesla"
+	SiteUNDPJobs            Site = "undpjobs"
+	SiteUpwork              Site = "upwork"
+	SiteUSAJobs             Site = "usajobs"
+	SiteVirtualVocations    Site = "virtualvocations"
+	SiteWellfound           Site = "wellfound"
+	SiteWeWorkRemotely      Site = "weworkremotely"
+	SiteWordPressJobs       Site = "wordpressjobs"
 )
 
 // AllSites returns every known site.
@@ -224,6 +235,15 @@ func AllSites() []Site {
 		SiteStepStone,
 		SiteSwissDevJobs,
 		SiteTalroo,
+		SiteTechCareers,
+		SiteTesla,
+		SiteUNDPJobs,
+		SiteUpwork,
+		SiteUSAJobs,
+		SiteVirtualVocations,
+		SiteWellfound,
+		SiteWeWorkRemotely,
+		SiteWordPressJobs,
 	}
 }
 
