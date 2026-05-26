@@ -176,11 +176,14 @@ See [014-Dedup.md](014-Dedup.md).
 
 ## 10. Docker
 
-Build and run with Docker (Dockerfile provided):
+Build and run with Docker (Dockerfile provided). A `.dockerignore` file keeps the
+build context lean by excluding `.git/`, `tmp/`, `tests/`, `docs/`, and other
+non-essential files.
 
 ```bash
-# Build
+# Build (or use the Makefile target)
 docker build -t scrappy .
+# or: make docker
 
 # Run
 docker run scrappy --sites remoteok,remotive --search "rust" \
