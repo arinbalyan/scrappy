@@ -97,6 +97,13 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		return nil, fmt.Errorf("monster: search term required")
 	}
 
+	// Parse OR terms — use the first term for server-side URL, filter all via client-side matchAny
+	terms := parseSearchTerms(searchTerm)
+	serverTerm := searchTerm
+	if len(terms) > 0 {
+		serverTerm = terms[0]
+	}
+
 	jobs := make([]model.JobPost, 0, wanted)
 	page := 1
 	maxPagesToFetch := maxPages
@@ -120,7 +127,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		default:
 		}
 
-		body, err := s.fetchPage(ctx, searchTerm, input.Location, page)
+		body, err := s.fetchPage(ctx, serverTerm, input.Location, page)
 		if err != nil {
 			return nil, fmt.Errorf("monster page %d: %w", page, err)
 		}
@@ -133,6 +140,13 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		for _, j := range pageJobs {
 			if j.ID == "" || j.Title == "" {
 				continue
+			}
+			// Client-side OR filtering across all terms
+			if len(terms) > 0 {
+				hay := strings.ToLower(j.Title + " " + j.Description)
+				if !matchAny(hay, terms) {
+					continue
+				}
 			}
 			if _, exists := seen[j.ID]; exists {
 				continue
@@ -230,6 +244,33 @@ func setDefaultHeaders(req *http.Request) {
 // It uses ordered field extraction: finds all titles, companies, locations,
 // URLs, and dates in the order they appear, then zips them into JobPost records.
 // Multiple selector strategies are tried with fallbacks.
+// parseSearchTerms splits a search term on " OR " and returns lowercase terms.
+func parseSearchTerms(raw string) []string {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, " OR ")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.Trim(strings.TrimSpace(p), `"`)
+		if p != "" {
+			out = append(out, strings.ToLower(p))
+		}
+	}
+	return out
+}
+
+// matchAny returns true if the haystack contains any of the terms.
+func matchAny(hay string, terms []string) bool {
+	for _, t := range terms {
+		if strings.Contains(hay, t) {
+			return true
+		}
+	}
+	return false
+}
+
 func parseJobs(html []byte) []model.JobPost {
 	raw := string(html)
 
