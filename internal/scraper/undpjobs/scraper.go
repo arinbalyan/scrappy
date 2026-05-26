@@ -13,45 +13,37 @@ import (
 )
 
 const (
-	rssURL      = "https://jobs.undp.org/rss_feeds/rss.xml"
+	rssURL       = "https://jobs.undp.org/rss_feeds/rss.xml"
 	defaultWanted = 25
 )
 
 var (
 	itemBlockRe = regexp.MustCompile(`(?is)<item>(.*?)</item>`)
-	stripHTMLRe = regexp.MustCompile(`(?is)<[^>]+>`)
+	cdataRe     = regexp.MustCompile(`(?is)^\s*<!\[CDATA\[(.*?)\]\]>\s*$`)
 )
 
-// rssItem holds extracted fields from an RSS <item> block.
-type rssItem struct {
-	title       string
-	link        string
-	description string
-	dutyStation string
-	closingDate string
-	org         string
-	dcDate      string
-}
-
-// Scraper fetches jobs from the UNDP Jobs RSS feed.
+// Scraper fetches jobs from the UNDP RSS feed.
 type Scraper struct {
-	client *http.Client
-	rssURL string
+	client  *http.Client
+	rssURL  string
 }
 
 // New creates a new UNDP Jobs scraper.
 func New(client *http.Client) *Scraper {
 	if client == nil {
-		client = util.NewHTTPClient(util.ClientOptions{Timeout: 20 * time.Second})
+		client = util.NewHTTPClient(util.ClientOptions{
+			Timeout: 20 * time.Second,
+			Retries: 2,
+		})
 	}
 	return &Scraper{client: client, rssURL: rssURL}
 }
 
-// NewWithRSSURL creates a new scraper with a custom endpoint (used in tests).
-func NewWithRSSURL(client *http.Client, endpoint string) *Scraper {
+// NewWithRSSURL creates a scraper with a custom RSS URL (used in tests).
+func NewWithRSSURL(client *http.Client, rssURL string) *Scraper {
 	s := New(client)
-	if strings.TrimSpace(endpoint) != "" {
-		s.rssURL = endpoint
+	if strings.TrimSpace(rssURL) != "" {
+		s.rssURL = strings.TrimSpace(rssURL)
 	}
 	return s
 }
@@ -59,7 +51,7 @@ func NewWithRSSURL(client *http.Client, endpoint string) *Scraper {
 // SiteName returns the site identifier.
 func (s *Scraper) SiteName() model.Site { return model.SiteUNDPJobs }
 
-// Scrape fetches jobs from the UNDP Jobs RSS feed.
+// Scrape fetches jobs from the UNDP RSS feed.
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	util.Debug("scraper_start", map[string]any{
 		"site":           s.SiteName(),
@@ -67,17 +59,12 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		"search_term":    input.SearchTerm,
 	})
 
-	wanted := input.ResultsWanted
-	if wanted <= 0 {
-		wanted = defaultWanted
-	}
-
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.rssURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("undpjobs: build request: %w", err)
 	}
-	req.Header.Set("Accept", "application/xml, text/xml, application/rss+xml")
-	req.Header.Set("User-Agent", "scrappy/0.1.0 (job-aggregator)")
+	req.Header.Set("Accept", "application/rss+xml, application/xml, text/xml")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; scrappy/1.0)")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
@@ -97,31 +84,57 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	items := parseRSSItems(string(body))
 	util.Debug("undpjobs: parsed items", map[string]any{"count": len(items)})
 
-	if len(items) == 0 {
-		return nil, fmt.Errorf("undpjobs: no jobs in RSS feed")
-	}
-
 	term := strings.ToLower(strings.TrimSpace(input.SearchTerm))
-	limit := wanted
-	if limit > len(items) {
-		limit = len(items)
+	wanted := input.ResultsWanted
+	if wanted <= 0 {
+		wanted = defaultWanted
+	}
+	if wanted > len(items) {
+		wanted = len(items)
 	}
 
-	out := make([]model.JobPost, 0, limit)
+	out := make([]model.JobPost, 0, wanted)
 	for _, item := range items {
-		if len(out) >= limit {
+		if len(out) >= wanted {
 			break
 		}
 
-		// Client-side search filter
-		if term != "" && !matchesSearch(item, term) {
+		title := strings.TrimSpace(item.title)
+		link := strings.TrimSpace(item.link)
+		if title == "" || link == "" {
 			continue
 		}
 
-		job, err := mapJob(item)
-		if err != nil {
-			continue
+		// Client-side search term filtering
+		if term != "" {
+			hay := strings.ToLower(title + " " + item.description + " " + item.organization)
+			if !strings.Contains(hay, term) {
+				continue
+			}
 		}
+
+		org := item.organization
+		if org == "" {
+			org = "UNDP"
+		}
+
+		job := model.JobPost{
+			ID:          "undpjobs-" + extractID(link),
+			Title:       title,
+			CompanyName: org,
+			JobURL:      link,
+			Description: strings.TrimSpace(item.description),
+			Site:        string(s.SiteName()),
+		}
+
+		if item.dutyStation != "" {
+			job.Location = model.Location{City: item.dutyStation}
+		}
+
+		if item.dcDate != "" {
+			job.DatePosted = parseDate(item.dcDate)
+		}
+
 		out = append(out, job)
 	}
 
@@ -136,7 +149,18 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	return out, nil
 }
 
-// parseRSSItems extracts RSS <item> blocks from XML.
+// --- RSS parsing ---
+
+type rssItem struct {
+	title       string
+	link        string
+	description string
+	dutyStation string
+	closingDate string
+	organization string
+	dcDate       string
+}
+
 func parseRSSItems(xml string) []rssItem {
 	blocks := itemBlockRe.FindAllStringSubmatch(xml, -1)
 	items := make([]rssItem, 0, len(blocks))
@@ -151,106 +175,58 @@ func parseRSSItems(xml string) []rssItem {
 			description: extractTag(chunk, "description"),
 			dutyStation: extractTag(chunk, "undpjobs:duty_station"),
 			closingDate: extractTag(chunk, "undpjobs:closing_date"),
-			org:         extractTag(chunk, "undpjobs:organization"),
+			organization: extractTag(chunk, "undpjobs:organization"),
 			dcDate:      extractTag(chunk, "dc:date"),
 		})
 	}
 	return items
 }
 
-// extractTag extracts text content from an XML tag, handling CDATA.
 func extractTag(xml, tag string) string {
-	// CDATA version
+	// Try CDATA pattern first
 	re := regexp.MustCompile(fmt.Sprintf(`(?is)<%s[^>]*>\s*<!\[CDATA\[([\s\S]*?)\]\]>\s*</%s>`, regexp.QuoteMeta(tag), regexp.QuoteMeta(tag)))
 	if m := re.FindStringSubmatch(xml); len(m) == 2 {
 		return strings.TrimSpace(m[1])
 	}
-	// Plain version
+	// Try plain content
 	re = regexp.MustCompile(fmt.Sprintf(`(?is)<%s[^>]*>([\s\S]*?)</%s>`, regexp.QuoteMeta(tag), regexp.QuoteMeta(tag)))
 	if m := re.FindStringSubmatch(xml); len(m) == 2 {
-		return strings.TrimSpace(m[1])
+		v := strings.TrimSpace(m[1])
+		if cm := cdataRe.FindStringSubmatch(v); len(cm) == 2 {
+			return strings.TrimSpace(cm[1])
+		}
+		return v
 	}
 	return ""
 }
 
-// matchesSearch checks if an item matches the search term.
-func matchesSearch(item rssItem, term string) bool {
-	return strings.Contains(strings.ToLower(item.title), term) ||
-		strings.Contains(strings.ToLower(item.description), term) ||
-		strings.Contains(strings.ToLower(item.org), term)
-}
-
-// mapJob converts an rssItem to a model.JobPost.
-func mapJob(item rssItem) (model.JobPost, error) {
-	if strings.TrimSpace(item.title) == "" || strings.TrimSpace(item.link) == "" {
-		return model.JobPost{}, fmt.Errorf("empty title or link")
-	}
-
-	desc := stripHTML(item.description)
-	id := idFromURL(item.link)
-	if id == "" {
-		id = simpleHash(item.title)
-	}
-
-	org := strings.TrimSpace(item.org)
-	if org == "" {
-		org = "UNDP"
-	}
-
-	job := model.JobPost{
-		ID:          "undpjobs-" + id,
-		Title:       strings.TrimSpace(item.title),
-		CompanyName: org,
-		JobURL:      strings.TrimSpace(item.link),
-		Description: desc,
-		Site:        string(model.SiteUNDPJobs),
-		ApplyMethod: "external_url",
-	}
-
-	if item.dutyStation != "" {
-		job.Location = model.Location{City: strings.TrimSpace(item.dutyStation)}
-	}
-
-	if item.dcDate != "" {
-		job.DatePosted = parseDate(strings.TrimSpace(item.dcDate))
-	}
-
-	return job, nil
-}
-
-// stripHTML removes HTML tags from a string.
-func stripHTML(s string) string {
-	return strings.TrimSpace(stripHTMLRe.ReplaceAllString(s, " "))
-}
-
-// idFromURL extracts a short ID from the last URL path segment.
-func idFromURL(raw string) string {
+func extractID(raw string) string {
 	if raw == "" {
 		return ""
 	}
+	// Try to extract cur_job_id query parameter
+	if idx := strings.Index(raw, "cur_job_id="); idx >= 0 {
+		rest := raw[idx+11:]
+		if andIdx := strings.Index(rest, "&"); andIdx >= 0 {
+			return rest[:andIdx]
+		}
+		return rest
+	}
+	// Fallback: use last path segment
 	u := strings.TrimRight(raw, "/")
 	parts := strings.Split(u, "/")
 	for i := len(parts) - 1; i >= 0; i-- {
 		if p := strings.TrimSpace(parts[i]); p != "" {
+			// Remove any query string
+			if qIdx := strings.Index(p, "?"); qIdx >= 0 {
+				p = p[:qIdx]
+			}
 			return p
 		}
 	}
-	return ""
+	return "unknown"
 }
 
-// simpleHash produces a hash string for fallback IDs.
-func simpleHash(s string) string {
-	var h int
-	for i := 0; i < len(s); i++ {
-		h = (h<<5 - h) + int(s[i])
-	}
-	if h < 0 {
-		h = -h
-	}
-	return fmt.Sprintf("%x", h)
-}
-
-// parseDate parses a date string in common formats.
 func parseDate(v string) *time.Time {
 	v = strings.TrimSpace(v)
 	if v == "" {
@@ -258,12 +234,12 @@ func parseDate(v string) *time.Time {
 	}
 	formats := []string{
 		time.RFC3339,
+		time.RFC1123Z,
+		time.RFC1123,
 		"2006-01-02T15:04:05Z",
 		"2006-01-02T15:04:05",
 		"2006-01-02",
 		"Mon, 02 Jan 2006 15:04:05 -0700",
-		"Mon, 02 Jan 2006 15:04:05 MST",
-		"2006-01-02T15:04:05.000Z",
 	}
 	for _, f := range formats {
 		t, err := time.Parse(f, v)
