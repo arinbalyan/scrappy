@@ -134,6 +134,16 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 		pageJobs := parseJobs(body)
 		if len(pageJobs) == 0 {
+			// Monster may have changed its HTML — log snippet for debugging
+			snippet := string(body)
+			if len(snippet) > 500 {
+				snippet = snippet[:500]
+			}
+			util.Debug("monster_no_jobs_html", map[string]any{
+				"page":      page,
+				"body_len":  len(body),
+				"preview":   snippet,
+			})
 			break
 		}
 
