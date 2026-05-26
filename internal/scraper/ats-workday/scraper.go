@@ -97,6 +97,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if len(seeds) == 0 {
 		return nil, fmt.Errorf("workday no seeds: set SCRAPPY_WORKDAY_SEEDS or pass a company slug in --search (format: company[:wdNumber[:site]], e.g. --search 'tesla' or --search 'tesla:5:Tesla')")
 	}
+	// If the search term was used as slug and it looks like a search phrase,
+	// return early — Workday needs company subdomains, not a search string.
+	if src == ats.SeedFromSearch && (strings.ContainsAny(seeds[0], " \"") || strings.Contains(seeds[0], "OR")) {
+		return nil, fmt.Errorf("workday: no tenant slugs — got search term %q; set SCRAPPY_WORKDAY_SEEDS or pass --search 'tesla'", seeds[0])
+	}
 	util.Debug("workday_seeds", map[string]any{"seeds": seeds, "src": src})
 
 	wanted := input.ResultsWanted
