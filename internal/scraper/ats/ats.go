@@ -7,20 +7,54 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
+
+	"gopkg.in/yaml.v3"
 
 	"github.com/arinbalyan/scrappy/internal/util"
 )
+
+// SlugFile is the path to the company slugs YAML file.
+const SlugFile = "config/company_slugs.yaml"
+
+var (
+	slugDB   map[string][]string
+	slugOnce sync.Once
+)
+
+// loadSlugs reads the company slugs file once.
+func loadSlugs() {
+	slugDB = make(map[string][]string)
+	raw, err := os.ReadFile(SlugFile)
+	if err != nil {
+		return // file not found — env/search only
+	}
+	var data map[string][]string
+	if err := yaml.Unmarshal(raw, &data); err != nil {
+		return
+	}
+	slugDB = data
+}
 
 // SeedSource indicates where we got the company seed.
 type SeedSource int
 
 const (
 	SeedFromEnv    SeedSource = iota // SCRAPPY_{PROVIDER}_SEEDS
+	SeedFromConfig                   // config/company_slugs.yaml
 	SeedFromSearch                   // SearchTerm used as company slug
 )
 
-// ResolveSeeds returns company seed strings from env or search term.
+// normalizeKey converts "SCRAPPY_LEVER_SEEDS" to "lever" for slug lookup.
+func normalizeKey(envKey string) string {
+	k := strings.TrimPrefix(envKey, "SCRAPPY_")
+	k = strings.TrimSuffix(k, "_SEEDS")
+	return strings.ToLower(k)
+}
+
+// ResolveSeeds returns company seed strings from env, config file, or search term.
 func ResolveSeeds(searchTerm string, envKey string) (seeds []string, src SeedSource) {
+	// 1. Check env var (overrides everything)
 	env := os.Getenv(envKey)
 	if strings.TrimSpace(env) != "" {
 		for _, s := range strings.Split(env, ",") {
@@ -29,10 +63,19 @@ func ResolveSeeds(searchTerm string, envKey string) (seeds []string, src SeedSou
 				seeds = append(seeds, s)
 			}
 		}
+		if len(seeds) > 0 {
+			return seeds, SeedFromEnv
+		}
 	}
-	if len(seeds) > 0 {
-		return seeds, SeedFromEnv
+
+	// 2. Check config/company_slugs.yaml
+	slugOnce.Do(loadSlugs)
+	key := normalizeKey(envKey)
+	if cfg, ok := slugDB[key]; ok && len(cfg) > 0 {
+		return cfg, SeedFromConfig
 	}
+
+	// 3. Fall back to search term
 	if st := strings.TrimSpace(searchTerm); st != "" {
 		return []string{st}, SeedFromSearch
 	}
