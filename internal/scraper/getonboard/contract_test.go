@@ -26,7 +26,7 @@ func newTestJob(id string, title string, minSal, maxSal *float64, remote bool) g
 			Seniority:   "senior",
 			PublishedAt: int64Ptr(1715000000),
 			Countries:   []string{"Chile"},
-			LocationCities: []string{"Santiago"},
+			LocationCities: json.RawMessage(`["Santiago"]`),
 			Tags:        []string{"python", "go"},
 		},
 		Links: getOnBoardLinks{

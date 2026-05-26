@@ -73,7 +73,7 @@ type getOnBoardAttributes struct {
 	Seniority   string   `json:"seniority"`
 	PublishedAt *int64   `json:"published_at"`
 	Countries   []string `json:"countries"`
-	LocationCities []string `json:"location_cities"`
+	LocationCities json.RawMessage `json:"location_cities"`
 	Tags        []string `json:"tags"`
 }
 
@@ -160,8 +160,8 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			Site:        string(s.SiteName()),
 		}
 
-		// Location
-		cityStr := strings.Join(attrs.LocationCities, ", ")
+		// Location — location_cities may be []string or {"data":[...]} object
+		cityStr := extractCityNames(attrs.LocationCities)
 		countryStr := strings.Join(attrs.Countries, ", ")
 		if cityStr != "" || countryStr != "" {
 			job.Location = model.Location{
@@ -203,6 +203,31 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		return nil, fmt.Errorf("getonboard: no parseable jobs")
 	}
 	return out, nil
+}
+
+// extractCityNames gets city names from the location_cities field which may be
+// either a []string or a JSON-API object like {"data":[{"id":...,"type":"location_city"}]}.
+func extractCityNames(raw json.RawMessage) string {
+	if len(raw) == 0 {
+		return ""
+	}
+	// Try []string first
+	var strs []string
+	if err := json.Unmarshal(raw, &strs); err == nil {
+		return strings.Join(strs, ", ")
+	}
+	// Try object with data array
+	var obj struct {
+		Data []struct {
+			ID   any    `json:"id"`
+			Type string `json:"type"`
+		} `json:"data"`
+	}
+	if err := json.Unmarshal(raw, &obj); err == nil {
+		// JSON-API relationship — no city names in the data, just references
+		_ = obj
+	}
+	return ""
 }
 
 func minInt(a, b int) int {
