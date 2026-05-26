@@ -687,3 +687,175 @@ sites:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
 
+  # --- ATS scrapers (need SCRAPPY_{PROVIDER}_SEEDS env var with company slugs) ---
+  ats-adp:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-ashby:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-avature:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-bamboohr:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-breezyhr:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-bullhorn:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-comeet:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-crelate:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-deel:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-fountain:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-freshteam:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-gem:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-hiringthing:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-homerun:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-icims:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-ismartrecruit:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-jazzhr:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-jobscore:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-jobvite:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-jobylon:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-joincom:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-lever:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-loxo:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-manatal:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-mercor:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-oracle:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-paylocity:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-personio:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-phenom:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-pinpoint:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-recruitee:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-recruiterflow:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-rippling:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-smartrecruiters:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-successfactors:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-talentlyft:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-taleo:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-teamtailor:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-trakstar:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-ukg:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-workable:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+  ats-workday:
+    search:
+    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
+    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+
+  # --- end ATS scrapers ---
+
