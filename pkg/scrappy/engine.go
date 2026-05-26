@@ -10,7 +10,6 @@ import (
 	"sync"
 	"time"
 
-	htmlparser "golang.org/x/net/html"
 	"github.com/arinbalyan/scrappy/internal/dedup"
 	internalemail "github.com/arinbalyan/scrappy/internal/email"
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -399,8 +398,8 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		jobs := res.jobs
 		for i := range jobs {
 			normalizeJobPost(&jobs[i])
-			jobs[i].Description = stripHTML(jobs[i].Description)
-			jobs[i].CompanyDescription = stripHTML(jobs[i].CompanyDescription)
+			jobs[i].Description = util.StripHTML(jobs[i].Description)
+			jobs[i].CompanyDescription = util.StripHTML(jobs[i].CompanyDescription)
 			jobs[i].Site = string(res.site)
 			now := time.Now()
 			jobs[i].FetchedAt = &now
@@ -629,25 +628,6 @@ func dedupEmails(in []model.Email) []model.Email {
 		out = append(out, e)
 	}
 	return out
-}
-
-func stripHTML(s string) string {
-	if s == "" || !strings.ContainsAny(s, "<>") {
-		return htmlparser.UnescapeString(s)
-	}
-	tokenizer := htmlparser.NewTokenizer(strings.NewReader(s))
-	var out strings.Builder
-	out.Grow(len(s))
-	for {
-		switch tokenizer.Next() {
-		case htmlparser.ErrorToken:
-			return htmlparser.UnescapeString(out.String())
-		case htmlparser.TextToken:
-			out.Write(tokenizer.Text())
-		default:
-			// skip tags, comments, doctype, etc.
-		}
-	}
 }
 
 // normalizeJobPost ensures fields that consumers expect are never nil/empty

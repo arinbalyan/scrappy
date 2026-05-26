@@ -35,6 +35,12 @@ func NewWithAPIURL(client *http.Client, endpoint string) *Scraper {
 func (s *Scraper) SiteName() model.Site { return model.SiteRemoteOK }
 
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
 	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, s.apiURL, nil)
@@ -52,9 +58,10 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
 		return nil, fmt.Errorf("remoteok decode: %w", err)
 	}
-	if len(raw) > 0 {
-		raw = raw[1:]
+	if len(raw) <= 1 {
+		return nil, nil
 	}
+	raw = raw[1:]
 
 	limit := input.ResultsWanted
 	if limit <= 0 || limit > len(raw) {
@@ -62,6 +69,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 	out := make([]model.JobPost, 0, limit)
 	for i := 0; i < limit; i++ {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
 		j := raw[i]
 		title, _ := j["position"].(string)
 		company, _ := j["company"].(string)

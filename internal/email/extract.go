@@ -254,18 +254,18 @@ func (e *CompanyPageEnricher) Enrich(ctx context.Context, companyURL string) ([]
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 	defer io.Copy(io.Discard, resp.Body)
+	defer resp.Body.Close()
 
 	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	return e.filterVerified(Extract(string(b))), nil
+	return e.filterVerified(ctx, Extract(string(b))), nil
 }
 
 // filterVerified runs MX verification on candidates and keeps only those that pass.
-func (e *CompanyPageEnricher) filterVerified(candidates []Email) []Email {
+func (e *CompanyPageEnricher) filterVerified(ctx context.Context, candidates []Email) []Email {
 	if e.Verifier == nil {
 		return candidates
 	}
@@ -276,7 +276,7 @@ func (e *CompanyPageEnricher) filterVerified(candidates []Email) []Email {
 			continue
 		}
 		seen[c.Addr] = true
-		if e.Verifier.Verify(context.Background(), c.Addr) {
+		if e.Verifier.Verify(ctx, c.Addr) {
 			out = append(out, c)
 		}
 	}

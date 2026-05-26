@@ -15,14 +15,12 @@ import (
 // ---------------------------------------------------------------------------
 
 var (
-	startOnce sync.Once
-	startTime time.Time
-
+	startTime    time.Time
 	defaultLogger = &Logger{level: LevelInfo, out: os.Stderr}
 )
 
 func init() {
-	startOnce.Do(func() { startTime = time.Now() })
+	startTime = time.Now()
 }
 
 // Level represents a log severity.
@@ -104,7 +102,9 @@ func resHeader() string {
 
 // log emits one line. component is optional (may be "").
 func log(level Level, component, msg string) {
-	if !defaultLogger.Enabled(level) {
+	defaultLogger.mu.Lock()
+	defer defaultLogger.mu.Unlock()
+	if level < defaultLogger.level {
 		return
 	}
 	label := levelLabels[level]
@@ -118,9 +118,7 @@ func log(level Level, component, msg string) {
 	} else {
 		line = fmt.Sprintf("%s %s - %s\n", label, rh, msg)
 	}
-	defaultLogger.mu.Lock()
 	fmt.Fprint(defaultLogger.out, line)
-	defaultLogger.mu.Unlock()
 }
 
 // ---------------------------------------------------------------------------

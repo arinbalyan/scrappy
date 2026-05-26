@@ -3,7 +3,6 @@ package simplyhired
 import (
 	"context"
 	"fmt"
-	"hash/fnv"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -239,7 +238,7 @@ func parseCard(card string) model.JobPost {
 	jobURL := extractHref(card)
 
 	// Build the ID from the URL
-	id := "sh-" + hashID(jobURL)
+	id := "sh-" + util.HashID(jobURL)
 
 	job := model.JobPost{
 		ID:          id,
@@ -365,9 +364,4 @@ func parseFloat(s string) float64 {
 	return v
 }
 
-// hashID produces a short hash for dedup identification.
-func hashID(s string) string {
-	h := fnv.New64a()
-	h.Write([]byte(s))
-	return fmt.Sprintf("%d", h.Sum64())
-}
+

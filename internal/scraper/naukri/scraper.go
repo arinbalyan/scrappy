@@ -16,6 +16,8 @@ import (
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
+var reNaukriSalary = regexp.MustCompile(`(?i)(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*(lacs|lakh|cr)`)
+
 const defaultAPI = "https://www.naukri.com/jobapi/v3/search"
 
 type placeholder struct {
@@ -238,7 +240,7 @@ func naukriLocation(placeholders []placeholder) (string, string) {
 }
 
 func naukriSalary(placeholders []placeholder) (float64, float64, bool) {
-	re := regexp.MustCompile(`(?i)(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*(lacs|lakh|cr)`)
+	re := reNaukriSalary
 	for _, p := range placeholders {
 		if !strings.EqualFold(strings.TrimSpace(p.Type), "salary") {
 			continue
