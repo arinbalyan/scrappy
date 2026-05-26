@@ -3,7 +3,6 @@ package jooble
 import (
 	"context"
 	"fmt"
-	"hash/fnv"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -272,7 +271,7 @@ func parseJobs(html []byte) []model.JobPost {
 			desc = descriptions[i]
 		}
 
-		id := "jb-" + hashID(jobURL + title + company)
+		id := "jb-" + util.HashID(jobURL + title + company)
 
 		isRemote := remoteRe.MatchString(raw) ||
 			strings.Contains(strings.ToLower(loc.City), "remote") ||
@@ -528,9 +527,4 @@ func normalizeJobType(t string) string {
 	}
 }
 
-// hashID generates a stable hash string for deduplication.
-func hashID(s string) string {
-	h := fnv.New64a()
-	h.Write([]byte(s))
-	return fmt.Sprintf("%d", h.Sum64())
-}
+

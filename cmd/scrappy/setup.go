@@ -78,6 +78,9 @@ EXAMPLES:
 			adzunaKey := ask(reader, "  ADZUNA_APP_KEY", "")
 			careerjetID := ask(reader, "  CAREERJET_AFFID", "")
 			findworkKey := ask(reader, "  FINDWORK_API_KEY", "")
+			infojobsClientID := ask(reader, "  INFOJOBS_CLIENT_ID", "")
+			infojobsClientSecret := ask(reader, "  INFOJOBS_CLIENT_SECRET", "")
+			arbeitsagenturKey := ask(reader, "  ARBEITSAGENTUR_API_KEY", "")
 			fmt.Println(" \033[38;5;117m╰──────────────────────────────────────────────────╯\033[0m")
 			fmt.Println()
 
@@ -88,7 +91,7 @@ EXAMPLES:
 			fmt.Printf("  \033[38;5;117m│\033[0m Sites:      %s\n", ifEmpty(sites, "(all 55+)"))
 			fmt.Printf("  \033[38;5;117m│\033[0m Format:     %s\n", format)
 			fmt.Printf("  \033[38;5;117m│\033[0m Proxy:      %s\n", ifEmpty(proxy, "(none)"))
-			fmt.Printf("  \033[38;5;117m│\033[0m API keys:   %s\n", apiKeySummary(adzunaID, adzunaKey, careerjetID, findworkKey))
+			fmt.Printf("  \033[38;5;117m│\033[0m API keys:   %s\n", apiKeySummary(adzunaID, adzunaKey, careerjetID, findworkKey, infojobsClientID, infojobsClientSecret, arbeitsagenturKey))
 			fmt.Println(" \033[38;5;117m╰──────────────────────────────────────────────────╯\033[0m")
 			fmt.Println()
 
@@ -126,7 +129,8 @@ EXAMPLES:
 			cfgYAML := struct {
 				Defaults configDefaults       `yaml:"defaults"`
 				Proxy    string               `yaml:"proxy,omitempty"`
-				Sites    map[string]siteCfg   `yaml:"sites,omitempty"`
+				Sites    string               `yaml:"sites,omitempty"`
+				SiteOverrides map[string]siteCfg   `yaml:"site_overrides,omitempty"`
 			}{
 				Defaults: configDefaults{
 					ResultsWanted: resultsWanted,
@@ -143,6 +147,10 @@ EXAMPLES:
 			}
 			if location != "" {
 				cfgYAML.Defaults.Location = []string{location}
+			}
+
+			if sites != "" {
+				cfgYAML.Sites = sites
 			}
 
 			cfgBytes, err := yaml.Marshal(&cfgYAML)
@@ -168,6 +176,15 @@ EXAMPLES:
 			}
 			if findworkKey != "" {
 				envLines = append(envLines, "FINDWORK_API_KEY="+findworkKey)
+			}
+			if infojobsClientID != "" {
+				envLines = append(envLines, "INFOJOBS_CLIENT_ID="+infojobsClientID)
+			}
+			if infojobsClientSecret != "" {
+				envLines = append(envLines, "INFOJOBS_CLIENT_SECRET="+infojobsClientSecret)
+			}
+			if arbeitsagenturKey != "" {
+				envLines = append(envLines, "ARBEITSAGENTUR_API_KEY="+arbeitsagenturKey)
 			}
 			if len(envLines) > 0 {
 				envPath := filepath.Join(scrappyDir, ".env")
@@ -196,7 +213,7 @@ func ifEmpty(s, fallback string) string {
 	return s
 }
 
-func apiKeySummary(adzunaID, adzunaKey, careerjetID, findworkKey string) string {
+func apiKeySummary(adzunaID, adzunaKey, careerjetID, findworkKey, infojobsClientID, infojobsClientSecret, arbeitsagenturKey string) string {
 	count := 0
 	if adzunaID != "" && adzunaKey != "" {
 		count++
@@ -205,6 +222,12 @@ func apiKeySummary(adzunaID, adzunaKey, careerjetID, findworkKey string) string 
 		count++
 	}
 	if findworkKey != "" {
+		count++
+	}
+	if infojobsClientID != "" && infojobsClientSecret != "" {
+		count++
+	}
+	if arbeitsagenturKey != "" {
 		count++
 	}
 	if count > 0 {

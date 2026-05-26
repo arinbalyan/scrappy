@@ -12,6 +12,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
@@ -53,8 +54,8 @@ func detectScriptPath() string {
 }
 
 func fileExists(p string) bool {
-	cmd := exec.Command("test", "-f", p)
-	return cmd.Run() == nil
+	_, err := os.Stat(p)
+	return err == nil
 }
 
 // FetchPage renders the given URL in headless Chromium via Playwright

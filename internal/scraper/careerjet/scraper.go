@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"hash/fnv"
 	"net/http"
 	"net/url"
 	"os"
@@ -176,7 +175,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			seen[jobURL] = struct{}{}
 
 			job := model.JobPost{
-				ID:          "cj-" + hashID(jobURL),
+				ID:          "cj-" + util.HashID(jobURL),
 				Title:       title,
 				CompanyName: strings.TrimSpace(j.Company),
 				JobURL:      jobURL,
@@ -322,8 +321,4 @@ func parseLocation(v string) model.Location {
 }
 
 // hashID generates a stable hash string for deduplication.
-func hashID(s string) string {
-	h := fnv.New64a()
-	h.Write([]byte(s))
-	return fmt.Sprintf("%d", h.Sum64())
-}
+

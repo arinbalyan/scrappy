@@ -16,7 +16,7 @@ type ProxyURL struct {
 	Scheme   string // "socks5" | "http" | "https"
 	HostPort string // "localhost:7890"
 	Healthy  bool
-	Mu       sync.RWMutex
+	mu       sync.RWMutex
 }
 
 func redactProxyURL(raw string) string {
@@ -44,15 +44,15 @@ func NewProxyURL(raw string) (*ProxyURL, error) {
 
 // IsHealthy reports current health state (thread-safe read).
 func (p *ProxyURL) IsHealthy() bool {
-	p.Mu.RLock()
-	defer p.Mu.RUnlock()
+	p.mu.RLock()
+	defer p.mu.RUnlock()
 	return p.Healthy
 }
 
 // SetHealthy updates the health state.
 func (p *ProxyURL) SetHealthy(h bool) {
-	p.Mu.Lock()
-	defer p.Mu.Unlock()
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	p.Healthy = h
 }
 

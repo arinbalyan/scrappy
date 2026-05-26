@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"hash/fnv"
 	"net/http"
 	"net/url"
 	"strings"
@@ -331,7 +330,7 @@ func (r *rawJob) toJobPost() *model.JobPost {
 		jobID = fmt.Sprintf("snagajob-%v", r.JobID)
 	}
 	if r.ID == nil && r.JobID == nil {
-		jobID = "snagajob-" + hashID(jobURL)
+		jobID = "snagajob-" + util.HashID(jobURL)
 	}
 
 	return &model.JobPost{
@@ -355,8 +354,4 @@ func backoff(retries int) {
 	time.Sleep(d)
 }
 
-func hashID(s string) string {
-	h := fnv.New64a()
-	h.Write([]byte(s))
-	return fmt.Sprintf("%d", h.Sum64())
-}
+

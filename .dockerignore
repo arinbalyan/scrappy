@@ -1,0 +1,10 @@
+.git/
+.gitignore
+tmp/
+tests/
+docs/
+*.md
+config.yaml
+docker-compose.yml
+testruns/
+scripts/

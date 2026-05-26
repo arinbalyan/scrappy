@@ -25,7 +25,10 @@ func WriteXLSX(path string, jobs []model.JobPost) error {
 	}
 
 	for i, h := range headers {
-		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
+		cell, err := excelize.CoordinatesToCellName(i+1, 1)
+		if err != nil {
+			return fmt.Errorf("xlsx header cell name: %w", err)
+		}
 		if err := f.SetCellValue(sheet, cell, h); err != nil {
 			return fmt.Errorf("set xlsx header cell: %w", err)
 		}
@@ -33,7 +36,7 @@ func WriteXLSX(path string, jobs []model.JobPost) error {
 
 	for idx, job := range jobs {
 		row := []string{
-			"",
+			job.Site,
 			job.Title,
 			job.CompanyName,
 			job.Location.Display(),
@@ -70,7 +73,10 @@ func WriteXLSX(path string, jobs []model.JobPost) error {
 		}
 
 		for col, val := range row {
-			cell, _ := excelize.CoordinatesToCellName(col+1, idx+2)
+			cell, err := excelize.CoordinatesToCellName(col+1, idx+2)
+			if err != nil {
+				return fmt.Errorf("xlsx row cell name: %w", err)
+			}
 			if err := f.SetCellValue(sheet, cell, val); err != nil {
 				return fmt.Errorf("set xlsx row cell: %w", err)
 			}
