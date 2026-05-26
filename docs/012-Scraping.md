@@ -150,6 +150,28 @@ Each (term, location) pair is an independent scrape. Errors on one pair do not f
 
 See [007-Multi-Value.md](007-Multi-Value.md).
 
+## Performance improvements: regex compilation
+
+Two scrapers had their per-call regex compilation moved to package-level
+`var` declarations, avoiding recompilation on every scrape call:
+
+- **LinkedIn**: `reCard` and `reLegacyCard` in `parseJobCards()` are now compiled
+  once at package init time.
+- **Naukri**: `reNaukriSalary` in the salary parsing function is now a package-level
+  `var` instead of `regexp.MustCompile(...)` on every call.
+
+## Safety improvements
+
+- **RemoteOK**: Now guards against empty API responses. The API returns an array
+  where index 0 is metadata; if the response has fewer than 2 elements (missing
+  the metadata row or no jobs), the scraper returns an empty result set instead
+  of panicking with an index-out-of-bounds error. Context cancellation is also
+  checked between page fetches.
+- **Adzuna**: Now enforces 500ms rate limiting between API page requests and
+  limits pages to a maximum of 20 (down from 100). HTTP response bodies are
+  properly deferred-closed on all code paths (the previous code could leave
+  bodies unclosed if an error occurred mid-function).
+
 ## Per-site concurrency defaults
 
 | Site | Max concurrent | Max RPS |

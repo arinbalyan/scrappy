@@ -31,3 +31,11 @@
 4. Validate optional detail fields when `linkedin_fetch_description=true`.
 5. Tune pacing/proxy/retries for sustained 429 pressure.
 6. Re-run `go test ./tests/scraper/linkedin` and then full suite.
+
+## Performance improvements
+
+- **Regex compiled once**: The `reCard` and `reLegacyCard` regex patterns in
+  `parseJobCards()` are now compiled at package init time as package-level
+  `var` declarations, rather than being recompiled via `regexp.MustCompile`
+  on every call to `parseJobCards()`. This reduces GC pressure and improves
+  parse throughput, particularly in large scrape runs.
