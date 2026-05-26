@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -16,97 +14,33 @@ import (
 )
 
 const (
-	apiURL        = "https://data.usajobs.gov/api/Search"
-	maxPageSize   = 500
-	defaultWanted = 25
-	maxPages      = 5
+	apiURL          = "https://data.usajobs.gov/api/Search"
+	maxPageSize     = 500
+	defaultWanted   = 25
 )
-
-var stripHTMLRe = regexp.MustCompile(`(?is)<[^>]+>`)
-
-// ---- API response types ----
-
-type searchResponse struct {
-	SearchResult *searchResult `json:"SearchResult,omitempty"`
-}
-
-type searchResult struct {
-	SearchResultCount    int            `json:"SearchResultCount"`
-	SearchResultCountAll int            `json:"SearchResultCountAll"`
-	SearchResultItems    []searchItem   `json:"SearchResultItems,omitempty"`
-}
-
-type searchItem struct {
-	MatchedObjectID       string       `json:"MatchedObjectId"`
-	MatchedObjectDescriptor *jobDescriptor `json:"MatchedObjectDescriptor,omitempty"`
-}
-
-type jobDescriptor struct {
-	PositionTitle         string          `json:"PositionTitle"`
-	PositionURI           string          `json:"PositionURI"`
-	PositionID            string          `json:"PositionID"`
-	OrganizationName      string          `json:"OrganizationName"`
-	DepartmentName        string          `json:"DepartmentName"`
-	PositionLocation      []apiLocation   `json:"PositionLocation,omitempty"`
-	PositionRemuneration   []apiRemuneration `json:"PositionRemuneration,omitempty"`
-	PublicationStartDate  string          `json:"PublicationStartDate"`
-	ApplicationCloseDate  string          `json:"ApplicationCloseDate"`
-	QualificationSummary  string          `json:"QualificationSummary"`
-	UserArea              *userArea       `json:"UserArea,omitempty"`
-}
-
-type apiLocation struct {
-	LocationName           string `json:"LocationName"`
-	CountryCode            string `json:"CountryCode"`
-	CityName               string `json:"CityName"`
-	CountrySubDivisionCode string `json:"CountrySubDivisionCode"`
-}
-
-type apiRemuneration struct {
-	MinimumRange     string `json:"MinimumRange"`
-	MaximumRange     string `json:"MaximumRange"`
-	RateIntervalCode string `json:"RateIntervalCode"`
-	Description      string `json:"Description"`
-}
-
-type userArea struct {
-	Details *userAreaDetails `json:"Details,omitempty"`
-}
-
-type userAreaDetails struct {
-	JobSummary  string   `json:"JobSummary"`
-	MajorDuties []string `json:"MajorDuties,omitempty"`
-}
 
 // Scraper fetches jobs from the USAJobs API.
 type Scraper struct {
-	client  *http.Client
-	apiURL  string
-	apiKey  string
-	email   string
+	client *http.Client
+	apiURL string
 }
 
 // New creates a new USAJobs scraper.
-// Uses USAJOBS_API_KEY and USAJOBS_EMAIL env vars for authentication.
 func New(client *http.Client) *Scraper {
 	if client == nil {
-		client = util.NewHTTPClient(util.ClientOptions{Timeout: 20 * time.Second})
+		client = util.NewHTTPClient(util.ClientOptions{
+			Timeout: 30 * time.Second,
+			Retries: 2,
+		})
 	}
-	return &Scraper{
-		client: client,
-		apiURL: apiURL,
-		apiKey: os.Getenv("USAJOBS_API_KEY"),
-		email:  os.Getenv("USAJOBS_EMAIL"),
-	}
+	return &Scraper{client: client, apiURL: apiURL}
 }
 
-// NewWithCredentials creates a new scraper with explicit credentials (used in tests).
-func NewWithCredentials(client *http.Client, apiURL, apiKey, email string) *Scraper {
+// NewWithAPIURL creates a scraper with a custom endpoint (used in tests).
+func NewWithAPIURL(client *http.Client, endpoint string) *Scraper {
 	s := New(client)
-	s.apiKey = apiKey
-	s.email = email
-	if strings.TrimSpace(apiURL) != "" {
-		s.apiURL = apiURL
+	if strings.TrimSpace(endpoint) != "" {
+		s.apiURL = strings.TrimSpace(endpoint)
 	}
 	return s
 }
@@ -114,9 +48,54 @@ func NewWithCredentials(client *http.Client, apiURL, apiKey, email string) *Scra
 // SiteName returns the site identifier.
 func (s *Scraper) SiteName() model.Site { return model.SiteUSAJobs }
 
-// IsConfigured reports whether the required credentials are set.
-func (s *Scraper) IsConfigured() bool {
-	return s.apiKey != "" && s.email != ""
+// --- API response types ---
+
+type usaJobsResponse struct {
+	SearchResult *searchResult `json:"SearchResult,omitempty"`
+}
+
+type searchResult struct {
+	SearchResultCount    int        `json:"SearchResultCount"`
+	SearchResultCountAll int        `json:"SearchResultCountAll"`
+	SearchResultItems    []usaJobsItem `json:"SearchResultItems"`
+}
+
+type usaJobsItem struct {
+	MatchedObjectId       string            `json:"MatchedObjectId"`
+	MatchedObjectDescriptor *jobDescriptor `json:"MatchedObjectDescriptor,omitempty"`
+}
+
+type jobDescriptor struct {
+	PositionTitle       string           `json:"PositionTitle"`
+	PositionURI         string           `json:"PositionURI"`
+	OrganizationName    string           `json:"OrganizationName"`
+	PositionLocation    []usaJobsLocation `json:"PositionLocation,omitempty"`
+	PositionRemuneration []usaJobsRemuneration `json:"PositionRemuneration,omitempty"`
+	PublicationStartDate string          `json:"PublicationStartDate"`
+	QualificationSummary string          `json:"QualificationSummary"`
+	UserArea            *userArea       `json:"UserArea,omitempty"`
+}
+
+type usaJobsLocation struct {
+	CityName             string `json:"CityName"`
+	CountrySubDivisionCode string `json:"CountrySubDivisionCode"`
+	CountryCode          string `json:"CountryCode"`
+}
+
+type usaJobsRemuneration struct {
+	MinimumRange    string `json:"MinimumRange"`
+	MaximumRange    string `json:"MaximumRange"`
+	RateIntervalCode string `json:"RateIntervalCode"`
+	Description     string `json:"Description"`
+}
+
+type userArea struct {
+	Details *userDetails `json:"Details,omitempty"`
+}
+
+type userDetails struct {
+	JobSummary  string   `json:"JobSummary"`
+	MajorDuties []string `json:"MajorDuties,omitempty"`
 }
 
 // Scrape fetches jobs from the USAJobs API.
@@ -125,53 +104,78 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		"site":           s.SiteName(),
 		"results_wanted": input.ResultsWanted,
 		"search_term":    input.SearchTerm,
-		"location":       input.Location,
 	})
 
-	if !s.IsConfigured() {
-		return nil, fmt.Errorf("usajobs: not configured; set USAJOBS_API_KEY and USAJOBS_EMAIL env vars")
-	}
+	// USAJobs requires Host, Authorization-Key, and User-Agent headers.
+	// The API key and email should be set in the client or env.
+	apiKey := ""
+	email := ""
 
 	wanted := input.ResultsWanted
 	if wanted <= 0 {
 		wanted = defaultWanted
 	}
-
 	pageSize := wanted
 	if pageSize > maxPageSize {
 		pageSize = maxPageSize
 	}
 
-	term := strings.TrimSpace(input.SearchTerm)
-	location := strings.TrimSpace(input.Location)
-
 	jobs := make([]model.JobPost, 0, wanted)
-	seen := make(map[string]bool)
+	seenIDs := make(map[string]bool)
 	page := 1
 
-	for page <= maxPages && len(jobs) < wanted {
+	for len(jobs) < wanted {
 		select {
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		default:
 		}
 
-		items, err := s.fetchPage(ctx, term, location, pageSize, page)
+		url := buildURL(s.apiURL, input.SearchTerm, input.Location, input.HoursOld, page, pageSize)
+
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 		if err != nil {
-			return nil, fmt.Errorf("usajobs: page %d: %w", page, err)
+			return nil, fmt.Errorf("usajobs: build request: %w", err)
 		}
-		if len(items) == 0 {
+		req.Header.Set("Host", "data.usajobs.gov")
+		req.Header.Set("Accept", "application/json")
+		req.Header.Set("User-Agent", email)
+		if apiKey != "" {
+			req.Header.Set("Authorization-Key", apiKey)
+		}
+
+		resp, err := s.client.Do(req)
+		if err != nil {
+			return nil, fmt.Errorf("usajobs: request: %w", err)
+		}
+
+		body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
+		resp.Body.Close()
+		if err != nil {
+			return nil, fmt.Errorf("usajobs: read: %w", err)
+		}
+
+		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+			return nil, fmt.Errorf("usajobs: status %d", resp.StatusCode)
+		}
+
+		var usaResp usaJobsResponse
+		if err := json.Unmarshal(body, &usaResp); err != nil {
+			return nil, fmt.Errorf("usajobs: decode: %w", err)
+		}
+
+		if usaResp.SearchResult == nil || len(usaResp.SearchResult.SearchResultItems) == 0 {
 			break
 		}
 
-		for _, item := range items {
+		for _, item := range usaResp.SearchResult.SearchResultItems {
 			if len(jobs) >= wanted {
 				break
 			}
-			if seen[item.MatchedObjectID] {
+			if item.MatchedObjectId == "" || seenIDs[item.MatchedObjectId] {
 				continue
 			}
-			seen[item.MatchedObjectID] = true
+			seenIDs[item.MatchedObjectId] = true
 
 			job, err := mapJob(item)
 			if err != nil {
@@ -180,8 +184,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			jobs = append(jobs, job)
 		}
 
-		// Stop if fewer results than page size (last page)
-		if len(items) < pageSize {
+		if len(usaResp.SearchResult.SearchResultItems) < pageSize {
 			break
 		}
 		page++
@@ -198,57 +201,25 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	return jobs, nil
 }
 
-// fetchPage fetches one page of results from the USAJobs API.
-func (s *Scraper) fetchPage(ctx context.Context, keyword, location string, pageSize, page int) ([]searchItem, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, s.apiURL, nil)
-	if err != nil {
-		return nil, err
+func buildURL(baseURL, searchTerm, location string, hoursOld, page, pageSize int) string {
+	params := make([]string, 0, 5)
+	params = append(params, "ResultsPerPage="+strconv.Itoa(pageSize))
+	params = append(params, "Page="+strconv.Itoa(page))
+	params = append(params, "Fields=Full")
+	if strings.TrimSpace(searchTerm) != "" {
+		params = append(params, "Keyword="+strings.ReplaceAll(searchTerm, " ", "+"))
 	}
-
-	q := req.URL.Query()
-	q.Set("Keyword", keyword)
-	q.Set("ResultsPerPage", strconv.Itoa(pageSize))
-	q.Set("Page", strconv.Itoa(page))
-	q.Set("Fields", "Full")
-	if location != "" {
-		q.Set("LocationName", location)
+	if strings.TrimSpace(location) != "" {
+		params = append(params, "LocationName="+strings.ReplaceAll(location, " ", "+"))
 	}
-	req.URL.RawQuery = q.Encode()
-
-	req.Header.Set("Host", "data.usajobs.gov")
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization-Key", s.apiKey)
-	req.Header.Set("User-Agent", s.email)
-
-	resp, err := s.client.Do(req)
-	if err != nil {
-		return nil, err
+	if hoursOld > 0 {
+		daysOld := (hoursOld + 23) / 24 // ceil
+		params = append(params, "DatePosted="+strconv.Itoa(daysOld))
 	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("HTTP %d", resp.StatusCode)
-	}
-
-	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
-	if err != nil {
-		return nil, fmt.Errorf("read: %w", err)
-	}
-
-	var parsed searchResponse
-	if err := json.Unmarshal(body, &parsed); err != nil {
-		return nil, fmt.Errorf("decode: %w", err)
-	}
-
-	if parsed.SearchResult == nil {
-		return nil, nil
-	}
-
-	return parsed.SearchResult.SearchResultItems, nil
+	return baseURL + "?" + strings.Join(params, "&")
 }
 
-// mapJob converts a USAJobs search item to a JobPost.
-func mapJob(item searchItem) (model.JobPost, error) {
+func mapJob(item usaJobsItem) (model.JobPost, error) {
 	desc := item.MatchedObjectDescriptor
 	if desc == nil {
 		return model.JobPost{}, fmt.Errorf("no descriptor")
@@ -257,142 +228,97 @@ func mapJob(item searchItem) (model.JobPost, error) {
 	title := strings.TrimSpace(desc.PositionTitle)
 	jobURL := strings.TrimSpace(desc.PositionURI)
 	if title == "" || jobURL == "" {
-		return model.JobPost{}, fmt.Errorf("empty title or URL")
+		return model.JobPost{}, fmt.Errorf("missing title or URL")
 	}
 
 	// Build description
-	description := ""
+	descParts := make([]string, 0, 3)
 	if desc.UserArea != nil && desc.UserArea.Details != nil {
-		details := desc.UserArea.Details
-		if strings.TrimSpace(details.JobSummary) != "" {
-			description = strings.TrimSpace(details.JobSummary)
+		if ds := strings.TrimSpace(desc.UserArea.Details.JobSummary); ds != "" {
+			descParts = append(descParts, ds)
 		}
-		if len(details.MajorDuties) > 0 {
-			duties := make([]string, 0, len(details.MajorDuties))
-			for _, d := range details.MajorDuties {
-				if strings.TrimSpace(d) != "" {
-					duties = append(duties, "- "+strings.TrimSpace(stripHTML(d)))
-				}
+		if len(desc.UserArea.Details.MajorDuties) > 0 {
+			duties := make([]string, len(desc.UserArea.Details.MajorDuties))
+			for i, d := range desc.UserArea.Details.MajorDuties {
+				duties[i] = "- " + strings.TrimSpace(d)
 			}
-			if len(duties) > 0 {
-				dutiesText := strings.Join(duties, "\n")
-				if description != "" {
-					description = description + "\n\nMajor Duties:\n" + dutiesText
-				} else {
-					description = "Major Duties:\n" + dutiesText
-				}
-			}
+			descParts = append(descParts, "Major Duties:\n"+strings.Join(duties, "\n"))
 		}
 	}
-	if description == "" && strings.TrimSpace(desc.QualificationSummary) != "" {
-		description = strings.TrimSpace(desc.QualificationSummary)
+	if qs := strings.TrimSpace(desc.QualificationSummary); qs != "" {
+		descParts = append(descParts, qs)
 	}
 
-	// Build location
-	location := model.Location{}
+	// Location
+	loc := model.Location{}
 	if len(desc.PositionLocation) > 0 {
-		loc := desc.PositionLocation[0]
-		location.City = strings.TrimSpace(loc.CityName)
-		location.State = strings.TrimSpace(loc.CountrySubDivisionCode)
-		location.Country = strings.TrimSpace(loc.CountryCode)
+		loc.City = desc.PositionLocation[0].CityName
+		loc.State = desc.PositionLocation[0].CountrySubDivisionCode
+		loc.Country = desc.PositionLocation[0].CountryCode
 	}
 
-	// Build compensation
+	// Compensation
 	var comp *model.Compensation
 	if len(desc.PositionRemuneration) > 0 {
 		comp = mapCompensation(desc.PositionRemuneration[0])
 	}
 
-	// Parse date
+	// Date
 	var datePosted *time.Time
-	if strings.TrimSpace(desc.PublicationStartDate) != "" {
-		datePosted = parseDate(desc.PublicationStartDate)
+	if dp := strings.TrimSpace(desc.PublicationStartDate); dp != "" {
+		if t, err := time.Parse("2006-01-02T15:04:05", dp); err == nil {
+			datePosted = &t
+		} else if t, err := time.Parse(time.RFC3339, dp); err == nil {
+			datePosted = &t
+		} else if t, err := time.Parse("2006-01-02", dp[:10]); err == nil {
+			datePosted = &t
+		}
 	}
 
+	description := strings.Join(descParts, "\n\n")
+
 	return model.JobPost{
-		ID:           "usajobs-" + item.MatchedObjectID,
-		Title:        title,
-		CompanyName:  strings.TrimSpace(desc.OrganizationName),
-		JobURL:       jobURL,
-		Location:     location,
-		Description:  description,
+		ID:          "usajobs-" + item.MatchedObjectId,
+		Title:       title,
+		CompanyName: strings.TrimSpace(desc.OrganizationName),
+		JobURL:      jobURL,
+		Location:    loc,
+		Description: description,
 		Compensation: comp,
-		DatePosted:   datePosted,
-		Site:         string(model.SiteUSAJobs),
-		ApplyMethod:  "external_url",
+		DatePosted:  datePosted,
+		Site:        string(model.SiteUSAJobs),
+		ApplyMethod: "external_url",
 	}, nil
 }
 
-// mapCompensation converts USAJobs remuneration data.
-func mapCompensation(r apiRemuneration) *model.Compensation {
-	minVal, errMin := strconv.ParseFloat(strings.TrimSpace(r.MinimumRange), 64)
-	maxVal, errMax := strconv.ParseFloat(strings.TrimSpace(r.MaximumRange), 64)
-
-	if errMin != nil && errMax != nil {
+func mapCompensation(r usaJobsRemuneration) *model.Compensation {
+	minVal, minErr := strconv.ParseFloat(r.MinimumRange, 64)
+	maxVal, maxErr := strconv.ParseFloat(r.MaximumRange, 64)
+	if minErr != nil && maxErr != nil {
 		return nil
 	}
 
-	interval := mapInterval(r.Description)
-	if interval == "" {
-		interval = mapInterval(r.RateIntervalCode)
-	}
-	if interval == "" {
-		interval = "yearly"
+	interval := model.IntervalYearly
+	switch {
+	case strings.Contains(r.Description, "Hour") || strings.Contains(r.RateIntervalCode, "Hour"):
+		interval = model.IntervalHourly
+	case strings.Contains(r.Description, "Month") || strings.Contains(r.RateIntervalCode, "Month"):
+		interval = model.IntervalMonthly
+	case strings.Contains(r.Description, "Week") || strings.Contains(r.RateIntervalCode, "Week"):
+		interval = model.IntervalWeekly
+	case strings.Contains(r.Description, "Day") || strings.Contains(r.RateIntervalCode, "Day"):
+		interval = model.IntervalDaily
 	}
 
-	comp := &model.Compensation{
-		Interval: model.CompensationInterval(interval),
+	c := &model.Compensation{
+		Interval: interval,
 		Currency: "USD",
 	}
-	if errMin == nil {
-		comp.MinAmount = &minVal
+	if minErr == nil {
+		c.MinAmount = &minVal
 	}
-	if errMax == nil {
-		comp.MaxAmount = &maxVal
+	if maxErr == nil {
+		c.MaxAmount = &maxVal
 	}
-	return comp
-}
-
-// mapInterval maps USAJobs rate interval descriptions to model intervals.
-func mapInterval(desc string) string {
-	switch strings.TrimSpace(desc) {
-	case "Per Year", "PA":
-		return "yearly"
-	case "Per Month", "PM":
-		return "monthly"
-	case "Per Week", "PW":
-		return "weekly"
-	case "Per Day", "PD":
-		return "daily"
-	case "Per Hour", "PH":
-		return "hourly"
-	default:
-		return ""
-	}
-}
-
-// stripHTML removes HTML tags.
-func stripHTML(s string) string {
-	return strings.TrimSpace(stripHTMLRe.ReplaceAllString(s, " "))
-}
-
-// parseDate parses a date string.
-func parseDate(v string) *time.Time {
-	v = strings.TrimSpace(v)
-	if v == "" {
-		return nil
-	}
-	formats := []string{
-		time.RFC3339,
-		"2006-01-02T15:04:05Z",
-		"2006-01-02T15:04:05",
-		"2006-01-02",
-	}
-	for _, f := range formats {
-		t, err := time.Parse(f, v)
-		if err == nil {
-			return &t
-		}
-	}
-	return nil
+	return c
 }
