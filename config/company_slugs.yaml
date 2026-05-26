@@ -1,10 +1,5 @@
-lever:
-- palantir
-- highspot
-- outreach
-- pivotal
-- stackblitz
-- zingtree
+# dead — all 6 Lever slugs returned 404 (API requires subdomain); needs SCRAPPY_LEVER_SEEDS
+lever: []
 greenhouse:
 - stripe
 - airbnb
@@ -891,8 +886,8 @@ breezy:
 - checkr
 - algolia
 - zoom
-# teamtailor: disabled — all 404, API may have moved; set SCRAPPY_TEAMTAILOR_SEEDS
-# teamtailor: []
+# dead — all 68 TeamTailor slugs returned 404; needs SCRAPPY_TEAMTAILOR_SEEDS
+teamtailor: []
 # workday: disabled — all 404 or 422; set SCRAPPY_WORKDAY_SEEDS
 # workday: []
 personio:
@@ -938,10 +933,10 @@ successfactors:
 - munich-re
 - lufthansa
 - deutsche-telekom
-# comeet: disabled — all 400 or 404; set SCRAPPY_COMEET_SEEDS
-# comeet: []
-# freshteam: disabled — all 401 or 404; set SCRAPPY_FRESHTEAM_SEEDS
-# freshteam: []
+# dead — all 10 Comeet slugs returned 400/404; needs SCRAPPY_COMEET_SEEDS
+comeet: []
+# dead — all Freshteam slugs returned 404/401; needs SCRAPPY_FRESHTEAM_SEEDS
+freshteam: []
 trakstar:
 - automattic
 - wordpress
@@ -956,10 +951,10 @@ trakstar:
 - outreach
 - cognism
 - clearbit
-# adp: disabled — all numeric IDs return 404; set SCRAPPY_ADP_SEEDS
-# adp: []
-# avature: disabled — all 404 or DNS failures; set SCRAPPY_AVATURE_SEEDS
-# avature: []
+# dead — all 51 ADP IDs returned 404; needs SCRAPPY_ADP_SEEDS
+adp: []
+# dead — all 20 Avature slugs have DNS failure; needs SCRAPPY_AVATURE_SEEDS
+avature: []
 bullhorn:
 - 10:aerotek
 - 10:kforce
@@ -1023,8 +1018,8 @@ deel:
 - fly-io
 - render
 - workers-dev
-# fountain: disabled — API returns 500; set SCRAPPY_FOUNTAIN_SEEDS
-# fountain: []
+# dead — all 20 Fountain slugs returned 500; needs SCRAPPY_FOUNTAIN_SEEDS
+fountain: []
 gem:
 - gem
 - datadog
@@ -1109,8 +1104,8 @@ ismartrecruit:
 - patterson
 - owen-mumford
 - coloplast
-# jobscore: disabled — all 404; set SCRAPPY_JOBSCORE_SEEDS
-# jobscore: []
+# dead — all 20 Jobscore slugs returned 404; needs SCRAPPY_JOBSCORE_SEEDS
+jobscore: []
 jobvite:
 - linkedin
 - twitter
@@ -1132,8 +1127,8 @@ jobvite:
 - new-relic
 - elastic
 - datadog
-# jobylon: disabled — all 404; set SCRAPPY_JOBYLON_SEEDS
-# jobylon: []
+# dead — all 20 Jobylon slugs returned 404; needs SCRAPPY_JOBYLON_SEEDS
+jobylon: []
 loxo:
 - vercel
 - stripe
@@ -1154,8 +1149,8 @@ loxo:
 - fly-io
 - planetscale
 - neondb
-# manatal: disabled — all 404; set SCRAPPY_MANATAL_SEEDS
-# manatal: []
+# dead — all 20 Manatal slugs returned 404; needs SCRAPPY_MANATAL_SEEDS
+manatal: []
 mercor:
 - mercor
 - openai
@@ -1261,12 +1256,12 @@ recruiterflow:
 - booz-allen
 - northrop-grumman
 - saic
-# talentlyft: disabled — all 404; set SCRAPPY_TALENTLYFT_SEEDS
-# talentlyft: []
+# dead — all 20 TalentLyft slugs returned 404; needs SCRAPPY_TALENTLYFT_SEEDS
+talentlyft: []
 # ukg: disabled — all 404; set SCRAPPY_UKG_SEEDS
 # ukg: []
-# joincom: disabled — all 404 on tenant resolution; set SCRAPPY_JOINCOM_SEEDS
-# joincom: []
+# dead — all 20 Joincom slugs returned 404 on tenant resolution; needs SCRAPPY_JOINCOM_SEEDS
+joincom: []
 oracle:
 - oracle
 - fedex
