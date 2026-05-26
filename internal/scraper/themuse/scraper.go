@@ -136,24 +136,12 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	rawJobs := parsed.Results
 
 	// Client-side search term filtering (TheMuse API has no direct search param)
-	if searchTerm := strings.TrimSpace(input.SearchTerm); searchTerm != "" {
-		// Split on " OR " and match any term
-		terms := strings.Split(searchTerm, " OR ")
-		lowerTerms := make([]string, 0, len(terms))
-		for _, t := range terms {
-			t = strings.Trim(strings.TrimSpace(t), `"`)
-			if t != "" {
-				lowerTerms = append(lowerTerms, strings.ToLower(t))
-			}
-		}
+	if terms := parseSearchTerms(input.SearchTerm); len(terms) > 0 {
 		filtered := make([]themuseJob, 0, len(rawJobs))
 		for _, j := range rawJobs {
-			lower := strings.ToLower(j.Name)
-			for _, t := range lowerTerms {
-				if strings.Contains(lower, t) {
-					filtered = append(filtered, j)
-					break
-				}
+			lower := strings.ToLower(j.Name + " " + j.Contents)
+			if matchAny(lower, terms) {
+				filtered = append(filtered, j)
 			}
 		}
 		rawJobs = filtered
@@ -209,6 +197,33 @@ func companyName(c *themuseCompany) string {
 
 // parseLocation converts TheMuse location entries to a model.Location.
 // Format: "City, State, Country"
+// parseSearchTerms splits a search term on " OR " and returns lowercase terms.
+func parseSearchTerms(raw string) []string {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, " OR ")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.Trim(strings.TrimSpace(p), `"`)
+		if p != "" {
+			out = append(out, strings.ToLower(p))
+		}
+	}
+	return out
+}
+
+// matchAny returns true if the haystack contains any of the terms.
+func matchAny(hay string, terms []string) bool {
+	for _, t := range terms {
+		if strings.Contains(hay, t) {
+			return true
+		}
+	}
+	return false
+}
+
 func parseLocation(locations []themuseLocation) model.Location {
 	if len(locations) == 0 {
 		return model.Location{}
