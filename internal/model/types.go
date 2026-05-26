@@ -84,6 +84,38 @@ const (
 	SiteDevITJobs        Site = "devitjobs"
 	SiteDrupalJobs       Site = "drupaljobs"
 	SiteDuunitori        Site = "duunitori"
+	SiteHabrCareer       Site = "habrcareer"
+	SiteHigherEdJobs     Site = "higheredjobs"
+	SiteIcrunchData      Site = "icrunchdata"
+	SiteIOSDevJobs       Site = "iosdevjobs"
+	SiteJobDataAPI       Site = "jobdataapi"
+	SiteJobsAcUK         Site = "jobsacuk"
+	SiteJobsCH           Site = "jobsch"
+	SiteJobsInJapan      Site = "jobsinjapan"
+	SiteJoinRise         Site = "joinrise"
+	SiteNavJobs          Site = "navjobs"
+
+	// Priority new site constants
+	SiteElixirJobs       Site = "elixirjobs"
+	SiteExa              Site = "exa"
+	SiteFossJobs         Site = "fossjobs"
+	SiteFranceTravail    Site = "francetravail"
+	SiteFreelancerCom    Site = "freelancercom"
+	SiteFunctionalWorks  Site = "functionalworks"
+	SiteGermanTechJobs   Site = "germantechjobs"
+	SiteGetOnBoard       Site = "getonboard"
+	SiteGreenJobsBoard   Site = "greenjobsboard"
+	SiteGuardianJobs     Site = "guardianjobs"
+	SiteNoFluffJobs          Site = "nofluffjobs"
+	SiteOpenSourceDesignJobs Site = "opensourcedesignjobs"
+	SitePowerToFly           Site = "powertofly"
+	SitePyJobs               Site = "pyjobs"
+	SitePythonJobs           Site = "pythonjobs"
+	SiteRailsJobs            Site = "railsjobs"
+	SiteReliefWeb            Site = "reliefweb"
+	SiteStepStone            Site = "stepstone"
+	SiteSwissDevJobs         Site = "swissdevjobs"
+	SiteTalroo               Site = "talroo"
 )
 
 // AllSites returns every known site.
@@ -162,6 +194,36 @@ func AllSites() []Site {
 		SiteDevITJobs,
 		SiteDrupalJobs,
 		SiteDuunitori,
+		SiteHabrCareer,
+		SiteHigherEdJobs,
+		SiteIcrunchData,
+		SiteIOSDevJobs,
+		SiteJobDataAPI,
+		SiteJobsAcUK,
+		SiteJobsCH,
+		SiteJobsInJapan,
+		SiteJoinRise,
+		SiteNavJobs,
+		SiteElixirJobs,
+		SiteExa,
+		SiteFossJobs,
+		SiteFranceTravail,
+		SiteFreelancerCom,
+		SiteFunctionalWorks,
+		SiteGermanTechJobs,
+		SiteGetOnBoard,
+		SiteGreenJobsBoard,
+		SiteGuardianJobs,
+		SiteNoFluffJobs,
+		SiteOpenSourceDesignJobs,
+		SitePowerToFly,
+		SitePyJobs,
+		SitePythonJobs,
+		SiteRailsJobs,
+		SiteReliefWeb,
+		SiteStepStone,
+		SiteSwissDevJobs,
+		SiteTalroo,
 	}
 }
 
