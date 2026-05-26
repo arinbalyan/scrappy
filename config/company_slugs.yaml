@@ -985,6 +985,132 @@ freshteam:
   []
 
 trakstar:
-  # Trakstar uses https://apply.trakstar.com/{slug}
-  # Slugs are company-specific; use SCRAPPY_TRAKSTAR_SEEDS
-  []
+  # Trakstar/Hire — https://{slug}.hire.trakstar.com/api/v1/openings
+  - automattic
+  - wordpress
+  - tumblr
+  - jetpack
+  - woocommerce
+  - podium
+  - qualia
+  - salesloft
+  - drift
+  - intercom
+  - outreach
+  - cognism
+  - clearbit
+
+rippling:
+  # Rippling ATS — https://app.rippling.com/api/ats/jobs
+  - rippling
+  - retool
+  - vercel
+  - snowflake
+  - mongodb
+  - confluent
+  - hashicorp
+  - elastic
+  - okta
+  - twilio
+  - sendgrid
+  - segment
+  - stytch
+  - workos
+  - clerk
+  - supabase
+  - neondb
+
+successfactors:
+  # SAP SuccessFactors — career site: <company>.recruitmentplatform.com
+  - sap
+  - siemens
+  - bosch
+  - bayer
+  - basf
+  - volkswagen
+  - bmw
+  - audi
+  - porsche
+  - continental
+  - adidas
+  - allianz
+  - munich-re
+  - lufthansa
+  - deutsche-telekom
+
+taleo:
+  # Oracle Taleo — career portal suffixes vary
+  - amazon
+  - target
+  - walmart
+  - best-buy
+  - costco
+  - home-depot
+  - lowes
+  - cvs
+  - walgreens
+  - macy
+  - nordstrom
+  - kroger
+  - safeway
+  - publix
+  - albertsons
+
+workday:
+  # Workday — career portal: <company>.wd5.myworkdayjobs.com
+  - workday
+  - netflix
+  - nvidia
+  - apple
+  - microsoft
+  - google
+  - meta
+  - amazon
+  - oracle
+  - adobe
+  - salesforce
+  - servicenow
+  - vmware
+  - cisco
+  - intel
+  - qualcomm
+  - broadcom
+  - amd
+  - micron
+
+comeet:
+  # Comeet — https://www.comeet.com/jobs/{slug}/
+  - monday-com
+  - wix
+  - fiverr
+  - walkme
+  - taboola
+  - outbrain
+  - similarweb
+  - checkmarx
+  - cyberark
+  - sentinel-one
+
+freshteam:
+  # Freshteam — https://{slug}.freshteam.com/api/job_postings
+  - freshworks
+  - freshservice
+  - freshdesk
+  - freshsales
+  - zoho
+  - chargebee
+  - razorpay
+  - postman
+  - hasura
+  - supabase
+  - stytch
+  - clerk
+
+personio:
+  # Personio — XML feed at {slug}.jobs.personio.de/xml
+  - delivery-hero
+  - flixbus
+  - n26
+  - zalando
+  - helloFresh
+  - gopuff
