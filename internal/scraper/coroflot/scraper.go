@@ -78,7 +78,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	items := parseItems(string(body))
 	util.Debug("coroflot: parsed items", map[string]any{"count": len(items)})
 
-	term := strings.ToLower(strings.TrimSpace(input.SearchTerm))
+	terms := parseSearchTerms(input.SearchTerm)
 	wanted := input.ResultsWanted
 	if wanted <= 0 {
 		wanted = len(items)
@@ -98,10 +98,10 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			continue
 		}
 
-		// Client-side search term filtering
-		if term != "" {
+		// Client-side search term filtering (OR semantics)
+		if len(terms) > 0 {
 			hay := strings.ToLower(title + " " + item.description)
-			if !strings.Contains(hay, term) {
+			if !matchAny(hay, terms) {
 				continue
 			}
 		}
@@ -221,6 +221,33 @@ func extractID(guid, link string) string {
 		}
 	}
 	return util.HashID(raw)
+}
+
+// parseSearchTerms splits a search term on " OR " and returns lowercase terms.
+func parseSearchTerms(raw string) []string {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, " OR ")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.Trim(strings.TrimSpace(p), `"`)
+		if p != "" {
+			out = append(out, strings.ToLower(p))
+		}
+	}
+	return out
+}
+
+// matchAny returns true if the haystack contains any of the terms.
+func matchAny(hay string, terms []string) bool {
+	for _, t := range terms {
+		if strings.Contains(hay, t) {
+			return true
+		}
+	}
+	return false
 }
 
 // parseRSSDate attempts to parse an RSS pubDate string.
