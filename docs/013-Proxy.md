@@ -69,6 +69,33 @@ INFO proxy_setup healthy=3 total=4 proxies=socks5://p1:1080,socks5://p2:1080,soc
 
 This happens before any scrape requests are sent. Proxies that fail the TCP dial are never used during the run.
 
+### SOCKS health probe notes
+
+The health-probe function (`Pool.Probe`) has a documented limitation: it sends
+an HTTP HEAD request through the proxy via `http.Transport.Proxy`. This confirms
+the proxy is reachable and returns HTTP traffic, but it does **not** test SOCKS5
+protocol compliance. A SOCKS5 proxy that fails at the protocol level but
+responds to TCP may pass the check.
+
+## Concurrency safety fixes
+
+### Unexported mutex
+
+The proxy pool's `Mu` field is now unexported (`mu`), preventing external
+callers from accidentally creating lock-inversion deadlocks by locking it
+in the wrong order.
+
+### Atomic rotation
+
+Proxy rotation now uses `atomic.AddInt64` for the rotation counter instead of a
+read-modify-write pattern that had a data race under concurrent access.
+
+### Index 0 fix
+
+The rotation logic previously skipped index 0 (the first proxy in the list)
+on the first request due to a post-increment ordering bug. Index 0 is now
+used correctly on the first access.
+
 ## HTTP health probes
 
 In addition to the TCP-dial check, the proxy pool runs an HTTP HEAD request through each proxy before adding it to the rotation:

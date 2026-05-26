@@ -24,6 +24,8 @@ scrappy
 | `--location` | string | `""` | Location(s). Comma-separated for multi-value cartesian product. |
 | `--sites` | string | `""` (all 55+) | Comma-separated site names. Omit to scrape every supported board. |
 | `--results-wanted` | int | `0` | Maximum number of results total across all sites. |
+
+> **Building the binary:** `go build -o ./bin/scrappy ./cmd/scrappy` or use the Makefile target `make build` which builds to `bin/scrappy` with stripped debug symbols.
 | `--format` | string | `""` | Output format: `jsonl`, `csv`, `xlsx`, `parquet`. |
 | `--out` | string | `""` | Output file path. Empty = stdout (JSON pretty-printed). |
 | `--timeout` | int | `600` | Scrape timeout in seconds. |

@@ -272,4 +272,14 @@ sites:
 
 After completing a scrape in interactive mode, answer `y` to "Save these settings to ~/.scrappy/config.yaml?" -- the wizard writes your current values as a config file automatically.
 
+The setup wizard now also prompts for:
+- **Site selection** -- saved to `config.yaml` as the `sites:` block
+- **API key prompts** for all 5 key-required sites: InfoJobs (client ID + secret), Arbeitsagentur (API key), Adzuna (app ID + key), Careerjet (affiliate ID), and Findwork (API key)
+
 See [005-Interactive-Mode.md](005-Interactive-Mode.md) for details.
+
+### `.dockerignore` for Docker builds
+
+When building the Docker image, a `.dockerignore` file excludes `tmp/`, `tests/`,
+`docs/`, `*.md`, `config.yaml`, and other non-essential files from the build
+context to keep images small and builds fast.

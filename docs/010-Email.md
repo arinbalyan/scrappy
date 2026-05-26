@@ -95,6 +95,16 @@ After email extraction, the domain from the first email address is stored on `Jo
 
 > **Note:** MX verification runs synchronously per job. Flags `--verify-concurrency`, `--email-max-per-job`, `--email-enrich`, and `--email-enrich-domains` are not currently wired in the CLI.
 
+### Fixes in recent refactor
+
+- **Body draining before closing**: The email extractor's HTTP response body is
+  now drained (`io.Copy(io.Discard, resp.Body)`) **before** `resp.Body.Close()`
+  to ensure the connection can be reused by the HTTP client's keep-alive pool.
+  Previous code had the drain-after-close pattern which could leak connections.
+- **`filterVerified` context**: The `filterVerified` helper now uses the passed
+  `context.Context` instead of `context.Background()`, allowing cancellation and
+  timeouts to propagate correctly during MX verification.
+
 ## Output
 
 - **Parquet / JSONL**: `emails` is a structured array of `Email` objects with Addr, Verified, Source, Role

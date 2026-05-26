@@ -165,7 +165,7 @@ The pipeline runs per-job (steps 1-5) in a loop over results, then runs cross-si
 | `internal/dedup/` | Thread-safe `Set` for URL and company-name deduplication |
 | `internal/quality/` | Deterministic quality score (salary +30, apply method +20, email match +15, freshness +15, description length +10, non-agency +10) |
 | `internal/export/` | Output writers: `WriteJSONL`, `WriteCSV`, `WriteXLSX`, `WriteParquet` |
-| `internal/util/` | Shared HTTP client (retry, UA rotation, proxy dialing), structured logging (`Info`/`Warn`/`Error`/`Debug`/`APIMiss`), `SleepWithContext()`, response helpers |
+| `internal/util/` | Shared HTTP client (retry, UA rotation, proxy dialing), structured logging (`Info`/`Warn`/`Error`/`Debug`/`APIMiss`), `SleepWithContext()`, `HashID()`, `StripHTML()`, response helpers |
 
 ## Race safety
 
