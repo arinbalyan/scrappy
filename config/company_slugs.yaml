@@ -1,1116 +1,1078 @@
-# ATS company slugs — used by scrapers to find job postings
-# Each entry: provider_name: [slug1, slug2, ...]
-# Researched by probing API endpoints for each provider against known company subdomains.
-# Date: 2026-05-26
-
 lever:
-  # Format: https://api.lever.co/v0/postings/{slug}?limit=1
-  - palantir
-  - highspot
-  - outreach
-  - pivotal
-  - stackblitz
-  - zingtree
-
+- palantir
+- highspot
+- outreach
+- pivotal
+- stackblitz
+- zingtree
 greenhouse:
-  # Format: https://boards-api.greenhouse.io/v1/boards/{slug}/jobs
-  - stripe
-  - airbnb
-  - lyft
-  - dropbox
-  - asana
-  - gitlab
-  - figma
-  - datadog
-  - discord
-  - instacart
-  - brex
-  - gusto
-  - anthropic
-  - 2u
-  - affinity
-  - algolia
-  - amplitude
-  - appian
-  - applovin
-  - astranis
-  - awardco
-  - axiom
-  - backblaze
-  - betterment
-  - biofourmis
-  - block
-  - braze
-  - calm
-  - collibra
-  - commercetools
-  - consensys
-  - contentful
-  - dialpad
-  - ebanx
-  - elastic
-  - fairmarkit
-  - fastly
-  - fireblocks
-  - flexport
-  - gemini
-  - ghost
-  - gocardless
-  - godaddy
-  - hightouch
-  - honeycomb
-  - intercom
-  - janestreet
-  - justanswer
-  - kalepa
-  - kargo
-  - keen
-  - klaviyo
-  - launchdarkly
-  - mabl
-  - mark43
-  - mentimeter
-  - mercury
-  - minitab
-  - mixpanel
-  - moloco
-  - mongodb
-  - motive
-  - myfitnesspal
-  - nearform
-  - netlify
-  - neuralink
-  - newsela
-  - nextdoor
-  - nextiva
-  - nubank
-  - okta
-  - oura
-  - overstory
-  - pagerduty
-  - palmetto
-  - pingidentity
-  - polaris
-  - postscript
-  - pressable
-  - privateer
-  - proact-it
-  - procureai
-  - quince
-  - reddit
-  - roblox
-  - runpod
-  - salsify
-  - simplisafe
-  - singlestore
-  - smartlyio
-  - smartsheet
-  - spacex
-  - speechify
-  - spothero
-  - starburst
-  - startree
-  - stepstone
-  - stockx
-  - sumologic
-  - surveymonkey
-  - sweetgreen
-  - tenstorrent
-  - textio
-  - thoughtworks
-  - tia
-  - triplelift
-  - tucows
-  - twilio
-  - twitch
-  - udacity
-  - udemy
-  - unqork
-  - upbound
-  - valimail
-  - veracode
-  - veriff
-  - warp
-  - webflow
-  - xometry
-  - yext
-  - yieldmo
-  - yipitdata
-  - yubico
-  - zocdoc
-  - zola
-  - zoominfo
-  - zscaler
-
+- stripe
+- airbnb
+- lyft
+- dropbox
+- asana
+- gitlab
+- figma
+- datadog
+- discord
+- instacart
+- brex
+- gusto
+- anthropic
+- 2u
+- affinity
+- algolia
+- amplitude
+- appian
+- applovin
+- astranis
+- awardco
+- axiom
+- backblaze
+- betterment
+- biofourmis
+- block
+- braze
+- calm
+- collibra
+- commercetools
+- consensys
+- contentful
+- dialpad
+- ebanx
+- elastic
+- fairmarkit
+- fastly
+- fireblocks
+- flexport
+- gemini
+- ghost
+- gocardless
+- godaddy
+- hightouch
+- honeycomb
+- intercom
+- janestreet
+- justanswer
+- kalepa
+- kargo
+- keen
+- klaviyo
+- launchdarkly
+- mabl
+- mark43
+- mentimeter
+- mercury
+- minitab
+- mixpanel
+- moloco
+- mongodb
+- motive
+- myfitnesspal
+- nearform
+- netlify
+- neuralink
+- newsela
+- nextdoor
+- nextiva
+- nubank
+- okta
+- oura
+- overstory
+- pagerduty
+- palmetto
+- pingidentity
+- polaris
+- postscript
+- pressable
+- privateer
+- proact-it
+- procureai
+- quince
+- reddit
+- roblox
+- runpod
+- salsify
+- simplisafe
+- singlestore
+- smartlyio
+- smartsheet
+- spacex
+- speechify
+- spothero
+- starburst
+- startree
+- stepstone
+- stockx
+- sumologic
+- surveymonkey
+- sweetgreen
+- tenstorrent
+- textio
+- thoughtworks
+- tia
+- triplelift
+- tucows
+- twilio
+- twitch
+- udacity
+- udemy
+- unqork
+- upbound
+- valimail
+- veracode
+- veriff
+- warp
+- webflow
+- xometry
+- yext
+- yieldmo
+- yipitdata
+- yubico
+- zocdoc
+- zola
+- zoominfo
+- zscaler
+- aperture
+- apollo
+- blueshift
+- checkr
+- circleci
+- cloudflare
+- databricks
+- devrev
+- doctolib
+- fivetran
+- hometown
+- hubspot
+- mattermost
+- melio
+- mobility
+- pinterest
+- sumup
+- tines
+- vercel
+- zenput
 workable:
-  # Format: https://apply.workable.com/api/v1/widget/accounts/{slug}
-  - circleci
-  - codacy
-  - eero
-  - egress
-  - emailoctopus
-  - emma
-  - fivetran
-  - fleetdm
-  - fontawesome
-  - gitbook
-  - goabstract
-  - goshippo
-  - graphql
-  - greenhouse
-  - intercom
-  - ironclad
-  - klaviyo
-  - kustomer
-  - launchdarkly
-  - liveblocks
-  - logdna
-  - mattermost
-  - mentimeter
-  - messagebird
-  - monday
-  - mparticle
-  - mux
-  - netlify
-  - newrelic
-  - notion
-  - nutanix
-  - nylas
-  - okta
-  - openphone
-  - outsystems
-  - pantheon
-  - parsec
-  - paypal
-  - penpot
-  - pganalyze
-  - pinata
-  - pinterest
-  - planetlabs
-  - platformsh
-  - plex
-  - productboard
-  - questdb
-  - rapidapi
-  - redash
-  - redislabs
-  - resend
-  - retool
-  - runpod
-  - safetywing
-  - scaleai
-  - scaleway
-  - segment
-  - sentry
-  - servicenow
-  - sinch
-  - soloio
-  - sonarcloud
-  - sonatype
-  - speechify
-  - splunk
-  - spotify
-  - springcm
-  - stackblitz
-  - stripe
-  - sysdig
-  - talkdesk
-  - temporal
-  - testlio
-  - tinybird
-  - toggl
-  - trakstar
-  - twilio
-  - typeform
-  - unbounce
-  - upstash
-  - userpilot
-  - valimail
-  - veed
-  - veriff
-  - vimeo
-  - vite
-  - webflow
-  - weglot
-  - wire
-  - yandex
-  - yotpo
-  - zammad
-  - zeplin
-  - ziprecruiter
-  - zoominfo
-
+- circleci
+- codacy
+- eero
+- egress
+- emailoctopus
+- emma
+- fivetran
+- fleetdm
+- fontawesome
+- gitbook
+- goabstract
+- goshippo
+- graphql
+- greenhouse
+- intercom
+- ironclad
+- klaviyo
+- kustomer
+- launchdarkly
+- liveblocks
+- logdna
+- mattermost
+- mentimeter
+- messagebird
+- monday
+- mparticle
+- mux
+- netlify
+- newrelic
+- notion
+- nutanix
+- nylas
+- okta
+- openphone
+- outsystems
+- pantheon
+- parsec
+- paypal
+- penpot
+- pganalyze
+- pinata
+- pinterest
+- planetlabs
+- platformsh
+- plex
+- productboard
+- questdb
+- rapidapi
+- redash
+- redislabs
+- resend
+- retool
+- runpod
+- safetywing
+- scaleai
+- scaleway
+- segment
+- sentry
+- servicenow
+- sinch
+- soloio
+- sonarcloud
+- sonatype
+- speechify
+- splunk
+- spotify
+- springcm
+- stackblitz
+- stripe
+- sysdig
+- talkdesk
+- temporal
+- testlio
+- tinybird
+- toggl
+- trakstar
+- twilio
+- typeform
+- unbounce
+- upstash
+- userpilot
+- valimail
+- veed
+- veriff
+- vimeo
+- vite
+- webflow
+- weglot
+- wire
+- yandex
+- yotpo
+- zammad
+- zeplin
+- ziprecruiter
+- zoominfo
+- airbnb
+- asana
+- canva
+- coinbase
+- datadog
+- doordash
+- dropbox
+- figma
+- gitlab
+- grammarly
+- gusto
+- hubspot
+- instacart
+- linear
+- pitch
+- reddit
+- shopify
+- slack
+- square
+- sumup
+- uber
+- wise
+- zendesk
 ashby:
-  # Format: https://api.ashbyhq.com/posting-api/job-board/{slug}
-  - 1password
-  - airwallex
-  - alchemy
-  - andela
-  - anrok
-  - atlan
-  - attio
-  - bastion
-  - clari
-  - cobalt
-  - coil
-  - compass
-  - compound
-  - consignly
-  - couchbase
-  - cursor
-  - cyberhaven
-  - dailybot
-  - deepgram
-  - delphx
-  - deployhq
-  - devrev
-  - docker
-  - dosu
-  - duffel
-  - dune
-  - elastic
-  - engFlow
-  - env0
-  - esolidar
-  - fable
-  - fireflies
-  - front
-  - fundapps
-  - getaccept
-  - getlabs
-  - gitbook
-  - glassbox
-  - gorgias
-  - granola
-  - growannually
-  - heidi
-  - highnote
-  - hivelocity
-  - hygraph
-  - insightly
-  - intercom
-  - intuned
-  - jasper
-  - jina
-  - jotform
-  - jupiterone
-  - kanmon
-  - kayzen
-  - kazoo
-  - keep
-  - kikoff
-  - kustomer
-  - langfuse
-  - launchdarkly
-  - launchmetrics
-  - ledger
-  - lensa
-  - linear
-  - linkup
-  - liquid
-  - liveblocks
-  - livekit
-  - loggie
-  - lumafield
-  - m3ter
-  - maintir
-  - mayfair
-  - mattermost
-  - maven
-  - melio
-  - memoryleak
-  - menta
-  - mercor
-  - mercury
-  - mergify
-  - meridian
-  - meridianlink
-  - messagebird
-  - metabase
-  - midigo
-  - milanote
-  - mineo
-  - minware
-  - miro
-  - missionlane
-  - mobbin
-  - moloco
-  - moonwalk
-  - mrelief
-  - multiverse
-  - muse
-  - mx
-  - mymove
-  - narvar
-  - nerdio
-  - nightfall
-  - nodecraft
-  - noloco
-  - noname
-  - nordhealth
-  - normal
-  - notabene
-  - notion
-  - nova
-  - nrd
-  - nuna
-  - nutanix
-  - nvidia
-  - nylas
-  - nym
-  - nymbus
-  - obie
-  - odoo
-  - okta
-  - onebrief
-  - oneconcern
-  - onepassword
-  - onerep
-  - onesignal
-  - onna
-  - openai
-  - opengov
-  - openphone
-  - opensesame
-  - openstax
-  - openvault
-  - operator
-  - optery
-  - orbit
-  - ory
-  - oscar-health
-  - oslash
-  - otterly
-  - outline
-  - outright
-  - outschool
-  - overeasy
-  - overjet
-  - overture
-  - ownpath
-  - oxygen
-  - packback
-  - palantir
-  - pangea
-  - paperless
-  - pantheon
-  - parfait
-  - payarc
-  - payclip
-  - payfit
-  - paymentrails
-  - paypal
-  - paystand
-  - peardeck
-  - peerlist
-  - penpot
-  - pentablet
-  - pie
-  - pindrop
-  - platformatic
-  - pliant
-  - plex
-  - plumelabs
-  - pluto
-  - polarr
-  - polyapi
-  - polywrap
-  - ponti
-  - prepkit
-  - preveil
-  - prismatic
-  - prismic
-  - probe
-  - proof
-  - proput
-  - pulse
-  - qawolf
-  - qdrant
-  - questdb
-  - quicknode
-  - quill
-  - quizlet
-  - quotapath
-  - radiant
-  - rapidapi
-  - raycast
-  - raygun
-  - reclip
-  - reddit
-  - redis
-  - redux
-  - reflect
-  - relayfi
-  - remo
-  - remoteok
-  - requestly
-  - resend
-  - reset
-  - retool
-  - retrium
-  - revolve
-  - rhizore
-  - rovelabs
-  - runpod
-  - rutter
-  - safe-dev
-  - salsify
-  - salt
-  - sample
-  - satchel
-  - scaleai
-  - secoda
-  - sedai
-  - seeker
-  - segment
-  - sellet
-  - sentry
-  - seranking
-  - serpapi
-  - servicetitan
-  - setmore
-  - shield
-  - shippo
-  - shoelace
-  - shotgun
-  - showell
-  - sidekiq
-  - signaturit
-  - signeasy
-  - signrequest
-  - simplehash
-  - simplero
-  - sinch
-  - singlecell
-  - singlestore
-  - skedler
-  - skoot
-  - smartsheet
-  - snapdocs
-  - snovio
-  - sofi
-  - socialchorus
-  - socialpilot
-  - sonarcloud
-  - sonatype
-  - soundhound
-  - sourcegraph
-  - sparkcognition
-  - sparkpost
-  - speechify
-  - splunk
-  - spotify
-  - spotter
-  - spothero
-  - spreader
-  - sprocket
-  - squaredev
-  - squid
-  - stackblitz
-  - stacker
-  - stackshadow
-  - staffbase
-  - standard-crypto
-  - starboard
-  - starburst
-  - stardog
-  - startupscene
-  - startree
-  - state-auto
-  - stedi
-  - stellar
-  - stepstone
-  - stockanalysis
-  - stockly
-  - stockx
-  - storj
-  - storm-ai
-  - storable
-  - storetasker
-  - storyhopper
-  - storyscript
-  - straight
-  - strangeloop
-  - streamlabs
-  - streamyard
-  - strict
-  - stripe
-  - strongDM
-  - structure
-  - stryker
-  - stytch
-  - submittable
-  - suborbital
-  - substack
-  - successeve
-  - sudolabs
-  - sumologic
-  - superblocks
-  - supercharge
-  - superhuman
-  - superlist
-  - supersea
-  - surf
-  - svix
-  - sweetgreen
-  - swiftops
-  - swimlane
-  - swirl
-  - snyk
-  - syncsketch
-  - synctera
-  - tablecheck
-  - tabnine
-  - tact
-  - tailscale
-  - tandem
-  - teamflow
-  - teamgate
-  - teamworkcloud
-  - teamworkhealth
-  - techstars
-  - tegus
-  - teleport
-  - tellman
-  - temporal
-  - tenstorrent
-  - tesorio
-  - testmo
-  - thyra
-  - tilled
-  - timescale
-  - tines
-  - tinybird
-  - tmetric
-  - toggl
-  - tolt
-  - toptal
-  - torch
-  - torq
-  - toshl
-  - totalhockey
-  - touchstone
-  - tower
-  - traceable
-  - tradeshift
-  - trainingpeak
-  - travelperk
-  - treasure-data
-  - treecard
-  - trengo
-  - triage
-  - tripleseat
-  - truelayer
-  - trunklabs
-  - trustpage
-  - trustpilot
-  - trymata
-  - tucows
-  - turbot
-  - tune-pms
-  - tuta
-  - twilio
-  - twillot
-  - twingate
-  - twitch
-  - txt-atlas
-  - typeform
-  - typewise
-  - typogram
-  - uipath
-  - uivar
-  - uizard
-  - unapp
-  - unbounce
-  - uncapped
-  - unchain
-  - underdog
-  - unearth
-  - unify
-  - unio
-  - unique
-  - unionai
-  - uniswap
-  - unqork
-  - unskript
-  - unsplash
-  - upbound
-  - upchieve
-  - upframe
-  - upgrow
-  - uplight
-  - uppbeat
-  - uptech
-  - uptime
-  - uptempo
-  - uptous
-  - upstash
-  - upstor
-  - upvest
-  - upvoty
-  - urban-science
-  - uxpin
-  - v7labs
-  - vanceball
-  - vanta
-  - vapour
-  - variable
-  - varnish
-  - vaultvision
-  - vcita
-  - vdocipher
-  - vectra
-  - vedant
-  - veed
-  - vendavo
-  - vendorful
-  - venafi
-  - veracode
-  - vercel
-  - verifiable
-  - veriff
-  - veritone
-  - vernetzt
-  - verve
-  - vetspire
-  - viator
-  - vidsy
-  - viewlift
-  - vimeo
-  - vips
-  - virtualstock
-  - visier
-  - visma
-  - vital-voices
-  - vitally
-  - vitra
-  - vitruvi
-  - vivacity
-  - vivid
-  - vivo
-  - vizierai
-  - vizlly
-  - vizzio
-  - voicemed
-  - volition
-  - volume
-  - voodoo
-  - voopter
-  - vouch
-  - vox
-  - vpsspeed
-  - vsble
-  - vuori
-  - vyond
-  - waitmate
-  - wallapop
-  - waltz
-  - wandisco
-  - wantedly
-  - warp
-  - wartsila
-  - wastebits
-  - waterfall
-  - waterlens
-  - webaverse
-  - webedia
-  - webflow
-  - webiny
-  - weglot
-  - wefox
-  - welltory
-  - wemo
-  - wesbos
-  - western-union
-  - whatnot
-  - wheeve
-  - whistle
-  - white-fox
-  - wiley
-  - willow
-  - wink
-  - wintermute
-  - wisp
-  - wizeline
-  - wkly
-  - wolfstreet
-  - women-in
-  - woodpecker
-  - woolf
-  - wordbee
-  - wordforms
-  - workspace
-  - workspot
-  - worlds
-  - worldwide
-  - wrapt
-  - wunderlist
-  - wunderteam
-  - wyzant
-  - xactly
-  - xapo
-  - xeneta
-  - xerox
-  - xgrid
-  - xilinx
-  - xkcd
-  - xmpp
-  - xola
-  - xoxoday
-  - xplor
-  - xsuite
-  - xtend
-  - xyx-files
-  - yahoo
-  - yammer
-  - yandex
-  - ycombinator
-  - yext
-  - yieldmo
-  - ynab
-  - yodel
-  - yola
-  - yorbit
-  - yore
-  - yubico
-  - yugabyte
-  - yunojuno
-  - yves-rocher
-  - zalfie
-  - zaloni
-  - zappy
-  - zazzle
-  - zealthy
-  - zebra-technologies
-  - zebu
-  - zeemo
-  - zenchef
-  - zenefits
-  - zenhub
-  - zenly
-  - zenput
-  - zerocater
-  - zerodha
-  - zeroheight
-  - zerotier
-  - zest-bio
-  - ziggeo
-  - zillow
-  - zimperium
-  - zircuit
-  - zmanda
-  - zocdoc
-  - zohocorp
-  - zolar
-  - zola
-  - zoona
-  - zoominfo
-  - zoop
-  - zopim
-  - zulily
-
+- 1password
+- airwallex
+- alchemy
+- andela
+- anrok
+- atlan
+- attio
+- bastion
+- clari
+- cobalt
+- coil
+- compass
+- compound
+- consignly
+- couchbase
+- cursor
+- cyberhaven
+- dailybot
+- deepgram
+- delphx
+- deployhq
+- devrev
+- docker
+- dosu
+- duffel
+- dune
+- elastic
+- engFlow
+- env0
+- esolidar
+- fable
+- fireflies
+- front
+- fundapps
+- getaccept
+- getlabs
+- gitbook
+- glassbox
+- gorgias
+- granola
+- growannually
+- heidi
+- highnote
+- hivelocity
+- hygraph
+- insightly
+- intercom
+- intuned
+- jasper
+- jina
+- jotform
+- jupiterone
+- kanmon
+- kayzen
+- kazoo
+- keep
+- kikoff
+- kustomer
+- langfuse
+- launchdarkly
+- launchmetrics
+- ledger
+- lensa
+- linear
+- linkup
+- liquid
+- liveblocks
+- livekit
+- loggie
+- lumafield
+- m3ter
+- maintir
+- mayfair
+- mattermost
+- maven
+- melio
+- memoryleak
+- menta
+- mercor
+- mercury
+- mergify
+- meridian
+- meridianlink
+- messagebird
+- metabase
+- midigo
+- milanote
+- mineo
+- minware
+- miro
+- missionlane
+- mobbin
+- moloco
+- moonwalk
+- mrelief
+- multiverse
+- muse
+- mx
+- mymove
+- narvar
+- nerdio
+- nightfall
+- nodecraft
+- noloco
+- noname
+- nordhealth
+- normal
+- notabene
+- notion
+- nova
+- nrd
+- nuna
+- nutanix
+- nvidia
+- nylas
+- nym
+- nymbus
+- obie
+- odoo
+- okta
+- onebrief
+- oneconcern
+- onepassword
+- onerep
+- onesignal
+- onna
+- openai
+- opengov
+- openphone
+- opensesame
+- openstax
+- openvault
+- operator
+- optery
+- orbit
+- ory
+- oscar-health
+- oslash
+- otterly
+- outline
+- outright
+- outschool
+- overeasy
+- overjet
+- overture
+- ownpath
+- oxygen
+- packback
+- palantir
+- pangea
+- paperless
+- pantheon
+- parfait
+- payarc
+- payclip
+- payfit
+- paymentrails
+- paypal
+- paystand
+- peardeck
+- peerlist
+- penpot
+- pentablet
+- pie
+- pindrop
+- platformatic
+- pliant
+- plex
+- plumelabs
+- pluto
+- polarr
+- polyapi
+- polywrap
+- ponti
+- prepkit
+- preveil
+- prismatic
+- prismic
+- probe
+- proof
+- proput
+- pulse
+- qawolf
+- qdrant
+- questdb
+- quicknode
+- quill
+- quizlet
+- quotapath
+- radiant
+- rapidapi
+- raycast
+- raygun
+- reclip
+- reddit
+- redis
+- redux
+- reflect
+- relayfi
+- remo
+- remoteok
+- requestly
+- resend
+- reset
+- retool
+- retrium
+- revolve
+- rhizore
+- rovelabs
+- runpod
+- rutter
+- safe-dev
+- salsify
+- salt
+- sample
+- satchel
+- scaleai
+- secoda
+- sedai
+- seeker
+- segment
+- sellet
+- sentry
+- seranking
+- serpapi
+- servicetitan
+- setmore
+- shield
+- shippo
+- shoelace
+- shotgun
+- showell
+- sidekiq
+- signaturit
+- signeasy
+- signrequest
+- simplehash
+- simplero
+- sinch
+- singlecell
+- singlestore
+- skedler
+- skoot
+- smartsheet
+- snapdocs
+- snovio
+- sofi
+- socialchorus
+- socialpilot
+- sonarcloud
+- sonatype
+- soundhound
+- sourcegraph
+- sparkcognition
+- sparkpost
+- speechify
+- splunk
+- spotify
+- spotter
+- spothero
+- spreader
+- sprocket
+- squaredev
+- squid
+- stackblitz
+- stacker
+- stackshadow
+- staffbase
+- standard-crypto
+- starboard
+- starburst
+- stardog
+- startupscene
+- startree
+- state-auto
+- stedi
+- stellar
+- stepstone
+- stockanalysis
+- stockly
+- stockx
+- storj
+- storm-ai
+- storable
+- storetasker
+- storyhopper
+- storyscript
+- straight
+- strangeloop
+- streamlabs
+- streamyard
+- strict
+- stripe
+- strongDM
+- structure
+- stryker
+- stytch
+- submittable
+- suborbital
+- substack
+- successeve
+- sudolabs
+- sumologic
+- superblocks
+- supercharge
+- superhuman
+- superlist
+- supersea
+- surf
+- svix
+- sweetgreen
+- swiftops
+- swimlane
+- swirl
+- snyk
+- syncsketch
+- synctera
+- tablecheck
+- tabnine
+- tact
+- tailscale
+- tandem
+- teamflow
+- teamgate
+- teamworkcloud
+- teamworkhealth
+- techstars
+- tegus
+- teleport
+- tellman
+- temporal
+- tenstorrent
+- tesorio
+- testmo
+- thyra
+- tilled
+- timescale
+- tines
+- tinybird
+- tmetric
+- toggl
+- tolt
+- toptal
+- torch
+- torq
+- toshl
+- totalhockey
+- touchstone
+- tower
+- traceable
+- tradeshift
+- trainingpeak
+- travelperk
+- treasure-data
+- treecard
+- trengo
+- triage
+- tripleseat
+- truelayer
+- trunklabs
+- trustpage
+- trustpilot
+- trymata
+- tucows
+- turbot
+- tune-pms
+- tuta
+- twilio
+- twillot
+- twingate
+- twitch
+- txt-atlas
+- typeform
+- typewise
+- typogram
+- uipath
+- uivar
+- uizard
+- unapp
+- unbounce
+- uncapped
+- unchain
+- underdog
+- unearth
+- unify
+- unio
+- unique
+- unionai
+- uniswap
+- unqork
+- unskript
+- unsplash
+- upbound
+- upchieve
+- upframe
+- upgrow
+- uplight
+- uppbeat
+- uptech
+- uptime
+- uptempo
+- uptous
+- upstash
+- upstor
+- upvest
+- upvoty
+- urban-science
+- uxpin
+- v7labs
+- vanceball
+- vanta
+- vapour
+- variable
+- varnish
+- vaultvision
+- vcita
+- vdocipher
+- vectra
+- vedant
+- veed
+- vendavo
+- vendorful
+- venafi
+- veracode
+- vercel
+- verifiable
+- veriff
+- veritone
+- vernetzt
+- verve
+- vetspire
+- viator
+- vidsy
+- viewlift
+- vimeo
+- vips
+- virtualstock
+- visier
+- visma
+- vital-voices
+- vitally
+- vitra
+- vitruvi
+- vivacity
+- vivid
+- vivo
+- vizierai
+- vizlly
+- vizzio
+- voicemed
+- volition
+- volume
+- voodoo
+- voopter
+- vouch
+- vox
+- vpsspeed
+- vsble
+- vuori
+- vyond
+- waitmate
+- wallapop
+- waltz
+- wandisco
+- wantedly
+- warp
+- wartsila
+- wastebits
+- waterfall
+- waterlens
+- webaverse
+- webedia
+- webflow
+- webiny
+- weglot
+- wefox
+- welltory
+- wemo
+- wesbos
+- western-union
+- whatnot
+- wheeve
+- whistle
+- white-fox
+- wiley
+- willow
+- wink
+- wintermute
+- wisp
+- wizeline
+- wkly
+- wolfstreet
+- women-in
+- woodpecker
+- woolf
+- wordbee
+- wordforms
+- workspace
+- workspot
+- worlds
+- worldwide
+- wrapt
+- wunderlist
+- wunderteam
+- wyzant
+- xactly
+- xapo
+- xeneta
+- xerox
+- xgrid
+- xilinx
+- xkcd
+- xmpp
+- xola
+- xoxoday
+- xplor
+- xsuite
+- xtend
+- xyx-files
+- yahoo
+- yammer
+- yandex
+- ycombinator
+- yext
+- yieldmo
+- ynab
+- yodel
+- yola
+- yorbit
+- yore
+- yubico
+- yugabyte
+- yunojuno
+- yves-rocher
+- zalfie
+- zaloni
+- zappy
+- zazzle
+- zealthy
+- zebra-technologies
+- zebu
+- zeemo
+- zenchef
+- zenefits
+- zenhub
+- zenly
+- zenput
+- zerocater
+- zerodha
+- zeroheight
+- zerotier
+- zest-bio
+- ziggeo
+- zillow
+- zimperium
+- zircuit
+- zmanda
+- zocdoc
+- zohocorp
+- zolar
+- zola
+- zoona
+- zoominfo
+- zoop
+- zopim
+- zulily
 smartrecruiters:
-  # Format: https://api.smartrecruiters.com/v1/companies/{slug}/postings
-  - palantir
-  - uber
-  - servicenow
-  - newrelic
-  - canva
-  - caci
-  - docusign
-  - visa
-  - wayfair
-
+- palantir
+- uber
+- servicenow
+- newrelic
+- canva
+- caci
+- docusign
+- visa
+- wayfair
 bamboohr:
-  # Format: https://{slug}.bamboohr.com/careers
-  - palantir
-  - asana
-  - openai
-  - docker
-  - algolia
-  - canva
-  - netlify
-  - kpmg
-
+- palantir
+- asana
+- openai
+- docker
+- algolia
+- canva
+- netlify
+- kpmg
 jazzhr:
-  # Format: https://{slug}.applytojob.com/apply
-  - coda
-  - datadog
-  - gusto
-  - pagerduty
-  - mongodb
-  - checkr
-  - cisco
-  - servicenow
-  - dell
-  - vmware
-  - workday
-  - accenture
-  - ey
-  - cognizant
-  - tcs
-  - atos
-  - siemens
-  - intel
-  - broadcom
-  - micron
-  - texas
-
+- coda
+- datadog
+- gusto
+- pagerduty
+- mongodb
+- checkr
+- cisco
+- servicenow
+- dell
+- vmware
+- workday
+- accenture
+- ey
+- cognizant
+- tcs
+- atos
+- siemens
+- intel
+- broadcom
+- micron
+- texas
 icims:
-  # Format: https://careers-{slug}.icims.com/jobs/search
-  # Large (>8KB responses indicate real job listings)
-  - costco
-  - quest
-  - vanguard
-
+- costco
+- quest
+- vanguard
 breezy:
-  # Format: https://{slug}.breezy.hr/ (or https://app.breezy.hr/api/v1/companies/{slug}/positions)
-  - gusto
-  - roblox
-  - checkr
-  - algolia
-  - zoom
-
+- gusto
+- roblox
+- checkr
+- algolia
+- zoom
 teamtailor:
-  # Format: https://{slug}.teamtailor.com/
-  - stripe
-  - airbnb
-  - coinbase
-  - lyft
-  - dropbox
-  - palantir
-  - asana
-  - github
-  - gitlab
-  - linear
-  - figma
-  - coda
-  - notion
-  - datadog
-  - discord
-  - instacart
-  - doordash
-  - brex
-  - gusto
-  - anthropic
-  - openai
-  - netflix
-  - spotify
-  - twilio
-  - uber
-  - zocdoc
-  - reddit
-  - roblox
-  - zillow
-  - square
-  - pinterest
-  - pagerduty
-  - okta
-  - mongodb
-  - mixpanel
-  - hubspot
-  - heroku
-  - godaddy
-  - fastly
-  - elastic
-  - docker
-  - circleci
-  - checkr
-  - box
-  - atlassian
-  - amplitude
-  - algolia
-  - shopify
-  - slack
-  - salesforce
-  - sendgrid
-  - wix
-  - wordpress
-  - zendesk
-  - zoom
-  - canva
-  - typeform
-  - webflow
-  - netlify
-  - heroku
-  - digitalocean
-  - honeycomb
-  - launchdarkly
-  - sentry
-  - newrelic
-  - sumologic
-  - klarna
-  - king
-
+- stripe
+- airbnb
+- coinbase
+- lyft
+- dropbox
+- palantir
+- asana
+- github
+- gitlab
+- linear
+- figma
+- coda
+- notion
+- datadog
+- discord
+- instacart
+- doordash
+- brex
+- gusto
+- anthropic
+- openai
+- netflix
+- spotify
+- twilio
+- uber
+- zocdoc
+- reddit
+- roblox
+- zillow
+- square
+- pinterest
+- pagerduty
+- okta
+- mongodb
+- mixpanel
+- hubspot
+- heroku
+- godaddy
+- fastly
+- elastic
+- docker
+- circleci
+- checkr
+- box
+- atlassian
+- amplitude
+- algolia
+- shopify
+- slack
+- salesforce
+- sendgrid
+- wix
+- wordpress
+- zendesk
+- zoom
+- canva
+- typeform
+- webflow
+- netlify
+- heroku
+- digitalocean
+- honeycomb
+- launchdarkly
+- sentry
+- newrelic
+- sumologic
+- klarna
+- king
 workday:
-  # Workday uses tenant-specific URLs like https://{tenant}.myworkdayjobs.com/
-  # Tenant slugs are company-specific and vary widely; no pattern-based discovery
-  # Use SCRAPPY_WORKDAY_SEEDS env var or company-specific mapping
-  []
-
+- workday
+- netflix
+- nvidia
+- apple
+- microsoft
+- google
+- meta
+- amazon
+- oracle
+- adobe
+- salesforce
+- servicenow
+- vmware
+- cisco
+- intel
+- qualcomm
+- broadcom
+- amd
+- micron
 personio:
-  # Format: https://{slug}.personio.com/jobs
-  # Personio is primarily European companies; slugs vary
-  # Use SCRAPPY_PERSONIO_SEEDS env var or discovery
-  []
-
+- delivery-hero
+- flixbus
+- n26
+- zalando
+- helloFresh
+- gopuff
 recruitee:
-  # Format: https://{slug}.recruitee.com/
-  - zeotap
-
+- zeotap
 taleo:
-  # Taleo uses https://{slug}.taleo.net/careers with many URL variants
-  # Most Taleo instances are behind redirects or require specific paths
-  # Use SCRAPPY_TALEO_SEEDS env var for company-specific configs
-  []
-
+- amazon
+- target
+- walmart
+- best-buy
+- costco
+- home-depot
+- lowes
+- cvs
+- walgreens
+- macy
+- nordstrom
+- kroger
+- safeway
+- publix
+- albertsons
 rippling:
-  # Rippling ATS uses app.rippling.com/api/ats/career-page/{slug}
-  # Requires per-config setup; no public API endpoint for discovery
-  []
-
+- rippling
+- retool
+- vercel
+- snowflake
+- mongodb
+- confluent
+- hashicorp
+- elastic
+- okta
+- twilio
+- sendgrid
+- segment
+- stytch
+- workos
+- clerk
+- supabase
+- neondb
 successfactors:
-  # SuccessFactors uses https://{slug}.successfactors.com/
-  # Tenant slugs vary per deployment; no bulk discovery via API
-  []
-
+- sap
+- siemens
+- bosch
+- bayer
+- basf
+- volkswagen
+- bmw
+- audi
+- porsche
+- continental
+- adidas
+- allianz
+- munich-re
+- lufthansa
+- deutsche-telekom
 comeet:
-  # Comeet uses https://api.comeet.co/v1/career/{slug}
-  # Slug pattern varies; use SCRAPPY_COMEET_SEEDS
-  []
-
+- monday-com
+- wix
+- fiverr
+- walkme
+- taboola
+- outbrain
+- similarweb
+- checkmarx
+- cyberark
+- sentinel-one
 freshteam:
-  # Freshteam uses https://{slug}.freshworks.com/careers
-  # Slug varies per company; use SCRAPPY_FRESHTEAM_SEEDS
-  []
-
+- freshworks
+- freshservice
+- freshdesk
+- freshsales
+- zoho
+- chargebee
+- razorpay
+- postman
+- hasura
+- supabase
+- stytch
+- clerk
 trakstar:
-  # Trakstar/Hire — https://{slug}.hire.trakstar.com/api/v1/openings
-  - automattic
-  - wordpress
-  - tumblr
-  - jetpack
-  - woocommerce
-  - podium
-  - qualia
-  - salesloft
-  - drift
-  - intercom
-  - outreach
-  - cognism
-  - clearbit
-
-rippling:
-  # Rippling ATS — https://app.rippling.com/api/ats/jobs
-  - rippling
-  - retool
-  - vercel
-  - snowflake
-  - mongodb
-  - confluent
-  - hashicorp
-  - elastic
-  - okta
-  - twilio
-  - sendgrid
-  - segment
-  - stytch
-  - workos
-  - clerk
-  - supabase
-  - neondb
-
-successfactors:
-  # SAP SuccessFactors — career site: <company>.recruitmentplatform.com
-  - sap
-  - siemens
-  - bosch
-  - bayer
-  - basf
-  - volkswagen
-  - bmw
-  - audi
-  - porsche
-  - continental
-  - adidas
-  - allianz
-  - munich-re
-  - lufthansa
-  - deutsche-telekom
-
-taleo:
-  # Oracle Taleo — career portal suffixes vary
-  - amazon
-  - target
-  - walmart
-  - best-buy
-  - costco
-  - home-depot
-  - lowes
-  - cvs
-  - walgreens
-  - macy
-  - nordstrom
-  - kroger
-  - safeway
-  - publix
-  - albertsons
-
-workday:
-  # Workday — career portal: <company>.wd5.myworkdayjobs.com
-  - workday
-  - netflix
-  - nvidia
-  - apple
-  - microsoft
-  - google
-  - meta
-  - amazon
-  - oracle
-  - adobe
-  - salesforce
-  - servicenow
-  - vmware
-  - cisco
-  - intel
-  - qualcomm
-  - broadcom
-  - amd
-  - micron
-
-comeet:
-  # Comeet — https://www.comeet.com/jobs/{slug}/
-  - monday-com
-  - wix
-  - fiverr
-  - walkme
-  - taboola
-  - outbrain
-  - similarweb
-  - checkmarx
-  - cyberark
-  - sentinel-one
-
-freshteam:
-  # Freshteam — https://{slug}.freshteam.com/api/job_postings
-  - freshworks
-  - freshservice
-  - freshdesk
-  - freshsales
-  - zoho
-  - chargebee
-  - razorpay
-  - postman
-  - hasura
-  - supabase
-  - stytch
-  - clerk
-
-personio:
-  # Personio — XML feed at {slug}.jobs.personio.de/xml
-  - delivery-hero
-  - flixbus
-  - n26
-  - zalando
-  - helloFresh
-  - gopuff
+- automattic
+- wordpress
+- tumblr
+- jetpack
+- woocommerce
+- podium
+- qualia
+- salesloft
+- drift
+- intercom
+- outreach
+- cognism
+- clearbit
