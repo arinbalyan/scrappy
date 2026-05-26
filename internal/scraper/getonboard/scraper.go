@@ -63,18 +63,18 @@ type getOnBoardJob struct {
 }
 
 type getOnBoardAttributes struct {
-	Title       string   `json:"title"`
-	Description string   `json:"description"`
-	Company     string   `json:"company"`
-	Logo        string   `json:"logo"`
-	MinSalary   *float64 `json:"min_salary"`
-	MaxSalary   *float64 `json:"max_salary"`
-	Remote      bool     `json:"remote"`
-	Seniority   string   `json:"seniority"`
-	PublishedAt *int64   `json:"published_at"`
-	Countries   []string `json:"countries"`
+	Title       string           `json:"title"`
+	Description string           `json:"description"`
+	Company     string           `json:"company"`
+	Logo        string           `json:"logo"`
+	MinSalary   *float64         `json:"min_salary"`
+	MaxSalary   *float64         `json:"max_salary"`
+	Remote      bool             `json:"remote"`
+	Seniority   json.RawMessage  `json:"seniority"`
+	PublishedAt *int64           `json:"published_at"`
+	Countries   []string         `json:"countries"`
 	LocationCities json.RawMessage `json:"location_cities"`
-	Tags        []string `json:"tags"`
+	Tags        []string         `json:"tags"`
 }
 
 type getOnBoardLinks struct {
@@ -180,9 +180,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			}
 		}
 
-		// Seniority
-		if attrs.Seniority != "" {
-			job.Seniority = strings.TrimSpace(attrs.Seniority)
+		// Seniority — may be a string or an object like {"name":"Senior"}
+		if seniorityStr := extractSeniority(attrs.Seniority); seniorityStr != "" {
+			job.Seniority = seniorityStr
 		}
 
 		// DatePosted (Unix timestamp in seconds)
@@ -226,6 +226,26 @@ func extractCityNames(raw json.RawMessage) string {
 	if err := json.Unmarshal(raw, &obj); err == nil {
 		// JSON-API relationship — no city names in the data, just references
 		_ = obj
+	}
+	return ""
+}
+
+// extractSeniority handles seniority being either a plain string or an object like {"name":"Senior"}.
+func extractSeniority(raw json.RawMessage) string {
+	if len(raw) == 0 || string(raw) == "null" {
+		return ""
+	}
+	// Try plain string first
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		return strings.TrimSpace(s)
+	}
+	// Try object with name field
+	var obj struct {
+		Name string `json:"name"`
+	}
+	if err := json.Unmarshal(raw, &obj); err == nil {
+		return strings.TrimSpace(obj.Name)
 	}
 	return ""
 }
