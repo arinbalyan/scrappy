@@ -122,7 +122,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("wellfound: status %d", resp.StatusCode)
+		return nil, fmt.Errorf("wellfound: status %d — try using --proxy with a residential proxy", resp.StatusCode)
 	}
 
 	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)

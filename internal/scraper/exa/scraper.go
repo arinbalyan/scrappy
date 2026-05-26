@@ -151,7 +151,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		return nil, fmt.Errorf("exa: marshal: %w", err)
 	}
 
-	url := s.apiURL + "/searchAndContents"
+	url := s.apiURL + "/search"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(string(jsonBody)))
 	if err != nil {
 		return nil, fmt.Errorf("exa: build request: %w", err)

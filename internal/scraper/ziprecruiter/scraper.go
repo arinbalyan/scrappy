@@ -123,7 +123,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		}
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			resp.Body.Close()
-			return nil, fmt.Errorf("ziprecruiter: status %d", resp.StatusCode)
+			return nil, fmt.Errorf("ziprecruiter: status %d — try using --proxy with a residential proxy", resp.StatusCode)
 		}
 
 		body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)

@@ -307,7 +307,7 @@ func fetchJSON(ctx context.Context, client *http.Client, url string, target any)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return fmt.Errorf("status %d", resp.StatusCode)
+		return fmt.Errorf("status %d — try using --proxy with a residential proxy", resp.StatusCode)
 	}
 
 	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)

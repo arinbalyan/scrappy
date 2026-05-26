@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -45,6 +46,22 @@ const (
 	SeedFromSearch                   // SearchTerm used as company slug
 )
 
+const defaultMaxATSSeeds = 20
+
+// SeedSourceString returns a stable string label for logs/metrics.
+func SeedSourceString(src SeedSource) string {
+	switch src {
+	case SeedFromEnv:
+		return "env"
+	case SeedFromConfig:
+		return "config"
+	case SeedFromSearch:
+		return "search"
+	default:
+		return "unknown"
+	}
+}
+
 // normalizeKey converts "SCRAPPY_LEVER_SEEDS" to "lever" for slug lookup.
 func normalizeKey(envKey string) string {
 	k := strings.TrimPrefix(envKey, "SCRAPPY_")
@@ -66,8 +83,20 @@ func aliasKeys(key string) []string {
 	return aliases
 }
 
-// ResolveSeeds returns company seed strings from env, config file, or search term.
-func ResolveSeeds(searchTerm string, envKey string) (seeds []string, src SeedSource) {
+func maxATSSeeds() int {
+	raw := strings.TrimSpace(os.Getenv("SCRAPPY_ATS_MAX_SEEDS"))
+	if raw == "" {
+		return defaultMaxATSSeeds
+	}
+	n, err := strconv.Atoi(raw)
+	if err != nil || n <= 0 {
+		return defaultMaxATSSeeds
+	}
+	return n
+}
+
+// ResolveSeedsWithMeta returns company seed strings with source and pre-cap count.
+func ResolveSeedsWithMeta(searchTerm string, envKey string) (seeds []string, src SeedSource, originalCount int) {
 	// 1. Check env var (overrides everything)
 	env := os.Getenv(envKey)
 	if strings.TrimSpace(env) != "" {
@@ -78,7 +107,13 @@ func ResolveSeeds(searchTerm string, envKey string) (seeds []string, src SeedSou
 			}
 		}
 		if len(seeds) > 0 {
-			return seeds, SeedFromEnv
+			src = SeedFromEnv
+			originalCount = len(seeds)
+			maxSeeds := maxATSSeeds()
+			if len(seeds) > maxSeeds {
+				seeds = seeds[:maxSeeds]
+			}
+			return seeds, src, originalCount
 		}
 	}
 
@@ -87,15 +122,28 @@ func ResolveSeeds(searchTerm string, envKey string) (seeds []string, src SeedSou
 	key := normalizeKey(envKey)
 	for _, k := range aliasKeys(key) {
 		if cfg, ok := slugDB[k]; ok && len(cfg) > 0 {
-			return cfg, SeedFromConfig
+			seeds = cfg
+			src = SeedFromConfig
+			originalCount = len(seeds)
+			maxSeeds := maxATSSeeds()
+			if len(seeds) > maxSeeds {
+				seeds = seeds[:maxSeeds]
+			}
+			return seeds, src, originalCount
 		}
 	}
 
 	// 3. Fall back to search term
 	if st := strings.TrimSpace(searchTerm); st != "" {
-		return []string{st}, SeedFromSearch
+		return []string{st}, SeedFromSearch, 1
 	}
-	return nil, SeedFromEnv
+	return nil, SeedFromEnv, 0
+}
+
+// ResolveSeeds returns company seed strings from env, config file, or search term.
+func ResolveSeeds(searchTerm string, envKey string) (seeds []string, src SeedSource) {
+	seeds, src, _ = ResolveSeedsWithMeta(searchTerm, envKey)
+	return seeds, src
 }
 
 // FetchJSON fetches a URL and decodes JSON into the target.

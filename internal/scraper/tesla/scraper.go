@@ -166,7 +166,7 @@ func (s *Scraper) fetchBoard(ctx context.Context) (*boardResponse, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusServiceUnavailable {
-		return nil, fmt.Errorf("akamai challenge (HTTP %d)", resp.StatusCode)
+		return nil, fmt.Errorf("akamai challenge (HTTP %d) — try using --proxy with a residential proxy", resp.StatusCode)
 	}
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return nil, fmt.Errorf("HTTP %d", resp.StatusCode)
