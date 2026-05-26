@@ -127,6 +127,8 @@ const (
 	SiteWellfound           Site = "wellfound"
 	SiteWeWorkRemotely      Site = "weworkremotely"
 	SiteWordPressJobs       Site = "wordpressjobs"
+	SiteZipRecruiter        Site = "ziprecruiter"
+	SiteAcademicCareers     Site = "academiccareers"
 )
 
 // AllSites returns every known site.
@@ -244,6 +246,8 @@ func AllSites() []Site {
 		SiteWellfound,
 		SiteWeWorkRemotely,
 		SiteWordPressJobs,
+		SiteZipRecruiter,
+		SiteAcademicCareers,
 	}
 }
 
