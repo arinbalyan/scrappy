@@ -108,6 +108,21 @@ scrappy relies on Go standard library plus these direct dependencies:
 
 All HTTP, JSON, CSV, and concurrency primitives use Go standard library.
 
+## Shared utilities (`internal/util/`)
+
+The `internal/util/` package serves as a cross-package utility hub. Key functions:
+
+- **`HashID()`** -- Generates consistent hash identifiers from job metadata. Used by 8 scrapers (Google, Dice, CareerJet, Jooble, Monster, SimplyHired, Snagajob, CareerBuilder) that were previously defining their own copy.
+- **`StripHTML()`** -- Removes HTML tags from text. Moved from `engine.go` to `util/text.go` so all scrapers and the export layer can use it without importing the engine package.
+- **`SleepWithContext()`** -- Context-aware sleep that respects cancellation (replaces bare `time.Sleep` in all scrapers). Moved from `scrapeguard.go` to `util/`.
+- **`JitterSleep()`** -- Sleep with random jitter to avoid thundering-herd patterns across concurrent scrapers.
+- **`NewHTTPClient()`** -- Shared HTTP client construction with proxy dialing, retry, and UA rotation.
+- **Structured logging** -- `Info`, `Warn`, `Error`, `Debug`, `APIMiss` functions with leveled output and sync'd writer.
+
+## Dead code removed
+
+The file `internal/model/salary.go` was removed entirely. It contained an unused `SalaryNormalized` struct with commented-out `MarshalJSON` and a TODO -- never referenced anywhere in the codebase.
+
 ## Sites supported
 
 55+ job boards across general, remote, startup, niche, and regional categories. Run `scrappy --help` to see the full list. All implement the same `Scraper` interface:

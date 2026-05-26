@@ -19,3 +19,14 @@
 2. Validate required fields before mapping each row.
 3. Guard mixed/null numeric values (`id`, `epoch`) and keep tolerant casts.
 4. Re-run `go test ./tests/scraper/remoteok` and then full suite.
+
+## Recent improvements
+
+- **Empty API response guard**: The scraper now checks that the API response
+  array has at least 2 elements (index 0 = metadata, index 1+ = jobs) before
+  attempting to slice it. If the response is empty or malformed, an empty
+  result set is returned instead of panicking with an index-out-of-bounds
+  error.
+- **Context cancellation**: Context cancellation is now checked between page
+  fetches, allowing the scrape to stop promptly when the parent context is
+  cancelled.

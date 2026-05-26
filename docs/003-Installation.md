@@ -79,12 +79,30 @@ go build -o scrappy ./cmd/scrappy
 
 No code generation or build tools are needed beyond the Go toolchain.
 
-## Docker
+### Makefile targets
 
-A `Dockerfile` is provided for containerized builds. The image uses a multi-stage build for a small static binary (~10 MB).
+The project includes a `Makefile` for common tasks:
 
 ```bash
-# Build the image
+make build      # Build bin/scrappy binary
+make test       # Run all unit tests
+make test-race  # Tests with race detector
+make vet        # go vet
+make lint       # golangci-lint
+make clean      # Remove bin/
+make docker     # Build Docker image
+make all        # build + test + vet
+```
+
+## Docker
+
+A `Dockerfile` and `.dockerignore` are provided for containerized builds. The
+`.dockerignore` keeps the build context small by excluding development artifacts:
+`tmp/`, `tests/`, `docs/`, `*.md`, `config.yaml`, and other non-essential files.
+The image uses a multi-stage build for a small static binary (~10 MB).
+
+```bash
+# Build the image (or use make docker)
 docker build -t scrappy .
 
 # Run with default entrypoint
