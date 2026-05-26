@@ -17,7 +17,7 @@ import (
 const (
 	defaultAPIBase  = "https://api.adzuna.com/v1/api/jobs"
 	defaultPageSize = 50
-	maxPages        = 100
+	maxPages        = 20
 )
 
 var (
@@ -186,14 +186,13 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		if err != nil {
 			return nil, fmt.Errorf("adzuna request: %w", err)
 		}
+		defer resp.Body.Close()
 
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-			resp.Body.Close()
 			return nil, fmt.Errorf("adzuna status %d", resp.StatusCode)
 		}
 
 		body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
-		resp.Body.Close()
 		if err != nil {
 			return nil, fmt.Errorf("adzuna read: %w", err)
 		}
@@ -260,6 +259,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			}
 
 			jobs = append(jobs, job)
+		}
+
+		// Rate limit: 500ms between pages to stay well under Adzuna's 1-3 rps limit.
+		if err := util.SleepWithContext(ctx, 500*time.Millisecond); err != nil {
+			return nil, ctx.Err()
 		}
 	}
 

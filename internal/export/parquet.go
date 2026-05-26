@@ -65,7 +65,7 @@ func WriteParquet(path string, jobs []model.JobPost) error {
 
 	for _, job := range jobs {
 		row := parquetJobRow{
-			Site:               "",
+			Site:               job.Site,
 			Title:              job.Title,
 			CompanyName:        job.CompanyName,
 			Location:           job.Location.Display(),

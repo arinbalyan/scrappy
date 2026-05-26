@@ -3,7 +3,6 @@ package monster
 import (
 	"context"
 	"fmt"
-	"hash/fnv"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -296,7 +295,7 @@ func parseJobs(html []byte) []model.JobPost {
 			}
 		}
 
-		id := "monster-" + hashID(jobURL + title + company)
+		id := "monster-" + util.HashID(jobURL + title + company)
 
 		loc := model.Location{}
 		if i < len(locations) && locations[i] != "" {
@@ -393,9 +392,4 @@ func parseDate(dates []string, i int) *time.Time {
 	return util.ParseDatePosted(dates[i])
 }
 
-// hashID generates a stable hash string for deduplication.
-func hashID(s string) string {
-	h := fnv.New64a()
-	h.Write([]byte(s))
-	return fmt.Sprintf("%d", h.Sum64())
-}
+

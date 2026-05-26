@@ -1,9 +1,18 @@
 package util
 
 import (
+	"fmt"
+	"hash/fnv"
 	"strings"
 	"time"
 )
+
+// HashID generates a stable FNV-64a hash string for deduplication.
+func HashID(s string) string {
+	h := fnv.New64a()
+	h.Write([]byte(s))
+	return fmt.Sprintf("%d", h.Sum64())
+}
 
 func NormalizeSlug(v string) string {
 	return strings.ToLower(strings.ReplaceAll(strings.TrimSpace(v), " ", "-"))
