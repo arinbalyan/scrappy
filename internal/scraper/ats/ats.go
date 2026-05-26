@@ -121,19 +121,24 @@ func ResolveSeedsWithMeta(searchTerm string, envKey string) (seeds []string, src
 	slugOnce.Do(loadSlugs)
 	key := normalizeKey(envKey)
 	for _, k := range aliasKeys(key) {
-		if cfg, ok := slugDB[k]; ok && len(cfg) > 0 {
-			seeds = cfg
-			src = SeedFromConfig
-			originalCount = len(seeds)
-			maxSeeds := maxATSSeeds()
-			if len(seeds) > maxSeeds {
-				seeds = seeds[:maxSeeds]
+		cfg, exists := slugDB[k]
+		if exists {
+			if len(cfg) > 0 {
+				seeds = cfg
+				src = SeedFromConfig
+				originalCount = len(seeds)
+				maxSeeds := maxATSSeeds()
+				if len(seeds) > maxSeeds {
+					seeds = seeds[:maxSeeds]
+				}
+				return seeds, src, originalCount
 			}
-			return seeds, src, originalCount
+			// Config key exists but empty (e.g. [] — marked dead). Do not fall back to search term.
+			return nil, SeedFromConfig, 0
 		}
 	}
 
-	// 3. Fall back to search term
+	// 3. Fall back to search term (only when no config entry exists at all)
 	if st := strings.TrimSpace(searchTerm); st != "" {
 		return []string{st}, SeedFromSearch, 1
 	}
