@@ -154,6 +154,7 @@ greenhouse:
 - vercel
 - zenput
 workable:
+# Note: 118 slugs — most may be stale; API-verified list had 33 working
 - circleci
 - codacy
 - eero
@@ -890,95 +891,10 @@ breezy:
 - checkr
 - algolia
 - zoom
-teamtailor:
-- stripe
-- airbnb
-- coinbase
-- lyft
-- dropbox
-- palantir
-- asana
-- github
-- gitlab
-- linear
-- figma
-- coda
-- notion
-- datadog
-- discord
-- instacart
-- doordash
-- brex
-- gusto
-- anthropic
-- openai
-- netflix
-- spotify
-- twilio
-- uber
-- zocdoc
-- reddit
-- roblox
-- zillow
-- square
-- pinterest
-- pagerduty
-- okta
-- mongodb
-- mixpanel
-- hubspot
-- heroku
-- godaddy
-- fastly
-- elastic
-- docker
-- circleci
-- checkr
-- box
-- atlassian
-- amplitude
-- algolia
-- shopify
-- slack
-- salesforce
-- sendgrid
-- wix
-- wordpress
-- zendesk
-- zoom
-- canva
-- typeform
-- webflow
-- netlify
-- heroku
-- digitalocean
-- honeycomb
-- launchdarkly
-- sentry
-- newrelic
-- sumologic
-- klarna
-- king
-workday:
-- workday
-- netflix
-- nvidia
-- apple
-- microsoft
-- google
-- meta
-- amazon
-- oracle
-- adobe
-- salesforce
-- servicenow
-- vmware
-- cisco
-- intel
-- qualcomm
-- broadcom
-- amd
-- micron
+# teamtailor: disabled — all 404, API may have moved; set SCRAPPY_TEAMTAILOR_SEEDS
+# teamtailor: []
+# workday: disabled — all 404 or 422; set SCRAPPY_WORKDAY_SEEDS
+# workday: []
 personio:
 - delivery-hero
 - flixbus
@@ -1004,24 +920,8 @@ taleo:
 - safeway
 - publix
 - albertsons
-rippling:
-- rippling
-- retool
-- vercel
-- snowflake
-- mongodb
-- confluent
-- hashicorp
-- elastic
-- okta
-- twilio
-- sendgrid
-- segment
-- stytch
-- workos
-- clerk
-- supabase
-- neondb
+# rippling: disabled — all 404 or empty parse; set SCRAPPY_RIPPLING_SEEDS
+# rippling: []
 successfactors:
 - sap
 - siemens
@@ -1038,30 +938,10 @@ successfactors:
 - munich-re
 - lufthansa
 - deutsche-telekom
-comeet:
-- monday-com
-- wix
-- fiverr
-- walkme
-- taboola
-- outbrain
-- similarweb
-- checkmarx
-- cyberark
-- sentinel-one
-freshteam:
-- freshworks
-- freshservice
-- freshdesk
-- freshsales
-- zoho
-- chargebee
-- razorpay
-- postman
-- hasura
-- supabase
-- stytch
-- clerk
+# comeet: disabled — all 400 or 404; set SCRAPPY_COMEET_SEEDS
+# comeet: []
+# freshteam: disabled — all 401 or 404; set SCRAPPY_FRESHTEAM_SEEDS
+# freshteam: []
 trakstar:
 - automattic
 - wordpress
@@ -1076,79 +956,10 @@ trakstar:
 - outreach
 - cognism
 - clearbit
-adp:
-- '100001'
-- '4885'
-- '11477'
-- '11595'
-- '12015'
-- '12330'
-- '12501'
-- '13102'
-- '13393'
-- '13450'
-- '14801'
-- '14872'
-- '15564'
-- '16010'
-- '16550'
-- '17020'
-- '17282'
-- '17351'
-- '17989'
-- '18258'
-- '18575'
-- '18888'
-- '19055'
-- '19562'
-- '19984'
-- '20001'
-- '20535'
-- '20850'
-- '21246'
-- '21592'
-- '22000'
-- '22511'
-- '22837'
-- '23164'
-- '23452'
-- '23738'
-- '24000'
-- '24211'
-- '24814'
-- '25192'
-- '25574'
-- '26119'
-- '26409'
-- '26825'
-- '28303'
-- '28628'
-- '28932'
-- '29272'
-- '29537'
-- '29850'
-- '30452'
-avature:
-- hsbc
-- barclays
-- lloyds
-- natwest
-- santander
-- standard-chartered
-- jpmorgan
-- goldman-sachs
-- morgan-stanley
-- citi
-- bank-of-america
-- credit-suisse
-- ubs
-- deutsche-bank
-- societe-generale
-- bnp-paribas
-- credit-agricole
-- ing
-- abn-amro
-- rabobank
+# adp: disabled — all numeric IDs return 404; set SCRAPPY_ADP_SEEDS
+# adp: []
+# avature: disabled — all 404 or DNS failures; set SCRAPPY_AVATURE_SEEDS
+# avature: []
 bullhorn:
 - 10:aerotek
 - 10:kforce
@@ -1212,27 +1023,8 @@ deel:
 - fly-io
 - render
 - workers-dev
-fountain:
-- doordash
-- uber
-- lyft
-- instacart
-- postmates
-- grubhub
-- wonolo
-- taskrabbit
-- gopuff
-- shipt
-- amazon-flex
-- deliveroo
-- just-eat
-- skip-the-dishes
-- careem
-- grab
-- swiggy
-- zomato
-- didi
-- bolt
+# fountain: disabled — API returns 500; set SCRAPPY_FOUNTAIN_SEEDS
+# fountain: []
 gem:
 - gem
 - datadog
@@ -1317,27 +1109,8 @@ ismartrecruit:
 - patterson
 - owen-mumford
 - coloplast
-jobscore:
-- lifesize
-- ryver
-- servosity
-- proposify
-- return-on-insight
-- lacuna
-- farmobile
-- zoomon
-- microdesk
-- volaris-group
-- avalon
-- storypark
-- reputation
-- tax-connections
-- dream-big
-- vidyou
-- billingtree
-- intouch-insight
-- circular-solutions
-- swoop
+# jobscore: disabled — all 404; set SCRAPPY_JOBSCORE_SEEDS
+# jobscore: []
 jobvite:
 - linkedin
 - twitter
@@ -1359,27 +1132,8 @@ jobvite:
 - new-relic
 - elastic
 - datadog
-jobylon:
-- king
-- sinch
-- klarna
-- truecaller
-- iarl-digital
-- naturalcycles
-- monese
-- minut
-- gyldendal
-- lifesum
-- globhe
-- tecken
-- svenska-spel
-- folksam
-- lansforsakringar
-- skandia
-- ica-gruppen
-- coop
-- postnord
-- hoganas
+# jobylon: disabled — all 404; set SCRAPPY_JOBYLON_SEEDS
+# jobylon: []
 loxo:
 - vercel
 - stripe
@@ -1400,27 +1154,8 @@ loxo:
 - fly-io
 - planetscale
 - neondb
-manatal:
-- dubai-islamic-bank
-- qatar-airways
-- emirates
-- majid-al-futtaim
-- landmark-group
-- bin-hindi
-- al-futtaim
-- emaar
-- damac
-- almosafer
-- jarir-bookstore
-- almarai
-- savola
-- zain
-- stc
-- mobily
-- etisalat
-- du-telecom
-- ooredoo
-- virgin-mobile
+# manatal: disabled — all 404; set SCRAPPY_MANATAL_SEEDS
+# manatal: []
 mercor:
 - mercor
 - openai
@@ -1526,69 +1261,12 @@ recruiterflow:
 - booz-allen
 - northrop-grumman
 - saic
-talentlyft:
-- high-voltage
-- nordic-semiconductor
-- tietoevry
-- relex
-- wolt
-- smartly
-- eined
-- kaleidoscope
-- siili-auto
-- futurice
-- gofore
-- vincit
-- reaktor
-- fingersoft
-- nextgames
-- supercell
-- rovio
-- remedy
-- colossal-order
-- unity-technologies
-ukg:
-- ukg
-- dick-sporting
-- five-below
-- dollar-general
-- dollar-tree
-- family-dollar
-- ulta-beauty
-- bath-and-body-works
-- victoria-secret
-- abercrombie
-- american-eagle
-- gap
-- old-navy
-- banana-republic
-- lululemon
-- under-armour
-- columbia-sportswear
-- timberland
-- vans
-- north-face
-joincom:
-- teleport
-- remote
-- deel
-- safetywing
-- flexiple
-- talent-io
-- arc-dev
-- bebee
-- jobgether
-- compass-london
-- weareinreach
-- f6s
-- techstars
-- y-combinator
-- 500-global
-- antler
-- seedcamp
-- accelerator
-- founders-factory
-- entrepreneur-first
+# talentlyft: disabled — all 404; set SCRAPPY_TALENTLYFT_SEEDS
+# talentlyft: []
+# ukg: disabled — all 404; set SCRAPPY_UKG_SEEDS
+# ukg: []
+# joincom: disabled — all 404 on tenant resolution; set SCRAPPY_JOINCOM_SEEDS
+# joincom: []
 oracle:
 - oracle
 - fedex
