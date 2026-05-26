@@ -79,7 +79,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	items := parseRSSItems(string(body))
 	util.Debug("fossjobs: parsed items", map[string]any{"count": len(items)})
 
-	term := strings.ToLower(strings.TrimSpace(input.SearchTerm))
+	terms := parseSearchTerms(input.SearchTerm)
 	wanted := input.ResultsWanted
 	if wanted <= 0 {
 		wanted = len(items)
@@ -99,10 +99,10 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			continue
 		}
 
-		// Client-side search term filtering on title, description, and category
-		if term != "" {
+		// Client-side search term filtering on title, description, and category (OR semantics)
+		if len(terms) > 0 {
 			hay := strings.ToLower(title + " " + item.description + " " + item.category)
-			if !strings.Contains(hay, term) {
+			if !matchAny(hay, terms) {
 				continue
 			}
 		}
@@ -201,11 +201,52 @@ func extractID(guid, link string) string {
 	return "unknown"
 }
 
-// parseRSSDate attempts to parse an RSS pubDate string (RFC 822 / RFC 1123).
+// parseSearchTerms splits a search term on " OR " and returns lowercase terms.
+func parseSearchTerms(raw string) []string {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, " OR ")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.Trim(strings.TrimSpace(p), `"`)
+		if p != "" {
+			out = append(out, strings.ToLower(p))
+		}
+	}
+	return out
+}
+
+// matchAny returns true if the haystack contains any of the terms.
+func matchAny(hay string, terms []string) bool {
+	for _, t := range terms {
+		if strings.Contains(hay, t) {
+			return true
+		}
+	}
+	return false
+}
+
+// parseRSSDate attempts to parse an RSS pubDate string (RFC 822 / RFC 1123 / ISO).
 func parseRSSDate(v string) *time.Time {
 	v = strings.TrimSpace(v)
 	if v == "" {
 		return nil
+	}
+	// Replace timezone abbreviations like PDT, PST, EST with numeric offsets
+	tzMap := map[string]string{
+		"PDT": "-0700", "PST": "-0800",
+		"EDT": "-0400", "EST": "-0500",
+		"CDT": "-0500", "CST": "-0600",
+		"MDT": "-0600", "MST": "-0700",
+		"GMT": "+0000", "UTC": "+0000",
+	}
+	for abbr, offset := range tzMap {
+		if strings.Contains(v, " "+abbr) {
+			v = strings.Replace(v, " "+abbr, " "+offset, 1)
+			break
+		}
 	}
 	formats := []string{
 		time.RFC1123Z,
@@ -217,6 +258,7 @@ func parseRSSDate(v string) *time.Time {
 		time.RFC3339,
 		"2006-01-02T15:04:05Z",
 		"2006-01-02",
+		"2006-01-02 15:04:05",
 	}
 	for _, f := range formats {
 		t, err := time.Parse(f, v)
