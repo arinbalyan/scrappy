@@ -1,4 +1,3 @@
-# dead — all 6 Lever slugs returned 404 (API requires subdomain); needs SCRAPPY_LEVER_SEEDS
 lever: []
 greenhouse:
 - stripe
@@ -149,7 +148,6 @@ greenhouse:
 - vercel
 - zenput
 workable:
-# Note: 118 slugs — most may be stale; API-verified list had 33 working
 - circleci
 - codacy
 - eero
@@ -886,10 +884,7 @@ breezy:
 - checkr
 - algolia
 - zoom
-# dead — all 68 TeamTailor slugs returned 404; needs SCRAPPY_TEAMTAILOR_SEEDS
 teamtailor: []
-# workday: disabled — all 404 or 422; set SCRAPPY_WORKDAY_SEEDS
-# workday: []
 personio:
 - delivery-hero
 - flixbus
@@ -915,8 +910,6 @@ taleo:
 - safeway
 - publix
 - albertsons
-# rippling: disabled — all 404 or empty parse; set SCRAPPY_RIPPLING_SEEDS
-# rippling: []
 successfactors:
 - sap
 - siemens
@@ -933,9 +926,7 @@ successfactors:
 - munich-re
 - lufthansa
 - deutsche-telekom
-# dead — all 10 Comeet slugs returned 400/404; needs SCRAPPY_COMEET_SEEDS
 comeet: []
-# dead — all Freshteam slugs returned 404/401; needs SCRAPPY_FRESHTEAM_SEEDS
 freshteam: []
 trakstar:
 - automattic
@@ -951,9 +942,7 @@ trakstar:
 - outreach
 - cognism
 - clearbit
-# dead — all 51 ADP IDs returned 404; needs SCRAPPY_ADP_SEEDS
 adp: []
-# dead — all 20 Avature slugs have DNS failure; needs SCRAPPY_AVATURE_SEEDS
 avature: []
 bullhorn:
 - 10:aerotek
@@ -1018,7 +1007,6 @@ deel:
 - fly-io
 - render
 - workers-dev
-# dead — all 20 Fountain slugs returned 500; needs SCRAPPY_FOUNTAIN_SEEDS
 fountain: []
 gem:
 - gem
@@ -1104,7 +1092,6 @@ ismartrecruit:
 - patterson
 - owen-mumford
 - coloplast
-# dead — all 20 Jobscore slugs returned 404; needs SCRAPPY_JOBSCORE_SEEDS
 jobscore: []
 jobvite:
 - linkedin
@@ -1127,7 +1114,6 @@ jobvite:
 - new-relic
 - elastic
 - datadog
-# dead — all 20 Jobylon slugs returned 404; needs SCRAPPY_JOBYLON_SEEDS
 jobylon: []
 loxo:
 - vercel
@@ -1149,7 +1135,6 @@ loxo:
 - fly-io
 - planetscale
 - neondb
-# dead — all 20 Manatal slugs returned 404; needs SCRAPPY_MANATAL_SEEDS
 manatal: []
 mercor:
 - mercor
@@ -1193,27 +1178,7 @@ paylocity:
 - bass-pro
 - cabelas
 - lululemon
-phenom:
-- adp
-- verizon
-- comcast
-- charter
-- cigna
-- anthem
-- humana
-- unitedhealth
-- aetna
-- johnson-and-johnson
-- merck
-- pfizer
-- novartis
-- roche
-- abbvie
-- bristol-myers-squibb
-- amgen
-- gilead
-- moderna
-- biontech
+phenom: []
 pinpoint:
 - vercel
 - linear
@@ -1256,11 +1221,7 @@ recruiterflow:
 - booz-allen
 - northrop-grumman
 - saic
-# dead — all 20 TalentLyft slugs returned 404; needs SCRAPPY_TALENTLYFT_SEEDS
 talentlyft: []
-# ukg: disabled — all 404; set SCRAPPY_UKG_SEEDS
-# ukg: []
-# dead — all 20 Joincom slugs returned 404 on tenant resolution; needs SCRAPPY_JOINCOM_SEEDS
 joincom: []
 oracle:
 - oracle
