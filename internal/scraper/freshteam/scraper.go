@@ -64,6 +64,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if len(seeds) == 0 {
 		return nil, fmt.Errorf("freshteam no seeds: set SCRAPPY_FRESHTEAM_SEEDS or pass a company slug in --search")
 	}
+	// If the search term was used as slug and it looks like a search phrase,
+	// return early — Freshteam needs a company slug, not a search string.
+	if src == ats.SeedFromSearch && (strings.ContainsAny(seeds[0], " \"") || strings.Contains(seeds[0], "OR")) {
+		return nil, fmt.Errorf("freshteam: no tenant slugs — got search term %q; set SCRAPPY_FRESHTEAM_SEEDS or pass --search 'company-slug'", seeds[0])
+	}
 	util.Debug("freshteam_seeds", map[string]any{"seeds": seeds, "src": src})
 
 	// Freshteam requires an API key
