@@ -261,9 +261,16 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			jobs = append(jobs, job)
 		}
 
-		// Rate limit: 500ms between pages to stay well under Adzuna's 1-3 rps limit.
-		if err := util.SleepWithContext(ctx, 500*time.Millisecond); err != nil {
-			return nil, ctx.Err()
+		// If the API returned fewer results than requested, we've hit the last page.
+		if len(parsed.Results) < pageSize {
+			break
+		}
+
+		// Rate limit: 500ms between pages if we need more results.
+		if len(jobs) < wanted {
+			if err := util.SleepWithContext(ctx, 500*time.Millisecond); err != nil {
+				return nil, ctx.Err()
+			}
 		}
 	}
 
