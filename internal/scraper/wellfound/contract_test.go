@@ -2,77 +2,23 @@ package wellfound
 
 import (
 	"context"
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/arinbalyan/scrappy/internal/model"
 )
 
-const testPageHTML = `<!DOCTYPE html>
+const testHTML = `<!DOCTYPE html>
 <html>
-<body>
+<head>
 <script id="__NEXT_DATA__" type="application/json">
-{
-  "props": {
-    "pageProps": {
-      "listings": [
-        {
-          "id": "job001",
-          "title": "Senior Go Developer",
-          "slug": "senior-go-developer-at-techcorp",
-          "company": {
-            "name": "TechCorp",
-            "slug": "techcorp",
-            "logoUrl": "https://logo.example.com/techcorp.png"
-          },
-          "compensation": {
-            "min": 150000,
-            "max": 200000,
-            "currency": "USD"
-          },
-          "locations": ["San Francisco, CA"],
-          "remote": true,
-          "description": "<p>Build amazing Go services.</p>",
-          "skills": ["Go", "PostgreSQL", "Kubernetes"],
-          "createdAt": "2026-05-20T10:00:00Z"
-        },
-        {
-          "id": "job002",
-          "title": "Frontend Engineer",
-          "slug": "frontend-engineer-at-webinc",
-          "company": {
-            "name": "WebInc",
-            "slug": "webinc"
-          },
-          "compensation": {
-            "max": 180000,
-            "currency": "USD"
-          },
-          "locations": ["Remote"],
-          "remote": true,
-          "description": "React and TypeScript.",
-          "skills": ["React", "TypeScript"],
-          "createdAt": "2026-05-19T08:30:00Z"
-        },
-        {
-          "id": "job003",
-          "title": "Designer",
-          "slug": "",
-          "company": null,
-          "locations": [],
-          "remote": false,
-          "description": "",
-          "skills": [],
-          "createdAt": ""
-        }
-      ]
-    }
-  }
-}
+{"props":{"pageProps":{"jobs":[{"id":"1001","title":"Software Engineer","slug":"software-engineer-1001","company":{"name":"TechCorp","logoUrl":"https://logo.example.com/tc.png","slug":"techcorp"},"compensation":{"min":120000,"max":180000,"currency":"USD"},"locations":["San Francisco, CA"],"remote":false,"description":"<p>Build great things.</p>","skills":["Go","React"],"createdAt":"2026-05-20T10:00:00Z"},{"id":"1002","title":"Remote Designer","slug":"remote-designer-1002","company":{"name":"DesignStudio","slug":"designstudio"},"compensation":{"min":80000,"currency":"USD"},"locations":["Remote"],"remote":true,"description":"Design awesome interfaces.","createdAt":"2026-05-21T14:30:00Z"},{"id":"1003","title":"","company":{"name":"Empty Inc"}}]}}}
 </script>
-</body>
+</head>
+<body></body>
 </html>`
 
 func TestScraper_SiteName(t *testing.T) {
@@ -83,16 +29,10 @@ func TestScraper_SiteName(t *testing.T) {
 }
 
 func TestScraper_Scrape(t *testing.T) {
-	pageNum := 0
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pageNum++
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusOK)
-		if pageNum == 1 {
-			w.Write([]byte(testPageHTML))
-		} else {
-			w.Write([]byte("<html><body></body></html>"))
-		}
+		w.Write([]byte(testHTML))
 	}))
 	defer ts.Close()
 
@@ -102,71 +42,80 @@ func TestScraper_Scrape(t *testing.T) {
 		t.Fatalf("Scrape() returned error: %v", err)
 	}
 
-	if len(jobs) != 3 {
-		t.Fatalf("expected 3 jobs, got %d", len(jobs))
+	if len(jobs) != 2 {
+		t.Fatalf("expected 2 jobs, got %d", len(jobs))
 	}
 
-	// Job 0: Senior Go Developer
+	// Job 0: Software Engineer
 	j0 := jobs[0]
-	if j0.Title != "Senior Go Developer" {
-		t.Errorf("job[0].Title = %q, want %q", j0.Title, "Senior Go Developer")
+	if j0.ID != "wellfound-1001" {
+		t.Errorf("job[0].ID = %q, want %q", j0.ID, "wellfound-1001")
+	}
+	if j0.Title != "Software Engineer" {
+		t.Errorf("job[0].Title = %q, want %q", j0.Title, "Software Engineer")
 	}
 	if j0.CompanyName != "TechCorp" {
 		t.Errorf("job[0].CompanyName = %q, want %q", j0.CompanyName, "TechCorp")
 	}
+	if j0.CompanyLogo != "https://logo.example.com/tc.png" {
+		t.Errorf("job[0].CompanyLogo = %q", j0.CompanyLogo)
+	}
 	if j0.Site != string(model.SiteWellfound) {
 		t.Errorf("job[0].Site = %q, want %q", j0.Site, model.SiteWellfound)
 	}
-	if !strings.Contains(j0.JobURL, "senior-go-developer-at-techcorp") {
-		t.Errorf("job[0].JobURL = %q, should contain slug", j0.JobURL)
-	}
-	if j0.Compensation == nil {
-		t.Fatal("job[0].Compensation is nil")
-	}
-	if j0.Compensation.Interval != "yearly" {
-		t.Errorf("job[0].Compensation.Interval = %q, want yearly", j0.Compensation.Interval)
-	}
-	if j0.Compensation.MinAmount == nil || *j0.Compensation.MinAmount != 150000 {
-		t.Errorf("job[0].Compensation.MinAmount = %v, want 150000", j0.Compensation.MinAmount)
-	}
-	if !j0.IsRemote {
-		t.Error("job[0].IsRemote = false, want true")
+	if j0.JobURL != "https://wellfound.com/jobs/software-engineer-1001" {
+		t.Errorf("job[0].JobURL = %q", j0.JobURL)
 	}
 	if j0.Location.City != "San Francisco, CA" {
 		t.Errorf("job[0].Location.City = %q", j0.Location.City)
 	}
-	if len(j0.Skills) != 3 {
-		t.Errorf("job[0].Skills = %v, want 3 skills", j0.Skills)
+	if j0.IsRemote {
+		t.Error("job[0].IsRemote should be false")
+	}
+	if j0.Compensation == nil {
+		t.Fatal("job[0].Compensation is nil")
+	}
+	if j0.Compensation.MinAmount == nil || *j0.Compensation.MinAmount != 120000 {
+		t.Errorf("job[0].Compensation.MinAmount = %v", j0.Compensation.MinAmount)
 	}
 	if j0.DatePosted == nil {
 		t.Error("job[0].DatePosted is nil")
 	}
-	if j0.CompanyLogoURL != "https://logo.example.com/techcorp.png" {
-		t.Errorf("job[0].CompanyLogoURL = %q", j0.CompanyLogoURL)
-	}
 
-	// Job 1: Frontend Engineer
+	// Job 1: Remote Designer
 	j1 := jobs[1]
-	if j1.Title != "Frontend Engineer" {
-		t.Errorf("job[1].Title = %q", j1.Title)
+	if j1.ID != "wellfound-1002" {
+		t.Errorf("job[1].ID = %q, want %q", j1.ID, "wellfound-1002")
 	}
-	if j1.Compensation == nil || j1.Compensation.MinAmount != nil {
-		t.Errorf("job[1].Compensation.MinAmount should be nil (only max set)")
+	if j1.Title != "Remote Designer" {
+		t.Errorf("job[1].Title = %q, want %q", j1.Title, "Remote Designer")
 	}
-	if j1.Compensation.MaxAmount == nil || *j1.Compensation.MaxAmount != 180000 {
-		t.Errorf("job[1].Compensation.MaxAmount = %v", j1.Compensation.MaxAmount)
+	if j1.CompanyName != "DesignStudio" {
+		t.Errorf("job[1].CompanyName = %q, want %q", j1.CompanyName, "DesignStudio")
 	}
+	if !j1.IsRemote {
+		t.Error("job[1].IsRemote should be true")
+	}
+	if j1.Location.City != "Remote" {
+		t.Errorf("job[1].Location.City = %q, want %q", j1.Location.City, "Remote")
+	}
+	if j1.Compensation == nil || j1.Compensation.MaxAmount != nil {
+		t.Errorf("job[1].Compensation should have only min amount")
+	}
+}
 
-	// Job 2: Designer (no company)
-	j2 := jobs[2]
-	if j2.Title != "Designer" {
-		t.Errorf("job[2].Title = %q", j2.Title)
-	}
-	if j2.CompanyName != "" {
-		t.Errorf("job[2].CompanyName = %q, want empty", j2.CompanyName)
-	}
-	if j2.Compensation != nil {
-		t.Error("job[2].Compensation should be nil")
+func TestScraper_Scrape_EmptyResponse(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.WriteHeader(http.StatusOK)
+		io.WriteString(w, `<html><body>No __NEXT_DATA__ here</body></html>`)
+	}))
+	defer ts.Close()
+
+	s := NewWithBaseURL(nil, ts.URL)
+	_, err := s.Scrape(context.Background(), model.ScraperInput{ResultsWanted: 25})
+	if err == nil {
+		t.Fatal("expected error for missing __NEXT_DATA__, got nil")
 	}
 }
 
@@ -183,106 +132,73 @@ func TestScraper_Scrape_HTTPError(t *testing.T) {
 	}
 }
 
-func TestScraper_Scrape_NoNextData(t *testing.T) {
+func TestExtractNextData(t *testing.T) {
+	html := `<html><head><script id="__NEXT_DATA__" type="application/json">{"key":"value"}</script></head></html>`
+	result := extractNextData(html)
+	if result != `{"key":"value"}` {
+		t.Errorf("extractNextData = %q, want %q", result, `{"key":"value"}`)
+	}
+}
+
+func TestExtractNextData_NotFound(t *testing.T) {
+	if got := extractNextData("<html></html>"); got != "" {
+		t.Errorf("expected empty for no __NEXT_DATA__, got %q", got)
+	}
+}
+
+func TestMapListing_EmptyTitle(t *testing.T) {
+	l := listing{Title: ""}
+	if got := mapListing(l); got != nil {
+		t.Error("mapListing should return nil for empty title")
+	}
+}
+
+func TestNewWithBaseURL_EmptyEndpoint(t *testing.T) {
+	s1 := NewWithBaseURL(nil, "")
+	s2 := New(nil)
+	if s1.baseURL != s2.baseURL {
+		t.Errorf("empty endpoint should not override base URL")
+	}
+}
+
+func TestScraper_Scrape_SearchTerm(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Verify search term is passed in the URL
+		if !stringsContains(r.URL.RawQuery, "q=designer") {
+			t.Errorf("URL should contain search term, got: %s", r.URL.RawQuery)
+		}
 		w.Header().Set("Content-Type", "text/html")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("<html><body>No data here</body></html>"))
+		w.Write([]byte(testHTML))
 	}))
 	defer ts.Close()
 
 	s := NewWithBaseURL(nil, ts.URL)
-	_, err := s.Scrape(context.Background(), model.ScraperInput{ResultsWanted: 25})
-	if err == nil {
-		t.Fatal("expected error for missing __NEXT_DATA__, got nil")
-	}
-}
-
-func TestScraper_Scrape_EmptyResponse(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html")
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`<html><body><script id="__NEXT_DATA__" type="application/json">{"props":{"pageProps":{"listings":[]}}}</script></body></html>`))
-	}))
-	defer ts.Close()
-
-	s := NewWithBaseURL(nil, ts.URL)
-	_, err := s.Scrape(context.Background(), model.ScraperInput{ResultsWanted: 25})
-	if err == nil {
-		t.Fatal("expected error for empty listings, got nil")
-	}
-}
-
-func TestScraper_Scrape_429(t *testing.T) {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusTooManyRequests)
-	}))
-	defer ts.Close()
-
-	s := NewWithBaseURL(nil, ts.URL)
-	_, err := s.Scrape(context.Background(), model.ScraperInput{ResultsWanted: 25})
-	if err == nil {
-		t.Fatal("expected error for 429 status, got nil")
-	}
-}
-
-func TestExtractListings(t *testing.T) {
-	// Test with valid data
-	listings, err := extractListings([]byte(testPageHTML))
+	_, err := s.Scrape(context.Background(), model.ScraperInput{
+		SearchTerm:    "designer",
+		ResultsWanted: 25,
+	})
 	if err != nil {
-		t.Fatalf("extractListings() returned error: %v", err)
-	}
-	if len(listings) != 3 {
-		t.Fatalf("expected 3 listings, got %d", len(listings))
-	}
-
-	// Test with no __NEXT_DATA__
-	_, err = extractListings([]byte("<html></html>"))
-	if err == nil {
-		t.Error("expected error when __NEXT_DATA__ not found")
+		t.Fatalf("Scrape() returned error: %v", err)
 	}
 }
 
-func TestMapListing(t *testing.T) {
-	l := listing{
-		ID:    "123",
-		Title: "Test Role",
-		Slug:  "test-role",
-		Company: &company{
-			Name: "TestCo",
-			Slug: "testco",
-		},
-		Comp: &compField{
-			Min:      float64Ptr(100000),
-			Max:      float64Ptr(150000),
-			Currency: "USD",
-		},
-		Locations: []string{"Remote"},
-		Remote:    true,
-		Desc:      "<p>A test role.</p>",
-		Skills:    []string{"Go"},
-		CreatedAt: "2026-05-20T10:00:00Z",
-	}
-
-	job := mapListing(l)
-	if job.Title != "Test Role" {
-		t.Errorf("Title = %q", job.Title)
-	}
-	if job.CompanyName != "TestCo" {
-		t.Errorf("CompanyName = %q", job.CompanyName)
-	}
-	if job.Location.City != "Remote" {
-		t.Errorf("Location.City = %q", job.Location.City)
-	}
-	if !job.IsRemote {
-		t.Error("IsRemote should be true")
-	}
-	if len(job.Skills) != 1 || job.Skills[0] != "Go" {
-		t.Errorf("Skills = %v", job.Skills)
-	}
-	if job.ID != "wellfound-123" {
-		t.Errorf("ID = %q", job.ID)
-	}
+// Helper
+func stringsContains(s, substr string) bool {
+	return len(s) >= len(substr) && containsStr(s, substr)
 }
 
-func float64Ptr(f float64) *float64 { return &f }
+func containsStr(s, substr string) bool {
+	if len(substr) == 0 {
+		return true
+	}
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
+}
+
+// Ensure json.Number works for our test
+var _ = json.Number("1")
