@@ -336,31 +336,6 @@ sites:
     - llm engineer
     - gtm engineer
     location: Remote
-  iosdevjobs:
-    search:
-    - ai engineer
-    - ai developer
-    - llm engineer
-    - machine learning
-    - gtm engineer
-    location: Remote
-  swissdevjobs:
-    search:
-    - ai engineer
-    - machine learning engineer
-    - ai developer
-    - llm engineer
-    - gtm engineer
-    location: Switzerland
-  devitjobs:
-    search:
-    - ai engineer
-    - machine learning engineer
-    - ai developer
-    - llm engineer
-    - gtm engineer
-    - backend engineer
-    location: Switzerland
   cryptojobslist:
     search:
     - ai engineer
@@ -479,15 +454,6 @@ sites:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Software Engineer"'
     location: United Kingdom
-  nodesk:
-    search:
-    - ai engineer
-    - machine learning engineer
-    - ai developer
-    - llm engineer
-    - forward deployed
-    - gtm engineer
-    location: Remote
   jobtechdev:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
@@ -527,15 +493,6 @@ sites:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  duunitori:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-    location: Finland
-  elixirjobs:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
   exa:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
@@ -570,10 +527,6 @@ sites:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  guardianjobs:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
   habrcareer:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
@@ -590,11 +543,6 @@ sites:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  jobsacuk:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-    location: United Kingdom
   jobsch:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
@@ -609,23 +557,7 @@ sites:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  navjobs:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
   nofluffjobs:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  opensourcedesignjobs:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  powertofly:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  pyjobs:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
@@ -649,15 +581,7 @@ sites:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  techcareers:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
   tesla:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  undpjobs:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
@@ -666,10 +590,6 @@ sites:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
   usajobs:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  virtualvocations:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
@@ -704,14 +624,7 @@ sites:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  ats-breezyhr:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  ats-bullhorn:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+
   ats-comeet:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
@@ -736,22 +649,13 @@ sites:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  ats-hiringthing:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+
   ats-homerun:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  ats-icims:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  ats-ismartrecruit:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+
+
   ats-jazzhr:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
@@ -760,10 +664,7 @@ sites:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  ats-jobvite:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+
   ats-jobylon:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
@@ -812,10 +713,7 @@ sites:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  ats-recruiterflow:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+
   ats-rippling:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
@@ -824,26 +722,17 @@ sites:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  ats-successfactors:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+
   ats-talentlyft:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  ats-taleo:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+
   ats-teamtailor:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  ats-trakstar:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
+
   ats-ukg:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
