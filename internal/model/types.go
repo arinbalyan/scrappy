@@ -117,6 +117,20 @@ const (
 	SiteSwissDevJobs         Site = "swissdevjobs"
 	SiteTalroo               Site = "talroo"
 
+	// ATS scrapers
+	SiteADP             Site = "ats-adp"
+	SiteAshby           Site = "ats-ashby"
+	SiteAvature         Site = "ats-avature"
+	SiteBambooHR        Site = "ats-bamboohr"
+	SiteBreezyHR        Site = "ats-breezyhr"
+	SiteBullhorn        Site = "ats-bullhorn"
+	SiteComeet          Site = "ats-comeet"
+	SiteCrelate         Site = "ats-crelate"
+	SiteDeel            Site = "ats-deel"
+	SiteFountain        Site = "ats-fountain"
+	SiteFreshteam       Site = "ats-freshteam"
+	SiteGem             Site = "ats-gem"
+
 	// Batch 2 — additional sources
 	SiteTechCareers         Site = "techcareers"
 	SiteTesla               Site = "tesla"
@@ -129,6 +143,20 @@ const (
 	SiteWordPressJobs       Site = "wordpressjobs"
 	SiteZipRecruiter        Site = "ziprecruiter"
 	SiteAcademicCareers     Site = "academiccareers"
+
+	// ATS providers (12 scrapers)
+	SiteHiringThing     Site = "ats-hiringthing"
+	SiteHomerun         Site = "ats-homerun"
+	SiteICIMS           Site = "ats-icims"
+	SiteISmartRecruit   Site = "ats-ismartrecruit"
+	SiteJazzHR          Site = "ats-jazzhr"
+	SiteJobScore        Site = "ats-jobscore"
+	SiteJobvite         Site = "ats-jobvite"
+	SiteJobylon         Site = "ats-jobylon"
+	SiteJoinCom         Site = "ats-joincom"
+	SiteLever           Site = "ats-lever"
+	SiteLoxo            Site = "ats-loxo"
+	SiteManatal         Site = "ats-manatal"
 )
 
 // AllSites returns every known site.
@@ -237,6 +265,18 @@ func AllSites() []Site {
 		SiteStepStone,
 		SiteSwissDevJobs,
 		SiteTalroo,
+		SiteADP,
+		SiteAshby,
+		SiteAvature,
+		SiteBambooHR,
+		SiteBreezyHR,
+		SiteBullhorn,
+		SiteComeet,
+		SiteCrelate,
+		SiteDeel,
+		SiteFountain,
+		SiteFreshteam,
+		SiteGem,
 		SiteTechCareers,
 		SiteTesla,
 		SiteUNDPJobs,
@@ -248,6 +288,19 @@ func AllSites() []Site {
 		SiteWordPressJobs,
 		SiteZipRecruiter,
 		SiteAcademicCareers,
+		// ATS providers
+		SiteHiringThing,
+		SiteHomerun,
+		SiteICIMS,
+		SiteISmartRecruit,
+		SiteJazzHR,
+		SiteJobScore,
+		SiteJobvite,
+		SiteJobylon,
+		SiteJoinCom,
+		SiteLever,
+		SiteLoxo,
+		SiteManatal,
 	}
 }
 
