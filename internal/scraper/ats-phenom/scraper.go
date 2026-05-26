@@ -185,7 +185,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 
 	if !util.HasMeaningfulJobs(out) {
-		return nil, fmt.Errorf("phenom no parseable jobs")
+		return nil, fmt.Errorf("phenom: no parseable jobs — most companies block scrapers, try --proxy with a residential proxy")
 	}
 	return out, nil
 }

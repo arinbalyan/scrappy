@@ -12,7 +12,7 @@ import (
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
-const feedURL = "https://www.drupal.org/rss/jobs"
+const feedURL = "https://jobs.drupal.org/all-jobs/feed"
 
 var (
 	itemBlockRe = regexp.MustCompile(`(?is)<item>(.*?)</item>`)

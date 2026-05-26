@@ -12,7 +12,7 @@ import (
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
-const feedURL = "https://www.conservationjobboard.com/feed/"
+const feedURL = "https://www.conservationjobboard.com/rss"
 
 var (
 	itemBlockRe = regexp.MustCompile(`(?is)<item>(.*?)</item>`)

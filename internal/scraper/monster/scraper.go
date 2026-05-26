@@ -207,11 +207,11 @@ func (s *Scraper) fetchPage(ctx context.Context, searchTerm, location string, pa
 				return []byte(result.HTML), nil
 			}
 		}
-		return nil, fmt.Errorf("blocked - %s challenge detected", challenge)
+		return nil, fmt.Errorf("blocked - %s challenge detected — try using --proxy with a residential proxy", challenge)
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("monster status %d", resp.StatusCode)
+		return nil, fmt.Errorf("monster status %d — try using --proxy with a residential proxy", resp.StatusCode)
 	}
 
 	return body, nil
