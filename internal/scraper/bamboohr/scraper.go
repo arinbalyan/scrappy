@@ -53,7 +53,7 @@ type bamboohrLocation struct {
 }
 
 type bamboohrJob struct {
-	ID                   int               `json:"id"`
+	ID                   string            `json:"id"`
 	JobOpeningName       string            `json:"jobOpeningName"`
 	DepartmentLabel      string            `json:"departmentLabel"`
 	Location             *bamboohrLocation `json:"location"`
@@ -103,7 +103,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 				continue
 			}
 
-			id := ats.BuildID("bamboohr", slug, fmt.Sprintf("%d", job.ID))
+			id := ats.BuildID("bamboohr", slug, job.ID)
 			if seen[id] {
 				continue
 			}
@@ -118,7 +118,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			}
 
 			// Job URL
-			jobURL := fmt.Sprintf("https://%s.bamboohr.com/careers/%d", url.PathEscape(slug), job.ID)
+			jobURL := fmt.Sprintf("https://%s.bamboohr.com/careers/%s", url.PathEscape(slug), job.ID)
 
 			jp := model.JobPost{
 				ID:          id,

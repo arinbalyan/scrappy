@@ -23,7 +23,7 @@ func TestScraper_Scrape(t *testing.T) {
 		resp := bamboohrResponse{
 			Result: []bamboohrJob{
 				{
-					ID:              1,
+					ID:              "1",
 					JobOpeningName:  "Software Engineer",
 					DepartmentLabel: "Engineering",
 					Description:     "<p>Build cool stuff</p>",
@@ -34,7 +34,7 @@ func TestScraper_Scrape(t *testing.T) {
 					},
 				},
 				{
-					ID:             2,
+					ID:             "2",
 					JobOpeningName: "Product Manager",
 					DepartmentLabel: "Product",
 				},
