@@ -52,6 +52,20 @@ func normalizeKey(envKey string) string {
 	return strings.ToLower(k)
 }
 
+// aliasKeys provides fallback key names used in company_slugs.yaml.
+func aliasKeys(key string) []string {
+	aliases := []string{key}
+	switch key {
+	case "breezyhr":
+		aliases = append(aliases, "breezy")
+	case "joincom":
+		aliases = append(aliases, "join")
+	case "oracle":
+		aliases = append(aliases, "oracle-hcm")
+	}
+	return aliases
+}
+
 // ResolveSeeds returns company seed strings from env, config file, or search term.
 func ResolveSeeds(searchTerm string, envKey string) (seeds []string, src SeedSource) {
 	// 1. Check env var (overrides everything)
@@ -71,8 +85,10 @@ func ResolveSeeds(searchTerm string, envKey string) (seeds []string, src SeedSou
 	// 2. Check config/company_slugs.yaml
 	slugOnce.Do(loadSlugs)
 	key := normalizeKey(envKey)
-	if cfg, ok := slugDB[key]; ok && len(cfg) > 0 {
-		return cfg, SeedFromConfig
+	for _, k := range aliasKeys(key) {
+		if cfg, ok := slugDB[k]; ok && len(cfg) > 0 {
+			return cfg, SeedFromConfig
+		}
 	}
 
 	// 3. Fall back to search term
