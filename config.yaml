@@ -373,22 +373,6 @@ sites:
     - llm engineer
     - gtm engineer
     location: India
-  vuejobs:
-    search:
-    - ai engineer
-    - ai developer
-    - machine learning
-    - llm engineer
-    - gtm engineer
-    location: Remote
-  larajobs:
-    search:
-    - ai engineer
-    - ai developer
-    - machine learning
-    - llm engineer
-    - gtm engineer
-    location: Remote
   androidjobs:
     search:
     - ai engineer
@@ -510,20 +494,7 @@ sites:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  functionalworks:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  germantechjobs:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-    location: Germany
   getonboard:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'
-  greenjobsboard:
     search:
     - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
     - '"GTM Engineer" OR "Forward Deployed Engineer" OR "AI Automation Engineer"'

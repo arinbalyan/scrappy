@@ -65,7 +65,6 @@ const (
 	SiteArbeitsagentur    Site = "arbeitsagentur"
 	SiteWeb3Career        Site = "web3career"
 	SiteEchoJobs          Site = "echojobs"
-	SiteNoDesk            Site = "nodesk"
 	SiteJobTechDev        Site = "jobtechdev"
 	SiteAuthenticJobs     Site = "authenticjobs"
 	SiteEcoJobs           Site = "ecojobs"
@@ -83,20 +82,15 @@ const (
 	SiteCoroflot         Site = "coroflot"
 	SiteDevITJobs        Site = "devitjobs"
 	SiteDrupalJobs       Site = "drupaljobs"
-	SiteDuunitori        Site = "duunitori"
 	SiteHabrCareer       Site = "habrcareer"
 	SiteHigherEdJobs     Site = "higheredjobs"
 	SiteIcrunchData      Site = "icrunchdata"
-	SiteIOSDevJobs       Site = "iosdevjobs"
 	SiteJobDataAPI       Site = "jobdataapi"
-	SiteJobsAcUK         Site = "jobsacuk"
 	SiteJobsCH           Site = "jobsch"
 	SiteJobsInJapan      Site = "jobsinjapan"
 	SiteJoinRise         Site = "joinrise"
-	SiteNavJobs          Site = "navjobs"
 
 	// Priority new site constants
-	SiteElixirJobs       Site = "elixirjobs"
 	SiteExa              Site = "exa"
 	SiteFossJobs         Site = "fossjobs"
 	SiteFranceTravail    Site = "francetravail"
@@ -236,7 +230,6 @@ func AllSites() []Site {
 		SiteFindwork,
 		SiteWeb3Career,
 		SiteEchoJobs,
-		SiteNoDesk,
 		SiteJobTechDev,
 		SiteAuthenticJobs,
 		SiteEcoJobs,
@@ -252,18 +245,13 @@ func AllSites() []Site {
 		SiteCoroflot,
 		SiteDevITJobs,
 		SiteDrupalJobs,
-		SiteDuunitori,
 		SiteHabrCareer,
 		SiteHigherEdJobs,
 		SiteIcrunchData,
-		SiteIOSDevJobs,
 		SiteJobDataAPI,
-		SiteJobsAcUK,
 		SiteJobsCH,
 		SiteJobsInJapan,
 		SiteJoinRise,
-		SiteNavJobs,
-		SiteElixirJobs,
 		SiteExa,
 		SiteFossJobs,
 		SiteFranceTravail,
