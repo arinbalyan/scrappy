@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -106,7 +107,12 @@ func (s *Scraper) fetchJobs(ctx context.Context, input model.ScraperInput, seed 
 	if resultsWanted <= 0 {
 		resultsWanted = 100
 	}
-	url := fmt.Sprintf("%s?page=1&perPage=%d", s.apiURL, resultsWanted)
+	// Homerun is per-company: https://{seed}.homerun.co/api/v2/jobs
+	apiURL := s.apiURL
+	if strings.TrimSpace(seed) != "" && !strings.Contains(s.apiURL, "%s") {
+		apiURL = fmt.Sprintf("https://%s.homerun.co/api/v2/jobs", seed)
+	}
+	url := fmt.Sprintf("%s?page=1&perPage=%d", apiURL, resultsWanted)
 
 	util.Debug("homerun_fetch_url", map[string]any{"url": url})
 	var resp Response
