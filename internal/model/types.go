@@ -157,6 +157,24 @@ const (
 	SiteLever           Site = "ats-lever"
 	SiteLoxo            Site = "ats-loxo"
 	SiteManatal         Site = "ats-manatal"
+	SiteMercor          Site = "ats-mercor"
+	SiteOracle          Site = "ats-oracle"
+	SitePaylocity       Site = "ats-paylocity"
+	SitePersonio        Site = "ats-personio"
+	SitePhenom          Site = "ats-phenom"
+	SitePinpoint        Site = "ats-pinpoint"
+	SiteRecruitee       Site = "ats-recruitee"
+	SiteRecruiterFlow   Site = "ats-recruiterflow"
+	SiteRippling        Site = "ats-rippling"
+	SiteSmartRecruiters Site = "ats-smartrecruiters"
+	SiteSuccessFactors  Site = "ats-successfactors"
+	SiteTalentLyft      Site = "ats-talentlyft"
+	SiteTaleo           Site = "ats-taleo"
+	SiteTeamTailor      Site = "ats-teamtailor"
+	SiteTrakstar        Site = "ats-trakstar"
+	SiteUKG             Site = "ats-ukg"
+	SiteWorkable        Site = "ats-workable"
+	SiteWorkday         Site = "ats-workday"
 )
 
 // AllSites returns every known site.
@@ -301,6 +319,24 @@ func AllSites() []Site {
 		SiteLever,
 		SiteLoxo,
 		SiteManatal,
+		SiteMercor,
+		SiteOracle,
+		SitePaylocity,
+		SitePersonio,
+		SitePhenom,
+		SitePinpoint,
+		SiteRecruitee,
+		SiteRecruiterFlow,
+		SiteRippling,
+		SiteSmartRecruiters,
+		SiteSuccessFactors,
+		SiteTalentLyft,
+		SiteTaleo,
+		SiteTeamTailor,
+		SiteTrakstar,
+		SiteUKG,
+		SiteWorkable,
+		SiteWorkday,
 	}
 }
 
