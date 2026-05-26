@@ -72,6 +72,18 @@ const (
 	SiteGolangJobs        Site = "golangjobs"
 	SiteLandingJobs       Site = "landingjobs"
 	SiteRealWorkFromAnywhere Site = "realworkfromanywhere"
+
+	// New sites being ported
+	SiteBayt             Site = "bayt"
+	SiteBDJobs           Site = "bdjobs"
+	SiteBerlinStartupJobs Site = "berlinstartupjobs"
+	SiteCanadaJobBank    Site = "canadajobbank"
+	SiteCareerOneStop    Site = "careeronestop"
+	SiteConservationJobs Site = "conservationjobs"
+	SiteCoroflot         Site = "coroflot"
+	SiteDevITJobs        Site = "devitjobs"
+	SiteDrupalJobs       Site = "drupaljobs"
+	SiteDuunitori        Site = "duunitori"
 )
 
 // AllSites returns every known site.
@@ -140,6 +152,16 @@ func AllSites() []Site {
 		SiteGolangJobs,
 		SiteLandingJobs,
 		SiteRealWorkFromAnywhere,
+		SiteBayt,
+		SiteBDJobs,
+		SiteBerlinStartupJobs,
+		SiteCanadaJobBank,
+		SiteCareerOneStop,
+		SiteConservationJobs,
+		SiteCoroflot,
+		SiteDevITJobs,
+		SiteDrupalJobs,
+		SiteDuunitori,
 	}
 }
 
