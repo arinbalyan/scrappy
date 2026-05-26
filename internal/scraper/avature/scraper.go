@@ -51,6 +51,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if len(seeds) == 0 {
 		return nil, fmt.Errorf("avature no seeds: set SCRAPPY_AVATURE_SEEDS or pass a company slug in --search")
 	}
+	// If the search term was used as slug and it looks like a search phrase,
+	// return early — Avature needs a company slug like 'colgate-palmolive', not a search string.
+	if src == ats.SeedFromSearch && (strings.ContainsAny(seeds[0], " \"") || strings.Contains(seeds[0], "OR")) {
+		return nil, fmt.Errorf("avature: no tenant slugs — got search term %q; set SCRAPPY_AVATURE_SEEDS or pass --search 'company-slug'", seeds[0])
+	}
 	util.Debug("avature_seeds", map[string]any{"seeds": seeds, "src": src})
 
 	wanted := input.ResultsWanted
