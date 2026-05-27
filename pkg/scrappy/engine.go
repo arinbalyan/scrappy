@@ -361,7 +361,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	}
 	e.telemetry = RunTelemetry{Sites: make([]SiteTelemetry, 0, len(sites)), SuggestedSiteRPS: map[model.Site]int{}}
 
-	all := make([]model.JobPost, 0)
+	all := make([]model.JobPost, 0, input.ResultsWanted)
 	telemetryBySite := make(map[model.Site]SiteTelemetry, len(sites))
 	var allMu sync.Mutex
 	var wg sync.WaitGroup
@@ -560,8 +560,8 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		}
 	}
 
-	processedBySite := make(map[model.Site][]model.JobPost, len(sites))
 	mxVerifier := internalemail.NewMXVerifier()
+	seenGlobal := make(map[string]struct{})
 	for res := range resultsCh {
 		if !res.ok {
 			continue
@@ -589,20 +589,27 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				}
 			}
 			util.Debug("job", map[string]any{"site": res.site, "job_id": jobs[i].ID, "title": jobs[i].Title})
+
+			// Immediate global deduplication to save memory.
+			key := strings.TrimSpace(jobs[i].JobURL)
+			if key == "" {
+				key = strings.TrimSpace(jobs[i].ID)
+			}
+			if key == "" || seenGlobal[key] {
+				continue
+			}
+			seenGlobal[key] = struct{}{}
+			all = append(all, jobs[i])
 		}
-		processedBySite[res.site] = dedupWithinSite(jobs)
 	}
 
 	for _, site := range sites {
 		if st, ok := telemetryBySite[site]; ok {
 			e.telemetry.Sites = append(e.telemetry.Sites, st)
 		}
-		if jobs, ok := processedBySite[site]; ok {
-			all = append(all, jobs...)
-		}
 	}
 
-	all = dedup.DedupFilters(all, !input.Dedup, input.DedupByCompany, true)
+	// Apply filters: score and emails.
 	if input.MinScore > 0 {
 		filtered := all[:0]
 		for _, j := range all {
