@@ -12,7 +12,7 @@ Bulk job-board scraper for 60+ sites, written in Go.
 - **Multiple exports** -- JSONL, CSV, XLSX, Parquet
 - **Proxy support** -- SOCKS5/HTTP with TCP-dial health checks and round-robin
 - **Memory-aware** -- configurable memory cap with automatic concurrency scaling
-- **Browser fallback** -- optional Playwright-based rendering for anti-bot sites (naukri, monster, jooble)
+- **Browser fallback** -- optional Playwright-based rendering for anti-bot sites (monster)
 
 ## Quick start
 
@@ -85,17 +85,33 @@ All 60+ sites with per-board notes in [docs/012-Scraping.md](docs/012-Scraping.m
 
 See [docs/003-Installation.md](docs/003-Installation.md) for Go, Docker, and CI installation.
 
+## Build with Makefile
+
+The project includes a `Makefile` for common development tasks:
+
+```bash
+make build      # Build the scrappy binary to bin/scrappy
+make test       # Run all unit tests
+make test-race  # Run tests with race detector
+make vet        # Run go vet
+make lint       # Run golangci-lint
+make clean      # Remove build artifacts
+make docker     # Build Docker image
+make all        # build + test + vet
+```
+
+A `.dockerignore` excludes unnecessary files from Docker builds for smaller images.
+
 ## Go library usage
 
 ```go
 import (
-    "github.com/arinbalyan/scrappy/internal/model"
     "github.com/arinbalyan/scrappy/pkg/scrappy"
 )
 
 engine := scrappy.NewEngine()
-jobs, err := engine.Scrape(ctx, model.ScraperInput{
-    Sites:        []model.Site{model.SiteLinkedIn, model.SiteIndeed},
+jobs, err := engine.Scrape(ctx, scrappy.ScraperInput{
+    Sites:        []string{"linkedin", "indeed"},
     SearchTerm:   "software engineer",
     Location:     "San Francisco, CA",
     ResultsWanted: 500,

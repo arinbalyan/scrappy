@@ -66,7 +66,7 @@ scrappy --sites linkedin --search "engineer" --format csv \
 Excel Open XML format. Uses the same 30-column schema as CSV, one sheet named `jobs`.
 
 ```bash
-scrappy --sites glassdoor --search "developer" --format xlsx --out jobs.xlsx
+scrappy --sites remoteok --search "developer" --format xlsx --out jobs.xlsx
 ```
 
 - ~1M row limit per sheet (Excel constraint)
@@ -124,7 +124,19 @@ type parquetJobRow struct {
 }
 ```
 
-The engine always strips HTML tags before output (via `golang.org/x/net/html` tokenizer).
+The engine always strips HTML tags before output (via `util.StripHTML()` which uses `golang.org/x/net/html` tokenizer).
+
+### Fixed: Site field in Parquet and XLSX
+
+In earlier versions, the `Site` field in Parquet and XLSX exports was always
+empty (`""`). This has been fixed -- the writer now uses `job.Site` directly
+so exports correctly identify which board each posting came from.
+
+### XLSX: CoordinatesToCellName errors now propagated
+
+The XLSX writer previously ignored errors from `CoordinatesToCellName()`, which
+could silently truncate or misplace cells in large spreadsheets. These errors
+are now properly returned and surfaced.
 
 ## Performance (approximate)
 

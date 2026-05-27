@@ -59,7 +59,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		return nil, fmt.Errorf("remoteok decode: %w", err)
 	}
 	if len(raw) <= 1 {
-		return nil, nil
+		return nil, fmt.Errorf("remoteok: empty or metadata-only response")
 	}
 	raw = raw[1:]
 

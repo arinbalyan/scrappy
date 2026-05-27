@@ -6,7 +6,7 @@
 scrappy [--flags]
 
 scrappy --search "AI Engineer" --location "San Francisco, CA" \
-        --sites linkedin,indeed,glassdoor --results-wanted 500 \
+        --sites linkedin,indeed --results-wanted 500 \
         --format jsonl --out /data/jobs.jsonl
 ```
 
@@ -24,6 +24,8 @@ scrappy
 | `--location` | string | `""` | Location(s). Comma-separated for multi-value cartesian product. |
 | `--sites` | string | `""` (all 55+) | Comma-separated site names. Omit to scrape every supported board. |
 | `--results-wanted` | int | `0` | Maximum number of results total across all sites. |
+
+> **Building the binary:** `go build -o ./bin/scrappy ./cmd/scrappy` or use the Makefile target `make build` which builds to `bin/scrappy` with stripped debug symbols.
 | `--format` | string | `""` | Output format: `jsonl`, `csv`, `xlsx`, `parquet`. |
 | `--out` | string | `""` | Output file path. Empty = stdout (JSON pretty-printed). |
 | `--timeout` | int | `600` | Scrape timeout in seconds. |
@@ -92,7 +94,7 @@ Env vars can be set in `.env` files (auto-loaded beside config.yaml) or exported
 scrappy supports **55+ job boards**:
 
 ```
-linkedin          indeed            naukri            internshala
+linkedin          indeed            internshala
 builtin           startupjobs       greenhouse        gunio
 himalayas         hiringcafe        huggingfacejobs   jobindex
 remoteok          remotive          remotefirstjobs   jobspresso
@@ -100,25 +102,25 @@ hasjob            vuejobs           larajobs          arbeitnow
 arbeitsagentur    hackernews        cryptocurrencyjobs androidjobs
 jobicy            devopsjobs        crunchboard       cryptojobslist
 dribbble          aijobs            workingnomads     ycjobs
-ukvisajobs        google            glassdoor         adzuna
-simplyhired       careerbuilder     careerjet         jooble
+ukvisajobs        google            adzuna
+simplyhired       careerbuilder     careerjet
 dice              monster           infojobs          reed
 themuse           jobsdb            snagajob          djinni
 headhunter        mycareersfuture   jobstreet         4dayweek
-eurojobs          findwork          web3career
+eurojobs          findwork          web3career          wuzzuf
 ```
 
 Pass them to `--sites` as comma-separated lowercase names:
 
 ```bash
-scrappy --sites linkedin,indeed,remoteok,glassdoor \
+scrappy --sites linkedin,indeed,remoteok \
         --search "rust developer" --location "Remote" \
         --results-wanted 200
 ```
 
 Omit \`--sites\` entirely to scrape all 55+.
 
-> **Browser fallback:** Sites behind anti-bot challenges (naukri [reCAPTCHA], monster [DataDome], jooble [Cloudflare]) can use an optional Playwright headless Chromium fallback. Install with `cd scripts && npm install`. See [docs/012-Scraping.md](012-Scraping.md#browser-fallback-anti-bot).
+> **Browser fallback:** Sites behind anti-bot challenges (monster [DataDome]) can use an optional Playwright headless Chromium fallback. Install with `cd scripts && npm install`. See [docs/012-Scraping.md](012-Scraping.md#browser-fallback-anti-bot).
 
 ## EXIT CODES
 
@@ -145,7 +147,7 @@ scrappy --sites remoteok,remotive --search "golang" \
 ### 3. CSV export to file
 
 ```bash
-scrappy --sites indeed,glassdoor --search "software engineer" \
+scrappy --sites indeed --search "software engineer" \
         --location "San Francisco" --results-wanted 500 \
         --format csv --out /data/jobs.csv
 ```
@@ -207,7 +209,7 @@ scrappy --config /etc/scrappy/production.yaml \
 ### 11. With SOCKS5 proxy
 
 ```bash
-scrappy --sites linkedin,indeed,glassdoor --search "AI Engineer" \
+scrappy --sites linkedin,indeed --search "AI Engineer" \
         --location "Remote" --results-wanted 500 \
         --proxy socks5://user:pass@proxy:1080
 ```
@@ -264,7 +266,6 @@ sites:
       - ai engineer
       - machine learning
     location: India
-  naukri:
     country: india
 ```
 

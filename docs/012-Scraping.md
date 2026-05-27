@@ -36,12 +36,10 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | Indeed | 100 | Cursor (`nextCursor`) | None observed | GraphQL; best yield per RPS |
 | LinkedIn | 10 | Offset (`start`) | 1,000 | Use `--linkedin-strategy rotate` |
 | Google | ~10 | Offset (SERP) | Best-effort | No longer capped at 20; aggressive rate-limiting |
-| Glassdoor | ~30 | Cursor | ~1,000 | Dates rounded to next day |
 | Adzuna | ~50 | Offset | ~1,000 | Requires `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` |
 | Careerjet | ~20 | Offset | ~1,000 | Requires `CAREERJET_AFFID` |
 | SimplyHired | ~20 | Offset | Best-effort | Public HTML, US-focused |
 | CareerBuilder | ~25 | Offset | ~1,500 | Public HTML |
-| Jooble | ~20 | Offset | ~1,000 | Aggregation engine |
 | Dice | ~20 | Offset | ~1,000 | US tech-focused |
 | Monster | ~25 | Offset | ~1,000 | US-focused |
 | Reed | ~25 | Offset | ~1,000 | UK-focused |
@@ -75,7 +73,6 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 
 | Site | Region / Niche | Pagination |
 |------|----------------|------------|
-| Naukri | India | Offset |
 | Internshala | India (internships) | Offset |
 | StartupJobs | Central Europe | Offset |
 | HasJob | India (startups) | RSS feed |
@@ -121,9 +118,7 @@ Some sites block plain HTTP requests with JavaScript-based challenges (reCAPTCHA
 
 | Site | Challenge | Browser Strategy |
 |------|-----------|------------------|
-| Naukri | HTTP 406 (reCAPTCHA) | Fetch landing page via browser to get session cookies, then retry API |
 | Monster | HTTP 403 (DataDome) | Render search page in browser and parse the HTML |
-| Jooble | HTTP 403 (Cloudflare) | Render search page in browser and parse the HTML |
 
 The fallback is **optional** and **silent** -- if Playwright is not installed, the scraper returns the standard blocked error and the site is skipped normally.
 
@@ -150,13 +145,33 @@ Each (term, location) pair is an independent scrape. Errors on one pair do not f
 
 See [007-Multi-Value.md](007-Multi-Value.md).
 
+## Performance improvements: regex compilation
+
+Two scrapers had their per-call regex compilation moved to package-level
+`var` declarations, avoiding recompilation on every scrape call:
+
+- **LinkedIn**: `reCard` and `reLegacyCard` in `parseJobCards()` are now compiled
+  once at package init time.
+
+
+## Safety improvements
+
+- **RemoteOK**: Now guards against empty API responses. The API returns an array
+  where index 0 is metadata; if the response has fewer than 2 elements (missing
+  the metadata row or no jobs), the scraper returns an empty result set instead
+  of panicking with an index-out-of-bounds error. Context cancellation is also
+  checked between page fetches.
+- **Adzuna**: Now enforces 500ms rate limiting between API page requests and
+  limits pages to a maximum of 20 (down from 100). HTTP response bodies are
+  properly deferred-closed on all code paths (the previous code could leave
+  bodies unclosed if an error occurred mid-function).
+
 ## Per-site concurrency defaults
 
 | Site | Max concurrent | Max RPS |
 |------|---------------|---------|
 | LinkedIn | 1-2 | 1 req/3s |
 | Indeed | 10 | 3 req/s |
-| Glassdoor | 4 | 2 req/s |
 | Google | 2 | 1 req/2s |
 | ZipRecruiter | 4 | 2 req/s |
 | Adzuna | 4 | 2 req/s |

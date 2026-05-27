@@ -7,7 +7,7 @@ services:
     build: .
     volumes:
       - ./data:/out
-    command: scrape --sites linkedin,indeed,glassdoor,remoteok \
+    command: scrape --sites linkedin,indeed,remoteok \
                     --search "software engineer" --location "Remote" \
                     --results-wanted 1000 --format jsonl --out /out/jobs.jsonl
     environment:
@@ -20,7 +20,7 @@ services:
     restart: unless-stopped
     volumes:
       - ./data:/out
-    command: scrape --sites linkedin,indeed,glassdoor,remoteok \
+    command: scrape --sites linkedin,indeed,remoteok \
                     --search "software engineer" --location "Remote" \
                     --results-wanted 1000 --format jsonl --out /out/jobs.jsonl \
                     --dedup

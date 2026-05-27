@@ -90,15 +90,15 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 
 	jobs := make([]model.JobPost, 0, wanted)
-	searchTerm := strings.ToLower(strings.TrimSpace(input.SearchTerm))
+	searchTerms := parseSearchTerms(input.SearchTerm)
 
 	for _, item := range items {
 		if len(jobs) >= wanted {
 			break
 		}
 
-		// Filter by search term if one is provided.
-		if searchTerm != "" && !matchesSearch(item, searchTerm) {
+		// Filter by search term if one is provided (OR semantics).
+		if len(searchTerms) > 0 && !matchesSearch(item, searchTerms) {
 			continue
 		}
 
@@ -199,14 +199,41 @@ func extractTag(xml, tagName string) string {
 	return ""
 }
 
-// matchesSearch checks whether an RSS item's title or description contains the
-// given search term (case-insensitive).
-func matchesSearch(item rssItem, term string) bool {
-	term = strings.ToLower(term)
+// parseSearchTerms splits a search term on " OR " and returns lowercase terms.
+func parseSearchTerms(raw string) []string {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, " OR ")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.Trim(strings.TrimSpace(p), `"`)
+		if p != "" {
+			out = append(out, strings.ToLower(p))
+		}
+	}
+	return out
+}
+
+// matchAny returns true if the haystack contains any of the terms.
+func matchAny(hay string, terms []string) bool {
+	for _, t := range terms {
+		if strings.Contains(hay, t) {
+			return true
+		}
+	}
+	return false
+}
+
+// matchesSearch checks whether an RSS item's title or description contains any
+// of the given search terms (case-insensitive, OR semantics).
+func matchesSearch(item rssItem, terms []string) bool {
 	title := strings.ToLower(item.Title)
 	desc := strings.ToLower(item.Description)
 
-	return strings.Contains(title, term) || strings.Contains(desc, term)
+	hay := title + " " + desc
+	return matchAny(hay, terms)
 }
 
 // mapToJobPost converts a parsed rssItem to a model.JobPost.
