@@ -727,8 +727,10 @@ func classifyFailOpenReason(err error) string {
 }
 
 func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, ctx context.Context) {
+	// Start by deduplicating any emails already set by the scraper.
 	job.Emails = dedupEmails(job.Emails)
 
+	// Extract emails from description + company description text.
 	text := jobTextForEmailExtraction(job)
 	if text != "" {
 		found := internalemail.Extract(text)
@@ -749,15 +751,22 @@ func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, ctx
 		}
 	}
 
-	// Run MX verification to set Verified field on each email.
+	// Run MX verification on every email.
+	// After this pass, Verified=true means a real MX record was found;
+	// Verified=false means the domain has no MX records, is blocked, or
+	// lookup failed. Consumers can filter with --emails-only or --no-email.
 	if verifier != nil {
 		for i := range job.Emails {
 			if ctx.Err() != nil {
 				return
 			}
-			if !job.Emails[i].Verified {
-				job.Emails[i].Verified = verifier.Verify(ctx, job.Emails[i].Addr)
-			}
+			verified, _ := verifier.VerifyEmail(ctx, job.Emails[i].Addr)
+			job.Emails[i].Verified = verified
+		}
+	} else {
+		// No verifier available — mark all as unverified.
+		for i := range job.Emails {
+			job.Emails[i].Verified = false
 		}
 	}
 }
