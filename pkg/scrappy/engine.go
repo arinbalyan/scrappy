@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"runtime/metrics"
 	"sort"
 	"strings"
 	"sync"
@@ -392,14 +393,13 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 					return
 				case <-ticker.C:
 				}
-				var m runtime.MemStats
-				runtime.ReadMemStats(&m)
-				if m.Alloc > memThreshold {
+				allocMB := getHeapAllocMB()
+				if uint64(allocMB)*1024*1024 > memThreshold {
 					util.Warn("memory_pressure", map[string]any{
-						"alloc_mb":  m.Alloc / 1024 / 1024,
+						"alloc_mb":  allocMB,
 						"cap_mb":    input.MemoryCapMB,
-						"pct":       m.Alloc * 100 / (uint64(input.MemoryCapMB) * 1024 * 1024),
-						"gc_cycles": m.NumGC,
+						"pct":       uint64(allocMB) * 1024 * 1024 * 100 / (uint64(input.MemoryCapMB) * 1024 * 1024),
+						"gc_cycles": 0, // Not directly available via metrics in same call
 					})
 				}
 			}
@@ -671,27 +671,36 @@ func waitForMemoryBudget(ctx context.Context, capMB int) error {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
-		var m runtime.MemStats
-		runtime.ReadMemStats(&m)
-		if m.Alloc <= hard {
+		allocBytes := uint64(getHeapAllocMB()) * 1024 * 1024
+		if allocBytes <= hard {
 			return nil
 		}
 		if !warned {
 			util.Warn("memory_throttle", map[string]any{
-				"alloc_mb": m.Alloc / 1024 / 1024,
+				"alloc_mb": getHeapAllocMB(),
 				"cap_mb":   capMB,
 				"hard_pct": 90,
 			})
 			warned = true
 		}
 		runtime.GC()
-		if m.Alloc <= resume {
+		if allocBytes <= resume {
 			return nil
 		}
 		if err := util.SleepWithContext(ctx, 750*time.Millisecond); err != nil {
 			return err
 		}
 	}
+}
+
+func getHeapAllocMB() int {
+	sample := make([]metrics.Sample, 1)
+	sample[0].Name = "/memory/classes/heap/objects:bytes"
+	metrics.Read(sample)
+	if sample[0].Value.Family() == metrics.FamilyGauge {
+		return int(sample[0].Value.Uint64() / (1024 * 1024))
+	}
+	return 0
 }
 
 func suggestRPS(current int, err error) int {
