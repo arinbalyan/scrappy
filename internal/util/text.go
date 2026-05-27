@@ -2,9 +2,16 @@ package util
 
 import (
 	"strings"
+	"sync"
 
 	"golang.org/x/net/html"
 )
+
+var builderPool = sync.Pool{
+	New: func() any {
+		return &strings.Builder{}
+	},
+}
 
 // StripHTML removes all HTML tags from s, returning only the text content.
 func StripHTML(s string) string {
@@ -12,14 +19,18 @@ func StripHTML(s string) string {
 		return html.UnescapeString(s)
 	}
 	tokenizer := html.NewTokenizer(strings.NewReader(s))
-	var out strings.Builder
-	out.Grow(len(s))
+	
+	sb := builderPool.Get().(*strings.Builder)
+	sb.Reset()
+	defer builderPool.Put(sb)
+	
+	sb.Grow(len(s))
 	for {
 		switch tokenizer.Next() {
 		case html.ErrorToken:
-			return html.UnescapeString(out.String())
+			return html.UnescapeString(sb.String())
 		case html.TextToken:
-			out.Write(tokenizer.Text())
+			sb.Write(tokenizer.Text())
 		default:
 			// skip tags, comments, doctype, etc.
 		}

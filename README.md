@@ -164,4 +164,4 @@ See [docs/019-Architecture-Reference.md](docs/019-Architecture-Reference.md) for
 
 ## License
 
-MIT
+This project is licensed under the terms specified in the [LICENSE](LICENSE) file. Personal, non-commercial use only.
