@@ -91,11 +91,11 @@ One page per site. Each page covers: how it works, pagination, rate limits, know
 - `otta.com` — AI talent matching. May require a cookie from a logged-in browser session.
 - Effort: medium.
 
-## Lever (planned)
+## Wuzzuf
 
-- Each company has its own board at `{company}.jobs.lever.co`.
-- Enumerate from a known company list or extract from LinkedIn URLs.
-- Effort: medium.
+- HTML scraper for `wuzzuf.net` — Egypt-based job board.
+- Public HTML listings, page-based pagination.
+- Region: Egypt / Middle East.
 
 ## Greenhouse (planned)
 

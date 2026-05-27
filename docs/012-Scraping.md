@@ -36,12 +36,10 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | Indeed | 100 | Cursor (`nextCursor`) | None observed | GraphQL; best yield per RPS |
 | LinkedIn | 10 | Offset (`start`) | 1,000 | Use `--linkedin-strategy rotate` |
 | Google | ~10 | Offset (SERP) | Best-effort | No longer capped at 20; aggressive rate-limiting |
-| Glassdoor | ~30 | Cursor | ~1,000 | Dates rounded to next day |
 | Adzuna | ~50 | Offset | ~1,000 | Requires `ADZUNA_APP_ID` + `ADZUNA_APP_KEY` |
 | Careerjet | ~20 | Offset | ~1,000 | Requires `CAREERJET_AFFID` |
 | SimplyHired | ~20 | Offset | Best-effort | Public HTML, US-focused |
 | CareerBuilder | ~25 | Offset | ~1,500 | Public HTML |
-| Jooble | ~20 | Offset | ~1,000 | Aggregation engine |
 | Dice | ~20 | Offset | ~1,000 | US tech-focused |
 | Monster | ~25 | Offset | ~1,000 | US-focused |
 | Reed | ~25 | Offset | ~1,000 | UK-focused |
@@ -75,7 +73,6 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 
 | Site | Region / Niche | Pagination |
 |------|----------------|------------|
-| Naukri | India | Offset |
 | Internshala | India (internships) | Offset |
 | StartupJobs | Central Europe | Offset |
 | HasJob | India (startups) | RSS feed |
@@ -121,9 +118,7 @@ Some sites block plain HTTP requests with JavaScript-based challenges (reCAPTCHA
 
 | Site | Challenge | Browser Strategy |
 |------|-----------|------------------|
-| Naukri | HTTP 406 (reCAPTCHA) | Fetch landing page via browser to get session cookies, then retry API |
 | Monster | HTTP 403 (DataDome) | Render search page in browser and parse the HTML |
-| Jooble | HTTP 403 (Cloudflare) | Render search page in browser and parse the HTML |
 
 The fallback is **optional** and **silent** -- if Playwright is not installed, the scraper returns the standard blocked error and the site is skipped normally.
 
@@ -157,8 +152,7 @@ Two scrapers had their per-call regex compilation moved to package-level
 
 - **LinkedIn**: `reCard` and `reLegacyCard` in `parseJobCards()` are now compiled
   once at package init time.
-- **Naukri**: `reNaukriSalary` in the salary parsing function is now a package-level
-  `var` instead of `regexp.MustCompile(...)` on every call.
+
 
 ## Safety improvements
 
@@ -178,7 +172,6 @@ Two scrapers had their per-call regex compilation moved to package-level
 |------|---------------|---------|
 | LinkedIn | 1-2 | 1 req/3s |
 | Indeed | 10 | 3 req/s |
-| Glassdoor | 4 | 2 req/s |
 | Google | 2 | 1 req/2s |
 | ZipRecruiter | 4 | 2 req/s |
 | Adzuna | 4 | 2 req/s |

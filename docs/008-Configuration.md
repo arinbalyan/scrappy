@@ -127,7 +127,7 @@ sites:
 |-------|------|-------------|
 | `search` | string or list | Replaces `defaults.search` for this site only. |
 | `location` | string or list | Replaces `defaults.location` for this site only. |
-| `country` | string | Country override (e.g. `germany`, `uk`, `india`). Passed to scrapers that support per-country endpoints (Indeed, Glassdoor). |
+| `country` | string | Country override (e.g. `germany`, `uk`, `india`). Passed to scrapers that support per-country endpoints (Indeed). |
 | `is_remote` | bool | Overrides the global `is_remote` for this site. |
 
 ### Per-site override rules
