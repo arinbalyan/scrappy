@@ -110,7 +110,7 @@ func (s *Scraper) fetchVacancies(ctx context.Context, searchTerm string, perPage
 		return nil, err
 	}
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "scrappy/0.1.0 (job-aggregator)")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36")
 
 	if err := util.JitterSleep(ctx, rateLimitDelayMin, rateLimitDelayMax-rateLimitDelayMin); err != nil {
 		return nil, err
@@ -122,7 +122,7 @@ func (s *Scraper) fetchVacancies(ctx context.Context, searchTerm string, perPage
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("headhunter status %d", resp.StatusCode)
+		return nil, fmt.Errorf("headhunter status %d — try using --proxy with a residential proxy", resp.StatusCode)
 	}
 
 	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)

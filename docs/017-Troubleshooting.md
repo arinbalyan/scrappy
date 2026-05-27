@@ -167,7 +167,7 @@ scrappy --min-score 60 --sites indeed --search "engineer" --format jsonl --out /
 scrappy --sites indeed --search "engineer" --out /dev/stdout | gzip > jobs.jsonl.gz
 ```
 
-## Browser fallback not working (naukri, monster, jooble)
+## Browser fallback not working (monster)
 
 **Cause:** Playwright is not installed, or Chromium is missing.
 

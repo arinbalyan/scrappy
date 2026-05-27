@@ -23,7 +23,7 @@ scrappy --sites linkedin,indeed,remoteok --search "golang" \
 
 ## Feature highlights
 
-- **55+ scrapers** -- built-in support for LinkedIn, Indeed, Glassdoor, Google, and 50+ niche/regional boards
+- **55+ scrapers** -- built-in support for LinkedIn, Indeed, ZipRecruiter, Google, and 50+ niche/regional boards
 - **Bulk-first design** -- fan-out across all sites concurrently, aggregate thousands of postings in a single run
 - **Email enrichment** -- regex extraction + MX DNS validation + company-page follow-up (catches ~60-80% of postings with a contact address)
 - **Deterministic quality score** -- 0-100 per posting based on salary presence, apply method, email-domain/company-domain match, freshness, description length, agency check
@@ -41,7 +41,7 @@ scrappy --sites linkedin,indeed,remoteok --search "golang" \
 scrappy
 
 # Scrape a few sites with filters
-scrappy --sites glassdoor,ziprecruiter --search "rust developer" \
+scrappy --sites ziprecruiter --search "rust developer" \
   --location "Remote" --is-remote --job-type fulltime --results-wanted 200
 
 # Multi-value: 2 terms x 2 locations = 4 passes per site
@@ -72,7 +72,6 @@ scrappy/
       scraper.go        # Scraper interface
       linkedin/         # LinkedIn scraper
       indeed/           # Indeed scraper
-      glassdoor/        # Glassdoor scraper
       google/           # Google Jobs scraper
       remoteok/         # RemoteOK scraper
       ...               # 50+ more site packages
@@ -112,7 +111,7 @@ All HTTP, JSON, CSV, and concurrency primitives use Go standard library.
 
 The `internal/util/` package serves as a cross-package utility hub. Key functions:
 
-- **`HashID()`** -- Generates consistent hash identifiers from job metadata. Used by 8 scrapers (Google, Dice, CareerJet, Jooble, Monster, SimplyHired, Snagajob, CareerBuilder) that were previously defining their own copy.
+- **`HashID()`** -- Generates consistent hash identifiers from job metadata. Used by 7 scrapers (Google, Dice, CareerJet, Monster, SimplyHired, Snagajob, CareerBuilder) that were previously defining their own copy.
 - **`StripHTML()`** -- Removes HTML tags from text. Moved from `engine.go` to `util/text.go` so all scrapers and the export layer can use it without importing the engine package.
 - **`SleepWithContext()`** -- Context-aware sleep that respects cancellation (replaces bare `time.Sleep` in all scrapers). Moved from `scrapeguard.go` to `util/`.
 - **`JitterSleep()`** -- Sleep with random jitter to avoid thundering-herd patterns across concurrent scrapers.

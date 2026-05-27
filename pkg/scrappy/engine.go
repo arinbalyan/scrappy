@@ -24,9 +24,8 @@ import (
 	cryptojobslistscraper "github.com/arinbalyan/scrappy/internal/scraper/cryptojobslist"
 
 	devopsjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/devopsjobs"
-	glassdoorscraper "github.com/arinbalyan/scrappy/internal/scraper/glassdoor"
-	googlescraper "github.com/arinbalyan/scrappy/internal/scraper/google"
 	dribbbleScraper "github.com/arinbalyan/scrappy/internal/scraper/dribbble"
+	googlescraper "github.com/arinbalyan/scrappy/internal/scraper/google"
 	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
 	gunioscraper "github.com/arinbalyan/scrappy/internal/scraper/gunio"
 	hackernewsscraper "github.com/arinbalyan/scrappy/internal/scraper/hackernews"
@@ -37,50 +36,136 @@ import (
 	indeedscraper "github.com/arinbalyan/scrappy/internal/scraper/indeed"
 	internshalascraper "github.com/arinbalyan/scrappy/internal/scraper/internshala"
 	jobicyscraper "github.com/arinbalyan/scrappy/internal/scraper/jobicy"
-	jobstreetscraper "github.com/arinbalyan/scrappy/internal/scraper/jobstreet"
 	jobindexscraper "github.com/arinbalyan/scrappy/internal/scraper/jobindex"
 	jobspressoscraper "github.com/arinbalyan/scrappy/internal/scraper/jobspresso"
-	larajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/larajobs"
+	jobstreetscraper "github.com/arinbalyan/scrappy/internal/scraper/jobstreet"
+
 	linkedinscraper "github.com/arinbalyan/scrappy/internal/scraper/linkedin"
-	naukriscraper "github.com/arinbalyan/scrappy/internal/scraper/naukri"
+	reedscraper "github.com/arinbalyan/scrappy/internal/scraper/reed"
 	remotefirstjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/remotefirstjobs"
 	remoteokscraper "github.com/arinbalyan/scrappy/internal/scraper/remoteok"
-	reedscraper "github.com/arinbalyan/scrappy/internal/scraper/reed"
 	remotivescraper "github.com/arinbalyan/scrappy/internal/scraper/remotive"
 	startupjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/startupjobs"
 
 	ukvisajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ukvisajobs"
-	vuejobsscraper "github.com/arinbalyan/scrappy/internal/scraper/vuejobs"
-	workingnomadsscraper "github.com/arinbalyan/scrappy/internal/scraper/workingnomads"
-	ycjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ycjobs"
+
+	fwdayweekscraper "github.com/arinbalyan/scrappy/internal/scraper/4dayweek"
 	adzunascraper "github.com/arinbalyan/scrappy/internal/scraper/adzuna"
-	simplyhiredscraper "github.com/arinbalyan/scrappy/internal/scraper/simplyhired"
 	careerbuilderscraper "github.com/arinbalyan/scrappy/internal/scraper/careerbuilder"
-	dicescraper "github.com/arinbalyan/scrappy/internal/scraper/dice"
-	echojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/echojobs"
-	nodeskscraper "github.com/arinbalyan/scrappy/internal/scraper/nodesk"
-	jobtechdevscraper "github.com/arinbalyan/scrappy/internal/scraper/jobtechdev"
 	careerjetscraper "github.com/arinbalyan/scrappy/internal/scraper/careerjet"
-	jooblescraper "github.com/arinbalyan/scrappy/internal/scraper/jooble"
-	monsterscraper "github.com/arinbalyan/scrappy/internal/scraper/monster"
-	themusescraper "github.com/arinbalyan/scrappy/internal/scraper/themuse"
+	dicescraper "github.com/arinbalyan/scrappy/internal/scraper/dice"
+	djinniscraper "github.com/arinbalyan/scrappy/internal/scraper/djinni"
+	echojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/echojobs"
+	eurojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/eurojobs"
+	findworkscraper "github.com/arinbalyan/scrappy/internal/scraper/findwork"
+	headhunterscraper "github.com/arinbalyan/scrappy/internal/scraper/headhunter"
 	infojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/infojobs"
 	jobsscraper "github.com/arinbalyan/scrappy/internal/scraper/jobsdb"
-	snagajobscraper "github.com/arinbalyan/scrappy/internal/scraper/snagajob"
-	djinniscraper "github.com/arinbalyan/scrappy/internal/scraper/djinni"
-	headhunterscraper "github.com/arinbalyan/scrappy/internal/scraper/headhunter"
+	jobtechdevscraper "github.com/arinbalyan/scrappy/internal/scraper/jobtechdev"
+	monsterscraper "github.com/arinbalyan/scrappy/internal/scraper/monster"
 	mycareersfuturescraper "github.com/arinbalyan/scrappy/internal/scraper/mycareersfuture"
-	eurojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/eurojobs"
-	fwdayweekscraper "github.com/arinbalyan/scrappy/internal/scraper/4dayweek"
-	findworkscraper "github.com/arinbalyan/scrappy/internal/scraper/findwork"
+	simplyhiredscraper "github.com/arinbalyan/scrappy/internal/scraper/simplyhired"
+	snagajobscraper "github.com/arinbalyan/scrappy/internal/scraper/snagajob"
+	themusescraper "github.com/arinbalyan/scrappy/internal/scraper/themuse"
 	web3careerscraper "github.com/arinbalyan/scrappy/internal/scraper/web3career"
+	workingnomadsscraper "github.com/arinbalyan/scrappy/internal/scraper/workingnomads"
+	ycjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ycjobs"
 
 	arbeitsagenturscraper "github.com/arinbalyan/scrappy/internal/scraper/arbeitsagentur"
 	authenticjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/authenticjobs"
+	baytscraper "github.com/arinbalyan/scrappy/internal/scraper/bayt"
+	berlinstartupjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/berlinstartupjobs"
+	canadajobbankscraper "github.com/arinbalyan/scrappy/internal/scraper/canadajobbank"
+	careeronestopscraper "github.com/arinbalyan/scrappy/internal/scraper/careeronestop"
+	conservationjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/conservationjobs"
+	coroflotscraper "github.com/arinbalyan/scrappy/internal/scraper/coroflot"
 	ecojobsscraper "github.com/arinbalyan/scrappy/internal/scraper/ecojobs"
 	golangjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/golangjobs"
 	landingjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/landingjobs"
 	realworkfromanywherescraper "github.com/arinbalyan/scrappy/internal/scraper/realworkfromanywhere"
+
+	drupaljobsscraper "github.com/arinbalyan/scrappy/internal/scraper/drupaljobs"
+
+	exascraper "github.com/arinbalyan/scrappy/internal/scraper/exa"
+	fossjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/fossjobs"
+	francetravailscraper "github.com/arinbalyan/scrappy/internal/scraper/francetravail"
+	freelancercomscraper "github.com/arinbalyan/scrappy/internal/scraper/freelancercom"
+	functionalworkscraper "github.com/arinbalyan/scrappy/internal/scraper/functionalworks"
+
+	getonboardscraper "github.com/arinbalyan/scrappy/internal/scraper/getonboard"
+
+	higheredjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/higheredjobs"
+	icrunchdatascraper "github.com/arinbalyan/scrappy/internal/scraper/icrunchdata"
+
+	jobdataapiscraper "github.com/arinbalyan/scrappy/internal/scraper/jobdataapi"
+
+	jobschscraper "github.com/arinbalyan/scrappy/internal/scraper/jobsch"
+	jobsinjapanscraper "github.com/arinbalyan/scrappy/internal/scraper/jobsinjapan"
+	joinrisescraper "github.com/arinbalyan/scrappy/internal/scraper/joinrise"
+
+	nofluffjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/nofluffjobs"
+
+	pythonjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/pythonjobs"
+	railsjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/railsjobs"
+	stepstonescraper "github.com/arinbalyan/scrappy/internal/scraper/stepstone"
+
+	talrooscraper "github.com/arinbalyan/scrappy/internal/scraper/talroo"
+
+	teslascraper "github.com/arinbalyan/scrappy/internal/scraper/tesla"
+
+	upworkscraper "github.com/arinbalyan/scrappy/internal/scraper/upwork"
+	usajobsscraper "github.com/arinbalyan/scrappy/internal/scraper/usajobs"
+
+	academiccareersscraper "github.com/arinbalyan/scrappy/internal/scraper/academiccareers"
+	wellfoundscraper "github.com/arinbalyan/scrappy/internal/scraper/wellfound"
+	weworkremotelyscraper "github.com/arinbalyan/scrappy/internal/scraper/weworkremotely"
+	wordpressjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/wordpressjobs"
+	wuzzufscraper "github.com/arinbalyan/scrappy/internal/scraper/wuzzuf"
+	ziprecruiterscraper "github.com/arinbalyan/scrappy/internal/scraper/ziprecruiter"
+
+	// ATS scrapers (non-prefixed directory names)
+	adpscraper "github.com/arinbalyan/scrappy/internal/scraper/adp"
+	ashbyscraper "github.com/arinbalyan/scrappy/internal/scraper/ashby"
+	avaturescraper "github.com/arinbalyan/scrappy/internal/scraper/avature"
+	bamboohrscraper "github.com/arinbalyan/scrappy/internal/scraper/bamboohr"
+	breezyhrscraper "github.com/arinbalyan/scrappy/internal/scraper/breezyhr"
+	bullhornscraper "github.com/arinbalyan/scrappy/internal/scraper/bullhorn"
+	comeetscraper "github.com/arinbalyan/scrappy/internal/scraper/comeet"
+	crelatescraper "github.com/arinbalyan/scrappy/internal/scraper/crelate"
+	deelscraper "github.com/arinbalyan/scrappy/internal/scraper/deel"
+	fountainscraper "github.com/arinbalyan/scrappy/internal/scraper/fountain"
+	freshteamscraper "github.com/arinbalyan/scrappy/internal/scraper/freshteam"
+	gemscraper "github.com/arinbalyan/scrappy/internal/scraper/gem"
+	hiringthingscraper "github.com/arinbalyan/scrappy/internal/scraper/hiringthing"
+	icimsscraper "github.com/arinbalyan/scrappy/internal/scraper/icims"
+	ismartrecruitscraper "github.com/arinbalyan/scrappy/internal/scraper/ismartrecruit"
+	jazzhrscraper "github.com/arinbalyan/scrappy/internal/scraper/jazzhr"
+	jobscorescraper "github.com/arinbalyan/scrappy/internal/scraper/jobscore"
+	jobvitescraper "github.com/arinbalyan/scrappy/internal/scraper/jobvite"
+	jobylonscraper "github.com/arinbalyan/scrappy/internal/scraper/jobylon"
+	joincomscraper "github.com/arinbalyan/scrappy/internal/scraper/joincom"
+	loxoscraper "github.com/arinbalyan/scrappy/internal/scraper/loxo"
+	manatalscraper "github.com/arinbalyan/scrappy/internal/scraper/manatal"
+
+	// ATS scrapers (ats- prefixed directories)
+	atsmercorscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-mercor"
+	atsoraclescraper "github.com/arinbalyan/scrappy/internal/scraper/ats-oracle"
+	atspersonioscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-personio"
+	atsphenomscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-phenom"
+	atspinpointscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-pinpoint"
+	atsrecruiteescraper "github.com/arinbalyan/scrappy/internal/scraper/ats-recruitee"
+	atsrecruiterflowscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-recruiterflow"
+	atsripplingscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-rippling"
+	atssmartrecruiterscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-smartrecruiters"
+	atssuccessfactorscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-successfactors"
+	atstalentlyftscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-talentlyft"
+	atstaleoscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-taleo"
+	atsteamtailorscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-teamtailor"
+	atstrakstarscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-trakstar"
+	atsukgscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-ukg"
+	atsworkablescraper "github.com/arinbalyan/scrappy/internal/scraper/ats-workable"
+	atsworkdayscraper "github.com/arinbalyan/scrappy/internal/scraper/ats-workday"
+
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
@@ -88,14 +173,14 @@ import (
 // before the scraper can function.  The engine skips these sites with
 // a clear WARN message instead of wasting time on a doomed request.
 var requiredEnvVars = map[model.Site][]string{
-	model.SiteAdzuna:        {"ADZUNA_APP_ID", "ADZUNA_APP_KEY"},
-	model.SiteCareerjet:     {"CAREERJET_AFFID"},
-	model.SiteInfoJobs:      {"INFOJOBS_CLIENT_ID", "INFOJOBS_CLIENT_SECRET"},
-	model.SiteFindwork:      {"FINDWORK_API_KEY"},
+	model.SiteAdzuna:         {"ADZUNA_APP_ID", "ADZUNA_APP_KEY"},
+	model.SiteCareerjet:      {"CAREERJET_AFFID"},
+	model.SiteInfoJobs:       {"INFOJOBS_CLIENT_ID", "INFOJOBS_CLIENT_SECRET"},
+	model.SiteFindwork:       {"FINDWORK_API_KEY"},
 	model.SiteArbeitsagentur: {"ARBEITSAGENTUR_API_KEY"},
 	model.SiteWeb3Career:     {"WEB3CAREER_API_TOKEN"},
-	model.SiteJobTechDev:    {"JOBTECHDEV_API_KEY"},
-	model.SiteAuthenticJobs: {"AUTHENTICJOBS_API_KEY"},
+	model.SiteJobTechDev:     {"JOBTECHDEV_API_KEY"},
+	model.SiteAuthenticJobs:  {"AUTHENTICJOBS_API_KEY"},
 }
 
 type PostProcessor func(context.Context, *model.JobPost) error
@@ -111,7 +196,6 @@ func NewEngine() *Engine {
 	s := []scraper.Scraper{
 		indeedscraper.New(nil),
 		linkedinscraper.New(nil),
-		naukriscraper.New(nil),
 		internshalascraper.New(nil),
 		builtinscraper.New(nil),
 		startupjobsscraper.New(nil),
@@ -127,8 +211,6 @@ func NewEngine() *Engine {
 		remotefirstjobsscraper.New(nil),
 		jobspressoscraper.New(nil),
 		hasjobscraper.New(nil),
-		vuejobsscraper.New(nil),
-		larajobsscraper.New(nil),
 		arbeitnowscraper.New(nil),
 		hackernewsscraper.New(nil),
 		cryptocurrencyjobsscraper.New(nil),
@@ -143,14 +225,12 @@ func NewEngine() *Engine {
 		workingnomadsscraper.New(nil),
 		ycjobsscraper.New(nil),
 		ukvisajobsscraper.New(nil),
-		glassdoorscraper.New(nil),
 		googlescraper.New(nil),
 		adzunascraper.New(nil),
 		simplyhiredscraper.New(nil),
 		careerbuilderscraper.New(nil),
 		dicescraper.New(nil),
 		careerjetscraper.New(nil),
-		jooblescraper.New(nil),
 		monsterscraper.New(nil),
 		themusescraper.New(nil),
 		infojobsscraper.New(nil),
@@ -160,7 +240,7 @@ func NewEngine() *Engine {
 		headhunterscraper.New(nil),
 		mycareersfuturescraper.New(nil),
 		echojobsscraper.New(nil),
-		nodeskscraper.New(nil),
+
 		jobtechdevscraper.New(nil),
 		eurojobsscraper.New(nil),
 		fwdayweekscraper.New(nil),
@@ -168,6 +248,87 @@ func NewEngine() *Engine {
 		web3careerscraper.New(nil),
 		arbeitsagenturscraper.New(nil),
 		authenticjobsscraper.New(nil),
+		// General board scrapers
+		baytscraper.New(nil),
+		berlinstartupjobsscraper.New(nil),
+		canadajobbankscraper.New(nil),
+		careeronestopscraper.New(nil),
+		conservationjobsscraper.New(nil),
+		coroflotscraper.New(nil),
+		drupaljobsscraper.New(nil),
+		exascraper.New(nil),
+		fossjobsscraper.New(nil),
+		francetravailscraper.New(nil),
+		freelancercomscraper.New(nil),
+		functionalworkscraper.New(nil),
+		getonboardscraper.New(nil),
+		higheredjobsscraper.New(nil),
+		icrunchdatascraper.New(nil),
+		jobdataapiscraper.New(nil),
+
+		jobschscraper.New(nil),
+		jobsinjapanscraper.New(nil),
+		joinrisescraper.New(nil),
+
+		nofluffjobsscraper.New(nil),
+		pythonjobsscraper.New(nil),
+		railsjobsscraper.New(nil),
+		stepstonescraper.New(nil),
+		talrooscraper.New(nil),
+		teslascraper.New(nil),
+		upworkscraper.New(nil),
+		usajobsscraper.New(nil),
+
+		wellfoundscraper.New(nil),
+		weworkremotelyscraper.New(nil),
+		wordpressjobsscraper.New(nil),
+		wuzzufscraper.New(nil),
+		academiccareersscraper.New(nil),
+		ziprecruiterscraper.New(nil),
+
+		// ATS scrapers (non-prefixed directories)
+		adpscraper.New(nil),
+		ashbyscraper.New(nil),
+		avaturescraper.New(nil),
+		bamboohrscraper.New(nil),
+		breezyhrscraper.New(nil),
+		bullhornscraper.New(nil),
+		comeetscraper.New(nil),
+		crelatescraper.New(nil),
+		deelscraper.New(nil),
+		fountainscraper.New(nil),
+		freshteamscraper.New(nil),
+		gemscraper.New(nil),
+		hiringthingscraper.New(nil),
+		icimsscraper.New(nil),
+		ismartrecruitscraper.New(nil),
+		jazzhrscraper.New(nil),
+		jobscorescraper.New(nil),
+		jobvitescraper.New(nil),
+		jobylonscraper.New(nil),
+		joincomscraper.New(nil),
+		loxoscraper.New(nil),
+		manatalscraper.New(nil),
+
+		// ATS scrapers (ats- prefixed directories)
+		atsmercorscraper.New(nil),
+		atsoraclescraper.New(nil),
+		atspersonioscraper.New(nil),
+		atsphenomscraper.New(nil),
+		atspinpointscraper.New(nil),
+		atsrecruiteescraper.New(nil),
+		atsrecruiterflowscraper.New(nil),
+		atsripplingscraper.New(nil),
+		atssmartrecruiterscraper.New(nil),
+		atssuccessfactorscraper.New(nil),
+		atstalentlyftscraper.New(nil),
+		atstaleoscraper.New(nil),
+		atsteamtailorscraper.New(nil),
+		atstrakstarscraper.New(nil),
+		atsukgscraper.New(nil),
+		atsworkablescraper.New(nil),
+		atsworkdayscraper.New(nil),
+
 		ecojobsscraper.New(nil),
 		golangjobsscraper.New(nil),
 		landingjobsscraper.New(nil),
@@ -234,10 +395,10 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				runtime.ReadMemStats(&m)
 				if m.Alloc > memThreshold {
 					util.Warn("memory_pressure", map[string]any{
-						"alloc_mb":   m.Alloc / 1024 / 1024,
-						"cap_mb":     input.MemoryCapMB,
-						"pct":        m.Alloc * 100 / (uint64(input.MemoryCapMB) * 1024 * 1024),
-						"gc_cycles":  m.NumGC,
+						"alloc_mb":  m.Alloc / 1024 / 1024,
+						"cap_mb":    input.MemoryCapMB,
+						"pct":       m.Alloc * 100 / (uint64(input.MemoryCapMB) * 1024 * 1024),
+						"gc_cycles": m.NumGC,
 					})
 				}
 			}

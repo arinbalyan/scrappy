@@ -5,12 +5,12 @@ Reference source: `tmp/upstream/jobspy/*`
 ## Implemented parity
 - `indeed/__init__.py` -> cursor GraphQL search + filter composition + compensation mapping
 - `linkedin/__init__.py` -> guest endpoint search params, pagination cap behavior, optional detail fetch
-- Site set implemented: LinkedIn, Indeed, Glassdoor, Google, ZipRecruiter, Wellfound, RemoteOK, Remotive, BuiltIn
+- Site set implemented: LinkedIn, Indeed, Google, ZipRecruiter, Wellfound, RemoteOK, Remotive, BuiltIn
 - Export paths + schema fields wired through `model.JobPost`
 
 ## Partial parity / hardening in progress
 - Full rich parsing depth for non-Indee/LinkedIn sites (currently lighter)
-- Full country matrix behavior for Indeed/Glassdoor by domain mapping
+- Full country matrix behavior for Indeed by domain mapping
 - Full upstream Python project-equivalent field population for all site-specific optional fields
 - TLS-fingerprint equivalence (Go stdlib transport hardened, but not identical to python tls-client behavior)
 

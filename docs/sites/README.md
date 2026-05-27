@@ -20,13 +20,6 @@ One page per site. Each page covers: how it works, pagination, rate limits, know
 - Rate-limit: returns HTTP 429 after ~page 10. Silent stop, not a hard failure.
 - Workaround: `--linkedin-strategy rotate` permutes `f_AL`, `f_JT`, `f_TPR`, location radius, and distance across multiple scrape passes.
 
-## Glassdoor
-
-- Country-specific subdomains: `{subdomain}.glassdoor.{tld}`.
-- US: `www.glassdoor.com`. UK: `www.glassdoor.co.uk`.
-- Uses `savedSearchId` in the query for recent postings filter.
-- Dates are rounded up to the next day (hence `--hours-old` is approximate).
-
 ## Google Jobs
 
 - Embedded in Google SERP HTML — no separate API endpoint.
@@ -98,11 +91,11 @@ One page per site. Each page covers: how it works, pagination, rate limits, know
 - `otta.com` — AI talent matching. May require a cookie from a logged-in browser session.
 - Effort: medium.
 
-## Lever (planned)
+## Wuzzuf
 
-- Each company has its own board at `{company}.jobs.lever.co`.
-- Enumerate from a known company list or extract from LinkedIn URLs.
-- Effort: medium.
+- HTML scraper for `wuzzuf.net` — Egypt-based job board.
+- Public HTML listings, page-based pagination.
+- Region: Egypt / Middle East.
 
 ## Greenhouse (planned)
 

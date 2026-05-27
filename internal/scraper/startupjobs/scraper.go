@@ -134,7 +134,7 @@ func (s *Scraper) fetch(ctx context.Context, endpoint string) ([]startupRow, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("startupjobs status %d", resp.StatusCode)
+		return nil, fmt.Errorf("startupjobs status %d — try using --proxy with a residential proxy", resp.StatusCode)
 	}
 
 	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)

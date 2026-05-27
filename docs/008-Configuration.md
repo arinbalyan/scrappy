@@ -127,7 +127,7 @@ sites:
 |-------|------|-------------|
 | `search` | string or list | Replaces `defaults.search` for this site only. |
 | `location` | string or list | Replaces `defaults.location` for this site only. |
-| `country` | string | Country override (e.g. `germany`, `uk`, `india`). Passed to scrapers that support per-country endpoints (Indeed, Glassdoor). |
+| `country` | string | Country override (e.g. `germany`, `uk`, `india`). Passed to scrapers that support per-country endpoints (Indeed). |
 | `is_remote` | bool | Overrides the global `is_remote` for this site. |
 
 ### Per-site override rules
@@ -171,12 +171,6 @@ sites:
       - '"AI Agent Engineer" OR "AI Product Engineer"'
       - '"Applied Scientist" OR "Research Scientist"'
     location: Remote
-  glassdoor:
-    search:
-      - '"AI Engineer" OR "Machine Learning Engineer" OR "LLM Engineer"'
-      - '"GTM Engineer" OR "Forward Deployed Engineer"'
-      - '"AI Agent Engineer" OR "AI Product Engineer"'
-    location: Remote
   indeed:
     search:
       - '"AI Engineer" OR "ML Engineer" OR "LLM Engineer"'
@@ -211,10 +205,6 @@ sites:
       - '"AI Engineer" OR "Machine Learning Engineer"'
       - '"GTM Engineer" OR "Forward Deployed Engineer"'
     location: United Kingdom
-  naukri:
-    search:
-      - ai engineer
-      - machine learning engineer
       - llm engineer
     location: India
   mycareersfuture:
