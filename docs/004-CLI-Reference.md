@@ -107,7 +107,7 @@ simplyhired       careerbuilder     careerjet
 dice              monster           infojobs          reed
 themuse           jobsdb            snagajob          djinni
 headhunter        mycareersfuture   jobstreet         4dayweek
-eurojobs          findwork          web3career
+eurojobs          findwork          web3career          wuzzuf
 ```
 
 Pass them to `--sites` as comma-separated lowercase names:
