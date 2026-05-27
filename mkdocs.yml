@@ -1,0 +1,45 @@
+site_name: scrappy
+site_description: Bulk job-board scraper documentation
+site_url: https://arinbalyan.github.io/scrappy/
+repo_url: https://github.com/arinbalyan/scrappy
+repo_name: arinbalyan/scrappy
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - content.code.copy
+    - search.highlight
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+
+nav:
+  - Home: docs/index.md
+  - Quickstart: docs/001-Quickstart.md
+  - Architecture Overview: docs/002-Architecture-Overview.md
+  - Installation: docs/003-Installation.md
+  - CLI Reference: docs/004-CLI-Reference.md
+  - Interactive Mode: docs/005-Interactive-Mode.md
+  - Non-Interactive Mode: docs/006-NonInteractive-Mode.md
+  - Multi-Value Search: docs/007-Multi-Value.md
+  - Configuration: docs/008-Configuration.md
+  - Export Formats: docs/009-Export-Formats.md
+  - Email: docs/010-Email.md
+  - Quality: docs/011-Quality.md
+  - Scraping: docs/012-Scraping.md
+  - Proxy: docs/013-Proxy.md
+  - Dedup: docs/014-Dedup.md
+  - Environment Variables: docs/015-Environment-Variables.md
+  - Memory Management: docs/016-Memory-Management.md
+  - Troubleshooting: docs/017-Troubleshooting.md
+  - FAQ: docs/018-FAQ.md
+  - Architecture Reference: docs/019-Architecture-Reference.md
+  - Sites:
+      - All site docs: docs/sites/

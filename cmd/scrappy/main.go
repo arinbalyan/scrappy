@@ -214,8 +214,11 @@ type cliConfig struct {
 	Proxy          string
 	MinScore       int
 	MaxRPS         int
-	SiteRPS        string
-	Dedup          bool
+	SiteRPS           string
+	SiteResultsWanted   string
+	CSVEmailsOnly       bool
+	EnforceAnnualSalary bool
+	Dedup               bool
 	DedupByCompany bool
 	HoursOld       int
 	SinceDate      string
@@ -261,10 +264,11 @@ func (s *multiString) UnmarshalYAML(value *yaml.Node) error {
 }
 
 type siteTarget struct {
-	Search   multiString `yaml:"search"`
-	Location multiString `yaml:"location"`
-	Country  string      `yaml:"country,omitempty"`
-	IsRemote *bool       `yaml:"is_remote,omitempty"`
+	Search        multiString `yaml:"search"`
+	Location      multiString `yaml:"location"`
+	Country       string      `yaml:"country,omitempty"`
+	IsRemote      *bool       `yaml:"is_remote,omitempty"`
+	ResultsWanted int         `yaml:"results_wanted,omitempty"`
 }
 
 type appConfig struct {
@@ -372,6 +376,9 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().IntVar(&cfg.MinScore, "min-score", 0, "quality score floor (0-100)")
 	root.Flags().IntVar(&cfg.MaxRPS, "max-rps", 0, "global max requests per second (overrides per-site defaults)")
 	root.Flags().StringVar(&cfg.SiteRPS, "site-rps", "", "per-site RPS overrides, e.g. linkedin:1,indeed:10")
+	root.Flags().StringVar(&cfg.SiteResultsWanted, "site-results-wanted", "", "per-site result caps, e.g. indeed:5000,linkedin:1000")
+	root.Flags().BoolVar(&cfg.CSVEmailsOnly, "csv-emails-only", false, "for CSV export, write one row per email instead of one row per job")
+	root.Flags().BoolVar(&cfg.EnforceAnnualSalary, "enforce-annual-salary", false, "normalize salary intervals to yearly amounts")
 	root.Flags().IntVar(&cfg.HoursOld, "hours-old", 0, "only jobs posted within this many hours (0 = no filter)")
 	root.Flags().StringVar(&cfg.SinceDate, "since", "", "only jobs posted on or after this date (RFC3339 or YYYY-MM-DD)")
 	root.Flags().BoolVar(&cfg.JSONPretty, "json-pretty", false, "pretty-print JSON output (stdout only, default: auto-detect)")
@@ -643,6 +650,7 @@ func runOnce(cfg *cliConfig) error {
 	siteLocations := map[model.Site][]string{}
 	siteLocation := map[model.Site]string{}
 	siteCountry := map[model.Site]model.Country{}
+	siteResultsWantedFromConfig := map[model.Site]int{}
 	for _, s := range sites {
 		if t, ok := ac.Sites[string(s)]; ok {
 			if len(t.Search) > 0 {
@@ -676,6 +684,9 @@ func runOnce(cfg *cliConfig) error {
 			if t.Country != "" {
 				siteCountry[s] = model.Country(t.Country)
 			}
+			if t.ResultsWanted > 0 {
+				siteResultsWantedFromConfig[s] = t.ResultsWanted
+			}
 			if t.IsRemote != nil {
 				// Per-site is_remote override — used at engine/site level.
 			}
@@ -693,6 +704,13 @@ func runOnce(cfg *cliConfig) error {
 	}
 
 	siteRPS := parseSiteRPS(cfg.SiteRPS)
+	siteResultsWanted := map[model.Site]int{}
+	for k, v := range siteResultsWantedFromConfig {
+		siteResultsWanted[k] = v
+	}
+	for k, v := range parseSiteIntMap(cfg.SiteResultsWanted) {
+		siteResultsWanted[k] = v // CLI override wins
+	}
 	input := model.ScraperInput{
 		Sites:          sites,
 		SearchTerm:     firstSearch,
@@ -707,6 +725,7 @@ func runOnce(cfg *cliConfig) error {
 		MinScore:       cfg.MinScore,
 		MaxRPS:         cfg.MaxRPS,
 		SiteRPS:        siteRPS,
+		SiteResultsWanted: siteResultsWanted,
 		EmailsOnly:     cfg.EmailOnly,
 		LogLevel:       level,
 		SiteSearch:     siteSearch,
@@ -714,6 +733,7 @@ func runOnce(cfg *cliConfig) error {
 		SiteLocations:  siteLocations,
 		SiteCountry:    siteCountry,
 		MemoryCapMB:    memoryCapMB,
+		EnforceAnnualSalary: cfg.EnforceAnnualSalary,
 		IsRemote:       cfg.IsRemote,
 		RemoteOnly:     cfg.RemoteOnly,
 		JobType:        model.JobType(cfg.JobType),
@@ -750,8 +770,14 @@ func runOnce(cfg *cliConfig) error {
 
 	switch strings.ToLower(format) {
 	case "csv":
-		if err := export.WriteCSV(outPath, jobs); err != nil {
-			return err
+		if cfg.CSVEmailsOnly {
+			if err := export.WriteCSVEmailsOnly(outPath, jobs); err != nil {
+				return err
+			}
+		} else {
+			if err := export.WriteCSV(outPath, jobs); err != nil {
+				return err
+			}
 		}
 	case "xlsx":
 		if err := export.WriteXLSX(outPath, jobs); err != nil {
@@ -904,6 +930,11 @@ func splitCommas(v string) []string {
 }
 
 func parseSiteRPS(v string) map[model.Site]int {
+	return parseSiteIntMap(v)
+}
+
+// parseSiteIntMap parses site:int pairs like "indeed:5000,linkedin:1000".
+func parseSiteIntMap(v string) map[model.Site]int {
 	m := map[model.Site]int{}
 	if v == "" {
 		return m
@@ -918,11 +949,11 @@ func parseSiteRPS(v string) map[model.Site]int {
 			continue
 		}
 		site := model.Site(strings.TrimSpace(parts[0]))
-		rps, err := strconv.Atoi(strings.TrimSpace(parts[1]))
-		if err != nil || rps <= 0 || site == "" {
+		n, err := strconv.Atoi(strings.TrimSpace(parts[1]))
+		if err != nil || n <= 0 || site == "" {
 			continue
 		}
-		m[site] = rps
+		m[site] = n
 	}
 	return m
 }
