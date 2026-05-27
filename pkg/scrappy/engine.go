@@ -11,7 +11,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/arinbalyan/scrappy/internal/dedup"
 	internalemail "github.com/arinbalyan/scrappy/internal/email"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/normalize"
@@ -595,7 +594,10 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			if key == "" {
 				key = strings.TrimSpace(jobs[i].ID)
 			}
-			if key == "" || seenGlobal[key] {
+			if key == "" {
+				continue
+			}
+			if _, ok := seenGlobal[key]; ok {
 				continue
 			}
 			seenGlobal[key] = struct{}{}
@@ -697,7 +699,7 @@ func getHeapAllocMB() int {
 	sample := make([]metrics.Sample, 1)
 	sample[0].Name = "/memory/classes/heap/objects:bytes"
 	metrics.Read(sample)
-	if sample[0].Value.Family() == metrics.FamilyGauge {
+	if sample[0].Value.Uint64() > 0 {
 		return int(sample[0].Value.Uint64() / (1024 * 1024))
 	}
 	return 0
