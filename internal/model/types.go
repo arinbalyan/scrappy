@@ -9,138 +9,132 @@ import (
 type Site string
 
 const (
-	SiteLinkedIn           Site = "linkedin"
-	SiteIndeed             Site = "indeed"
-	SiteNaukri             Site = "naukri"
-	SiteInternshala        Site = "internshala"
-	SiteBuiltin            Site = "builtin"
-	SiteStartupJobs        Site = "startupjobs"
-	SiteGreenhouse         Site = "greenhouse"
-	SiteGunIO              Site = "gunio"
-	SiteHimalayas          Site = "himalayas"
-	SiteHiringCafe         Site = "hiringcafe"
-	SiteHuggingFaceJobs    Site = "huggingfacejobs"
-	SiteJobindex           Site = "jobindex"
-	SiteRemoteOK           Site = "remoteok"
-	SiteRemotive           Site = "remotive"
-	SiteRemoteFirstJobs    Site = "remotefirstjobs"
-	SiteJobspresso         Site = "jobspresso"
-	SiteHasJob             Site = "hasjob"
-	SiteVueJobs            Site = "vuejobs"
-	SiteLaraJobs           Site = "larajobs"
-	SiteArbeitnow          Site = "arbeitnow"
-	SiteHackerNews         Site = "hackernews"
-	SiteCryptocurrencyJobs Site = "cryptocurrencyjobs"
-	SiteAndroidJobs        Site = "androidjobs"
-	SiteJobicy             Site = "jobicy"
-	SiteDevOpsJobs         Site = "devopsjobs"
-	SiteCrunchboard        Site = "crunchboard"
-	SiteCryptoJobsList     Site = "cryptojobslist"
-	SiteDribbble           Site = "dribbble"
-	SiteAIJobs             Site = "aijobs"
-	SiteWorkingNomads      Site = "workingnomads"
-	SiteYCJobs             Site = "ycjobs"
-	SiteUKVisaJobs         Site = "ukvisajobs"
-	SiteGoogle             Site = "google"
-	SiteGlassdoor          Site = "glassdoor"
-	SiteAdzuna             Site = "adzuna"
-	SiteSimplyHired        Site = "simplyhired"
-	SiteCareerBuilder      Site = "careerbuilder"
-	SiteCareerjet          Site = "careerjet"
-	SiteJooble             Site = "jooble"
-	SiteDice               Site = "dice"
-	SiteMonster            Site = "monster"
-	SiteInfoJobs           Site = "infojobs"
-	SiteReed               Site = "reed"
-	SiteTheMuse            Site = "themuse"
-	SiteJobsDB             Site = "jobsdb"
-	SiteSnagajob           Site = "snagajob"
-	SiteDjinni             Site = "djinni"
-	SiteHeadHunter         Site = "headhunter"
-	SiteMyCareersFuture    Site = "mycareersfuture"
-	SiteJobStreet          Site = "jobstreet"
-	Site4DayWeek           Site = "4dayweek"
-	SiteEuroJobs           Site = "eurojobs"
-	SiteFindwork           Site = "findwork"
-	SiteArbeitsagentur    Site = "arbeitsagentur"
-	SiteWeb3Career        Site = "web3career"
-	SiteEchoJobs          Site = "echojobs"
-	SiteJobTechDev        Site = "jobtechdev"
-	SiteAuthenticJobs     Site = "authenticjobs"
-	SiteEcoJobs           Site = "ecojobs"
-	SiteGolangJobs        Site = "golangjobs"
-	SiteLandingJobs       Site = "landingjobs"
+	SiteLinkedIn             Site = "linkedin"
+	SiteIndeed               Site = "indeed"
+	SiteInternshala          Site = "internshala"
+	SiteBuiltin              Site = "builtin"
+	SiteStartupJobs          Site = "startupjobs"
+	SiteGreenhouse           Site = "greenhouse"
+	SiteGunIO                Site = "gunio"
+	SiteHimalayas            Site = "himalayas"
+	SiteHiringCafe           Site = "hiringcafe"
+	SiteHuggingFaceJobs      Site = "huggingfacejobs"
+	SiteJobindex             Site = "jobindex"
+	SiteRemoteOK             Site = "remoteok"
+	SiteRemotive             Site = "remotive"
+	SiteRemoteFirstJobs      Site = "remotefirstjobs"
+	SiteJobspresso           Site = "jobspresso"
+	SiteHasJob               Site = "hasjob"
+	SiteVueJobs              Site = "vuejobs"
+	SiteLaraJobs             Site = "larajobs"
+	SiteArbeitnow            Site = "arbeitnow"
+	SiteHackerNews           Site = "hackernews"
+	SiteCryptocurrencyJobs   Site = "cryptocurrencyjobs"
+	SiteAndroidJobs          Site = "androidjobs"
+	SiteJobicy               Site = "jobicy"
+	SiteDevOpsJobs           Site = "devopsjobs"
+	SiteCrunchboard          Site = "crunchboard"
+	SiteCryptoJobsList       Site = "cryptojobslist"
+	SiteDribbble             Site = "dribbble"
+	SiteAIJobs               Site = "aijobs"
+	SiteWorkingNomads        Site = "workingnomads"
+	SiteYCJobs               Site = "ycjobs"
+	SiteUKVisaJobs           Site = "ukvisajobs"
+	SiteGoogle               Site = "google"
+	SiteAdzuna               Site = "adzuna"
+	SiteSimplyHired          Site = "simplyhired"
+	SiteCareerBuilder        Site = "careerbuilder"
+	SiteCareerjet            Site = "careerjet"
+	SiteDice                 Site = "dice"
+	SiteMonster              Site = "monster"
+	SiteInfoJobs             Site = "infojobs"
+	SiteReed                 Site = "reed"
+	SiteTheMuse              Site = "themuse"
+	SiteJobsDB               Site = "jobsdb"
+	SiteSnagajob             Site = "snagajob"
+	SiteDjinni               Site = "djinni"
+	SiteHeadHunter           Site = "headhunter"
+	SiteMyCareersFuture      Site = "mycareersfuture"
+	SiteJobStreet            Site = "jobstreet"
+	Site4DayWeek             Site = "4dayweek"
+	SiteEuroJobs             Site = "eurojobs"
+	SiteFindwork             Site = "findwork"
+	SiteArbeitsagentur       Site = "arbeitsagentur"
+	SiteWeb3Career           Site = "web3career"
+	SiteEchoJobs             Site = "echojobs"
+	SiteJobTechDev           Site = "jobtechdev"
+	SiteAuthenticJobs        Site = "authenticjobs"
+	SiteEcoJobs              Site = "ecojobs"
+	SiteGolangJobs           Site = "golangjobs"
+	SiteLandingJobs          Site = "landingjobs"
 	SiteRealWorkFromAnywhere Site = "realworkfromanywhere"
 
 	// New sites being ported
-	SiteBayt             Site = "bayt"
-	SiteBDJobs           Site = "bdjobs"
+	SiteBayt              Site = "bayt"
 	SiteBerlinStartupJobs Site = "berlinstartupjobs"
-	SiteCanadaJobBank    Site = "canadajobbank"
-	SiteCareerOneStop    Site = "careeronestop"
-	SiteConservationJobs Site = "conservationjobs"
-	SiteCoroflot         Site = "coroflot"
-	SiteDevITJobs        Site = "devitjobs"
-	SiteDrupalJobs       Site = "drupaljobs"
-	SiteHabrCareer       Site = "habrcareer"
-	SiteHigherEdJobs     Site = "higheredjobs"
-	SiteIcrunchData      Site = "icrunchdata"
-	SiteJobDataAPI       Site = "jobdataapi"
-	SiteJobsCH           Site = "jobsch"
-	SiteJobsInJapan      Site = "jobsinjapan"
-	SiteJoinRise         Site = "joinrise"
+	SiteCanadaJobBank     Site = "canadajobbank"
+	SiteCareerOneStop     Site = "careeronestop"
+	SiteConservationJobs  Site = "conservationjobs"
+	SiteCoroflot          Site = "coroflot"
+	SiteDevITJobs         Site = "devitjobs"
+	SiteDrupalJobs        Site = "drupaljobs"
+	SiteHigherEdJobs      Site = "higheredjobs"
+	SiteIcrunchData       Site = "icrunchdata"
+	SiteJobDataAPI        Site = "jobdataapi"
+	SiteJobsCH            Site = "jobsch"
+	SiteJobsInJapan       Site = "jobsinjapan"
+	SiteJoinRise          Site = "joinrise"
 
 	// Priority new site constants
-	SiteExa              Site = "exa"
-	SiteFossJobs         Site = "fossjobs"
-	SiteFranceTravail    Site = "francetravail"
-	SiteFreelancerCom    Site = "freelancercom"
-	SiteFunctionalWorks  Site = "functionalworks"
-	SiteGermanTechJobs   Site = "germantechjobs"
-	SiteGetOnBoard       Site = "getonboard"
-	SiteGreenJobsBoard   Site = "greenjobsboard"
-	SiteGuardianJobs     Site = "guardianjobs"
+	SiteExa                  Site = "exa"
+	SiteFossJobs             Site = "fossjobs"
+	SiteFranceTravail        Site = "francetravail"
+	SiteFreelancerCom        Site = "freelancercom"
+	SiteFunctionalWorks      Site = "functionalworks"
+	SiteGermanTechJobs       Site = "germantechjobs"
+	SiteGetOnBoard           Site = "getonboard"
+	SiteGreenJobsBoard       Site = "greenjobsboard"
+	SiteGuardianJobs         Site = "guardianjobs"
 	SiteNoFluffJobs          Site = "nofluffjobs"
 	SiteOpenSourceDesignJobs Site = "opensourcedesignjobs"
 	SitePowerToFly           Site = "powertofly"
 	SitePyJobs               Site = "pyjobs"
 	SitePythonJobs           Site = "pythonjobs"
 	SiteRailsJobs            Site = "railsjobs"
-	SiteReliefWeb            Site = "reliefweb"
 	SiteStepStone            Site = "stepstone"
 	SiteSwissDevJobs         Site = "swissdevjobs"
 	SiteTalroo               Site = "talroo"
 
 	// ATS scrapers
-	SiteADP             Site = "ats-adp"
-	SiteAshby           Site = "ats-ashby"
-	SiteAvature         Site = "ats-avature"
-	SiteBambooHR        Site = "ats-bamboohr"
-	SiteBreezyHR        Site = "ats-breezyhr"
-	SiteBullhorn        Site = "ats-bullhorn"
-	SiteComeet          Site = "ats-comeet"
-	SiteCrelate         Site = "ats-crelate"
-	SiteDeel            Site = "ats-deel"
-	SiteFountain        Site = "ats-fountain"
-	SiteFreshteam       Site = "ats-freshteam"
-	SiteGem             Site = "ats-gem"
+	SiteADP       Site = "ats-adp"
+	SiteAshby     Site = "ats-ashby"
+	SiteAvature   Site = "ats-avature"
+	SiteBambooHR  Site = "ats-bamboohr"
+	SiteBreezyHR  Site = "ats-breezyhr"
+	SiteBullhorn  Site = "ats-bullhorn"
+	SiteComeet    Site = "ats-comeet"
+	SiteCrelate   Site = "ats-crelate"
+	SiteDeel      Site = "ats-deel"
+	SiteFountain  Site = "ats-fountain"
+	SiteFreshteam Site = "ats-freshteam"
+	SiteGem       Site = "ats-gem"
 
 	// Batch 2 — additional sources
-	SiteTechCareers         Site = "techcareers"
-	SiteTesla               Site = "tesla"
-	SiteUNDPJobs            Site = "undpjobs"
-	SiteUpwork              Site = "upwork"
-	SiteUSAJobs             Site = "usajobs"
-	SiteVirtualVocations    Site = "virtualvocations"
-	SiteWellfound           Site = "wellfound"
-	SiteWeWorkRemotely      Site = "weworkremotely"
-	SiteWordPressJobs       Site = "wordpressjobs"
-	SiteZipRecruiter        Site = "ziprecruiter"
-	SiteAcademicCareers     Site = "academiccareers"
+	SiteTechCareers      Site = "techcareers"
+	SiteTesla            Site = "tesla"
+	SiteUNDPJobs         Site = "undpjobs"
+	SiteUpwork           Site = "upwork"
+	SiteUSAJobs          Site = "usajobs"
+	SiteVirtualVocations Site = "virtualvocations"
+	SiteWellfound        Site = "wellfound"
+	SiteWeWorkRemotely   Site = "weworkremotely"
+	SiteWordPressJobs    Site = "wordpressjobs"
+	SiteZipRecruiter     Site = "ziprecruiter"
+	SiteAcademicCareers  Site = "academiccareers"
+	SiteWuzzuf           Site = "wuzzuf"
 
 	// ATS providers (12 scrapers)
 	SiteHiringThing     Site = "ats-hiringthing"
-	SiteHomerun         Site = "ats-homerun"
 	SiteICIMS           Site = "ats-icims"
 	SiteISmartRecruit   Site = "ats-ismartrecruit"
 	SiteJazzHR          Site = "ats-jazzhr"
@@ -148,12 +142,10 @@ const (
 	SiteJobvite         Site = "ats-jobvite"
 	SiteJobylon         Site = "ats-jobylon"
 	SiteJoinCom         Site = "ats-joincom"
-	SiteLever           Site = "ats-lever"
 	SiteLoxo            Site = "ats-loxo"
 	SiteManatal         Site = "ats-manatal"
 	SiteMercor          Site = "ats-mercor"
 	SiteOracle          Site = "ats-oracle"
-	SitePaylocity       Site = "ats-paylocity"
 	SitePersonio        Site = "ats-personio"
 	SitePhenom          Site = "ats-phenom"
 	SitePinpoint        Site = "ats-pinpoint"
@@ -176,7 +168,6 @@ func AllSites() []Site {
 	return []Site{
 		SiteLinkedIn,
 		SiteIndeed,
-		SiteNaukri,
 		SiteInternshala,
 		SiteBuiltin,
 		SiteStartupJobs,
@@ -208,12 +199,10 @@ func AllSites() []Site {
 		SiteYCJobs,
 		SiteUKVisaJobs,
 		SiteGoogle,
-		SiteGlassdoor,
 		SiteAdzuna,
 		SiteSimplyHired,
 		SiteCareerBuilder,
 		SiteCareerjet,
-		SiteJooble,
 		SiteDice,
 		SiteMonster,
 		SiteInfoJobs,
@@ -237,7 +226,6 @@ func AllSites() []Site {
 		SiteLandingJobs,
 		SiteRealWorkFromAnywhere,
 		SiteBayt,
-		SiteBDJobs,
 		SiteBerlinStartupJobs,
 		SiteCanadaJobBank,
 		SiteCareerOneStop,
@@ -245,7 +233,6 @@ func AllSites() []Site {
 		SiteCoroflot,
 		SiteDevITJobs,
 		SiteDrupalJobs,
-		SiteHabrCareer,
 		SiteHigherEdJobs,
 		SiteIcrunchData,
 		SiteJobDataAPI,
@@ -267,7 +254,6 @@ func AllSites() []Site {
 		SitePyJobs,
 		SitePythonJobs,
 		SiteRailsJobs,
-		SiteReliefWeb,
 		SiteStepStone,
 		SiteSwissDevJobs,
 		SiteTalroo,
@@ -294,9 +280,9 @@ func AllSites() []Site {
 		SiteWordPressJobs,
 		SiteZipRecruiter,
 		SiteAcademicCareers,
+		SiteWuzzuf,
 		// ATS providers
 		SiteHiringThing,
-		SiteHomerun,
 		SiteICIMS,
 		SiteISmartRecruit,
 		SiteJazzHR,
@@ -304,12 +290,10 @@ func AllSites() []Site {
 		SiteJobvite,
 		SiteJobylon,
 		SiteJoinCom,
-		SiteLever,
 		SiteLoxo,
 		SiteManatal,
 		SiteMercor,
 		SiteOracle,
-		SitePaylocity,
 		SitePersonio,
 		SitePhenom,
 		SitePinpoint,

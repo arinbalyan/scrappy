@@ -111,7 +111,7 @@ docker run scrappy --sites remoteok --search "rust" \
 
 # Write output to a mounted volume
 docker run -v $PWD/data:/out scrappy \
-  --sites indeed,glassdoor --search "golang" \
+  --sites indeed --search "golang" \
   --results-wanted 100 --format csv --out /out/jobs.csv
 
 # Use proxy
@@ -129,7 +129,7 @@ services:
     build: .
     volumes: ["./data:/out"]
     command: >
-      --sites linkedin,indeed,glassdoor,remoteok
+      --sites linkedin,indeed,remoteok
       --search "software engineer" --location "Remote"
       --results-wanted 1000 --format jsonl --out /out/jobs.jsonl
     environment:

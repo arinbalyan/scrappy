@@ -41,7 +41,7 @@ scrappy --sites linkedin,indeed,remoteok --search "golang" \
 scrappy
 
 # Scrape a few sites with filters
-scrappy --sites glassdoor,ziprecruiter --search "rust developer" \
+scrappy --sites ziprecruiter --search "rust developer" \
   --location "Remote" --is-remote --job-type fulltime --results-wanted 200
 
 # Multi-value: 2 terms x 2 locations = 4 passes per site
@@ -72,7 +72,6 @@ scrappy/
       scraper.go        # Scraper interface
       linkedin/         # LinkedIn scraper
       indeed/           # Indeed scraper
-      glassdoor/        # Glassdoor scraper
       google/           # Google Jobs scraper
       remoteok/         # RemoteOK scraper
       ...               # 50+ more site packages

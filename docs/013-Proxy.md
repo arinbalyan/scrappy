@@ -149,7 +149,7 @@ scrappy --sites linkedin,indeed --proxy socks5://localhost:7890 --search "engine
 - name: Run scrappy
   run: |
     docker run --network host scrappy:latest \
-      --sites indeed,glassdoor,remoteok \
+      --sites indeed,remoteok \
         --search "software engineer" --results-wanted 200 \
         --proxy socks5://localhost:7890
 ```
