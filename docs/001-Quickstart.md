@@ -79,7 +79,6 @@ sites:
     search: "AI Engineer"
   reed:
     location: "United Kingdom"  # UK-only results
-  naukri:
     search: ai engineer
     location: India
     country: india              # Indeed India endpoint
@@ -107,7 +106,7 @@ See [007-Multi-Value.md](007-Multi-Value.md) for details.
 Limit total memory usage when running on constrained machines:
 
 ```bash
-scrappy --sites linkedin,indeed,glassdoor --search "golang" \
+scrappy --sites linkedin,indeed --search "golang" \
   --memory-cap 512MB --results-wanted 200 --format jsonl
 ```
 
@@ -143,7 +142,7 @@ scrappy --sites linkedin,indeed --search "AI Engineer" \
   --proxy socks5://user:pass@proxy:1080 --results-wanted 500
 
 # Multi-proxy round-robin
-scrappy --sites linkedin,indeed,glassdoor --search "developer" \
+scrappy --sites linkedin,indeed --search "developer" \
   --proxy socks5://proxy1:1080,socks5://proxy2:1080,socks5://proxy3:1080
 ```
 

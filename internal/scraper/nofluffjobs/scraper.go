@@ -94,7 +94,8 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		return nil, fmt.Errorf("nofluffjobs: status %d", resp.StatusCode)
 	}
 
-	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
+	const maxNoFluffBodyBytes = 16 * 1024 * 1024
+	body, err := util.ReadBodyLimited(resp.Body, maxNoFluffBodyBytes)
 	if err != nil {
 		return nil, fmt.Errorf("nofluffjobs: read: %w", err)
 	}
@@ -132,9 +133,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		}
 
 		job := model.JobPost{
-			ID:      "nofluffjobs-" + p.ID,
-			Title:   title,
-			Site:    string(s.SiteName()),
+			ID:       "nofluffjobs-" + p.ID,
+			Title:    title,
+			Site:     string(s.SiteName()),
 			IsRemote: p.Location.FullyRemote,
 		}
 

@@ -101,7 +101,7 @@ For `indeed`, the cartesian product is:
 | 3 | "GTM Engineer" | Remote |
 | 4 | "GTM Engineer" | San Francisco |
 
-Other sites (e.g. `linkedin`, `glassdoor`) still use `[AI Engineer, Software Engineer] x [Remote, New York]`.
+Other sites (e.g. `linkedin`) still use `[AI Engineer, Software Engineer] x [Remote, New York]`.
 
 ## Examples
 
@@ -122,7 +122,7 @@ scrappy --sites linkedin --search "AI Engineer,ML Engineer,LLM Engineer" \
 ### 1 term x 3 locations (3 passes)
 
 ```bash
-scrappy --sites glassdoor --search "software engineer" \
+scrappy --sites linkedin --search "software engineer" \
         --location "Remote,New York,Hyderabad" --results-wanted 300
 ```
 
@@ -149,7 +149,7 @@ defaults:
 ```
 
 ```bash
-scrappy --sites linkedin,indeed,glassdoor
+scrappy --sites linkedin,indeed
 ```
 
 Generates 3 x 2 = 6 passes per site (18 total).

@@ -16,8 +16,8 @@ import (
 const (
 	jobStoriesURL = "https://hacker-news.firebaseio.com/v0/jobstories.json"
 	itemURLFmt    = "https://hacker-news.firebaseio.com/v0/item/%d.json"
-	batchSize     = 15
-	maxFetchIDs   = 100
+	batchSize     = 10
+	maxFetchIDs   = 45
 )
 
 type hnItem struct {
@@ -85,11 +85,13 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	ids = ids[:fetchCount]
 
 	jobs := make([]model.JobPost, 0, wanted)
+	missStreak := 0
 	for i := 0; i < len(ids) && len(jobs) < wanted; i += batchSize {
 		end := i + batchSize
 		if end > len(ids) {
 			end = len(ids)
 		}
+		batchHits := 0
 		for _, id := range ids[i:end] {
 			item, err := s.fetchItem(ctx, id)
 			if err != nil || item == nil {
@@ -120,7 +122,18 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 				j.DatePosted = &t
 			}
 			jobs = append(jobs, j)
+			batchHits++
 			if len(jobs) >= wanted {
+				break
+			}
+		}
+		if term != "" {
+			if batchHits == 0 {
+				missStreak += end - i
+			} else {
+				missStreak = 0
+			}
+			if missStreak >= 30 {
 				break
 			}
 		}

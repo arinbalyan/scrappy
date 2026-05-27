@@ -20,13 +20,6 @@ One page per site. Each page covers: how it works, pagination, rate limits, know
 - Rate-limit: returns HTTP 429 after ~page 10. Silent stop, not a hard failure.
 - Workaround: `--linkedin-strategy rotate` permutes `f_AL`, `f_JT`, `f_TPR`, location radius, and distance across multiple scrape passes.
 
-## Glassdoor
-
-- Country-specific subdomains: `{subdomain}.glassdoor.{tld}`.
-- US: `www.glassdoor.com`. UK: `www.glassdoor.co.uk`.
-- Uses `savedSearchId` in the query for recent postings filter.
-- Dates are rounded up to the next day (hence `--hours-old` is approximate).
-
 ## Google Jobs
 
 - Embedded in Google SERP HTML — no separate API endpoint.

@@ -38,21 +38,21 @@ func (s *Scraper) SiteName() model.Site { return model.SitePersonio }
 
 // XML feed parsing types
 type personioXML struct {
-	XMLName   xml.Name          `xml:"workzag-jobs"`
+	XMLName   xml.Name              `xml:"workzag-jobs"`
 	Positions []personioXMLPosition `xml:"position"`
 }
 
 type personioXMLPosition struct {
-	ID               string                     `xml:"id"`
-	Name             string                     `xml:"name"`
-	Office           string                     `xml:"office"`
-	Department       string                     `xml:"department"`
-	EmploymentType   string                     `xml:"employmentType"`
-	Seniority        string                     `xml:"seniority"`
-	Schedule         string                     `xml:"schedule"`
-	Keywords         string                     `xml:"keywords"`
-	CreatedAt        string                     `xml:"createdAt"`
-	JobDescriptions  []personioXMLJobDescription `xml:"jobDescriptions>jobDescription"`
+	ID              string                      `xml:"id"`
+	Name            string                      `xml:"name"`
+	Office          string                      `xml:"office"`
+	Department      string                      `xml:"department"`
+	EmploymentType  string                      `xml:"employmentType"`
+	Seniority       string                      `xml:"seniority"`
+	Schedule        string                      `xml:"schedule"`
+	Keywords        string                      `xml:"keywords"`
+	CreatedAt       string                      `xml:"createdAt"`
+	JobDescriptions []personioXMLJobDescription `xml:"jobDescriptions>jobDescription"`
 }
 
 type personioXMLJobDescription struct {
@@ -78,6 +78,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if len(seeds) == 0 {
 		return nil, fmt.Errorf("personio no seeds: set SCRAPPY_PERSONIO_SEEDS or pass a company slug in --search (e.g. --search 'acme' resolves to acme.jobs.personio.de)")
 	}
+	if len(seeds) > 8 {
+		seeds = seeds[:8]
+	}
 	util.Debug("personio_seeds", map[string]any{"seeds": seeds, "src": src})
 
 	wanted := input.ResultsWanted
@@ -86,7 +89,10 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 
 	out := make([]model.JobPost, 0, wanted)
-	for _, slug := range seeds {
+	for i, slug := range seeds {
+		if i > 0 {
+			_ = util.SleepWithContext(ctx, 700*time.Millisecond)
+		}
 		if len(out) >= wanted {
 			break
 		}

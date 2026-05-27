@@ -66,6 +66,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if len(seeds) == 0 {
 		return nil, fmt.Errorf("crelate no seeds: set SCRAPPY_CRELATE_SEEDS or pass a company slug in --search")
 	}
+	if len(seeds) > 8 {
+		seeds = seeds[:8]
+	}
 	util.Debug("crelate_seeds", map[string]any{"seeds": seeds, "src": src})
 
 	wanted := input.ResultsWanted
@@ -76,7 +79,10 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	out := make([]model.JobPost, 0, wanted)
 	seen := make(map[string]bool)
 
-	for _, slug := range seeds {
+	for i, slug := range seeds {
+		if i > 0 {
+			_ = util.SleepWithContext(ctx, 700*time.Millisecond)
+		}
 		if len(out) >= wanted {
 			break
 		}

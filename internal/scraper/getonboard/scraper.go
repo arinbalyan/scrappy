@@ -45,13 +45,13 @@ func (s *Scraper) SiteName() model.Site { return model.SiteGetOnBoard }
 // --- API response types ---
 
 type getOnBoardSearchResponse struct {
-	Data []getOnBoardJob    `json:"data"`
-	Meta *getOnBoardMeta    `json:"meta,omitempty"`
+	Data []getOnBoardJob `json:"data"`
+	Meta *getOnBoardMeta `json:"meta,omitempty"`
 }
 
 type getOnBoardMeta struct {
-	CurrentPage int `json:"current_page"`
-	TotalPages  int `json:"total_pages"`
+	CurrentPage  int `json:"current_page"`
+	TotalPages   int `json:"total_pages"`
 	TotalResults int `json:"total_results"`
 }
 
@@ -63,18 +63,18 @@ type getOnBoardJob struct {
 }
 
 type getOnBoardAttributes struct {
-	Title       string           `json:"title"`
-	Description string           `json:"description"`
-	Company     string           `json:"company"`
-	Logo        string           `json:"logo"`
-	MinSalary   *float64         `json:"min_salary"`
-	MaxSalary   *float64         `json:"max_salary"`
-	Remote      bool             `json:"remote"`
-	Seniority   json.RawMessage  `json:"seniority"`
-	PublishedAt *int64           `json:"published_at"`
-	Countries   []string         `json:"countries"`
+	Title          string          `json:"title"`
+	Description    string          `json:"description"`
+	Company        string          `json:"company"`
+	Logo           string          `json:"logo"`
+	MinSalary      *float64        `json:"min_salary"`
+	MaxSalary      *float64        `json:"max_salary"`
+	Remote         bool            `json:"remote"`
+	Seniority      json.RawMessage `json:"seniority"`
+	PublishedAt    *int64          `json:"published_at"`
+	Countries      []string        `json:"countries"`
 	LocationCities json.RawMessage `json:"location_cities"`
-	Tags        []string         `json:"tags"`
+	Tags           json.RawMessage `json:"tags"`
 }
 
 type getOnBoardLinks struct {

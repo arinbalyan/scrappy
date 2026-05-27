@@ -171,12 +171,6 @@ sites:
       - '"AI Agent Engineer" OR "AI Product Engineer"'
       - '"Applied Scientist" OR "Research Scientist"'
     location: Remote
-  glassdoor:
-    search:
-      - '"AI Engineer" OR "Machine Learning Engineer" OR "LLM Engineer"'
-      - '"GTM Engineer" OR "Forward Deployed Engineer"'
-      - '"AI Agent Engineer" OR "AI Product Engineer"'
-    location: Remote
   indeed:
     search:
       - '"AI Engineer" OR "ML Engineer" OR "LLM Engineer"'
@@ -211,10 +205,6 @@ sites:
       - '"AI Engineer" OR "Machine Learning Engineer"'
       - '"GTM Engineer" OR "Forward Deployed Engineer"'
     location: United Kingdom
-  naukri:
-    search:
-      - ai engineer
-      - machine learning engineer
       - llm engineer
     location: India
   mycareersfuture:
