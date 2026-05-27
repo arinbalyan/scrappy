@@ -28,7 +28,7 @@ func TestMonsterHappyPath(t *testing.T) {
   <time datetime="2026-05-19">3 days ago</time>
 </div>
 <div data-testid="svx-job-result">
-  <a data-testid="jobTitle" href="/jobs/ghi789">Backend Developer</a>
+  <a data-testid="jobTitle" href="/jobs/ghi789">Jr. AI Engineer</a>
   <div data-testid="company">Acme Corp</div>
   <div data-testid="jobLocation">Remote, US</div>
   <time datetime="2026-05-18">4 days ago</time>
@@ -137,7 +137,7 @@ func TestMonsterPartialJobCards(t *testing.T) {
 	s := sut.NewWithURLs(srv.Client(), srv.URL)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	jobs, err := s.Scrape(ctx, model.ScraperInput{SearchTerm: "developer", ResultsWanted: 2})
+	jobs, err := s.Scrape(ctx, model.ScraperInput{SearchTerm: "developer OR engineer", ResultsWanted: 2})
 	if err != nil || len(jobs) != 2 {
 		t.Fatalf("expected 2 jobs and nil error, got jobs=%d err=%v", len(jobs), err)
 	}
