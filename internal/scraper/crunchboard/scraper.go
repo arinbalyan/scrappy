@@ -52,7 +52,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if wanted <= 0 {
 		wanted = 25
 	}
-	term := strings.ToLower(strings.TrimSpace(input.SearchTerm))
+	terms := parseSearchTerms(input.SearchTerm)
 
 	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, s.feedURL, nil)
 	req.Header.Set("Accept", "application/rss+xml, application/xml, text/xml")
@@ -89,9 +89,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		if title == "" || link == "" {
 			continue
 		}
-		if term != "" {
+		if len(terms) > 0 {
 			hay := strings.ToLower(title + " " + it.Description)
-			if !strings.Contains(hay, term) {
+			if !matchAny(hay, terms) {
 				continue
 			}
 		}
@@ -123,6 +123,33 @@ func htmlToText(v string) string {
 	}
 	v = cbStripTags.ReplaceAllString(v, " ")
 	return strings.Join(strings.Fields(strings.TrimSpace(v)), " ")
+}
+
+// parseSearchTerms splits a search term on " OR " and returns lowercase terms.
+func parseSearchTerms(raw string) []string {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, " OR ")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.Trim(strings.TrimSpace(p), `"`)
+		if p != "" {
+			out = append(out, strings.ToLower(p))
+		}
+	}
+	return out
+}
+
+// matchAny returns true if the haystack contains any of the terms.
+func matchAny(hay string, terms []string) bool {
+	for _, t := range terms {
+		if strings.Contains(hay, t) {
+			return true
+		}
+	}
+	return false
 }
 
 func parseRSSDate(v string) *time.Time {

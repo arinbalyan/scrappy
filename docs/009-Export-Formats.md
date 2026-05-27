@@ -66,7 +66,7 @@ scrappy --sites linkedin --search "engineer" --format csv \
 Excel Open XML format. Uses the same 30-column schema as CSV, one sheet named `jobs`.
 
 ```bash
-scrappy --sites glassdoor --search "developer" --format xlsx --out jobs.xlsx
+scrappy --sites remoteok --search "developer" --format xlsx --out jobs.xlsx
 ```
 
 - ~1M row limit per sheet (Excel constraint)

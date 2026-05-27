@@ -145,7 +145,7 @@ func (s *Scraper) fetchPage(ctx context.Context, searchTerm string, limit int) (
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("mycareersfuture status %d", resp.StatusCode)
+		return nil, fmt.Errorf("mycareersfuture status %d — try using --proxy with a residential proxy", resp.StatusCode)
 	}
 
 	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)

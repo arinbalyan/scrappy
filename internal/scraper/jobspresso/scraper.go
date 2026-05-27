@@ -68,7 +68,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if limit <= 0 || limit > len(items) {
 		limit = len(items)
 	}
-	term := strings.ToLower(strings.TrimSpace(input.SearchTerm))
+	terms := parseSearchTerms(input.SearchTerm)
 	jobs := make([]model.JobPost, 0, limit)
 
 	for _, m := range items {
@@ -85,9 +85,9 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		if titleRaw == "" || link == "" {
 			continue
 		}
-		if term != "" {
+		if len(terms) > 0 {
 			hay := strings.ToLower(titleRaw + " " + desc + " " + category)
-			if !strings.Contains(hay, term) {
+			if !matchAny(hay, terms) {
 				continue
 			}
 		}
@@ -149,6 +149,33 @@ func jparseDate(v string) *time.Time {
 		return &t
 	}
 	return nil
+}
+
+// parseSearchTerms splits a search term on " OR " and returns lowercase terms.
+func parseSearchTerms(raw string) []string {
+	s := strings.TrimSpace(raw)
+	if s == "" {
+		return nil
+	}
+	parts := strings.Split(s, " OR ")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		p = strings.Trim(strings.TrimSpace(p), `"`)
+		if p != "" {
+			out = append(out, strings.ToLower(p))
+		}
+	}
+	return out
+}
+
+// matchAny returns true if the haystack contains any of the terms.
+func matchAny(hay string, terms []string) bool {
+	for _, t := range terms {
+		if strings.Contains(hay, t) {
+			return true
+		}
+	}
+	return false
 }
 
 func jidFromURL(raw string) string {

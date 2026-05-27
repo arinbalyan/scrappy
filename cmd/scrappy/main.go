@@ -91,7 +91,7 @@ FLAGS
   --interactive        Force interactive mode (default: auto)
 
 SITES (55 total)
-  linkedin, indeed, naukri,
+  linkedin, indeed,
   internshala, builtin, startupjobs, greenhouse, gunio,
   himalayas, hiringcafe, huggingfacejobs, jobindex, remoteok,
   remotive, remotefirstjobs, jobspresso, hasjob,
@@ -99,8 +99,8 @@ SITES (55 total)
   cryptocurrencyjobs, androidjobs, jobicy, devopsjobs,
   crunchboard, cryptojobslist,
   dribbble, aijobs, workingnomads,
-  ycjobs, ukvisajobs, google, glassdoor, adzuna,
-  simplyhired, careerbuilder, careerjet, jooble, dice,
+  ycjobs, ukvisajobs, google, adzuna,
+  simplyhired, careerbuilder, careerjet, dice,
   monster, infojobs, reed, themuse, jobsdb,
   snagajob, djinni, headhunter, mycareersfuture, jobstreet,
   4dayweek, eurojobs, findwork,
@@ -111,7 +111,7 @@ EXAMPLES
     scrappy
 
   Scrape a few sites:
-    scrappy --sites linkedin,indeed,glassdoor --search "software engineer" \
+    scrappy --sites linkedin,indeed --search "software engineer" \
       --location "San Francisco" --results-wanted 500
 
   Export to CSV:
@@ -136,7 +136,7 @@ EXAMPLES
       --non-interactive
 
   Single SOCKS5 proxy (avoid rate limits):
-    scrappy --sites linkedin,indeed,glassdoor --search "AI Engineer" \
+    scrappy --sites linkedin,indeed --search "AI Engineer" \
       --location "Remote" --results-wanted 500 \
       --proxy socks5://user:pass@proxy:1080
 
@@ -212,17 +212,17 @@ type cliConfig struct {
 	RemoteOnly     bool
 	JobType        string
 	Proxy          string
-	MinScore         int
-	MaxRPS           int
-	SiteRPS          string
-	Dedup            bool
-	DedupByCompany   bool
-	HoursOld         int
-	SinceDate        string
-	JSONPretty       bool
-	JSONMinify       bool
-	Schema           bool
-	VersionJSON      bool
+	MinScore       int
+	MaxRPS         int
+	SiteRPS        string
+	Dedup          bool
+	DedupByCompany bool
+	HoursOld       int
+	SinceDate      string
+	JSONPretty     bool
+	JSONMinify     bool
+	Schema         bool
+	VersionJSON    bool
 }
 
 type multiString []string
@@ -571,14 +571,14 @@ func runOnce(cfg *cliConfig) error {
 		if len(healthy) > 0 {
 			_ = os.Setenv("SCRAPPY_PROXIES", strings.Join(healthy, ","))
 			var redacted []string
-		for _, p := range healthy {
-			if u, err := url.Parse(p); err == nil {
-				redacted = append(redacted, u.Redacted())
-			} else {
-				redacted = append(redacted, p)
+			for _, p := range healthy {
+				if u, err := url.Parse(p); err == nil {
+					redacted = append(redacted, u.Redacted())
+				} else {
+					redacted = append(redacted, p)
+				}
 			}
-		}
-		util.Info("proxy_setup", map[string]any{"healthy": len(healthy), "total": len(parts), "proxies": strings.Join(redacted, ",")})
+			util.Info("proxy_setup", map[string]any{"healthy": len(healthy), "total": len(parts), "proxies": strings.Join(redacted, ",")})
 		} else {
 			util.Warn("proxy_no_healthy", map[string]any{"total": len(parts)})
 		}
@@ -673,7 +673,7 @@ func runOnce(cfg *cliConfig) error {
 				// Keep single-string SiteLocation for backward compat.
 				siteLocation[s] = strings.Join(locs, ", ")
 			}
-				if t.Country != "" {
+			if t.Country != "" {
 				siteCountry[s] = model.Country(t.Country)
 			}
 			if t.IsRemote != nil {
@@ -1013,10 +1013,10 @@ func loadDotEnv(path string) {
 // printVersionJSON outputs version information as JSON.  Used by --version-json flag.
 func printVersionJSON(pretty bool, minify bool) {
 	info := map[string]interface{}{
-		"version":   version,
-		"sites":     len(model.AllSites()),
-		"go":        strings.TrimPrefix(runtime.Version(), "go"),
-		"formats":   []string{"jsonl", "csv", "xlsx", "parquet"},
+		"version": version,
+		"sites":   len(model.AllSites()),
+		"go":      strings.TrimPrefix(runtime.Version(), "go"),
+		"formats": []string{"jsonl", "csv", "xlsx", "parquet"},
 	}
 	if exe, err := os.Executable(); err == nil {
 		if fi, err := os.Stat(exe); err == nil {
