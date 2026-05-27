@@ -4,7 +4,7 @@ Bulk job-board scraper for 60+ sites, written in Go.
 
 ## Features
 
-- **60+ job boards** -- LinkedIn, Indeed, Glassdoor, Google Jobs, and more
+- **100+ job boards / ATS endpoints** -- LinkedIn, Indeed, Google Jobs, ATS suites, and niche boards
 - **Bulk-first** -- fan out across all sites concurrently, process thousands of postings
 - **Go-native** -- static binary (~10 MB), zero Python dependency
 - **Email enrichment** -- MX-validated contact addresses from descriptions and company pages
@@ -79,7 +79,47 @@ scrappy
 
 ## Sites supported
 
-All 60+ sites with per-board notes in [docs/012-Scraping.md](docs/012-Scraping.md) and per-site documentation in [docs/sites/](docs/sites/).
+Per-site notes live in [docs/012-Scraping.md](docs/012-Scraping.md) and detailed pages in [docs/sites/](docs/sites/).
+
+| Site | Site | Site | Site |
+|------|------|------|------|
+| `4dayweek` | `ats-rippling` | `freelancercom` | `nofluffjobs` |
+| `academiccareers` | `ats-smartrecruiters` | `functionalworks` | `opensourcedesignjobs` |
+| `adzuna` | `ats-successfactors` | `germantechjobs` | `powertofly` |
+| `aijobs` | `ats-talentlyft` | `getonboard` | `pyjobs` |
+| `androidjobs` | `ats-taleo` | `golangjobs` | `pythonjobs` |
+| `arbeitnow` | `ats-teamtailor` | `google` | `railsjobs` |
+| `arbeitsagentur` | `ats-trakstar` | `greenhouse` | `realworkfromanywhere` |
+| `ats-adp` | `ats-ukg` | `greenjobsboard` | `reed` |
+| `ats-ashby` | `ats-workable` | `guardianjobs` | `remotefirstjobs` |
+| `ats-avature` | `ats-workday` | `gunio` | `remoteok` |
+| `ats-bamboohr` | `authenticjobs` | `hackernews` | `remotive` |
+| `ats-breezyhr` | `bayt` | `hasjob` | `simplyhired` |
+| `ats-bullhorn` | `berlinstartupjobs` | `headhunter` | `snagajob` |
+| `ats-comeet` | `builtin` | `higheredjobs` | `startupjobs` |
+| `ats-crelate` | `canadajobbank` | `himalayas` | `stepstone` |
+| `ats-deel` | `careerbuilder` | `hiringcafe` | `swissdevjobs` |
+| `ats-fountain` | `careerjet` | `huggingfacejobs` | `talroo` |
+| `ats-freshteam` | `careeronestop` | `icrunchdata` | `techcareers` |
+| `ats-gem` | `clojurejobs` | `indeed` | `tesla` |
+| `ats-hiringthing` | `conservationjobs` | `infojobs` | `themuse` |
+| `ats-icims` | `coroflot` | `internshala` | `ukvisajobs` |
+| `ats-ismartrecruit` | `crunchboard` | `ismartrecruit` | `undpjobs` |
+| `ats-jazzhr` | `cryptocurrencyjobs` | `jazzhr` | `upwork` |
+| `ats-jobscore` | `cryptojobslist` | `jobdataapi` | `usajobs` |
+| `ats-jobvite` | `devitjobs` | `jobicy` | `virtualvocations` |
+| `ats-jobylon` | `devopsjobs` | `jobindex` | `vuejobs` |
+| `ats-joincom` | `dice` | `jobsacuk` | `web3career` |
+| `ats-loxo` | `djinni` | `jobsch` | `wellfound` |
+| `ats-manatal` | `dribbble` | `jobsdb` | `weworkremotely` |
+| `ats-mercor` | `drupaljobs` | `jobsinjapan` | `wordpressjobs` |
+| `ats-oracle` | `duunitori` | `jobspresso` | `workingnomads` |
+| `ats-personio` | `ecojobs` | `jobstreet` | `wuzzuf` |
+| `ats-phenom` | `echojobs` | `jobtechdev` | `ycjobs` |
+| `ats-pinpoint` | `elixirjobs` | `joinrise` | `ziprecruiter` |
+| `ats-recruitee` | `eurojobs` | `landingjobs` |  |
+| `ats-recruiterflow` | `exa` | `linkedin` |  |
+| `ats-recruitify` | `findwork` | `monster` |  |
 
 ## Installation
 

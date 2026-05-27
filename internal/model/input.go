@@ -35,6 +35,7 @@ type ScraperInput struct {
 	CSVEmailsOnly      bool         `json:"csv_emails_only"`
 	MaxRPS             int          `json:"max_rps"`
 	SiteRPS            map[Site]int `json:"site_rps,omitempty"`
+	SiteResultsWanted  map[Site]int `json:"site_results_wanted,omitempty"`
 
 	// proxies and resilience
 	Proxy            string            `json:"-"` // not serialised; consumed by transport layer

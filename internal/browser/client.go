@@ -12,9 +12,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -63,13 +65,20 @@ func fileExists(p string) bool {
 //
 // If the Playwright script is not found, it returns a descriptive error.
 // ctx controls the overall timeout.
-func FetchPage(ctx context.Context, url string, waitSelector string) (*PageResult, error) {
+func FetchPage(ctx context.Context, targetURL string, waitSelector string) (*PageResult, error) {
 	scriptPath := detectScriptPath()
 	if scriptPath == "" {
 		return nil, fmt.Errorf("browser: fetch-page.mjs not found — install Playwright and run npm install in scripts/")
 	}
+	if strings.TrimSpace(targetURL) == "" {
+		return nil, fmt.Errorf("browser: empty target URL")
+	}
+	u, err := url.Parse(targetURL)
+	if err != nil || u == nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" {
+		return nil, fmt.Errorf("browser: invalid target URL: %q", targetURL)
+	}
 
-	args := []string{scriptPath, url}
+	args := []string{scriptPath, targetURL}
 	if waitSelector != "" {
 		args = append(args, "--wait", waitSelector)
 	}
@@ -82,26 +91,54 @@ func FetchPage(ctx context.Context, url string, waitSelector string) (*PageResul
 			timeout = 5 * time.Second
 		}
 	}
-	execCtx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
 
-	cmd := exec.CommandContext(execCtx, "node", args...)
-
-	// Set working directory to scripts dir so playwright can find its modules.
-	scriptsDir := filepath.Dir(scriptPath)
-	cmd.Dir = scriptsDir
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return nil, fmt.Errorf("browser fetch: %w (output: %s)", err, string(output))
+	// One retry for transient browser boot/timeout errors.
+	var lastErr error
+	for attempt := 1; attempt <= 2; attempt++ {
+		execCtx, cancel := context.WithTimeout(ctx, timeout)
+		cmd := exec.CommandContext(execCtx, "node", args...)
+		// Set working directory to scripts dir so playwright can find its modules.
+		scriptsDir := filepath.Dir(scriptPath)
+		cmd.Dir = scriptsDir
+		output, err := cmd.CombinedOutput()
+		cancel()
+		if err != nil {
+			msg := string(output)
+			if len(msg) > 1200 {
+				msg = msg[:1200] + "...(truncated)"
+			}
+			lastErr = fmt.Errorf("browser fetch attempt %d: %w (output: %s)", attempt, err, msg)
+			if attempt == 1 {
+				continue
+			}
+			return nil, lastErr
+		}
+		if len(output) == 0 {
+			lastErr = fmt.Errorf("browser fetch attempt %d: empty output", attempt)
+			if attempt == 1 {
+				continue
+			}
+			return nil, lastErr
+		}
+		var result PageResult
+		if err := json.Unmarshal(output, &result); err != nil {
+			raw := string(output)
+			if len(raw) > 1200 {
+				raw = raw[:1200] + "...(truncated)"
+			}
+			lastErr = fmt.Errorf("browser fetch attempt %d: decode: %w (raw: %s)", attempt, err, raw)
+			if attempt == 1 {
+				continue
+			}
+			return nil, lastErr
+		}
+		if result.Status == 0 {
+			// Normalized fallback; script may omit status in edge cases.
+			result.Status = 200
+		}
+		return &result, nil
 	}
-
-	var result PageResult
-	if err := json.Unmarshal(output, &result); err != nil {
-		return nil, fmt.Errorf("browser fetch: decode: %w (raw: %s)", err, string(output))
-	}
-
-	return &result, nil
+	return nil, lastErr
 }
 
 // CookieMap returns the fetched cookies as a map[string]string for

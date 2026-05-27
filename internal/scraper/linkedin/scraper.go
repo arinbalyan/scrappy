@@ -172,35 +172,69 @@ func (s *Scraper) scrapeSinglePass(ctx context.Context, input model.ScraperInput
 }
 
 func (s *Scraper) scrapeRotateStrategy(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
-	passes := []struct {
-		remote bool
-		hours  int
-	}{
-		{remote: input.IsRemote, hours: input.HoursOld},
-		{remote: true, hours: input.HoursOld},
-		{remote: false, hours: input.HoursOld},
+	wanted := input.ResultsWanted
+	if wanted <= 0 {
+		wanted = 15
 	}
-	seen := map[string]struct{}{}
-	all := make([]model.JobPost, 0, input.ResultsWanted)
-	for _, pass := range passes {
-		if len(all) >= input.ResultsWanted {
+
+	// Build bounded pass permutations across remote, recency, and job-type.
+	remoteCandidates := []bool{input.IsRemote, true, false}
+	hourCandidates := []int{input.HoursOld, 24, 72, 168, 0}
+	jobTypeCandidates := []model.JobType{input.JobType, model.JobTypeFullTime, model.JobTypeContract, ""}
+
+	type pass struct {
+		remote  bool
+		hours   int
+		jobType model.JobType
+	}
+	seenPass := map[string]struct{}{}
+	passes := make([]pass, 0, 12)
+	for _, r := range remoteCandidates {
+		for _, h := range hourCandidates {
+			for _, jt := range jobTypeCandidates {
+				key := fmt.Sprintf("%t|%d|%s", r, h, jt)
+				if _, ok := seenPass[key]; ok {
+					continue
+				}
+				seenPass[key] = struct{}{}
+				passes = append(passes, pass{remote: r, hours: h, jobType: jt})
+				if len(passes) >= 12 {
+					break
+				}
+			}
+			if len(passes) >= 12 {
+				break
+			}
+		}
+		if len(passes) >= 12 {
+			break
+		}
+	}
+
+	seenJobs := map[string]struct{}{}
+	all := make([]model.JobPost, 0, wanted)
+	for idx, p := range passes {
+		if len(all) >= wanted {
 			break
 		}
 		cp := input
-		cp.IsRemote = pass.remote
-		cp.HoursOld = pass.hours
-		cp.ResultsWanted = input.ResultsWanted - len(all)
+		cp.IsRemote = p.remote
+		cp.HoursOld = p.hours
+		cp.JobType = p.jobType
+		cp.ResultsWanted = wanted - len(all)
+		util.Info("linkedin_rotate_pass", map[string]any{"pass": idx + 1, "remote": p.remote, "hours": p.hours, "job_type": p.jobType})
 		jobs, err := s.scrapeSinglePass(ctx, cp)
 		if err != nil {
+			util.Warn("linkedin_rotate_pass_failed", map[string]any{"pass": idx + 1, "err": err.Error()})
 			continue
 		}
 		for _, j := range jobs {
-			if _, ok := seen[j.ID]; ok {
+			if _, ok := seenJobs[j.ID]; ok {
 				continue
 			}
-			seen[j.ID] = struct{}{}
+			seenJobs[j.ID] = struct{}{}
 			all = append(all, j)
-			if len(all) >= input.ResultsWanted {
+			if len(all) >= wanted {
 				break
 			}
 		}

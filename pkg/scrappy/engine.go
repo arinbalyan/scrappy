@@ -13,6 +13,7 @@ import (
 	"github.com/arinbalyan/scrappy/internal/dedup"
 	internalemail "github.com/arinbalyan/scrappy/internal/email"
 	"github.com/arinbalyan/scrappy/internal/model"
+	"github.com/arinbalyan/scrappy/internal/normalize"
 	"github.com/arinbalyan/scrappy/internal/quality"
 	"github.com/arinbalyan/scrappy/internal/scraper"
 	aijobsscraper "github.com/arinbalyan/scrappy/internal/scraper/aijobs"
@@ -417,6 +418,10 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		wg.Add(1)
 		go func(site model.Site, sc scraper.Scraper) {
 			defer wg.Done()
+			if err := waitForMemoryBudget(ctx, input.MemoryCapMB); err != nil {
+				resultsCh <- siteResult{site: site, st: SiteTelemetry{Site: site, Attempted: false, Success: false, Error: err.Error(), FailOpenReason: "memory_budget_cancelled"}, ok: false}
+				return
+			}
 			globalSem <- struct{}{}
 			defer func() { <-globalSem }()
 			if sem, ok := siteSem[site]; ok {
@@ -444,6 +449,11 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			}
 
 			baseInput := input
+			if baseInput.SiteResultsWanted != nil {
+				if n, ok := baseInput.SiteResultsWanted[site]; ok && n > 0 {
+					baseInput.ResultsWanted = n
+				}
+			}
 			if baseInput.SiteLocation != nil {
 				if v := strings.TrimSpace(baseInput.SiteLocation[site]); v != "" {
 					baseInput.Location = v
@@ -565,6 +575,9 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			now := time.Now()
 			jobs[i].FetchedAt = &now
 			enrichJobEmails(&jobs[i], mxVerifier, ctx)
+			if input.EnforceAnnualSalary {
+				jobs[i].Compensation = normalize.AnnualizeCompensation(jobs[i].Compensation)
+			}
 			jobs[i].QualityScore = quality.Score(&jobs[i])
 			for _, h := range e.hooks {
 				if err := h(ctx, &jobs[i]); err != nil {
@@ -634,6 +647,44 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		all = all[:input.ResultsWanted]
 	}
 	return all, nil
+}
+
+// waitForMemoryBudget blocks new scrape launches while heap usage is above
+// ~90% of configured memory cap. It resumes once usage drops below ~75%.
+func waitForMemoryBudget(ctx context.Context, capMB int) error {
+	if capMB <= 0 {
+		return nil
+	}
+	capBytes := uint64(capMB) * 1024 * 1024
+	hard := capBytes * 90 / 100
+	resume := capBytes * 75 / 100
+	warned := false
+
+	for {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		var m runtime.MemStats
+		runtime.ReadMemStats(&m)
+		if m.Alloc <= hard {
+			return nil
+		}
+		if !warned {
+			util.Warn("memory_throttle", map[string]any{
+				"alloc_mb": m.Alloc / 1024 / 1024,
+				"cap_mb":   capMB,
+				"hard_pct": 90,
+			})
+			warned = true
+		}
+		runtime.GC()
+		if m.Alloc <= resume {
+			return nil
+		}
+		if err := util.SleepWithContext(ctx, 750*time.Millisecond); err != nil {
+			return err
+		}
+	}
 }
 
 func suggestRPS(current int, err error) int {
