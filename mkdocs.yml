@@ -4,8 +4,6 @@ site_url: https://arinbalyan.github.io/scrappy/
 repo_url: https://github.com/arinbalyan/scrappy
 repo_name: arinbalyan/scrappy
 
-docs_dir: .
-
 theme:
   name: material
   features:
@@ -13,7 +11,6 @@ theme:
     - navigation.sections
     - navigation.top
     - content.code.copy
-    - content.code.annotate
     - search.highlight
     - search.suggest
   palette:
@@ -43,180 +40,25 @@ markdown_extensions:
   - md_in_html
 
 nav:
-  - Home: README.md
-  - Quickstart: docs/001-Quickstart.md
-  - User Guide:
-    - CLI Reference: docs/004-CLI-Reference.md
-    - Configuration: docs/008-Configuration.md
-    - Interactive Mode: docs/005-Interactive-Mode.md
-    - Non-Interactive Mode: docs/006-NonInteractive-Mode.md
-    - Multi-Value Search: docs/007-Multi-Value.md
-    - Export Formats: docs/009-Export-Formats.md
-    - Email: docs/010-Email.md
-    - Quality: docs/011-Quality.md
-    - Scraping: docs/012-Scraping.md
-    - Proxy: docs/013-Proxy.md
-    - Dedup: docs/014-Dedup.md
-    - Memory Management: docs/016-Memory-Management.md
-    - Environment Variables: docs/015-Environment-Variables.md
-  - Development:
-    - Installation: docs/003-Installation.md
-    - Architecture Overview: docs/002-Architecture-Overview.md
-    - Architecture Reference: docs/019-Architecture-Reference.md
-    - Troubleshooting: docs/017-Troubleshooting.md
-    - FAQ: docs/018-FAQ.md
+  - Home: index.md
+  - Quickstart: 001-Quickstart.md
+  - Installation: 003-Installation.md
+  - CLI Reference: 004-CLI-Reference.md
+  - Configuration: 008-Configuration.md
+  - Architecture Overview: 002-Architecture-Overview.md
+  - Interactive Mode: 005-Interactive-Mode.md
+  - Non-Interactive Mode: 006-NonInteractive-Mode.md
+  - Multi-Value Search: 007-Multi-Value.md
+  - Export Formats: 009-Export-Formats.md
+  - Email: 010-Email.md
+  - Quality: 011-Quality.md
+  - Scraping: 012-Scraping.md
+  - Proxy: 013-Proxy.md
+  - Dedup: 014-Dedup.md
+  - Environment Variables: 015-Environment-Variables.md
+  - Memory Management: 016-Memory-Management.md
+  - Architecture Reference: 019-Architecture-Reference.md
+  - Troubleshooting: 017-Troubleshooting.md
+  - FAQ: 018-FAQ.md
   - Supported Sites:
-    - Overview: docs/sites/
-    - Major Boards:
-      - Adzuna: docs/sites/adzuna.md
-      - CareerBuilder: docs/sites/careerbuilder.md
-      - CareerJet: docs/sites/careerjet.md
-      - Dice: docs/sites/dice.md
-      - Google Jobs: docs/sites/google.md
-      - Indeed: docs/sites/indeed.md
-      - LinkedIn: docs/sites/linkedin.md
-      - Monster: docs/sites/monster.md
-      - Reed: docs/sites/reed.md
-      - SimplyHired: docs/sites/simplyhired.md
-      - ZipRecruiter: docs/sites/ziprecruiter.md
-    - ATS Providers:
-      - ADP: docs/sites/ats-adp.md
-      - Ashby: docs/sites/ats-ashby.md
-      - Avature: docs/sites/ats-avature.md
-      - BambooHR: docs/sites/ats-bamboohr.md
-      - BreezyHR: docs/sites/ats-breezyhr.md
-      - Bullhorn: docs/sites/ats-bullhorn.md
-      - Comeet: docs/sites/ats-comeet.md
-      - Crelate: docs/sites/ats-crelate.md
-      - Deel: docs/sites/ats-deel.md
-      - Fountain: docs/sites/ats-fountain.md
-      - Freshteam: docs/sites/ats-freshteam.md
-      - Gem: docs/sites/ats-gem.md
-      - HiringThing: docs/sites/ats-hiringthing.md
-      - iCIMS: docs/sites/ats-icims.md
-      - iSmartRecruit: docs/sites/ats-ismartrecruit.md
-      - JazzHR: docs/sites/ats-jazzhr.md
-      - JobScore: docs/sites/ats-jobscore.md
-      - Jobvite: docs/sites/ats-jobvite.md
-      - Jobylon: docs/sites/ats-jobylon.md
-      - Join.com: docs/sites/ats-joincom.md
-      - Loxo: docs/sites/ats-loxo.md
-      - Manatal: docs/sites/ats-manatal.md
-      - Mercor: docs/sites/ats-mercor.md
-      - Oracle: docs/sites/ats-oracle.md
-      - Personio: docs/sites/ats-personio.md
-      - Phenom: docs/sites/ats-phenom.md
-      - Pinpoint: docs/sites/ats-pinpoint.md
-      - Recruitee: docs/sites/ats-recruitee.md
-      - RecruiterFlow: docs/sites/ats-recruiterflow.md
-      - Rippling: docs/sites/ats-rippling.md
-      - SmartRecruiters: docs/sites/ats-smartrecruiters.md
-      - SuccessFactors: docs/sites/ats-successfactors.md
-      - TalentLyft: docs/sites/ats-talentlyft.md
-      - Taleo: docs/sites/ats-taleo.md
-      - TeamTailor: docs/sites/ats-teamtailor.md
-      - Trakstar: docs/sites/ats-trakstar.md
-      - UKG: docs/sites/ats-ukg.md
-      - Workable: docs/sites/ats-workable.md
-      - Workday: docs/sites/ats-workday.md
-    - Remote-Focused:
-      - RealWorkFromAnywhere: docs/sites/realworkfromanywhere.md
-      - RemoteFirstJobs: docs/sites/remotefirstjobs.md
-      - RemoteOK: docs/sites/remoteok.md
-      - Remotive: docs/sites/remotive.md
-      - VirtualVocations: docs/sites/virtualvocations.md
-      - WeWorkRemotely: docs/sites/weworkremotely.md
-      - WorkingNomads: docs/sites/workingnomads.md
-    - Government & Non-Profit:
-      - Canada Job Bank: docs/sites/canadajobbank.md
-      - CareerOneStop: docs/sites/careeronestop.md
-      - Conservation Jobs: docs/sites/conservationjobs.md
-      - Green Jobs Board: docs/sites/greenjobsboard.md
-      - USAJobs: docs/sites/usajobs.md
-      - UNDP Jobs: docs/sites/undpjobs.md
-    - Regional Boards:
-      - Academic Careers: docs/sites/academiccareers.md
-      - Bayt (Middle East): docs/sites/bayt.md
-      - Berlin Startup Jobs: docs/sites/berlinstartupjobs.md
-      - Djinni (Ukraine): docs/sites/djinni.md
-      - Duunitori (Finland): docs/sites/duunitori.md
-      - EuroJobs: docs/sites/eurojobs.md
-      - France Travail: docs/sites/francetravail.md
-      - GermanTechJobs: docs/sites/germantechjobs.md
-      - Guardian Jobs (UK): docs/sites/guardianjobs.md
-      - HeadHunter (CIS): docs/sites/headhunter.md
-      - Jobs.ch (Switzerland): docs/sites/jobsch.md
-      - Jobs in Japan: docs/sites/jobsinjapan.md
-      - JobStreet: docs/sites/jobstreet.md
-      - StepStone: docs/sites/stepstone.md
-      - SwissDevJobs: docs/sites/swissdevjobs.md
-      - UK Visa Jobs: docs/sites/ukvisajobs.md
-      - Wuzzuf (Egypt): docs/sites/wuzzuf.md
-    - Niche & Tech:
-      - 4DayWeek: docs/sites/4dayweek.md
-      - AI Jobs: docs/sites/aijobs.md
-      - Android Jobs: docs/sites/androidjobs.md
-      - Arbeitnow: docs/sites/arbeitnow.md
-      - Arbeitsagentur: docs/sites/arbeitsagentur.md
-      - Authentic Jobs: docs/sites/authenticjobs.md
-      - Built In: docs/sites/builtin.md
-      - Coroflot: docs/sites/coroflot.md
-      - Crunchboard: docs/sites/crunchboard.md
-      - CryptoCurrencyJobs: docs/sites/cryptocurrencyjobs.md
-      - CryptoJobsList: docs/sites/cryptojobslist.md
-      - DevITJobs: docs/sites/devitjobs.md
-      - DevOps Jobs: docs/sites/devopsjobs.md
-      - Dribbble: docs/sites/dribbble.md
-      - Drupal Jobs: docs/sites/drupaljobs.md
-      - EchoJobs: docs/sites/echojobs.md
-      - EcoJobs: docs/sites/ecojobs.md
-      - Elixir Jobs: docs/sites/elixirjobs.md
-      - Exa: docs/sites/exa.md
-      - Findwork: docs/sites/findwork.md
-      - FOSS Jobs: docs/sites/fossjobs.md
-      - Functional Works: docs/sites/functionalworks.md
-      - GetOnBoard: docs/sites/getonboard.md
-      - Golang Jobs: docs/sites/golangjobs.md
-      - Greenhouse: docs/sites/greenhouse.md
-      - Gun.io: docs/sites/gunio.md
-      - HackerNews: docs/sites/hackernews.md
-      - HasJob: docs/sites/hasjob.md
-      - HigherEdJobs: docs/sites/higheredjobs.md
-      - Himalayas: docs/sites/himalayas.md
-      - HiringCafe: docs/sites/hiringcafe.md
-      - HuggingFace Jobs: docs/sites/huggingfacejobs.md
-      - IcrunchData: docs/sites/icrunchdata.md
-      - InfoJobs: docs/sites/infojobs.md
-      - Internshala: docs/sites/internshala.md
-      - iOSDevJobs: docs/sites/iosdevjobs.md
-      - JobDataAPI: docs/sites/jobdataapi.md
-      - Jobicy: docs/sites/jobicy.md
-      - JobIndex: docs/sites/jobindex.md
-      - Jobs.ac.uk: docs/sites/jobsacuk.md
-      - JobsDB: docs/sites/jobsdb.md
-      - Jobspresso: docs/sites/jobspresso.md
-      - JobTechDev: docs/sites/jobtechdev.md
-      - JoinRise: docs/sites/joinrise.md
-      - Landing Jobs: docs/sites/landingjobs.md
-      - LaraJobs: docs/sites/larajobs.md
-      - MyCareersFuture: docs/sites/mycareersfuture.md
-      - NavJobs: docs/sites/navjobs.md
-      - Nodesk: docs/sites/nodesk.md
-      - NoFluffJobs: docs/sites/nofluffjobs.md
-      - OpenSourceDesignJobs: docs/sites/opensourcedesignjobs.md
-      - PowerToFly: docs/sites/powertofly.md
-      - PyJobs: docs/sites/pyjobs.md
-      - Python Jobs: docs/sites/pythonjobs.md
-      - Rails Jobs: docs/sites/railsjobs.md
-      - Snagajob: docs/sites/snagajob.md
-      - Startup Jobs: docs/sites/startupjobs.md
-      - Talroo: docs/sites/talroo.md
-      - Tech Careers: docs/sites/techcareers.md
-      - Tesla: docs/sites/tesla.md
-      - The Muse: docs/sites/themuse.md
-      - Upwork: docs/sites/upwork.md
-      - Vue Jobs: docs/sites/vuejobs.md
-      - Web3Career: docs/sites/web3career.md
-      - Wellfound: docs/sites/wellfound.md
-      - WordPress Jobs: docs/sites/wordpressjobs.md
-      - YC Jobs: docs/sites/ycjobs.md
+    - All Sites: sites/README.md
