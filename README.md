@@ -1,6 +1,46 @@
-# scrappy
+<div align="center">
+  <h1>🕷️ scrappy</h1>
+  <p><strong>Bulk job-board scraper for 100+ sites</strong></p>
 
-Bulk job-board scraper for 60+ sites, written in Go.
+  <p>
+    <a href="https://github.com/arinbalyan/scrappy/actions/workflows/ci.yml">
+      <img src="https://github.com/arinbalyan/scrappy/actions/workflows/ci.yml/badge.svg" alt="CI">
+    </a>
+    <a href="https://github.com/arinbalyan/scrappy/actions/workflows/docs.yml">
+      <img src="https://github.com/arinbalyan/scrappy/actions/workflows/docs.yml/badge.svg" alt="Docs">
+    </a>
+    <a href="https://github.com/arinbalyan/scrappy/releases">
+      <img src="https://img.shields.io/github/v/release/arinbalyan/scrappy" alt="Release">
+    </a>
+    <a href="https://go.dev/">
+      <img src="https://img.shields.io/github/go-mod/go-version/arinbalyan/scrappy" alt="Go Version">
+    </a>
+    <a href="LICENSE">
+      <img src="https://img.shields.io/badge/license-non--commercial-blue" alt="License">
+    </a>
+    <a href="https://github.com/arinbalyan/scrappy/stargazers">
+      <img src="https://img.shields.io/github/stars/arinbalyan/scrappy?style=flat" alt="Stars">
+    </a>
+    <a href="https://github.com/arinbalyan/scrappy/watchers">
+      <img src="https://img.shields.io/github/watchers/arinbalyan/scrappy" alt="Watchers">
+    </a>
+    <a href="https://github.com/arinbalyan/scrappy/forks">
+      <img src="https://img.shields.io/github/forks/arinbalyan/scrappy" alt="Forks">
+    </a>
+    <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Farinbalyan%2Fscrappy&countColor=%23263759" alt="Visitors">
+  </p>
+
+  <!-- Star History -->
+  <a href="https://star-history.com/#arinbalyan/scrappy&Timeline">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=arinbalyan/scrappy&type=Timeline&theme=dark" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=arinbalyan/scrappy&type=Timeline" />
+      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=arinbalyan/scrappy&type=Timeline" width="600" />
+    </picture>
+  </a>
+</div>
+
+<br>
 
 ## Features
 
@@ -161,6 +201,8 @@ jobs, err := engine.Scrape(ctx, scrappy.ScraperInput{
 ## Contributing
 
 See [docs/019-Architecture-Reference.md](docs/019-Architecture-Reference.md) for the package layout and [docs/012-Scraping.md](docs/012-Scraping.md) for scraping details.
+
+<br>
 
 ## License
 
