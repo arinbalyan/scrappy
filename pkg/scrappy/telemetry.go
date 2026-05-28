@@ -1,9 +1,7 @@
 package scrappy
 
-import "github.com/arinbalyan/scrappy/internal/model"
-
 type SiteTelemetry struct {
-	Site              model.Site  `json:"site"`
+	Site              Site        `json:"site"`
 	Attempted         bool        `json:"attempted"`
 	Success           bool        `json:"success"`
 	Error             string      `json:"error,omitempty"`
@@ -16,6 +14,6 @@ type SiteTelemetry struct {
 	ChallengeDetected bool        `json:"challenge_detected"`
 }
 type RunTelemetry struct {
-	Sites            []SiteTelemetry    `json:"sites"`
-	SuggestedSiteRPS map[model.Site]int `json:"suggested_site_rps,omitempty"`
+	Sites            []SiteTelemetry `json:"sites"`
+	SuggestedSiteRPS map[Site]int   `json:"suggested_site_rps,omitempty"`
 }
