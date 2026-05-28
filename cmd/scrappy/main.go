@@ -739,7 +739,7 @@ func runOnce(cfg *cliConfig) error {
 		JobType:        model.JobType(cfg.JobType),
 	}
 
-	constraints := scrappy.EvaluateConstraints(input)
+	constraints := scrappy.EvaluateConstraintsInternal(input)
 	for _, w := range constraints.Warnings {
 		fmt.Printf("[constraint-warning] %s\n", w)
 	}

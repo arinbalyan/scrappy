@@ -359,7 +359,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	if len(sites) == 0 {
 		sites = model.AllSites()
 	}
-	e.telemetry = RunTelemetry{Sites: make([]SiteTelemetry, 0, len(sites)), SuggestedSiteRPS: map[model.Site]int{}}
+	e.telemetry = RunTelemetry{Sites: make([]SiteTelemetry, 0, len(sites)), SuggestedSiteRPS: map[Site]int{}}
 
 	all := make([]model.JobPost, 0, input.ResultsWanted)
 	telemetryBySite := make(map[model.Site]SiteTelemetry, len(sites))
@@ -408,7 +408,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	for _, site := range sites {
 		sc, ok := e.scrapers[site]
 		if !ok {
-			st := SiteTelemetry{Site: site, Attempted: false, Success: false, Error: "unsupported site", FailOpenReason: "unsupported_site", StatusCodeCount: map[int]int{}}
+			st := SiteTelemetry{Site: Site(site), Attempted: false, Success: false, Error: "unsupported site", FailOpenReason: "unsupported_site", StatusCodeCount: map[int]int{}}
 			telemetryBySite[site] = st
 			util.Warn("unsupported", map[string]any{"site": site})
 			resultsCh <- siteResult{site: site, st: st, ok: false}
@@ -418,7 +418,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		go func(site model.Site, sc scraper.Scraper) {
 			defer wg.Done()
 			if err := waitForMemoryBudget(ctx, input.MemoryCapMB); err != nil {
-				resultsCh <- siteResult{site: site, st: SiteTelemetry{Site: site, Attempted: false, Success: false, Error: err.Error(), FailOpenReason: "memory_budget_cancelled"}, ok: false}
+				resultsCh <- siteResult{site: site, st: SiteTelemetry{Site: Site(site), Attempted: false, Success: false, Error: err.Error(), FailOpenReason: "memory_budget_cancelled"}, ok: false}
 				return
 			}
 			globalSem <- struct{}{}
@@ -437,7 +437,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 					}
 				}
 				if len(missing) > 0 {
-					st := SiteTelemetry{Site: site, Attempted: false, Success: false, Error: fmt.Sprintf("missing env vars: %s", strings.Join(missing, ", ")), FailOpenReason: "missing_credentials"}
+					st := SiteTelemetry{Site: Site(site), Attempted: false, Success: false, Error: fmt.Sprintf("missing env vars: %s", strings.Join(missing, ", ")), FailOpenReason: "missing_credentials"}
 					allMu.Lock()
 					telemetryBySite[site] = st
 					allMu.Unlock()
@@ -492,7 +492,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				locs = []string{""}
 			}
 
-			st := SiteTelemetry{Site: site, Attempted: true, StatusCodeCount: map[int]int{}}
+			st := SiteTelemetry{Site: Site(site), Attempted: true, StatusCodeCount: map[int]int{}}
 			aggregated := make([]model.JobPost, 0)
 			var lastErr error
 			for _, term := range terms {
@@ -515,7 +515,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 							util.Error("scrape_failed", map[string]any{"site": site, "err": st.Error, "partial": len(aggregated), "term": term, "location": loc})
 						}
 						allMu.Lock()
-						e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], err)
+						e.telemetry.SuggestedSiteRPS[Site(site)] = suggestRPS(input.SiteRPS[site], err)
 						telemetryBySite[site] = st
 						allMu.Unlock()
 						// Continue to next (term, loc) combo — don't break.
@@ -540,7 +540,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				util.Info("scraped", map[string]any{"site": site, "jobs": len(aggregated)})
 			}
 			allMu.Lock()
-			e.telemetry.SuggestedSiteRPS[site] = suggestRPS(input.SiteRPS[site], nil)
+			e.telemetry.SuggestedSiteRPS[Site(site)] = suggestRPS(input.SiteRPS[site], nil)
 			telemetryBySite[site] = st
 			allMu.Unlock()
 			if len(aggregated) > 0 || st.Success {
@@ -911,4 +911,148 @@ func parseSinceDate(s string) (time.Time, error) {
 		return t, nil
 	}
 	return time.Time{}, fmt.Errorf("invalid --since date %q: expected RFC3339 or YYYY-MM-DD", s)
+}
+
+// ── Public API Wrapper ──────────────────────────────────────────
+
+// ScrapeJobs is the public-facing scrape method.
+// It accepts and returns public types so external consumers like JobHunter
+// can use it without importing internal packages.
+func (e *Engine) ScrapeJobs(ctx context.Context, input ScraperInput) ([]JobPost, error) {
+	internalJobs, err := e.Scrape(ctx, scraperInputToModel(input))
+	if err != nil {
+		return nil, err
+	}
+	return jobPostsFromModel(internalJobs), nil
+}
+
+// ── Type Conversions ────────────────────────────────────────────
+
+func scraperInputToModel(in ScraperInput) model.ScraperInput {
+	sites := make([]model.Site, len(in.Sites))
+	for i, s := range in.Sites {
+		sites[i] = model.Site(s)
+	}
+	out := model.ScraperInput{
+		Sites:               sites,
+		SearchTerm:          in.SearchTerm,
+		Location:            in.Location,
+		Country:             model.Country(in.Country),
+		IsRemote:            in.IsRemote,
+		JobType:             model.JobType(in.JobType),
+		EasyApply:           in.EasyApply,
+		ResultsWanted:       in.ResultsWanted,
+		HoursOld:            in.HoursOld,
+		SinceDate:           in.SinceDate,
+		DescriptionFormat:   in.DescriptionFormat,
+		EnforceAnnualSalary: in.EnforceAnnualSalary,
+		EmailsOnly:          in.EmailsOnly,
+		MinScore:            in.MinScore,
+		RemoteOnly:          in.RemoteOnly,
+		VerifyEmail:         in.VerifyEmail,
+		Proxy:               in.Proxy,
+		MemoryCapMB:         in.MemoryCapMB,
+		SearchTerms:         in.SearchTerms,
+		Locations:           in.Locations,
+		MaxRPS:              in.MaxRPS,
+		LogLevel:            in.LogLevel,
+	}
+	if in.SiteSearch != nil {
+		out.SiteSearch = make(map[model.Site][]string, len(in.SiteSearch))
+		for k, v := range in.SiteSearch {
+			out.SiteSearch[model.Site(k)] = v
+		}
+	}
+	if in.SiteLocations != nil {
+		out.SiteLocations = make(map[model.Site][]string, len(in.SiteLocations))
+		for k, v := range in.SiteLocations {
+			out.SiteLocations[model.Site(k)] = v
+		}
+	}
+	if in.SiteResultsWanted != nil {
+		out.SiteResultsWanted = make(map[model.Site]int, len(in.SiteResultsWanted))
+		for k, v := range in.SiteResultsWanted {
+			out.SiteResultsWanted[model.Site(k)] = v
+		}
+	}
+	if in.SiteRPS != nil {
+		out.SiteRPS = make(map[model.Site]int, len(in.SiteRPS))
+		for k, v := range in.SiteRPS {
+			out.SiteRPS[model.Site(k)] = v
+		}
+	}
+	return out
+}
+
+func jobPostsFromModel(in []model.JobPost) []JobPost {
+	out := make([]JobPost, len(in))
+	for i, j := range in {
+		out[i] = jobPostFromModel(j)
+	}
+	return out
+}
+
+func jobPostFromModel(j model.JobPost) JobPost {
+	return JobPost{
+		ID:                 j.ID,
+		Title:              j.Title,
+		CompanyName:        j.CompanyName,
+		CompanyURL:         j.CompanyURL,
+		JobURL:             j.JobURL,
+		JobURLDirect:       j.JobURLDirect,
+		Location:           locationFromModel(j.Location),
+		IsRemote:           j.IsRemote,
+		Description:        j.Description,
+		JobType:            j.JobType,
+		DatePosted:         j.DatePosted,
+		Site:               Site(j.Site),
+		FetchedAt:          j.FetchedAt,
+		Emails:             emailsFromModel(j.Emails),
+		Compensation:       compFromModel(j.Compensation),
+		Seniority:          j.Seniority,
+		Department:         j.Department,
+		Domain:             j.Domain,
+		Industry:           j.Industry,
+		CompanyLogoURL:     j.CompanyLogoURL,
+		ApplyMethod:        j.ApplyMethod,
+		JobLevel:           j.JobLevel,
+		CompanyIndustry:    j.CompanyIndustry,
+		CompanyDescription: j.CompanyDescription,
+		Skills:             j.Skills,
+		ExperienceRange:    j.ExperienceRange,
+		QualityScore:       j.QualityScore,
+	}
+}
+
+func locationFromModel(l model.Location) Location {
+	return Location{
+		City:    l.City,
+		State:   l.State,
+		Country: l.Country,
+	}
+}
+
+func emailsFromModel(in []model.Email) []Email {
+	out := make([]Email, len(in))
+	for i, e := range in {
+		out[i] = Email{
+			Addr:     e.Addr,
+			Verified: e.Verified,
+			Source:   e.Source,
+			Role:     e.Role,
+		}
+	}
+	return out
+}
+
+func compFromModel(c *model.Compensation) *Compensation {
+	if c == nil {
+		return nil
+	}
+	return &Compensation{
+		Interval:  CompensationInterval(c.Interval),
+		MinAmount: c.MinAmount,
+		MaxAmount: c.MaxAmount,
+		Currency:  c.Currency,
+	}
 }
