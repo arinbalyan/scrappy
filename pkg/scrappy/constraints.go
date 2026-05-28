@@ -11,9 +11,20 @@ type ConstraintResult struct {
 	Errors   []string
 }
 
-func EvaluateConstraints(input model.ScraperInput) ConstraintResult {
-	r := ConstraintResult{}
+// EvaluateConstraints checks the input for site-specific constraints and limitations.
+// Accepts public types — for external consumers like JobHunter.
+func EvaluateConstraints(input ScraperInput) ConstraintResult {
+	return evaluateConstraints(scraperInputToModel(input))
+}
+
+// EvaluateConstraintsInternal accepts internal types (used by cmd/scrappy).
+func EvaluateConstraintsInternal(input model.ScraperInput) ConstraintResult {
+	return evaluateConstraints(input)
+}
+
+func evaluateConstraints(input model.ScraperInput) ConstraintResult {
 	hoursOldSupported := map[model.Site]bool{model.SiteIndeed: true, model.SiteLinkedIn: true}
+	r := ConstraintResult{}
 	for _, s := range input.Sites {
 		if input.HoursOld > 0 && !hoursOldSupported[s] {
 			r.Warnings = append(r.Warnings, fmt.Sprintf("hours_old is ignored for site=%s (supported: indeed, linkedin)", s))
@@ -31,9 +42,6 @@ func EvaluateConstraints(input model.ScraperInput) ConstraintResult {
 				r.Warnings = append(r.Warnings, "Indeed supports only one of: hours_old OR job_type/is_remote")
 			}
 		case model.SiteLinkedIn:
-			if input.LinkedInFetchDesc {
-				r.Warnings = append(r.Warnings, "linkedin_fetch_description adds O(n) requests and can trigger rate limits")
-			}
 		}
 	}
 	return r
