@@ -47,7 +47,12 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 	seeds, src := s.resolveSeeds(input)
 	if len(seeds) == 0 {
-		return nil, fmt.Errorf("greenhouse no seeds: set SCRAPPY_GREENHOUSE_SEEDS or pass a company name in --search (e.g. --search 'stripe' resolves to stripe's greenhouse board)")
+		// Without explicit seeds, Greenhouse has no way to search — it
+		// only fetches ALL jobs for known company boards.  Return an
+		// empty result so the engine skips gracefully instead of treating
+		// search terms as board slugs (which would 404 on every query).
+		util.Debug("greenhouse_skip", map[string]any{"reason": "no seeds configured — set SCRAPPY_GREENHOUSE_SEEDS or pass a company name/slug as --search"})
+		return nil, fmt.Errorf("greenhouse no seeds: set SCRAPPY_GREENHOUSE_SEEDS env var (comma-separated company slugs) or pass a company board URL as --search")
 	}
 	util.Debug("greenhouse_seeds", map[string]any{"seeds": seeds, "src": src})
 
@@ -89,6 +94,11 @@ func (s *Scraper) resolveSeeds(input model.ScraperInput) ([]string, seedSource) 
 		return nil, 0
 	}
 
+	// Only treat the search term as a seed if it is a valid Greenhouse URL
+	// or a short slug (2-30 chars, no spaces, no booleans).
+	// This prevents long OR-queries like "AI Engineer OR ML Engineer" from
+	// being blindly slugified into a nonexistent board name.
+
 	if strings.Contains(raw, "greenhouse.io") {
 		u, err := url.Parse(raw)
 		if err == nil {
@@ -102,8 +112,9 @@ func (s *Scraper) resolveSeeds(input model.ScraperInput) ([]string, seedSource) 
 		}
 	}
 
+	// Only accept short slugs (2-30 chars, no operators like OR).
 	slug := cleanGHSSlug(raw)
-	if slug != "" {
+	if slug != "" && len(slug) <= 30 && !strings.Contains(raw, " OR ") && !strings.Contains(raw, " AND ") {
 		return []string{slug}, seedFromSearch
 	}
 	return nil, 0

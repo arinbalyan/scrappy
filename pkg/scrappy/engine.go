@@ -3,6 +3,7 @@ package scrappy
 import (
 	"context"
 	"fmt"
+	"net/url"
 	"os"
 	"runtime"
 	"runtime/metrics"
@@ -820,10 +821,14 @@ func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, ctx
 		}
 	}
 
+	// If we still have no domain, try to extract it from CompanyURL.
+	if job.Domain == "" && job.CompanyURL != "" {
+		if u, err := url.Parse(job.CompanyURL); err == nil && u.Host != "" {
+			job.Domain = u.Host
+		}
+	}
+
 	// Run MX verification on every email.
-	// After this pass, Verified=true means a real MX record was found;
-	// Verified=false means the domain has no MX records, is blocked, or
-	// lookup failed. Consumers can filter with --emails-only or --no-email.
 	if verifier != nil {
 		for i := range job.Emails {
 			if ctx.Err() != nil {
@@ -833,7 +838,6 @@ func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, ctx
 			job.Emails[i].Verified = verified
 		}
 	} else {
-		// No verifier available — mark all as unverified.
 		for i := range job.Emails {
 			job.Emails[i].Verified = false
 		}
