@@ -50,6 +50,8 @@ var (
 	cardRe     = regexp.MustCompile(`data-cy="search-card"`)
 
 	salaryRangeRe = regexp.MustCompile(`\$?([0-9,]+(?:\.\d+)?)\s*[-–to]+\s*\$?([0-9,]+(?:\.\d+)?)`)
+
+	reNextData = regexp.MustCompile(`(?is)<script[^>]*id=["']__NEXT_DATA__["'][^>]*>(.*?)</script>`)
 )
 
 // ---------- Dice REST API JSON types (mirrors dice.types.ts) ----------
@@ -148,6 +150,8 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	// Primary: REST API
 	apiJobs, apiErr := s.scrapeWithAPI(ctx, input, searchTerm, wanted)
 	if apiErr == nil && len(apiJobs) > 0 {
+		// Fetch full descriptions from detail pages to enable email extraction.
+		s.enrichWithFullDescriptions(ctx, apiJobs)
 		if !util.HasMeaningfulJobs(apiJobs) {
 			return nil, fmt.Errorf("dice no parseable jobs")
 		}
@@ -693,6 +697,142 @@ func diceID(id, jobID, url string) string {
 		key = url
 	}
 	return "dice-" + util.HashID(key)
+}
+
+// enrichWithFullDescriptions fetches full job descriptions from Dice detail pages
+// for jobs whose Summary text is too short to contain email addresses.
+// This is the key to making email extraction work on Dice.
+func (s *Scraper) enrichWithFullDescriptions(ctx context.Context, jobs []model.JobPost) {
+	const minDescLen = 100     // skip detail fetch if summary is already this long
+	const maxFetches = 10      // cap detail page fetches to limit latency
+	fetched := 0
+	for i := range jobs {
+		if ctx.Err() != nil {
+			return
+		}
+		if len(jobs[i].Description) >= minDescLen {
+			continue
+		}
+		if jobs[i].JobURL == "" {
+			continue
+		}
+		if fetched >= maxFetches {
+			break
+		}
+		fetched++
+		desc := s.fetchDetailDescription(ctx, jobs[i].JobURL)
+		if desc != "" {
+			jobs[i].Description = util.StripHTML(desc)
+		}
+	}
+	if fetched > 0 {
+		util.Debug("dice_detail_fetched", map[string]any{"count": fetched, "total_jobs": len(jobs)})
+	}
+}
+
+// fetchDetailDescription fetches a Dice job detail page and extracts the full description.
+func (s *Scraper) fetchDetailDescription(ctx context.Context, jobURL string) string {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, jobURL, nil)
+	if err != nil {
+		return ""
+	}
+	for k, v := range htmlHeaders {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return ""
+	}
+
+	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
+	if err != nil {
+		return ""
+	}
+
+	// Try JSON-LD first (most reliable)
+	jsonldPosts := util.ExtractJobPostingsJSONLD(body)
+	if len(jsonldPosts) > 0 && strings.TrimSpace(jsonldPosts[0].Description) != "" {
+		return jsonldPosts[0].Description
+	}
+
+	// Fallback: extract from __NEXT_DATA__ (Next.js SSR)
+	if desc := extractDescriptionFromNextData(body); desc != "" {
+		return desc
+	}
+
+	// Final fallback: extract from HTML meta description or visible content
+	if desc := extractDescriptionFromHTML(body); desc != "" {
+		return desc
+	}
+
+	return ""
+}
+
+// extractDescriptionFromNextData parses Dice's Next.js __NEXT_DATA__ script tag
+// to extract the full job description.
+func extractDescriptionFromNextData(body []byte) string {
+	m := reNextData.FindSubmatch(body)
+	if len(m) < 2 {
+		return ""
+	}
+	var parsed struct {
+		Props struct {
+			PageProps struct {
+				Job struct {
+					Description string `json:"description"`
+					Body        string `json:"body"`
+					Summary     string `json:"summary"`
+				} `json:"job"`
+			} `json:"pageProps"`
+		} `json:"props"`
+	}
+	if err := json.Unmarshal(m[1], &parsed); err != nil {
+		return ""
+	}
+	if v := strings.TrimSpace(parsed.Props.PageProps.Job.Description); v != "" && len(v) > 50 {
+		return v
+	}
+	if v := strings.TrimSpace(parsed.Props.PageProps.Job.Body); v != "" && len(v) > 50 {
+		return v
+	}
+	if v := strings.TrimSpace(parsed.Props.PageProps.Job.Summary); v != "" && len(v) > 100 {
+		return v
+	}
+	return ""
+}
+
+// extractDescriptionFromHTML is a regex-based fallback that looks for
+// description-like content in the Dice detail page HTML.
+func extractDescriptionFromHTML(body []byte) string {
+	s := string(body)
+
+	// Dice often uses a <div> with data-testid or aria-label containing description
+	patterns := []*regexp.Regexp{
+		regexp.MustCompile(`(?is)<div[^>]*(?:data-testid|aria-label)[^>]*job-description[^>]*>\s*<p>(.*?)</p>`),
+		regexp.MustCompile(`(?is)<div[^>]*(?:data-testid|aria-label)[^>]*(?:description|Description)[^>]*>(.*?)</div>`),
+		regexp.MustCompile(`(?is)<section[^>]*(?:description|Description)[^>]*>(.*?)</section>`),
+		// Meta description fallback
+		regexp.MustCompile(`(?is)<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']`),
+	}
+
+	for _, re := range patterns {
+		if m := re.FindStringSubmatch(s); len(m) > 1 {
+			v := strings.TrimSpace(m[1])
+			if len(v) > 50 {
+				tagRe := regexp.MustCompile(`<[^>]+>`)
+				v = tagRe.ReplaceAllString(v, " ")
+				v = strings.Join(strings.Fields(v), " ")
+				return v
+			}
+		}
+	}
+	return ""
 }
 
 
