@@ -612,7 +612,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 					})
 				}
 			}
-			enrichJobEmails(&jobs[i], mxVerifier, companyEnricher, ctx)
+			enrichJobEmails(&jobs[i], mxVerifier, companyEnricher, ctx, input.VerifyConcurrency)
 			if input.EnforceAnnualSalary {
 				jobs[i].Compensation = normalize.AnnualizeCompensation(jobs[i].Compensation)
 			}
@@ -834,7 +834,7 @@ func classifyFailOpenReason(err error) string {
 	}
 }
 
-func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, enricher *internalemail.CompanyPageEnricher, ctx context.Context) {
+func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, enricher *internalemail.CompanyPageEnricher, ctx context.Context, verifyConcurrency int) {
 	// Start by deduplicating any emails already set by the scraper or from HTML extraction.
 	job.Emails = dedupEmails(job.Emails)
 
@@ -889,15 +889,30 @@ func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, enr
 		}
 	}
 
-	// Run MX verification on every email.
+	// Run MX verification on every email with bounded concurrency.
 	if verifier != nil {
+		if verifyConcurrency <= 0 {
+			verifyConcurrency = 5 // default
+		}
+		sem := make(chan struct{}, verifyConcurrency)
+		var mu sync.Mutex
+		var wg sync.WaitGroup
 		for i := range job.Emails {
 			if ctx.Err() != nil {
 				return
 			}
-			verified, _ := verifier.VerifyEmail(ctx, job.Emails[i].Addr)
-			job.Emails[i].Verified = verified
+			wg.Add(1)
+			sem <- struct{}{}
+			go func(idx int) {
+				defer wg.Done()
+				defer func() { <-sem }()
+				verified, _ := verifier.VerifyEmail(ctx, job.Emails[idx].Addr)
+				mu.Lock()
+				job.Emails[idx].Verified = verified
+				mu.Unlock()
+			}(i)
 		}
+		wg.Wait()
 	} else {
 		for i := range job.Emails {
 			job.Emails[i].Verified = false
@@ -1015,6 +1030,7 @@ func scraperInputToModel(in ScraperInput) model.ScraperInput {
 		MinScore:            in.MinScore,
 		RemoteOnly:          in.RemoteOnly,
 		VerifyEmail:         in.VerifyEmail,
+		VerifyConcurrency:   in.VerifyConcurrency,
 		Proxy:               in.Proxy,
 		MemoryCapMB:         in.MemoryCapMB,
 		SearchTerms:         in.SearchTerms,
