@@ -566,6 +566,14 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	}
 
 	mxVerifier := internalemail.NewMXVerifier()
+	// Create company-page enricher for jobs that have a CompanyURL set.
+	// This fetches the company website and runs email extraction + MX verification
+	// on the page content, finding emails not present in job descriptions.
+	companyEnricher := internalemail.NewCompanyPageEnricher(
+		util.NewHTTPClient(util.ClientOptions{Retries: 1, Timeout: 10 * time.Second}),
+		3, // concurrency
+		0, // no pause between fetches
+	)
 	seenGlobal := make(map[string]struct{})
 	for res := range resultsCh {
 		if !res.ok {
@@ -574,12 +582,37 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		jobs := res.jobs
 		for i := range jobs {
 			normalizeJobPost(&jobs[i])
+			// Save raw HTML before stripping — ExtractFromHTML needs it for mailto: links.
+			rawHTML := jobs[i].Description
+			rawCompHTML := jobs[i].CompanyDescription
 			jobs[i].Description = util.StripHTML(jobs[i].Description)
 			jobs[i].CompanyDescription = util.StripHTML(jobs[i].CompanyDescription)
 			jobs[i].Site = string(res.site)
 			now := time.Now()
 			jobs[i].FetchedAt = &now
-			enrichJobEmails(&jobs[i], mxVerifier, ctx)
+			// Run ExtractFromHTML on raw HTML BEFORE it gets stripped — this captures
+			// mailto: hrefs that would be destroyed by StripHTML.
+			if rawHTML != "" {
+				htmlEmails := internalemail.ExtractFromHTML(rawHTML)
+				for _, e := range htmlEmails {
+					jobs[i].Emails = append(jobs[i].Emails, model.Email{
+						Addr:   e.Addr,
+						Source: "description",
+						Role:   e.Role,
+					})
+				}
+			}
+			if rawCompHTML != "" {
+				htmlEmails := internalemail.ExtractFromHTML(rawCompHTML)
+				for _, e := range htmlEmails {
+					jobs[i].Emails = append(jobs[i].Emails, model.Email{
+						Addr:   e.Addr,
+						Source: "company_description",
+						Role:   e.Role,
+					})
+				}
+			}
+			enrichJobEmails(&jobs[i], mxVerifier, companyEnricher, ctx)
 			if input.EnforceAnnualSalary {
 				jobs[i].Compensation = normalize.AnnualizeCompensation(jobs[i].Compensation)
 			}
@@ -801,8 +834,8 @@ func classifyFailOpenReason(err error) string {
 	}
 }
 
-func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, ctx context.Context) {
-	// Start by deduplicating any emails already set by the scraper.
+func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, enricher *internalemail.CompanyPageEnricher, ctx context.Context) {
+	// Start by deduplicating any emails already set by the scraper or from HTML extraction.
 	job.Emails = dedupEmails(job.Emails)
 
 	// Extract emails from description + company description text.
@@ -830,6 +863,29 @@ func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, ctx
 	if job.Domain == "" && job.CompanyURL != "" {
 		if u, err := url.Parse(job.CompanyURL); err == nil && u.Host != "" {
 			job.Domain = u.Host
+		}
+	}
+
+	// Company-page enrichment: if the job has a CompanyURL and at least one domain,
+	// fetch the company page and extract emails from it. This catches emails that
+	// are on the company's careers/contact page but not in the job description.
+	if enricher != nil && job.CompanyURL != "" && ctx.Err() == nil {
+		companyEmails, err := enricher.Enrich(ctx, job.CompanyURL)
+		if err == nil && len(companyEmails) > 0 {
+			for _, e := range companyEmails {
+				job.Emails = append(job.Emails, model.Email{
+					Addr:   e.Addr,
+					Source: "company_page",
+					Role:   e.Role,
+				})
+			}
+			job.Emails = dedupEmails(job.Emails)
+			// Re-derive Domain if we now have richer email data.
+			if len(job.Emails) > 0 {
+				if d := internalemail.DomainFrom(job.Emails[0].Addr); d != "" {
+					job.Domain = d
+				}
+			}
 		}
 	}
 
