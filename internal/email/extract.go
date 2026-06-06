@@ -19,11 +19,36 @@ import (
 
 const RoleEmailSource = "description"
 
+// validTLDs contains the most common real-world TLDs.  Used by strictlyValidEmail
+// to reject regex false-positives where trailing word characters are appended to
+// a valid domain (e.g. "support@mercor.comps" or "user@jerry.aithe").
+var validTLDs = map[string]bool{
+	"com": true, "org": true, "net": true, "edu": true, "gov": true, "mil": true,
+	"io": true, "ai": true, "app": true, "dev": true, "tech": true, "co": true,
+	"uk": true, "de": true, "fr": true, "es": true, "it": true, "nl": true,
+	"ca": true, "au": true, "in": true, "jp": true, "cn": true, "br": true,
+	"ru": true, "kr": true, "ch": true, "se": true, "no": true, "dk": true,
+	"fi": true, "pl": true, "be": true, "at": true, "ie": true, "nz": true,
+	"za": true, "mx": true, "sg": true, "hk": true, "il": true, "pt": true,
+	"gr": true, "cz": true, "hu": true, "ro": true, "ua": true, "tr": true,
+	"my": true, "ph": true, "th": true, "vn": true, "eg": true, "ng": true,
+	"ar": true, "cl": true,
+	// Common new-gTLDs used by companies.
+	"blog": true, "shop": true, "store": true, "online": true, "website": true,
+	"site": true, "cloud": true, "digital": true, "software": true, "studio": true,
+	"design": true, "agency": true, "careers": true, "jobs": true, "work": true,
+	"email": true, "mail": true, "company": true, "enterprises": true,
+	"fm": true, "ly": true, "me": true, "tv": true, "xxx": true,
+}
+
 // ─── Patterns ─────────────────────────────────────────────────────────────────
 
 var (
-	// mailRegex matches standard email-like strings.
-	mailRegex = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+(?:---[a-zA-Z0-9._%+\-]+)*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}`)
+	// mailRegex matches standard email-like strings with word boundaries
+	// to prevent trailing word chars from being appended to the domain
+	// (e.g. "support@mercor.comps" won't match because there's no word
+	// boundary before the next word).
+	mailRegex = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+(?:---[a-zA-Z0-9._%+\-]+)*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b`)
 
 	// obfuscatedRegex matches common obfuscation patterns used in job postings:
 	//   name [at] domain [dot] com
@@ -128,6 +153,20 @@ func strictlyValidEmail(addr string) bool {
 	}
 	// Domain part max length.
 	if len(domain) > 255 {
+		return false
+	}
+	// Validate TLD (last segment of domain) against known TLDs.
+	// This catches regex false-positives where trailing word characters
+	// are appended to the domain (e.g. "support@mercor.comps" where
+	// "comps" is not a real TLD, or "user@jerry.aithe" where "aithe"
+	// is not a real TLD).
+	lastDot := strings.LastIndex(domain, ".")
+	if lastDot < 0 || lastDot >= len(domain)-1 {
+		return false
+	}
+	tld := domain[lastDot+1:]
+	tld = strings.ToLower(tld)
+	if !validTLDs[tld] {
 		return false
 	}
 	return true
