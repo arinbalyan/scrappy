@@ -2,6 +2,7 @@ package util
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
 	"net"
 	"net/http"
@@ -113,6 +114,7 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	var lastErr error
+	var saw429 bool
 	for i := 0; i < attempts; i++ {
 		s.maybeRotateProxy()
 		attemptReq := req.Clone(req.Context())
@@ -122,16 +124,31 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 			s.maybeResetCookies(attemptReq)
 			return resp, nil
 		}
-		if err == nil && resp != nil {
+
+		if err != nil {
+			// Permanent errors (NXDOMAIN, TLS cert failure, etc.) — fail immediately,
+			// because retrying won't help.
+			if isPermanentError(err) {
+				Error("http_roundtrip_failed_permanent", map[string]any{"method": req.Method, "url": req.URL.String(), "err": err.Error()})
+				return nil, fmt.Errorf("permanent: %w", err)
+			}
+			Warn("http_roundtrip_error_retry", map[string]any{"method": req.Method, "url": req.URL.String(), "attempt": i + 1, "err": err.Error()})
+			lastErr = err
+		} else if resp != nil {
+			// Repeated 429 — fail fast after the first retry, the server
+			// is not going to accept us within this batch window.
+			if resp.StatusCode == http.StatusTooManyRequests && saw429 {
+				Error("http_roundtrip_failed_rate_limit", map[string]any{"method": req.Method, "url": req.URL.String(), "status": resp.StatusCode, "attempt": i + 1})
+				resp.Body.Close()
+				return nil, fmt.Errorf("permanent: rate limited (repeated 429)")
+			}
+			if resp.StatusCode == http.StatusTooManyRequests {
+				saw429 = true
+			}
 			if resp.StatusCode >= 400 && resp.StatusCode < 500 {
 				APIMiss("http_client_api_miss", map[string]any{"method": req.Method, "url": req.URL.String(), "status": resp.StatusCode, "attempt": i + 1})
 			}
 			resp.Body.Close()
-		}
-		if err != nil {
-			Warn("http_roundtrip_error_retry", map[string]any{"method": req.Method, "url": req.URL.String(), "attempt": i + 1, "err": err.Error()})
-			lastErr = err
-		} else {
 			Warn("http_roundtrip_status_retry", map[string]any{"method": req.Method, "url": req.URL.String(), "attempt": i + 1, "status": resp.StatusCode})
 			lastErr = errors.New("retryable status")
 		}
@@ -155,6 +172,41 @@ func isRetryableMethod(method string) bool {
 	default:
 		return false
 	}
+}
+
+// isPermanentError returns true for errors that will NOT resolve on retry.
+// These include DNS NXDOMAIN (the domain genuinely does not exist),
+// expired/mismatched TLS certificates, and unreachable networks.
+func isPermanentError(err error) bool {
+	if err == nil {
+		return false
+	}
+	// DNS NXDOMAIN — the domain does not exist at all.
+	var dnsErr *net.DNSError
+	if errors.As(err, &dnsErr) {
+		if dnsErr.IsNotFound || dnsErr.Err == "no such host" || strings.Contains(dnsErr.Err, "NXDOMAIN") {
+			return true
+		}
+		// Non-permanent DNS errors (temporary server failures, timeouts) are transient.
+		if dnsErr.IsTemporary || dnsErr.Timeout() {
+			return false
+		}
+		// Any other DNS error is permanent (e.g. server failure on a domain that exists).
+		return true
+	}
+	// Wrapped *net.OpError (e.g. from TLS handshake, TCP dial).
+	var opErr *net.OpError
+	if errors.As(err, &opErr) {
+		msg := strings.ToLower(opErr.Err.Error())
+		if strings.Contains(msg, "certificate") || strings.Contains(msg, "tls") || strings.Contains(msg, "x509") {
+			return true
+		}
+		// "no route to host", "host unreachable", "network is unreachable"
+		if strings.Contains(msg, "unreachable") || strings.Contains(msg, "no route") {
+			return true
+		}
+	}
+	return false
 }
 
 func isRetryableStatus(code int) bool {

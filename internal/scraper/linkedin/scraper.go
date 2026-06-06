@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -72,7 +73,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	s.warmupOnce.Do(func() { s.warmupError = s.bootstrapSession(ctx) })
 
 	if input.ResultsWanted <= 0 {
-		input.ResultsWanted = 15
+		input.ResultsWanted = math.MaxInt32 // 0 = no limit, paginate until exhausted
 	}
 	if strings.EqualFold(strings.TrimSpace(input.LinkedInStrategy), "rotate") {
 		return s.scrapeRotateStrategy(ctx, input)
@@ -82,7 +83,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 func (s *Scraper) scrapeSinglePass(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	seen := map[string]struct{}{}
-	jobs := make([]model.JobPost, 0, input.ResultsWanted)
+	jobs := make([]model.JobPost, 0, min(input.ResultsWanted, 10000))
 	start := 0
 	if input.Offset > 0 {
 		start = (input.Offset / 10) * 10
