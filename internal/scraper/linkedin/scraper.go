@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"math"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -72,7 +73,7 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	s.warmupOnce.Do(func() { s.warmupError = s.bootstrapSession(ctx) })
 
 	if input.ResultsWanted <= 0 {
-		input.ResultsWanted = 15
+		input.ResultsWanted = math.MaxInt32 // 0 = no limit, paginate until exhausted
 	}
 	if strings.EqualFold(strings.TrimSpace(input.LinkedInStrategy), "rotate") {
 		return s.scrapeRotateStrategy(ctx, input)
