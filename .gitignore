@@ -48,3 +48,4 @@ go.work
 scripts/node_modules/
 scripts/site-check.sh
 testruns/
+bin/
