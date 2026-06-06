@@ -5,24 +5,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"net/url"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
+	"github.com/arinbalyan/scrappy/internal/scraper/ats"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
 const boardFmt = "https://boards-api.greenhouse.io/v1/boards/%s/jobs"
-
-type seedSource int
-
-const (
-	seedFromEnv seedSource = iota // SCRAPPY_GREENHOUSE_SEEDS
-	seedFromSearch               // SearchTerm: company slug
-	seedFromURL                  // SearchTerm: URL containing board slug
-)
 
 type Scraper struct{ Client *http.Client }
 
@@ -45,16 +36,19 @@ func (s *Scraper) SiteName() model.Site { return model.SiteGreenhouse }
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
 
-	seeds, src := s.resolveSeeds(input)
-	if len(seeds) == 0 {
-		// Without explicit seeds, Greenhouse has no way to search — it
-		// only fetches ALL jobs for known company boards.  Return an
-		// empty result so the engine skips gracefully instead of treating
-		// search terms as board slugs (which would 404 on every query).
-		util.Debug("greenhouse_skip", map[string]any{"reason": "no seeds configured — set SCRAPPY_GREENHOUSE_SEEDS or pass a company name/slug as --search"})
-		return nil, fmt.Errorf("greenhouse no seeds: set SCRAPPY_GREENHOUSE_SEEDS env var (comma-separated company slugs) or pass a company board URL as --search")
+	// Use the shared ATS seed resolution which checks env var → config/company_slugs.yaml.
+	// The config has 145+ greenhouse company seeds (stripe, airbnb, lyft, ...).
+	// We explicitly reject SeedFromSearch to prevent search terms like
+	// "AI Engineer OR ML Engineer" from being used as board slugs.
+	seeds, src, _ := ats.ResolveSeedsWithMeta(input.SearchTerm, "SCRAPPY_GREENHOUSE_SEEDS")
+	if src == ats.SeedFromSearch {
+		seeds = nil
 	}
-	util.Debug("greenhouse_seeds", map[string]any{"seeds": seeds, "src": src})
+	if len(seeds) == 0 {
+		util.Debug("greenhouse_skip", map[string]any{"reason": "no seeds configured — set SCRAPPY_GREENHOUSE_SEEDS or add greenhouse: slugs to config/company_slugs.yaml"})
+		return nil, fmt.Errorf("greenhouse no seeds: set SCRAPPY_GREENHOUSE_SEEDS env var (comma-separated company slugs) or add entries to config/company_slugs.yaml")
+	}
+	util.Debug("greenhouse_seeds", map[string]any{"seeds": seeds, "src": ats.SeedSourceString(src)})
 
 	out := make([]model.JobPost, 0, input.ResultsWanted)
 	seen := map[string]struct{}{}
@@ -84,84 +78,6 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	return out, nil
 }
 
-func (s *Scraper) resolveSeeds(input model.ScraperInput) ([]string, seedSource) {
-	if seeds := parseSeeds(os.Getenv("SCRAPPY_GREENHOUSE_SEEDS")); len(seeds) > 0 {
-		return seeds, seedFromEnv
-	}
-
-	raw := strings.TrimSpace(input.SearchTerm)
-	if raw == "" {
-		return nil, 0
-	}
-
-	// Only treat the search term as a seed if it is a valid Greenhouse URL
-	// or a short slug (2-30 chars, no spaces, no booleans).
-	// This prevents long OR-queries like "AI Engineer OR ML Engineer" from
-	// being blindly slugified into a nonexistent board name.
-
-	if strings.Contains(raw, "greenhouse.io") {
-		u, err := url.Parse(raw)
-		if err == nil {
-			host := u.Hostname()
-			if strings.Contains(host, "greenhouse.io") {
-				slug := extractSlugFromPath(u.Path)
-				if slug != "" {
-					return []string{slug}, seedFromURL
-				}
-			}
-		}
-	}
-
-	// Only accept short slugs (2-30 chars, no operators like OR).
-	slug := cleanGHSSlug(raw)
-	if slug != "" && len(slug) <= 30 && !strings.Contains(raw, " OR ") && !strings.Contains(raw, " AND ") {
-		return []string{slug}, seedFromSearch
-	}
-	return nil, 0
-}
-
-func extractSlugFromPath(path string) string {
-	path = strings.Trim(path, "/")
-	parts := strings.Split(path, "/")
-	for _, p := range parts {
-		if p == "" || p == "v1" || p == "boards" || p == "jobs" {
-			continue
-		}
-		return p
-	}
-	return ""
-}
-
-func cleanGHSSlug(raw string) string {
-	if i := strings.Index(raw, "://"); i >= 0 {
-		raw = raw[i+3:]
-	}
-	if i := strings.IndexAny(raw, "/?#"); i >= 0 {
-		raw = raw[:i]
-	}
-	for _, suffix := range []string{".com", ".io", ".co", ".org", ".ai"} {
-		if strings.HasSuffix(raw, suffix) {
-			raw = strings.TrimSuffix(raw, suffix)
-			break
-		}
-	}
-	if i := strings.LastIndex(raw, "."); i >= 0 {
-		raw = raw[i+1:]
-	}
-	raw = strings.ToLower(raw)
-	var b strings.Builder
-	for _, c := range raw {
-		if (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' {
-			b.WriteRune(c)
-		}
-	}
-	slug := b.String()
-	if len(slug) < 2 {
-		return ""
-	}
-	return slug
-}
-
 func (s *Scraper) fetchBoard(ctx context.Context, boardToken string, input model.ScraperInput) ([]model.JobPost, error) {
 	// Try with ?content=true for full descriptions
 	type ghJob struct {
@@ -169,11 +85,11 @@ func (s *Scraper) fetchBoard(ctx context.Context, boardToken string, input model
 		Title       string `json:"title"`
 		AbsoluteURL string `json:"absolute_url"`
 		UpdatedAt   string `json:"updated_at"`
-		LocationName string `json:"location_name_pretty"`
-		Content     string `json:"content,omitempty"`
-		Departments []struct {
+		Location    *struct {
 			Name string `json:"name"`
-		} `json:"Departments"`
+		} `json:"location"`
+		Content     string `json:"content,omitempty"`
+		Department string `json:"departments,omitempty"`
 	}
 	type ghResponse struct {
 		Jobs []ghJob `json:"jobs"`
@@ -213,12 +129,16 @@ func (s *Scraper) fetchBoard(ctx context.Context, boardToken string, input model
 		if r.Title == "" {
 			continue
 		}
+		loc := model.Location{}
+		if r.Location != nil && strings.TrimSpace(r.Location.Name) != "" {
+			loc = parseLocation(r.Location.Name)
+		}
 		jp := model.JobPost{
 			ID:          fmt.Sprintf("gh-%s-%d", util.NormalizeSlug(boardToken), r.ID),
 			Title:       r.Title,
 			CompanyName: boardToken,
 			JobURL:      r.AbsoluteURL,
-			Location:    model.Location{City: r.LocationName},
+			Location:    loc,
 			Description: r.Content,
 		}
 		if jp.JobURL == "" {
@@ -229,22 +149,31 @@ func (s *Scraper) fetchBoard(ctx context.Context, boardToken string, input model
 				jp.DatePosted = &t
 			}
 		}
-		if len(r.Departments) > 0 {
-			jp.Department = r.Departments[0].Name
+		if r.Department != "" {
+			jp.Department = r.Department
 		}
 		out = append(out, jp)
 	}
 	return out, nil
 }
 
-func parseSeeds(v string) []string {
-	parts := strings.Split(v, ",")
-	out := make([]string, 0, len(parts))
-	for _, p := range parts {
-		p = strings.TrimSpace(p)
-		if p != "" {
-			out = append(out, p)
+// parseLocation splits "City, State Country" into City and State fields.
+func parseLocation(v string) model.Location {
+	parts := strings.SplitN(v, ", ", 2)
+	loc := model.Location{}
+	if len(parts) > 0 {
+		loc.City = strings.TrimSpace(parts[0])
+	}
+	if len(parts) > 1 {
+		rest := strings.TrimSpace(parts[1])
+		// If it looks like "CA" or "California", treat as State
+		if !strings.ContainsAny(rest, " ") || len(rest) <= 3 {
+			loc.State = rest
+		} else {
+			loc.City = v // keep original as city if it's complex
 		}
 	}
-	return out
+	return loc
 }
+
+

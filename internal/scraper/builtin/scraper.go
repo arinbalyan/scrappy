@@ -19,11 +19,18 @@ const defaultBaseURL = "https://builtin.com/jobs"
 
 var (
 	reNextData     = regexp.MustCompile(`(?is)<script[^>]*id=["']__NEXT_DATA__["'][^>]*>(.*?)</script>`)
-	reBuiltinCard  = regexp.MustCompile(`(?is)<(?:article|div)[^>]*(?:job-card|JobCard|job-listing)[^>]*>(.*?)</(?:article|div)>`)
-	reBuiltinTitle = regexp.MustCompile(`(?is)<a[^>]*href=["']([^"']+)["'][^>]*>(.*?)</a>`)
-	reBuiltinComp  = regexp.MustCompile(`(?is)<[^>]*class=["'][^"']*(?:company-name|Company)[^"']*["'][^>]*>(.*?)</[^>]+>`)
-	reBuiltinLoc   = regexp.MustCompile(`(?is)<[^>]*class=["'][^"']*(?:location|job-location)[^"']*["'][^>]*>(.*?)</[^>]+>`)
-	reBuiltinSal   = regexp.MustCompile(`\$?([\d,]+)k?\s*[-–]\s*\$?([\d,]+)k?`)
+	// Old HTML patterns (Next.js + CSS class selectors) -- kept for backward compat
+	reBuiltinCardLegacy  = regexp.MustCompile(`(?is)<(?:article|div)[^>]*(?:job-card|JobCard|job-listing)[^>]*>(.*?)</(?:article|div)>`)
+	reBuiltinTitleLegacy = regexp.MustCompile(`(?is)<a[^>]*href=["']([^"']+)["'][^>]*>(.*?)</a>`)
+	reBuiltinCompLegacy  = regexp.MustCompile(`(?is)<[^>]*class=["'][^"']*(?:company-name|Company)[^"']*["'][^>]*>(.*?)</[^>]+>`)
+	reBuiltinLocLegacy   = regexp.MustCompile(`(?is)<[^>]*class=["'][^"']*(?:location|job-location)[^"']*["'][^>]*>(.*?)</[^>]+>`)
+	// New HTML patterns (Alpine.js + data-id attributes)
+	reBuiltinTitle = regexp.MustCompile(`(?is)<a[^>]*href=["']([^"']+)["'][^>]*data-id=["']job-card-title["'][^>]*>([^<]+)`)
+	reBuiltinComp  = regexp.MustCompile(`(?is)data-id=["']company-title["'][^>]*>\s*<span>([^<]+)</span>`)
+	reBuiltinLoc   = regexp.MustCompile(`(?is)fa-location-dot[^>]*></i>(?:\s*<[^>]*>)*?\s*<span[^>]*class=["'][^"']*font-barlow[^"']*text-gray-04[^"']*["'][^>]*>([^<]+)</span>`)
+	// Salary: match K-suffixed ranges like "155K-170K" (most common on the site).
+	// The leading \$? and trailing [Kk]? provide flexibility for legacy formats.
+	reBuiltinSal = regexp.MustCompile(`\$?([\d,]+)[Kk]\s*[-–]\s*\$?([\d,]+)[Kk]`)
 )
 
 type Scraper struct {
@@ -183,11 +190,89 @@ func parseBuiltinNextData(body []byte) []model.JobPost {
 
 func parseBuiltinHTML(body []byte) []model.JobPost {
 	raw := string(body)
-	cards := reBuiltinCard.FindAllStringSubmatch(raw, -1)
+
+	// Try index-based extraction using the new data-id HTML structure.
+	if jobs := parseBuiltinNew(raw); len(jobs) > 0 {
+		return jobs
+	}
+
+	// Fall back to legacy CSS-class-based patterns (old Next.js version).
+	legacyCards := reBuiltinCardLegacy.FindAllStringSubmatch(raw, -1)
+	if len(legacyCards) == 0 {
+		return nil
+	}
+	return parseBuiltinCardsLegacy(legacyCards)
+}
+
+// parseBuiltinNew extracts jobs from the rebuilt builtin.com HTML which uses
+// Alpine.js and data-id attributes instead of CSS class names.  Since card
+// boundary detection via regex is fragile (nested </div> pairs cause early
+// termination), this function extracts every field globally and aligns them
+// by occurrence index — fields within a single card appear in a stable order.
+func parseBuiltinNew(raw string) []model.JobPost {
+	titleMatches := reBuiltinTitle.FindAllStringSubmatch(raw, -1)
+	if len(titleMatches) == 0 {
+		return nil
+	}
+
+	compMatches := reBuiltinComp.FindAllStringSubmatch(raw, -1)
+	locMatches := reBuiltinLoc.FindAllStringSubmatch(raw, -1)
+
+	out := make([]model.JobPost, 0, len(titleMatches))
+	for i, tm := range titleMatches {
+		href := strings.TrimSpace(tm[1])
+		title := cleanBuiltinText(tm[2])
+		if href == "" || title == "" {
+			continue
+		}
+		jobURL := href
+		if strings.HasPrefix(jobURL, "/") {
+			jobURL = "https://builtin.com" + jobURL
+		}
+
+		company := ""
+		if i < len(compMatches) && len(compMatches[i]) > 1 {
+			company = cleanBuiltinText(compMatches[i][1])
+		}
+
+		loc := ""
+		if i < len(locMatches) && len(locMatches[i]) > 1 {
+			loc = cleanBuiltinText(locMatches[i][1])
+		}
+
+		post := model.JobPost{
+			ID:          fmt.Sprintf("builtin-%d", i+1),
+			Title:       title,
+			CompanyName: fallback(company, "Unknown Employer"),
+			JobURL:      jobURL,
+			Location:    model.Location{City: loc},
+			IsRemote:    strings.Contains(strings.ToLower(loc), "remote"),
+		}
+
+		// Find the first salary match appearing after this job's title in the
+		// HTML document (salary always follows the title within each card).
+		titleEnd := strings.Index(raw, tm[0]) + len(tm[0])
+		if titleEnd > len(tm[0]) && titleEnd < len(raw) {
+			if sm := reBuiltinSal.FindStringSubmatch(raw[titleEnd:]); len(sm) == 3 {
+				min := parseKNumber(sm[1])
+				max := parseKNumber(sm[2])
+				if min > 0 || max > 0 {
+					post.Compensation = &model.Compensation{Interval: model.IntervalYearly, MinAmount: floatPtr(min), MaxAmount: floatPtr(max), Currency: "USD"}
+				}
+			}
+		}
+
+		out = append(out, post)
+	}
+	return out
+}
+
+// parseBuiltinCardsLegacy handles the old Next.js HTML structure.
+func parseBuiltinCardsLegacy(cards [][]string) []model.JobPost {
 	out := make([]model.JobPost, 0, len(cards))
 	for i, c := range cards {
 		chunk := c[1]
-		m := reBuiltinTitle.FindStringSubmatch(chunk)
+		m := reBuiltinTitleLegacy.FindStringSubmatch(chunk)
 		if len(m) < 3 {
 			continue
 		}
@@ -201,11 +286,11 @@ func parseBuiltinHTML(body []byte) []model.JobPost {
 			jobURL = "https://builtin.com" + jobURL
 		}
 		company := ""
-		if cm := reBuiltinComp.FindStringSubmatch(chunk); len(cm) > 1 {
+		if cm := reBuiltinCompLegacy.FindStringSubmatch(chunk); len(cm) > 1 {
 			company = cleanBuiltinText(cm[1])
 		}
 		loc := ""
-		if lm := reBuiltinLoc.FindStringSubmatch(chunk); len(lm) > 1 {
+		if lm := reBuiltinLocLegacy.FindStringSubmatch(chunk); len(lm) > 1 {
 			loc = cleanBuiltinText(lm[1])
 		}
 		post := model.JobPost{ID: fmt.Sprintf("builtin-%d", i+1), Title: title, CompanyName: fallback(company, "Unknown Employer"), JobURL: jobURL, Location: model.Location{City: loc}, IsRemote: strings.Contains(strings.ToLower(loc), "remote")}
