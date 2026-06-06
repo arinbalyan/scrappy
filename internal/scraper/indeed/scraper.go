@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -110,10 +111,10 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	s.warmupOnce.Do(func() { s.warmupError = s.bootstrapSession(ctx, input.Country) })
 
 	if input.ResultsWanted <= 0 {
-		input.ResultsWanted = 15
+		input.ResultsWanted = math.MaxInt32 // 0 = no limit, paginate until exhausted
 	}
 
-	jobs := make([]model.JobPost, 0, input.ResultsWanted)
+	jobs := make([]model.JobPost, 0, min(input.ResultsWanted, 10000))
 	seen := map[string]struct{}{}
 	var cursor string
 

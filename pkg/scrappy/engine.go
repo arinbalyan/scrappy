@@ -362,7 +362,12 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	}
 	e.telemetry = RunTelemetry{Sites: make([]SiteTelemetry, 0, len(sites)), SuggestedSiteRPS: map[Site]int{}}
 
-	all := make([]model.JobPost, 0, input.ResultsWanted)
+	// Cap initial capacity to avoid OOM when ResultsWanted <= 0 is expanded to MaxInt32
+	initCap := input.ResultsWanted
+	if initCap <= 0 || initCap > 100000 {
+		initCap = 100000 // sane default — grows if needed
+	}
+	all := make([]model.JobPost, 0, initCap)
 	telemetryBySite := make(map[model.Site]SiteTelemetry, len(sites))
 	var allMu sync.Mutex
 	var wg sync.WaitGroup
