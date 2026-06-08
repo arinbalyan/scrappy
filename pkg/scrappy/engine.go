@@ -26,7 +26,6 @@ import (
 	cryptojobslistscraper "github.com/arinbalyan/scrappy/internal/scraper/cryptojobslist"
 
 	devopsjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/devopsjobs"
-	dribbbleScraper "github.com/arinbalyan/scrappy/internal/scraper/dribbble"
 	googlescraper "github.com/arinbalyan/scrappy/internal/scraper/google"
 	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
 	gunioscraper "github.com/arinbalyan/scrappy/internal/scraper/gunio"
@@ -216,7 +215,6 @@ func NewEngine() *Engine {
 		arbeitnowscraper.New(nil),
 		hackernewsscraper.New(nil),
 		cryptocurrencyjobsscraper.New(nil),
-		dribbbleScraper.New(nil),
 		aijobsscraper.New(nil),
 		androidjobsscraper.New(nil),
 		jobicyscraper.New(nil),
@@ -365,7 +363,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	// Cap initial capacity to avoid OOM when ResultsWanted <= 0 is expanded to MaxInt32
 	initCap := input.ResultsWanted
 	if initCap <= 0 || initCap > 100000 {
-		initCap = 100000 // sane default — grows if needed
+		initCap = 100000 // sane default - grows if needed
 	}
 	all := make([]model.JobPost, 0, initCap)
 	telemetryBySite := make(map[model.Site]SiteTelemetry, len(sites))
@@ -404,10 +402,12 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 						"alloc_mb":  allocMB,
 						"cap_mb":    input.MemoryCapMB,
 						"pct":       uint64(allocMB) * 1024 * 1024 * 100 / (uint64(input.MemoryCapMB) * 1024 * 1024),
-						"gc_cycles": 0, // Not directly available via metrics in same call
+						"gc_cycles": readGCCycles(),
 					})
+					// Force GC when above 80% threshold to prevent runaway heap.
+					runtime.GC()
 				}
-			}
+							}
 		}()
 	}
 
@@ -524,7 +524,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 						e.telemetry.SuggestedSiteRPS[Site(site)] = suggestRPS(input.SiteRPS[site], err)
 						telemetryBySite[site] = st
 						allMu.Unlock()
-						// Continue to next (term, loc) combo — don't break.
+						// Continue to next (term, loc) combo - don't break.
 						continue
 					}
 				}
@@ -566,6 +566,14 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	}
 
 	mxVerifier := internalemail.NewMXVerifier()
+	// Create company-page enricher for jobs that have a CompanyURL set.
+	// This fetches the company website and runs email extraction + MX verification
+	// on the page content, finding emails not present in job descriptions.
+	companyEnricher := internalemail.NewCompanyPageEnricher(
+		util.NewHTTPClient(util.ClientOptions{Retries: 1, Timeout: 10 * time.Second}),
+		3, // concurrency
+		0, // no pause between fetches
+	)
 	seenGlobal := make(map[string]struct{})
 	for res := range resultsCh {
 		if !res.ok {
@@ -574,12 +582,37 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		jobs := res.jobs
 		for i := range jobs {
 			normalizeJobPost(&jobs[i])
+			// Save raw HTML before stripping - ExtractFromHTML needs it for mailto: links.
+			rawHTML := jobs[i].Description
+			rawCompHTML := jobs[i].CompanyDescription
 			jobs[i].Description = util.StripHTML(jobs[i].Description)
 			jobs[i].CompanyDescription = util.StripHTML(jobs[i].CompanyDescription)
 			jobs[i].Site = string(res.site)
 			now := time.Now()
 			jobs[i].FetchedAt = &now
-			enrichJobEmails(&jobs[i], mxVerifier, ctx)
+			// Run ExtractFromHTML on raw HTML BEFORE it gets stripped - this captures
+			// mailto: hrefs that would be destroyed by StripHTML.
+			if rawHTML != "" {
+				htmlEmails := internalemail.ExtractFromHTML(rawHTML)
+				for _, e := range htmlEmails {
+					jobs[i].Emails = append(jobs[i].Emails, model.Email{
+						Addr:   e.Addr,
+						Source: "description",
+						Role:   e.Role,
+					})
+				}
+			}
+			if rawCompHTML != "" {
+				htmlEmails := internalemail.ExtractFromHTML(rawCompHTML)
+				for _, e := range htmlEmails {
+					jobs[i].Emails = append(jobs[i].Emails, model.Email{
+						Addr:   e.Addr,
+						Source: "company_description",
+						Role:   e.Role,
+					})
+				}
+			}
+			enrichJobEmails(&jobs[i], mxVerifier, companyEnricher, ctx, input.VerifyConcurrency)
 			if input.EnforceAnnualSalary {
 				jobs[i].Compensation = normalize.AnnualizeCompensation(jobs[i].Compensation)
 			}
@@ -608,6 +641,13 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			}
 			seenGlobal[key] = struct{}{}
 			all = append(all, jobs[i])
+			// Eagerly trim to ResultsWanted to prevent runaway heap growth.
+			// Trim at 2x target so late-arriving higher-quality results can replace
+			// early candidates; GC is forced to reclaim the backing array.
+			if input.ResultsWanted > 0 && len(all) > input.ResultsWanted*2 {
+				all = all[:input.ResultsWanted]
+				runtime.GC()
+			}
 		}
 	}
 
@@ -664,6 +704,14 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	return all, nil
 }
 
+// readGCCycles queries the Go runtime for completed GC cycles.
+func readGCCycles() uint64 {
+	sample := make([]metrics.Sample, 1)
+	sample[0].Name = "/gc/cycles/automatic:gc-cycle"
+	metrics.Read(sample)
+	return sample[0].Value.Uint64()
+}
+
 // waitForMemoryBudget blocks new scrape launches while heap usage is above
 // ~90% of configured memory cap. It resumes once usage drops below ~75%.
 func waitForMemoryBudget(ctx context.Context, capMB int) error {
@@ -692,7 +740,9 @@ func waitForMemoryBudget(ctx context.Context, capMB int) error {
 			warned = true
 		}
 		runtime.GC()
-		if allocBytes <= resume {
+		// Re-read heap usage after GC — the pre-GC value is no longer relevant.
+		allocMB := getHeapAllocMB()
+		if uint64(allocMB)*1024*1024 <= resume {
 			return nil
 		}
 		if err := util.SleepWithContext(ctx, 750*time.Millisecond); err != nil {
@@ -801,8 +851,8 @@ func classifyFailOpenReason(err error) string {
 	}
 }
 
-func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, ctx context.Context) {
-	// Start by deduplicating any emails already set by the scraper.
+func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, enricher *internalemail.CompanyPageEnricher, ctx context.Context, verifyConcurrency int) {
+	// Start by deduplicating any emails already set by the scraper or from HTML extraction.
 	job.Emails = dedupEmails(job.Emails)
 
 	// Extract emails from description + company description text.
@@ -833,15 +883,53 @@ func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, ctx
 		}
 	}
 
-	// Run MX verification on every email.
+	// Company-page enrichment: if the job has a CompanyURL and at least one domain,
+	// fetch the company page and extract emails from it. This catches emails that
+	// are on the company's careers/contact page but not in the job description.
+	if enricher != nil && job.CompanyURL != "" && ctx.Err() == nil {
+		companyEmails, err := enricher.Enrich(ctx, job.CompanyURL)
+		if err == nil && len(companyEmails) > 0 {
+			for _, e := range companyEmails {
+				job.Emails = append(job.Emails, model.Email{
+					Addr:   e.Addr,
+					Source: "company_page",
+					Role:   e.Role,
+				})
+			}
+			job.Emails = dedupEmails(job.Emails)
+			// Re-derive Domain if we now have richer email data.
+			if len(job.Emails) > 0 {
+				if d := internalemail.DomainFrom(job.Emails[0].Addr); d != "" {
+					job.Domain = d
+				}
+			}
+		}
+	}
+
+	// Run MX verification on every email with bounded concurrency.
 	if verifier != nil {
+		if verifyConcurrency <= 0 {
+			verifyConcurrency = 5 // default
+		}
+		sem := make(chan struct{}, verifyConcurrency)
+		var mu sync.Mutex
+		var wg sync.WaitGroup
 		for i := range job.Emails {
 			if ctx.Err() != nil {
 				return
 			}
-			verified, _ := verifier.VerifyEmail(ctx, job.Emails[i].Addr)
-			job.Emails[i].Verified = verified
+			wg.Add(1)
+			sem <- struct{}{}
+			go func(idx int) {
+				defer wg.Done()
+				defer func() { <-sem }()
+				verified, _ := verifier.VerifyEmail(ctx, job.Emails[idx].Addr)
+				mu.Lock()
+				job.Emails[idx].Verified = verified
+				mu.Unlock()
+			}(i)
 		}
+		wg.Wait()
 	} else {
 		for i := range job.Emails {
 			job.Emails[i].Verified = false
@@ -959,6 +1047,7 @@ func scraperInputToModel(in ScraperInput) model.ScraperInput {
 		MinScore:            in.MinScore,
 		RemoteOnly:          in.RemoteOnly,
 		VerifyEmail:         in.VerifyEmail,
+		VerifyConcurrency:   in.VerifyConcurrency,
 		Proxy:               in.Proxy,
 		MemoryCapMB:         in.MemoryCapMB,
 		SearchTerms:         in.SearchTerms,

@@ -252,11 +252,9 @@ sites:
     location: Remote
   jobspresso:
     search:
-    - ai engineer
-    - machine learning
-    - ai developer
-    - llm engineer
-    - gtm engineer
+    - '"Software Engineer" OR "Full Stack" OR "Backend" OR "Frontend"'
+    - '"DevOps" OR "SRE" OR "Data Engineer" OR "ML Engineer"'
+    - '"Product Manager" OR "Designer" OR "Developer" OR "Engineer"'
     location: Remote
   hackernews:
     search:
@@ -342,10 +340,6 @@ sites:
     - llm engineer
     - gtm engineer
     location: Remote
-  dribbble:
-    search:
-    - '"AI Engineer" OR "Machine Learning Engineer" OR "AI Developer" OR "LLM Engineer"'
-    - '"GTM Engineer" OR "AI Automation Engineer"'
   internshala:
     search:
     - ai engineer
