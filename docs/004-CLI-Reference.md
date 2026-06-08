@@ -101,7 +101,7 @@ remoteok          remotive          remotefirstjobs   jobspresso
 hasjob            vuejobs           larajobs          arbeitnow
 arbeitsagentur    hackernews        cryptocurrencyjobs androidjobs
 jobicy            devopsjobs        crunchboard       cryptojobslist
-dribbble          aijobs            workingnomads     ycjobs
+aijobs            workingnomads     ycjobs
 ukvisajobs        google            adzuna
 simplyhired       careerbuilder     careerjet
 dice              monster           infojobs          reed

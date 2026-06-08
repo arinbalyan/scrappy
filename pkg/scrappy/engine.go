@@ -26,7 +26,6 @@ import (
 	cryptojobslistscraper "github.com/arinbalyan/scrappy/internal/scraper/cryptojobslist"
 
 	devopsjobsscraper "github.com/arinbalyan/scrappy/internal/scraper/devopsjobs"
-	dribbbleScraper "github.com/arinbalyan/scrappy/internal/scraper/dribbble"
 	googlescraper "github.com/arinbalyan/scrappy/internal/scraper/google"
 	greenhousescraper "github.com/arinbalyan/scrappy/internal/scraper/greenhouse"
 	gunioscraper "github.com/arinbalyan/scrappy/internal/scraper/gunio"
@@ -216,7 +215,6 @@ func NewEngine() *Engine {
 		arbeitnowscraper.New(nil),
 		hackernewsscraper.New(nil),
 		cryptocurrencyjobsscraper.New(nil),
-		dribbbleScraper.New(nil),
 		aijobsscraper.New(nil),
 		androidjobsscraper.New(nil),
 		jobicyscraper.New(nil),
@@ -365,7 +363,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	// Cap initial capacity to avoid OOM when ResultsWanted <= 0 is expanded to MaxInt32
 	initCap := input.ResultsWanted
 	if initCap <= 0 || initCap > 100000 {
-		initCap = 100000 // sane default — grows if needed
+		initCap = 100000 // sane default - grows if needed
 	}
 	all := make([]model.JobPost, 0, initCap)
 	telemetryBySite := make(map[model.Site]SiteTelemetry, len(sites))
@@ -404,10 +402,12 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 						"alloc_mb":  allocMB,
 						"cap_mb":    input.MemoryCapMB,
 						"pct":       uint64(allocMB) * 1024 * 1024 * 100 / (uint64(input.MemoryCapMB) * 1024 * 1024),
-						"gc_cycles": 0, // Not directly available via metrics in same call
+						"gc_cycles": readGCCycles(),
 					})
+					// Force GC when above 80% threshold to prevent runaway heap.
+					runtime.GC()
 				}
-			}
+							}
 		}()
 	}
 
@@ -524,7 +524,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 						e.telemetry.SuggestedSiteRPS[Site(site)] = suggestRPS(input.SiteRPS[site], err)
 						telemetryBySite[site] = st
 						allMu.Unlock()
-						// Continue to next (term, loc) combo — don't break.
+						// Continue to next (term, loc) combo - don't break.
 						continue
 					}
 				}
@@ -582,7 +582,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		jobs := res.jobs
 		for i := range jobs {
 			normalizeJobPost(&jobs[i])
-			// Save raw HTML before stripping — ExtractFromHTML needs it for mailto: links.
+			// Save raw HTML before stripping - ExtractFromHTML needs it for mailto: links.
 			rawHTML := jobs[i].Description
 			rawCompHTML := jobs[i].CompanyDescription
 			jobs[i].Description = util.StripHTML(jobs[i].Description)
@@ -590,7 +590,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			jobs[i].Site = string(res.site)
 			now := time.Now()
 			jobs[i].FetchedAt = &now
-			// Run ExtractFromHTML on raw HTML BEFORE it gets stripped — this captures
+			// Run ExtractFromHTML on raw HTML BEFORE it gets stripped - this captures
 			// mailto: hrefs that would be destroyed by StripHTML.
 			if rawHTML != "" {
 				htmlEmails := internalemail.ExtractFromHTML(rawHTML)
@@ -641,6 +641,13 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			}
 			seenGlobal[key] = struct{}{}
 			all = append(all, jobs[i])
+			// Eagerly trim to ResultsWanted to prevent runaway heap growth.
+			// Trim at 2x target so late-arriving higher-quality results can replace
+			// early candidates; GC is forced to reclaim the backing array.
+			if input.ResultsWanted > 0 && len(all) > input.ResultsWanted*2 {
+				all = all[:input.ResultsWanted]
+				runtime.GC()
+			}
 		}
 	}
 
@@ -697,6 +704,14 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	return all, nil
 }
 
+// readGCCycles queries the Go runtime for completed GC cycles.
+func readGCCycles() uint64 {
+	sample := make([]metrics.Sample, 1)
+	sample[0].Name = "/gc/cycles/automatic:gc-cycle"
+	metrics.Read(sample)
+	return sample[0].Value.Uint64()
+}
+
 // waitForMemoryBudget blocks new scrape launches while heap usage is above
 // ~90% of configured memory cap. It resumes once usage drops below ~75%.
 func waitForMemoryBudget(ctx context.Context, capMB int) error {
@@ -725,7 +740,9 @@ func waitForMemoryBudget(ctx context.Context, capMB int) error {
 			warned = true
 		}
 		runtime.GC()
-		if allocBytes <= resume {
+		// Re-read heap usage after GC — the pre-GC value is no longer relevant.
+		allocMB := getHeapAllocMB()
+		if uint64(allocMB)*1024*1024 <= resume {
 			return nil
 		}
 		if err := util.SleepWithContext(ctx, 750*time.Millisecond); err != nil {

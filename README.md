@@ -136,7 +136,7 @@ Per-site notes live in [docs/012-Scraping.md](docs/012-Scraping.md) and detailed
 | `ats-jobylon` | `devopsjobs` | `jobindex` | `vuejobs` |
 | `ats-joincom` | `dice` | `jobsacuk` | `web3career` |
 | `ats-loxo` | `djinni` | `jobsch` | `wellfound` |
-| `ats-manatal` | `dribbble` | `jobsdb` | `weworkremotely` |
+| `ats-manatal` | `jobicy` | `jobsdb` | `weworkremotely` |
 | `ats-mercor` | `drupaljobs` | `jobsinjapan` | `wordpressjobs` |
 | `ats-oracle` | `duunitori` | `jobspresso` | `workingnomads` |
 | `ats-personio` | `ecojobs` | `jobstreet` | `wuzzuf` |

@@ -98,7 +98,7 @@ SITES (55 total)
   vuejobs, larajobs, arbeitnow, hackernews,
   cryptocurrencyjobs, androidjobs, jobicy, devopsjobs,
   crunchboard, cryptojobslist,
-  dribbble, aijobs, workingnomads,
+  devopsjobs, aijobs, workingnomads,
   ycjobs, ukvisajobs, google, adzuna,
   simplyhired, careerbuilder, careerjet, dice,
   monster, infojobs, reed, themuse, jobsdb,

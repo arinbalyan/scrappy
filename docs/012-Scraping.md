@@ -88,7 +88,6 @@ Scrapers use `util.SleepWithContext(ctx, duration)` for context-aware pauses bet
 | DevOpsJobs | DevOps specific | Offset |
 | Crunchboard | Tech/startup | Offset |
 | CryptoJobsList | Crypto | RSS feed |
-| Dribbble | Design jobs | Offset |
 | AIJobs | AI/ML | Offset |
 | UKVisaJobs | UK visa sponsors | Offset |
 | JobsDB | SE Asia | Offset |
