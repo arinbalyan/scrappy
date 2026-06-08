@@ -276,3 +276,30 @@ func TestMXVerifier_VerifyEmailInvalid(t *testing.T) {
 	assert.False(t, verified)
 	assert.Equal(t, "invalid_format", reason)
 }
+
+func TestExtract_TrailingWordBug(t *testing.T) {
+	tests := []struct {
+		name string
+		text string
+		want int
+	}{
+		{"normal email", "contact us at jobs@company.com", 1},
+		{"trailing word .comps", "apply to support@mercor.comps", 0},
+		{"trailing word .aithe", "email user@jerry.aithe", 0},
+		{"trailing word .aithe no space", "email user@jerry.aithe now", 0},
+		{"normal .ai domain", "contact us@domain.ai", 1},
+		{"normal .io domain", "contact us@domain.io", 1},
+		{"normal .dev domain", "contact us@domain.dev", 1},
+		{"leading dot", ".username@example.com", 0},
+		{"normal .com domain", "reach out to hiring@acme.com today", 1},
+		{"normal multiple emails", "jobs@company.com and hr@company.org", 2},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := email.Extract(tt.text)
+			if len(got) != tt.want {
+				t.Errorf("Extract(%q) = %d emails (want %d). Got: %v", tt.text, len(got), tt.want, got)
+			}
+		})
+	}
+}

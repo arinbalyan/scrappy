@@ -702,12 +702,24 @@ func diceID(id, jobID, url string) string {
 // enrichWithFullDescriptions fetches full job descriptions from Dice detail pages
 // for jobs whose Summary text is too short to contain email addresses.
 // This is the key to making email extraction work on Dice.
+// Uses a shared rate limiter to respect Dice's 3 RPS limit across all detail fetches.
 func (s *Scraper) enrichWithFullDescriptions(ctx context.Context, jobs []model.JobPost) {
-	const minDescLen = 100     // skip detail fetch if summary is already this long
-	const maxFetches = 10      // cap detail page fetches to limit latency
+	const minDescLen = 100 // skip detail fetch if summary is already this long
+	// Cap detail page fetches proportional to total jobs (up to 50% of all jobs)
+	maxFetches := len(jobs) / 2
+	if maxFetches < 1 {
+		maxFetches = 1
+	}
+	if maxFetches > 20 {
+		maxFetches = 20
+	}
 	fetched := 0
+	// Share the same 333ms rate limiter used by scrapeWithAPI to avoid triggering Dice's rate limiting.
+	rateLimiter := time.NewTicker(333 * time.Millisecond)
+	defer rateLimiter.Stop()
 	for i := range jobs {
 		if ctx.Err() != nil {
+			util.Debug("dice_detail_cancelled", map[string]any{"reason": "context cancelled", "fetched": fetched, "total": len(jobs)})
 			return
 		}
 		if len(jobs[i].Description) >= minDescLen {
@@ -717,20 +729,29 @@ func (s *Scraper) enrichWithFullDescriptions(ctx context.Context, jobs []model.J
 			continue
 		}
 		if fetched >= maxFetches {
+			util.Debug("dice_detail_cap_reached", map[string]any{"fetched": fetched, "max": maxFetches, "total_jobs": len(jobs)})
 			break
 		}
 		fetched++
+		// Rate-limit before fetching detail page.
+		select {
+		case <-ctx.Done():
+			return
+		case <-rateLimiter.C:
+		}
 		desc := s.fetchDetailDescription(ctx, jobs[i].JobURL)
 		if desc != "" {
-			jobs[i].Description = util.StripHTML(desc)
+			jobs[i].Description = desc
 		}
 	}
 	if fetched > 0 {
-		util.Debug("dice_detail_fetched", map[string]any{"count": fetched, "total_jobs": len(jobs)})
+		util.Debug("dice_detail_fetched", map[string]any{"count": fetched, "max": maxFetches, "total_jobs": len(jobs)})
 	}
 }
 
 // fetchDetailDescription fetches a Dice job detail page and extracts the full description.
+// Returns the HTML description (not stripped) so the engine can call ExtractFromHTML
+// on it for mailto: link extraction before StripHTML.
 func (s *Scraper) fetchDetailDescription(ctx context.Context, jobURL string) string {
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, jobURL, nil)
 	if err != nil {
@@ -742,35 +763,44 @@ func (s *Scraper) fetchDetailDescription(ctx context.Context, jobURL string) str
 
 	resp, err := s.client.Do(req)
 	if err != nil {
+		util.Debug("dice_detail_request_err", map[string]any{"url": jobURL, "err": err.Error()})
 		return ""
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		if resp.StatusCode == http.StatusTooManyRequests {
+			util.Debug("dice_detail_rate_limited", map[string]any{"url": jobURL, "status": resp.StatusCode})
+		}
 		return ""
 	}
 
 	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 	if err != nil {
+		util.Debug("dice_detail_read_err", map[string]any{"url": jobURL, "err": err.Error()})
 		return ""
 	}
 
 	// Try JSON-LD first (most reliable)
 	jsonldPosts := util.ExtractJobPostingsJSONLD(body)
 	if len(jsonldPosts) > 0 && strings.TrimSpace(jsonldPosts[0].Description) != "" {
+		util.Debug("dice_detail_source", map[string]any{"url": jobURL, "source": "jsonld"})
 		return jsonldPosts[0].Description
 	}
 
 	// Fallback: extract from __NEXT_DATA__ (Next.js SSR)
 	if desc := extractDescriptionFromNextData(body); desc != "" {
+		util.Debug("dice_detail_source", map[string]any{"url": jobURL, "source": "next_data"})
 		return desc
 	}
 
 	// Final fallback: extract from HTML meta description or visible content
 	if desc := extractDescriptionFromHTML(body); desc != "" {
+		util.Debug("dice_detail_source", map[string]any{"url": jobURL, "source": "html_regex"})
 		return desc
 	}
 
+	util.Debug("dice_detail_no_desc", map[string]any{"url": jobURL})
 	return ""
 }
 

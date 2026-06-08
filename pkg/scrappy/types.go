@@ -71,6 +71,7 @@ type ScraperInput struct {
 	MinScore            int             `json:"min_score"`
 	RemoteOnly          bool            `json:"remote_only"`
 	VerifyEmail         bool            `json:"verify_email"`
+	VerifyConcurrency   int             `json:"verify_concurrency,omitempty"`
 	Proxy               string          `json:"-"`
 	MemoryCapMB         int             `json:"memory_cap_mb,omitempty"`
 	SearchTerms         []string        `json:"search_terms,omitempty"`
