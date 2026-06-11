@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>🕷️ scrappy</h1>
+  <h1>scrappy</h1>
   <p><strong>Bulk job-board scraper for 100+ sites</strong></p>
 
   <p>

@@ -151,7 +151,7 @@ Some sites require API keys to function:
 
 Answer `y` to enter each key interactively. Values are saved to `~/.scrappy/.env` (with `0600` permissions) and loaded automatically on subsequent runs.
 
-> ⚠️ **Security**: Config files (including config.yaml and .env) are saved with `0600` permissions to protect proxy credentials and API keys. Review your config before sharing output or committing to version control.
+> **Security**: Config files (including config.yaml and .env) are saved with `0600` permissions to protect proxy credentials and API keys. Review your config before sharing output or committing to version control.
 
 ## Tips for first use
 
