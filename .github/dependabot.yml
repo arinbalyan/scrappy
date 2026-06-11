@@ -9,6 +9,7 @@ updates:
       time: "09:00"
       timezone: UTC
     open-pull-requests-limit: 10
+    target-branch: dev
     reviewers:
       - arinbalyan
     labels:
@@ -28,6 +29,7 @@ updates:
       time: "09:00"
       timezone: UTC
     open-pull-requests-limit: 5
+    target-branch: dev
     labels:
       - dependencies
       - ci
@@ -40,6 +42,7 @@ updates:
     directory: /
     schedule:
       interval: monthly
+    target-branch: dev
     open-pull-requests-limit: 3
     labels:
       - dependencies
