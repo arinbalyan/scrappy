@@ -1,10 +1,44 @@
+# Git
 .git/
+.gitattributes
 .gitignore
+.gitkeep
+.git-blame-ignore-revs
+
+# GitHub
+.github/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Build
+dist/
 tmp/
-tests/
-docs/
-*.md
-config.yaml
-docker-compose.yml
 testruns/
-scripts/
+
+# Docker
+Dockerfile*
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
+*.test
+*.prof
+*.out
+*.trace
+*.sum
+go.sum
+
+# Environment
+.env
+.env.local
+
+# Documentation
+site/

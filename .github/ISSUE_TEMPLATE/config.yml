@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 Documentation
+    url: https://arinbalyan.github.io/scrappy/
+    about: Read the official documentation before opening an issue
+  - name: 💬 GitHub Discussions
+    url: https://github.com/arinbalyan/scrappy/discussions
+    about: Ask questions, share ideas, and discuss the project
+  - name: 🐛 Bug Report
+    url: https://github.com/arinbalyan/scrappy/issues/new?template=bug_report.md
+    about: Report a bug or unexpected behavior
+  - name: ✨ Feature Request
+    url: https://github.com/arinbalyan/scrappy/issues/new?template=feature_request.md
+    about: Suggest a new feature or improvement
+  - name: 🆕 New Job Board
+    url: https://github.com/arinbalyan/scrappy/issues/new?template=new_board.md
+    about: Request support for a new job board
