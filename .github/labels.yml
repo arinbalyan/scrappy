@@ -1,0 +1,92 @@
+# Repository labels for scrappy
+# Sync with: gh label create --force <name> -c <color> -d "<desc>"
+# Or via: gh label list --json name,color,description > .github/labels.json
+
+- name: bug
+  color: d73a4a
+  description: Something isn't working
+
+- name: critical
+  color: b60205
+  description: Critical issue — urgent attention needed (memory leak, data loss, crash)
+
+- name: documentation
+  color: 0075ca
+  description: Improvements or additions to documentation
+
+- name: duplicate
+  color: cfd3d7
+  description: This issue or pull request already exists
+
+- name: enhancement
+  color: a2eeef
+  description: New feature or request
+
+- name: good first issue
+  color: 7057ff
+  description: Good for newcomers — well-scoped with clear instructions
+
+- name: help wanted
+  color: 008672
+  description: Extra attention is needed — maintainers welcome community help
+
+- name: invalid
+  color: e4e669
+  description: This doesn't seem right
+
+- name: memory
+  color: ff6b6b
+  description: Memory usage, GC, or allocation issues
+
+- name: needs-investigation
+  color: c5def5
+  description: Needs root cause analysis before a fix can be planned
+
+- name: needs-review
+  color: fbca04
+  description: Waiting for maintainer review
+
+- name: performance
+  color: 0e8a16
+  description: Performance, speed, or throughput improvements
+
+- name: question
+  color: d876e3
+  description: Further information is requested
+
+- name: scraper
+  color: 1d76db
+  description: Specific to a job board scraper implementation
+
+- name: blocked
+  color: 000000
+  description: Blocked by another issue or external dependency
+
+- name: stale
+  color: eeeeee
+  description: Inactive issue or PR — will be closed soon
+
+- name: wontfix
+  color: ffffff
+  description: This will not be worked on
+
+# Size labels (auto-managed by PR review workflow)
+- name: 'size: XS'
+  color: C2E0C6
+  description: 'PR size: < 10 changes'
+
+- name: 'size: S'
+  color: C2E0C6
+  description: 'PR size: 10-100 changes'
+
+- name: 'size: M'
+  color: FEF2C0
+  description: 'PR size: 100-500 changes'
+
+- name: 'size: L'
+  color: F9D0C4
+  description: 'PR size: 500-1000 changes'
+
+- name: 'size: XL'
+  color: D93F0B
+  description: 'PR size: > 1000 changes'

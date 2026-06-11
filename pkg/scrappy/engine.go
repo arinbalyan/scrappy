@@ -705,11 +705,19 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 }
 
 // readGCCycles queries the Go runtime for completed GC cycles.
+// Handles both uint64 and float64 return kinds across Go versions.
 func readGCCycles() uint64 {
 	sample := make([]metrics.Sample, 1)
 	sample[0].Name = "/gc/cycles/automatic:gc-cycle"
 	metrics.Read(sample)
-	return sample[0].Value.Uint64()
+	switch sample[0].Value.Kind() {
+	case metrics.KindUint64:
+		return sample[0].Value.Uint64()
+	case metrics.KindFloat64:
+		return uint64(sample[0].Value.Float64())
+	default:
+		return 0
+	}
 }
 
 // waitForMemoryBudget blocks new scrape launches while heap usage is above
