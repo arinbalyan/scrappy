@@ -249,4 +249,4 @@ Maintainers can trigger a manual release by pushing to `main` or using `workflow
 
 ---
 
-*Happy scraping! 🕷️*
+*Happy scraping!*

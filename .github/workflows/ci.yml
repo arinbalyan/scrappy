@@ -10,8 +10,7 @@ on:
     branches: ["**"]
 
 permissions:
-  contents: write
-  pull-requests: read
+  contents: read
 
 jobs:
   build-test-vet:
@@ -61,87 +60,3 @@ jobs:
 
       - name: Gitleaks scan
         run: ./gitleaks detect --source . --verbose --redact
-
-  release:
-    if: github.ref == 'refs/heads/main'
-    needs: [build-test-vet, security-secrets]
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    steps:
-      - name: Checkout with tags
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-          fetch-tags: true
-
-      - name: Setup Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: '1.26.x'
-          cache: true
-
-      - name: Compute next version
-        id: version
-        run: |
-          git fetch --tags origin 2>/dev/null || true
-          LAST=$(git tag --list 'v0.1.*' --sort=-v:refname 2>/dev/null | head -1)
-          if [ -z "$LAST" ]; then
-            echo "tag=v0.1.0" >> $GITHUB_OUTPUT
-            echo "version=0.1.0" >> $GITHUB_OUTPUT
-          else
-            PATCH=$(echo "$LAST" | sed 's/^v0\.1\.//')
-            NEXT=$((PATCH + 1))
-            echo "tag=v0.1.${NEXT}" >> $GITHUB_OUTPUT
-            echo "version=0.1.${NEXT}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Cross-compile binaries
-        run: |
-          mkdir -p dist
-          GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${{ steps.version.outputs.version }}" -o dist/scrappy_linux_amd64 ./cmd/scrappy
-          GOOS=darwin GOARCH=arm64 CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${{ steps.version.outputs.version }}" -o dist/scrappy_darwin_arm64 ./cmd/scrappy
-          GOOS=darwin GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${{ steps.version.outputs.version }}" -o dist/scrappy_darwin_amd64 ./cmd/scrappy
-          GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -ldflags="-s -w -X main.version=${{ steps.version.outputs.version }}" -o dist/scrappy_windows_amd64.exe ./cmd/scrappy
-
-      - name: Package release artifacts
-        run: |
-          cd dist
-          tar czf scrappy_linux_amd64.tar.gz scrappy_linux_amd64
-          tar czf scrappy_darwin_arm64.tar.gz scrappy_darwin_arm64
-          tar czf scrappy_darwin_amd64.tar.gz scrappy_darwin_amd64
-          zip scrappy_windows_amd64.zip scrappy_windows_amd64.exe
-
-      - name: Create tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          TAG="${{ steps.version.outputs.tag }}"
-          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null 2>&1; then
-            echo "Tag ${TAG} already exists — skipping tag creation"
-          else
-            git tag -a "${TAG}" -m "Release ${TAG}"
-            git push origin "${TAG}"
-          fi
-
-      - name: Create or update release
-        uses: ncipollo/release-action@v1
-        with:
-          tag: ${{ steps.version.outputs.tag }}
-          name: "scrappy ${{ steps.version.outputs.tag }}"
-          body: |
-            ## scrappy ${{ steps.version.outputs.version }}
-
-            ### Install
-
-            ```bash
-            curl -fsSL "https://github.com/arinbalyan/scrappy/releases/download/v${{ steps.version.outputs.version }}/scrappy_linux_amd64.tar.gz" | tar xz && sudo mv scrappy_linux_amd64 /usr/local/bin/scrappy
-            ```
-            (See README.md for macOS and Windows install commands.)
-
-            ### Changes
-
-            Auto-generated release from push to main.
-          artifacts: "dist/*.tar.gz,dist/*.zip"
-          makeLatest: true
-          allowUpdates: true
