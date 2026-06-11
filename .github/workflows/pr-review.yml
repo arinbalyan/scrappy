@@ -38,7 +38,7 @@ jobs:
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `## ⚠️ Missing Label\n\nThis PR doesn't have a type label. Please add one of: \`bug\`, \`enhancement\`, \`documentation\`, \`performance\`, \`chore\`, or \`dependencies\`.\n\n<sub>🤖 This check runs automatically when labels change.</sub>`
+                body: `##  Missing Label\n\nThis PR doesn't have a type label. Please add one of: \`bug\`, \`enhancement\`, \`documentation\`, \`performance\`, \`chore\`, or \`dependencies\`.\n\n<sub> This check runs automatically when labels change.</sub>`
               });
               core.setFailed('PR is missing a type label (bug, enhancement, documentation, performance, chore, or dependencies)');
             }
@@ -171,7 +171,7 @@ jobs:
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `## ⚠️ Title Format\n\nThe PR title should follow conventional commits format:\n\n\`feat: ...\`, \`fix: ...\`, \`docs: ...\`, \`perf: ...\`, \`refactor: ...\`, \`chore: ...\`, \`ci: ...\`, \`chore(deps): ...\`, \`ci(deps): ...\`\n\nCurrent title: \`${title}\``
+                body: `##  Title Format\n\nThe PR title should follow conventional commits format:\n\n\`feat: ...\`, \`fix: ...\`, \`docs: ...\`, \`perf: ...\`, \`refactor: ...\`, \`chore: ...\`, \`ci: ...\`, \`chore(deps): ...\`, \`ci(deps): ...\`\n\nCurrent title: \`${title}\``
               });
               core.setFailed('PR title does not follow conventional commits format');
             }
@@ -215,6 +215,6 @@ jobs:
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `## 🔍 TODO / FIXME in this PR\n\nThe diff contains inline TODO/FIXME/HACK markers:\n\n${findings.join('\n')}\n\n<sub>🤖 If these are intentional, you can ignore this message.</sub>`
+                body: `##  TODO / FIXME in this PR\n\nThe diff contains inline TODO/FIXME/HACK markers:\n\n${findings.join('\n')}\n\n<sub> If these are intentional, you can ignore this message.</sub>`
               });
             }
