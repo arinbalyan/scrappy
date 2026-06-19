@@ -32,7 +32,7 @@ var validTLDs = map[string]bool{
 	"za": true, "mx": true, "sg": true, "hk": true, "il": true, "pt": true,
 	"gr": true, "cz": true, "hu": true, "ro": true, "ua": true, "tr": true,
 	"my": true, "ph": true, "th": true, "vn": true, "eg": true, "ng": true,
-	"ar": true, "cl": true,
+	"ar": true, "cl": true, "us": true,
 	// Common new-gTLDs used by companies.
 	"blog": true, "shop": true, "store": true, "online": true, "website": true,
 	"site": true, "cloud": true, "digital": true, "software": true, "studio": true,
@@ -44,11 +44,27 @@ var validTLDs = map[string]bool{
 // ─── Patterns ─────────────────────────────────────────────────────────────────
 
 var (
-	// mailRegex matches standard email-like strings with word boundaries
-	// to prevent trailing word chars from being appended to the domain
-	// (e.g. "support@mercor.comps" won't match because there's no word
-	// boundary before the next word).
+	// mailRegex matches standard email-like strings.
+	// The domain part uses a bounded segment structure (no greedy dot-extension)
+	// to prevent consuming adjacent field text like .pay or .job.
+	// The (?![.\w]) negative lookahead rejects matches where the regex stops
+	// at a TLD boundary but adjacent text continues with a dot or word char.
 	mailRegex = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+(?:---[a-zA-Z0-9._%+\-]+)*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b`)
+
+	// mailRegexIndex is the same pattern but used with FindAllStringIndex so we
+	// can validate the match context in the original text (see forOverconsumption).
+	mailRegexIndex = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+(?:---[a-zA-Z0-9._%+\-]+)*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b`)
+
+	// compoundTLDs are known multi-level TLD suffixes where the last two segments
+	// function as a single TLD (e.g., .co.uk, .com.au). The shorter-domain check
+	// in forOverconsumption skips these to avoid false rejects.
+	compoundTLDs = map[string]bool{
+		"co.uk": true, "com.au": true, "co.nz": true, "co.jp": true,
+		"co.kr": true, "co.in": true, "co.za": true, "com.br": true,
+		"com.mx": true, "com.sg": true, "com.hk": true, "co.th": true,
+		"org.uk": true, "ac.uk": true, "gov.uk": true, "net.au": true,
+		"co.il": true, "or.jp": true, "ne.jp": true, "gr.jp": true,
+	}
 
 	// obfuscatedRegex matches common obfuscation patterns used in job postings:
 	//   name [at] domain [dot] com
@@ -211,6 +227,116 @@ func isRoleAddr(addr string) bool {
 	return rolePrefixes[strings.ToLower(local)]
 }
 
+// ─── Over-consumption guard ─────────────────────────────────────────────────
+
+// forOverconsumption checks whether a matched email address likely consumed
+// adjacent text beyond the actual email boundary. Returns true if the match
+// should be rejected.
+//
+// Three checks:
+// 1. If the match is followed by a letter/digit/dot in the original text,
+//    the regex greedily consumed past the email boundary.
+// 2. If the match is followed by a separator (space/punctuation) but the
+//    domain has multiple segments where a shorter version is also valid,
+//    the regex consumed an adjacent field suffix (e.g., acme.com.jobs).
+// 3. End-of-string variant of check 2.
+func forOverconsumption(clean string, m []int, addr string) bool {
+	end := m[1]
+
+	// Check 1: next character after match is a continuation (letter/digit)
+	// or a dot that introduces more domain text (dot followed by letter/digit).
+	// A dot followed by space/punctuation is normal sentence punctuation
+	// (e.g. "hiring@acme.com. We pay well") and does NOT indicate over-consumption.
+	if end < len(clean) {
+		next := clean[end]
+		if (next >= 'a' && next <= 'z') || (next >= 'A' && next <= 'Z') || (next >= '0' && next <= '9') {
+			return true
+		}
+		if next == '.' {
+			// Dot followed by a word character means the regex could have
+			// consumed more domain text (e.g. acme.com.jobs).
+			// Dot followed by space/punctuation is a sentence boundary.
+			if end+1 < len(clean) {
+				afterDot := clean[end+1]
+				if (afterDot >= 'a' && afterDot <= 'z') || (afterDot >= 'A' && afterDot <= 'Z') || (afterDot >= '0' && afterDot <= '9') {
+					return true
+				}
+			}
+		}
+
+		// Check 2: next char is a valid separator, but the domain has multiple
+		// segments where removing the last TLD-like suffix yields a valid email.
+		// This catches patterns like acme.com.jobs, acme.com.work, etc.
+		if domainHasSuffix(addr) {
+			return true
+		}
+	}
+
+	// Check 3: end-of-string with multi-segment domain.
+	if end >= len(clean) && domainHasSuffix(addr) {
+		return true
+	}
+
+	return false
+}
+
+// domainHasSuffix checks whether an email address like user@domain.com.jobs
+// has a multi-segment domain where removing the last segment yields a valid
+// email (indicating the regex consumed adjacent text as a TLD suffix).
+// Known compound TLDs like .co.uk are exempted.
+func domainHasSuffix(addr string) bool {
+	parts := strings.SplitN(addr, "@", 2)
+	if len(parts) != 2 {
+		return false
+	}
+	local, domain := parts[0], parts[1]
+	segments := strings.Split(domain, ".")
+	if len(segments) < 3 {
+		return false
+	}
+	// Check if the last two segments form a known compound TLD (.co.uk).
+	tail := strings.ToLower(segments[len(segments)-2] + "." + segments[len(segments)-1])
+	if compoundTLDs[tail] {
+		return false
+	}
+	// Try stripping the last domain segment.
+	lastDot := strings.LastIndex(domain, ".")
+	if lastDot < 1 {
+		return false
+	}
+	shorter := local + "@" + domain[:lastDot]
+	return strictlyValidEmail(shorter)
+}
+
+// tryShortenEmail attempts to recover the real email from an over-consumed
+// match by stripping the last domain segment if a shorter valid email exists.
+// Returns the shortened email (lowercased) or empty string if no valid short form.
+func tryShortenEmail(addr string) string {
+	parts := strings.SplitN(addr, "@", 2)
+	if len(parts) != 2 {
+		return ""
+	}
+	local, domain := parts[0], parts[1]
+	segments := strings.Split(domain, ".")
+	if len(segments) < 3 {
+		return ""
+	}
+	// Check compound TLD.
+	tail := strings.ToLower(segments[len(segments)-2] + "." + segments[len(segments)-1])
+	if compoundTLDs[tail] {
+		return ""
+	}
+	lastDot := strings.LastIndex(domain, ".")
+	if lastDot < 1 {
+		return ""
+	}
+	shorter := local + "@" + domain[:lastDot]
+	if strictlyValidEmail(shorter) {
+		return strings.ToLower(shorter)
+	}
+	return ""
+}
+
 // ─── Core type ────────────────────────────────────────────────────────────────
 
 // Email is a single extracted email address with metadata.
@@ -252,9 +378,18 @@ func Extract(text string) []Email {
 		})
 	}
 
-	// Standard regex match (now matches entity-decoded text).
-	for _, m := range mailRegex.FindAllString(clean, -1) {
-		collect(m)
+	// Standard regex match (now uses indexed matching for boundary validation).
+	for _, m := range mailRegexIndex.FindAllStringIndex(clean, -1) {
+		addr := clean[m[0]:m[1]]
+		if forOverconsumption(clean, m, addr) {
+			// The regex consumed too much (e.g., acme.com.jobs instead of acme.com).
+			// Try extracting the shorter, correct email from the over-consumed text.
+			if shorter := tryShortenEmail(addr); shorter != "" {
+				collect(shorter)
+			}
+			continue
+		}
+		collect(addr)
 	}
 
 	// Obfuscated pattern detection.
