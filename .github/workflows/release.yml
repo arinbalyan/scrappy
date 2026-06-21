@@ -1,26 +1,29 @@
 name: Publish Release
 
+# Manual-only release workflow. There is no automatic version bump
+# on push to main; releases are an explicit human decision.
+#
+# Patch bumps (v0.1.x): typically hotfixes / security. The version
+# input is the full semver string the user wants to publish.
+# Minor (v0.X.0) and major (vX.0.0) bumps: triggered manually
+# for each new feature line / breaking release. Never automated.
+#
+# The input is a full semver string (e.g. v0.2.0) and the workflow
+# validates it is strictly greater than the latest existing tag.
+# Any text that does not look like a real semver is rejected.
+
 on:
   workflow_dispatch:
     inputs:
-      version_bump:
-        description: Version bump type
+      version:
+        description: Full semver tag to publish (e.g. v0.2.0, v0.2.0-beta)
         required: true
-        default: patch
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-      prerelease:
-        description: Pre-release tag
+        type: string
+      notes:
+        description: Release notes (markdown, optional)
         required: false
+        type: string
         default: ''
-        type: choice
-        options:
-          - ''
-          - '-beta'
-          - '-rc'
 
 permissions:
   contents: write
@@ -34,6 +37,7 @@ jobs:
     outputs:
       tag: ${{ steps.version.outputs.tag }}
       version: ${{ steps.version.outputs.version }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
 
     steps:
       - name: Checkout with tags
@@ -48,50 +52,66 @@ jobs:
           go-version: '1.26.x'
           cache: true
 
-      - name: Compute next version
+      - name: Validate and compute version
         id: version
         run: |
+          set -euo pipefail
           git fetch --tags origin 2>/dev/null || true
 
-          BUMP="${{ inputs.version_bump }}"
-          PRERELEASE="${{ inputs.prerelease }}"
+          REQUESTED="${{ inputs.version }}"
 
-          # Find the latest stable release tag
-          LAST_STABLE=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname 2>/dev/null | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
-
-          if [ -z "$LAST_STABLE" ]; then
-            MAJOR=0
-            MINOR=1
-            PATCH=0
-          else
-            # Strip 'v' prefix
-            STEM="${LAST_STABLE#v}"
-            MAJOR=$(echo "$STEM" | cut -d. -f1)
-            MINOR=$(echo "$STEM" | cut -d. -f2)
-            PATCH=$(echo "$STEM" | cut -d. -f3)
-
-            case "$BUMP" in
-              major)
-                MAJOR=$((MAJOR + 1))
-                MINOR=0
-                PATCH=0
-                ;;
-              minor)
-                MINOR=$((MINOR + 1))
-                PATCH=0
-                ;;
-              patch)
-                PATCH=$((PATCH + 1))
-                ;;
-            esac
+          # Strict semver check: must start with v, then X.Y.Z, then
+          # an optional -prerelease suffix of letters/digits/hyphens/dots.
+          # Examples accepted: v0.2.0, v1.0.0, v0.2.0-beta, v0.2.0-rc.1
+          # Examples rejected: 0.2.0 (no v), v0.2 (missing patch), v0.2.0x, v0..0
+          if ! echo "${REQUESTED}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$'; then
+            echo "::error::Requested version '${REQUESTED}' is not a valid semver tag (expected vX.Y.Z or vX.Y.Z-prerelease)."
+            exit 1
           fi
 
-          TAG="v${MAJOR}.${MINOR}.${PATCH}${PRERELEASE}"
-          VER="${MAJOR}.${MINOR}.${PATCH}"
+          TAG="${REQUESTED}"
+          VER="${TAG#v}"
+          # Strip prerelease suffix for the X.Y.Z version string.
+          VER_BASE="${VER%%-*}"
+
+          # Refuse if the tag already exists; the user must pick a
+          # higher version or delete the existing tag first.
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "::error::Tag ${TAG} already exists. Pick a higher version or delete the existing tag first."
+            exit 1
+          fi
+
+          # Refuse if the new tag is not strictly greater than the
+          # latest existing tag of the same base (X.Y.Z).
+          LAST_BASE_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname 2>/dev/null \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          if [ -n "${LAST_BASE_TAG}" ]; then
+            LAST_VER="${LAST_BASE_TAG#v}"
+            echo "Comparing requested ${VER_BASE} to latest stable ${LAST_VER}"
+            if [ "${VER_BASE}" = "${LAST_VER}" ]; then
+              # Same X.Y.Z; allow only if the requested is a prerelease of the same
+              # (so v0.2.0-beta after v0.2.0 fails; but v0.3.0-beta after v0.2.0 is fine).
+              echo "::error::Base version ${VER_BASE} equals latest stable ${LAST_VER}. Bump the minor or major instead."
+              exit 1
+            fi
+            # Numeric compare using sort -V (which understands X.Y.Z).
+            if ! printf '%s\n%s\n' "${VER_BASE}" "${LAST_VER}" | sort -V -C; then
+              echo "::error::Requested ${VER_BASE} is not greater than latest stable ${LAST_VER}."
+              exit 1
+            fi
+          fi
+
+          # Determine prerelease vs latest.
+          if echo "${VER}" | grep -q '-'; then
+            IS_PRERELEASE="true"
+          else
+            IS_PRERELEASE="false"
+          fi
 
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "version=${VER}" >> "$GITHUB_OUTPUT"
-          echo "Computed: ${TAG} from last stable ${LAST_STABLE:-none}"
+          echo "is_prerelease=${IS_PRERELEASE}" >> "$GITHUB_OUTPUT"
+          echo "Validated: ${TAG} (is_prerelease=${IS_PRERELEASE})"
 
       - name: Cross-compile binaries
         run: |
@@ -116,14 +136,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           TAG="${{ steps.version.outputs.tag }}"
-          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null 2>&1; then
-            echo "Tag ${TAG} already exists - updating"
-            git tag -fa "${TAG}" -m "Release ${TAG}"
-            git push origin "${TAG}" --force
-          else
-            git tag -a "${TAG}" -m "Release ${TAG}"
-            git push origin "${TAG}"
-          fi
+          git tag -a "${TAG}" -m "Release ${TAG}"
+          git push origin "${TAG}"
 
       - name: Publish release
         uses: ncipollo/release-action@v1
@@ -132,6 +146,8 @@ jobs:
           name: "scrappy ${{ steps.version.outputs.tag }}"
           body: |
             Release ${{ steps.version.outputs.tag }} of scrappy, the bulk job-board scraper for 100+ sites.
+
+            ${{ inputs.notes }}
 
             ## Installation
 
@@ -167,11 +183,7 @@ jobs:
             ### Checksums
 
             See SHA256SUMS.txt in the release assets.
-
-            ## Changes
-
-            See the [Release Drafter](https://github.com/arinbalyan/scrappy/releases) for a full changelog.
           artifacts: "dist/*.tar.gz,dist/*.zip,dist/SHA256SUMS.txt"
-          makeLatest: ${{ inputs.prerelease == '' && 'true' || 'false' }}
+          makeLatest: ${{ steps.version.outputs.is_prerelease == 'false' && 'true' || 'false' }}
           allowUpdates: true
-          prerelease: ${{ inputs.prerelease != '' && 'true' || 'false' }}
+          prerelease: ${{ steps.version.outputs.is_prerelease }}
