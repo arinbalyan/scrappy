@@ -163,7 +163,10 @@ jobs:
             const patterns = [
               /^feat:/, /^fix:/, /^docs:/, /^perf:/, /^refactor:/,
               /^test:/, /^chore:/, /^ci:/, /^style:/, /^revert:/,
-              /^chore\(deps\):/, /^ci\(deps\):/
+              /^chore\(deps\):/, /^ci\(deps\):/,
+              /^feat\([a-z]+\):/, /^fix\([a-z]+\):/, /^docs\([a-z]+\):/,
+              /^perf\([a-z]+\):/, /^refactor\([a-z]+\):/,
+              /^test\([a-z]+\):/, /^chore\([a-z]+\):/, /^ci\([a-z]+\):/
             ];
             const valid = patterns.some(p => p.test(title));
             if (!valid) {
@@ -171,7 +174,7 @@ jobs:
                 issue_number: context.issue.number,
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                body: `##  Title Format\n\nThe PR title should follow conventional commits format:\n\n\`feat: ...\`, \`fix: ...\`, \`docs: ...\`, \`perf: ...\`, \`refactor: ...\`, \`chore: ...\`, \`ci: ...\`, \`chore(deps): ...\`, \`ci(deps): ...\`\n\nCurrent title: \`${title}\``
+                body: `##  Title Format\n\nThe PR title should follow conventional commits format:\n\n\`feat: ...\`, \`feat(scope): ...\`, \`fix: ...\`, \`fix(scope): ...\`, \`docs: ...\`, \`perf: ...\`, \`refactor: ...\`, \`chore: ...\`, \`ci: ...\`, \`chore(deps): ...\`, \`ci(deps): ...\`\n\nCurrent title: \`${title}\``
               });
               core.setFailed('PR title does not follow conventional commits format');
             }
