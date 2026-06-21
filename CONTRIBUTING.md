@@ -72,11 +72,12 @@ Open a [feature request](https://github.com/arinbalyan/scrappy/issues/new?templa
 ### Fixing a Bug or Adding a Feature
 
 1. **Comment on the issue** you want to work on (or open one if none exists) to avoid duplicate effort
-2. **Fork the repo** and branch from `dev`
+2. **Fork the repo** and branch from `main`
 3. **Write the code** following the [conventions below](#code-style--conventions)
 4. **Include tests** — every scraper needs a contract test; every utility needs unit tests
 5. **Run the full test suite** before submitting (`go test ./... && go vet ./...`)
-6. **Open a pull request** against the `dev` branch
+6. **Open a pull request** against the `main` branch
+7. **After merge**, your feature branch is deleted automatically
 
 ---
 
@@ -95,8 +96,8 @@ Open a [feature request](https://github.com/arinbalyan/scrappy/issues/new?templa
 git clone https://github.com/arinbalyan/scrappy.git
 cd scrappy
 
-# Switch to dev branch
-git checkout dev
+# Default branch is main; no need to switch
+git checkout main
 
 # Build
 go build ./cmd/scrappy/
@@ -195,35 +196,41 @@ type Scraper interface {
 
 ## Pull Request Process
 
-1. **Branch from `dev`**, not `main` or `beta`
-2. **Use a descriptive branch name**:
-   - `feat/<name>` — new feature or board
-   - `fix/<name>` — bug fix
-   - `docs/<name>` — documentation
-   - `perf/<name>` — performance improvement
-   - `refactor/<name>` — refactoring
-   - `chore/<name>` — tooling, CI, etc.
+1. **Branch from `main`**, not `dev` or `beta`
+2. **Use a descriptive branch name** (one branch per issue or per logical change):
+   - `feat/<scope>/<short-name>` — new feature (e.g. `feat/email/multi-page-crawl`)
+   - `fix/<scope>/<short-name>` — bug fix
+   - `docs/<scope>/<short-name>` — documentation
+   - `perf/<scope>/<short-name>` — performance improvement
+   - `refactor/<scope>/<short-name>` — refactoring
+   - `chore/<scope>/<short-name>` — tooling, CI, etc.
 3. **Keep PRs focused** — one logical change per PR
 4. **Write a clear title and description** explaining what and why
-5. **Reference related issues** with `Closes #123` or `Relates to #456`
+5. **Reference related issues** with `Closes #123` or `Relates to #456` so the issue auto-closes on merge
 6. **Pass all CI checks** — build, test, race, vet, gitleaks
 7. **Await review** — a maintainer will review and may request changes
-8. **After approval**, a maintainer will merge to `dev`
+8. **After approval**, a maintainer will merge to `main` and the source branch is deleted
 
 ---
 
 ## Branch Strategy
 
 ```
-main  ── production-ready releases (tagged)
-beta  ── pre-release testing
-dev   ── active development (PR target)
+main   ── active development AND releases (PR target, default branch)
+staging ── docs deployment branch (auto-deploys GitHub Pages on push)
+beta    ── frozen (legacy, no longer used for normal flow)
+dev     ── frozen (legacy, kept for historical reference only)
 ```
 
-- Feature branches branch from `dev` and merge back to `dev`
-- `dev` → `beta` merges happen periodically for testing
-- `beta` → `main` merges happen when a release is cut
-- Releases are auto-tagged by CI when pushed to `main`
+- **All PRs target `main`**. Feature branches branch from `main` and merge back to `main`.
+- The feature branch is **deleted on merge** (keep the repo clean).
+- `staging` is used only by the docs deploy workflow (`docs.yml`). Docs source-of-truth lives on `main`; the workflow pushes built HTML to `staging` to trigger GitHub Pages.
+- `dev` and `beta` are kept as frozen historical branches. Do not target them with new PRs.
+- Releases are auto-tagged by CI when a release workflow is triggered on `main`.
+
+### Why this change
+
+Previously the project used a `dev → beta → main` flow, which made sense when releases were infrequent. The current model is simpler: every merge to `main` is shippable, and releases are explicit (via the `Publish Release` workflow). This keeps the dev loop tight and the branch surface small.
 
 ---
 
