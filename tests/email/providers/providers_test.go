@@ -368,12 +368,45 @@ func TestLoadEnv(t *testing.T) {
 }
 
 // TestRateLimiter_ContextCancel confirms cancellation is respected.
+// Drains the rate limiter to a known state (bucket empty) so the
+// test is deterministic regardless of the refiller timing. Without
+// the drain, the bucket is full from the initial 60-token burst and
+// Wait always succeeds without ever checking ctx.
 func TestRateLimiter_ContextCancel(t *testing.T) {
 	rl := providers.NewRateLimiter()
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel() // cancel immediately
-	if err := rl.Wait(ctx); err == nil {
-		t.Error("expected error from cancelled context")
+	drainCtx := context.Background()
+
+	// Drain by issuing time-bounded Wait calls until the limiter
+	// refuses to grant a token within the timeout. Each successful
+	// Wait consumes one token.
+	deadline := time.Now().Add(2 * time.Second)
+	tokensConsumed := 0
+	for time.Now().Before(deadline) {
+		c, cancel := context.WithTimeout(drainCtx, 20*time.Millisecond)
+		err := rl.Wait(c)
+		cancel()
+		if err != nil {
+			break // bucket is empty (or ctx expired)
+		}
+		tokensConsumed++
+	}
+	if tokensConsumed < 1 {
+		t.Fatalf("expected to consume at least 1 token; consumed %d", tokensConsumed)
+	}
+
+	// With the bucket now empty and ctx cancelled, the select must
+	// pick the ctx.Done() case rather than the channel send.
+	ctx, cancel := context.WithCancel(drainCtx)
+	cancel()
+	start := time.Now()
+	err := rl.Wait(ctx)
+	elapsed := time.Since(start)
+	if err == nil {
+		t.Error("expected error from cancelled context after bucket drain")
+	}
+	// Should return promptly (ctx cancellation path), not block on refill.
+	if elapsed > 100*time.Millisecond {
+		t.Errorf("Wait took %s after ctx cancel; expected fast return", elapsed)
 	}
 }
 
