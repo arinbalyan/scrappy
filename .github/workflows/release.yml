@@ -1,29 +1,43 @@
 name: Publish Release
 
-# Manual-only release workflow. There is no automatic version bump
-# on push to main; releases are an explicit human decision.
+# This workflow has two trigger paths:
 #
-# Patch bumps (v0.1.x): typically hotfixes / security. The version
-# input is the full semver string the user wants to publish.
-# Minor (v0.X.0) and major (vX.0.0) bumps: triggered manually
-# for each new feature line / breaking release. Never automated.
+# 1. PUSH to main -> auto-bump the PATCH component only.
+#    e.g. v0.1.27 -> v0.1.28 -> v0.1.29.
+#    Auto-bump is capped at patch = 999. Beyond that, the workflow
+#    fails loudly so a maintainer can decide the next version
+#    manually (typically a minor bump like v0.2.0).
+#    Auto-bump is skipped if no prior release tag exists, forcing a
+#    manual first release.
 #
-# The input is a full semver string (e.g. v0.2.0) and the workflow
-# validates it is strictly greater than the latest existing tag.
-# Any text that does not look like a real semver is rejected.
+# 2. WORKFLOW_DISPATCH -> manual release of any version.
+#    The user types the exact tag (e.g. v0.2.0, v1.0.0, v0.3.0-beta)
+#    and the workflow validates it against the latest tag.
+#    Use this for minor/major bumps and prereleases.
+#
+# Both paths share the same build, package, tag, and release steps.
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       version:
-        description: Full semver tag to publish (e.g. v0.2.0, v0.2.0-beta)
-        required: true
-        type: string
-      notes:
-        description: Release notes (markdown, optional)
+        description: 'Full semver tag to publish (e.g. v0.2.0, v0.2.0-beta, v1.0.0). Required for manual runs.'
         required: false
         type: string
         default: ''
+      notes:
+        description: 'Release notes (markdown, optional)'
+        required: false
+        type: string
+        default: ''
+
+# Skip duplicate runs when pushes happen in quick succession.
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -38,6 +52,7 @@ jobs:
       tag: ${{ steps.version.outputs.tag }}
       version: ${{ steps.version.outputs.version }}
       is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+      bump_source: ${{ steps.version.outputs.bump_source }}
 
     steps:
       - name: Checkout with tags
@@ -52,56 +67,88 @@ jobs:
           go-version: '1.26.x'
           cache: true
 
-      - name: Validate and compute version
+      - name: Compute next version
         id: version
         run: |
           set -euo pipefail
           git fetch --tags origin 2>/dev/null || true
 
+          # ----- Determine which trigger fired and what version to use -----
+
+          TRIGGER="${{ github.event_name }}"
+
+          # Find the latest stable release tag (vX.Y.Z, no prerelease).
+          LAST_STABLE=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname 2>/dev/null \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+          LAST_STABLE_VER="${LAST_STABLE#v}"
+
           REQUESTED="${{ inputs.version }}"
 
-          # Strict semver check: must start with v, then X.Y.Z, then
-          # an optional -prerelease suffix of letters/digits/hyphens/dots.
-          # Examples accepted: v0.2.0, v1.0.0, v0.2.0-beta, v0.2.0-rc.1
-          # Examples rejected: 0.2.0 (no v), v0.2 (missing patch), v0.2.0x, v0..0
-          if ! echo "${REQUESTED}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$'; then
-            echo "::error::Requested version '${REQUESTED}' is not a valid semver tag (expected vX.Y.Z or vX.Y.Z-prerelease)."
-            exit 1
-          fi
-
-          TAG="${REQUESTED}"
-          VER="${TAG#v}"
-          # Strip prerelease suffix for the X.Y.Z version string.
-          VER_BASE="${VER%%-*}"
-
-          # Refuse if the tag already exists; the user must pick a
-          # higher version or delete the existing tag first.
-          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null 2>&1; then
-            echo "::error::Tag ${TAG} already exists. Pick a higher version or delete the existing tag first."
-            exit 1
-          fi
-
-          # Refuse if the new tag is not strictly greater than the
-          # latest existing tag of the same base (X.Y.Z).
-          LAST_BASE_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-v:refname 2>/dev/null \
-            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
-          if [ -n "${LAST_BASE_TAG}" ]; then
-            LAST_VER="${LAST_BASE_TAG#v}"
-            echo "Comparing requested ${VER_BASE} to latest stable ${LAST_VER}"
-            if [ "${VER_BASE}" = "${LAST_VER}" ]; then
-              # Same X.Y.Z; allow only if the requested is a prerelease of the same
-              # (so v0.2.0-beta after v0.2.0 fails; but v0.3.0-beta after v0.2.0 is fine).
-              echo "::error::Base version ${VER_BASE} equals latest stable ${LAST_VER}. Bump the minor or major instead."
+          if [ "${TRIGGER}" = "workflow_dispatch" ]; then
+            # ----- Manual trigger: the user MUST provide a full semver tag. -----
+            if [ -z "${REQUESTED}" ]; then
+              echo "::error::Manual run requires the 'version' input (e.g. v0.2.0)."
               exit 1
             fi
-            # Numeric compare using sort -V (which understands X.Y.Z).
-            if ! printf '%s\n%s\n' "${VER_BASE}" "${LAST_VER}" | sort -V -C; then
-              echo "::error::Requested ${VER_BASE} is not greater than latest stable ${LAST_VER}."
+            if ! echo "${REQUESTED}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$'; then
+              echo "::error::Requested version '${REQUESTED}' is not a valid semver tag (expected vX.Y.Z or vX.Y.Z-prerelease)."
               exit 1
             fi
+            if git rev-parse -q --verify "refs/tags/${REQUESTED}" >/dev/null 2>&1; then
+              echo "::error::Tag ${REQUESTED} already exists. Pick a higher version or delete the existing tag first."
+              exit 1
+            fi
+            TAG="${REQUESTED}"
+            VER="${TAG#v}"
+            VER_BASE="${VER%%-*}"
+            if [ -n "${LAST_STABLE}" ]; then
+              if [ "${VER_BASE}" = "${LAST_STABLE_VER}" ]; then
+                # Same base: only allow if the new tag is a prerelease of that base.
+                if ! echo "${VER}" | grep -q '-'; then
+                  echo "::error::Base version ${VER_BASE} equals latest stable ${LAST_STABLE_VER}. Bump the minor or major instead, or use a prerelease suffix."
+                  exit 1
+                fi
+              else
+                # Different base: must be strictly greater than latest stable.
+                if ! printf '%s\n%s\n' "${VER_BASE}" "${LAST_STABLE_VER}" | sort -V -C; then
+                  echo "::error::Requested ${VER_BASE} is not greater than latest stable ${LAST_STABLE_VER}."
+                  exit 1
+                fi
+              fi
+            fi
+            BUMP_SOURCE="manual"
+            NOTES_INPUT="${{ inputs.notes }}"
+          else
+            # ----- Push trigger: auto-bump the PATCH component. -----
+            BUMP_SOURCE="auto-patch"
+            NOTES_INPUT=""
+
+            if [ -z "${LAST_STABLE}" ]; then
+              echo "::error::No prior stable release tag found on main. Trigger a manual release first (Actions > Publish Release > Run workflow) to establish the initial version."
+              exit 1
+            fi
+
+            STEM="${LAST_STABLE_VER}"
+            MAJOR=$(echo "${STEM}" | cut -d. -f1)
+            MINOR=$(echo "${STEM}" | cut -d. -f2)
+            PATCH=$(echo "${STEM}" | cut -d. -f3)
+
+            # Increment patch.
+            NEW_PATCH=$((PATCH + 1))
+
+            if [ "${NEW_PATCH}" -gt 999 ]; then
+              echo "::error::Auto-bump would produce v${MAJOR}.${MINOR}.${NEW_PATCH}, but patch cannot exceed 999. Trigger a manual release (e.g. v${MAJOR}.$((MINOR + 1)).0) to break the cap."
+              exit 1
+            fi
+
+            TAG="v${MAJOR}.${MINOR}.${NEW_PATCH}"
+            VER="${MAJOR}.${MINOR}.${NEW_PATCH}"
+            VER_BASE="${VER}"
+            echo "Auto-bumping from ${LAST_STABLE} to ${TAG}"
           fi
 
-          # Determine prerelease vs latest.
+          # ----- Common validation: prerelease detection. -----
+
           if echo "${VER}" | grep -q '-'; then
             IS_PRERELEASE="true"
           else
@@ -111,7 +158,8 @@ jobs:
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
           echo "version=${VER}" >> "$GITHUB_OUTPUT"
           echo "is_prerelease=${IS_PRERELEASE}" >> "$GITHUB_OUTPUT"
-          echo "Validated: ${TAG} (is_prerelease=${IS_PRERELEASE})"
+          echo "bump_source=${BUMP_SOURCE}" >> "$GITHUB_OUTPUT"
+          echo "Computed: ${TAG} (is_prerelease=${IS_PRERELEASE}, source=${BUMP_SOURCE})"
 
       - name: Cross-compile binaries
         run: |
@@ -136,6 +184,12 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           TAG="${{ steps.version.outputs.tag }}"
+          # The version step has already verified the tag does not
+          # exist, so this should always be a fresh tag.
+          if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null 2>&1; then
+            echo "::error::Tag ${TAG} already exists. Refusing to overwrite."
+            exit 1
+          fi
           git tag -a "${TAG}" -m "Release ${TAG}"
           git push origin "${TAG}"
 
@@ -147,7 +201,9 @@ jobs:
           body: |
             Release ${{ steps.version.outputs.tag }} of scrappy, the bulk job-board scraper for 100+ sites.
 
-            ${{ inputs.notes }}
+            ${{ steps.version.outputs.bump_source == 'auto-patch' && 'Automated patch release.' || '' }}
+
+            ${{ steps.version.outputs.bump_source == 'manual' && inputs.notes }}
 
             ## Installation
 
@@ -185,5 +241,4 @@ jobs:
             See SHA256SUMS.txt in the release assets.
           artifacts: "dist/*.tar.gz,dist/*.zip,dist/SHA256SUMS.txt"
           makeLatest: ${{ steps.version.outputs.is_prerelease == 'false' && 'true' || 'false' }}
-          allowUpdates: true
           prerelease: ${{ steps.version.outputs.is_prerelease }}
