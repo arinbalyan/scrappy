@@ -110,7 +110,14 @@ jobs:
                 fi
               else
                 # Different base: must be strictly greater than latest stable.
-                if ! printf '%s\n%s\n' "${VER_BASE}" "${LAST_STABLE_VER}" | sort -V -C; then
+                # sort -V -C returns 0 if (old, new) is sorted ascending,
+                # i.e. new >= old. We want to error when new <= old.
+                if printf '%s\n%s\n' "${LAST_STABLE_VER}" "${VER_BASE}" | sort -V -C; then
+                  if [ "${VER_BASE}" = "${LAST_STABLE_VER}" ]; then
+                    echo "::error::Requested ${VER_BASE} equals latest stable ${LAST_STABLE_VER}. Bump the minor or major instead."
+                    exit 1
+                  fi
+                else
                   echo "::error::Requested ${VER_BASE} is not greater than latest stable ${LAST_STABLE_VER}."
                   exit 1
                 fi
