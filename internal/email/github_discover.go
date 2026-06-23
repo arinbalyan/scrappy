@@ -1,6 +1,7 @@
 package email
 
 import (
+	"container/list"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -284,13 +285,17 @@ func isGitHubNoreply(email string) bool {
 }
 
 // ghLRU is a tiny in-memory LRU cache for (login -> []string) results.
-// Ponytail: O(n) eviction; no third-party dependency. Capacity is the
-// hard cap on the number of stored logins.
+// Uses container/list for O(1) move-to-front and eviction.
 type ghLRU struct {
 	mu    sync.Mutex
-	data  map[string][]string
-	order []string // most-recent at the end
+	data  map[string]*list.Element
+	order *list.List
 	cap   int
+}
+
+type ghEntry struct {
+	key   string
+	value []string
 }
 
 func newGHLRU(capacity int) *ghLRU {
@@ -298,8 +303,8 @@ func newGHLRU(capacity int) *ghLRU {
 		capacity = 16
 	}
 	return &ghLRU{
-		data:  make(map[string][]string, capacity),
-		order: make([]string, 0, capacity),
+		data:  make(map[string]*list.Element, capacity),
+		order: list.New(),
 		cap:   capacity,
 	}
 }
@@ -307,32 +312,29 @@ func newGHLRU(capacity int) *ghLRU {
 func (c *ghLRU) Get(key string) ([]string, bool) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	v, ok := c.data[key]
+	ele, ok := c.data[key]
 	if !ok {
 		return nil, false
 	}
-	// Move to MRU.
-	for i, k := range c.order {
-		if k == key {
-			c.order = append(c.order[:i], c.order[i+1:]...)
-			c.order = append(c.order, key)
-			break
-		}
-	}
-	return v, true
+	c.order.MoveToFront(ele)
+	return ele.Value.(*ghEntry).value, true
 }
 
 func (c *ghLRU) Put(key string, value []string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if _, ok := c.data[key]; !ok {
-		if len(c.order) >= c.cap {
-			// Evict LRU.
-			old := c.order[0]
-			c.order = c.order[1:]
-			delete(c.data, old)
-		}
-		c.order = append(c.order, key)
+	if ele, ok := c.data[key]; ok {
+		ele.Value.(*ghEntry).value = value
+		c.order.MoveToFront(ele)
+		return
 	}
-	c.data[key] = value
+	if c.order.Len() >= c.cap {
+		old := c.order.Back()
+		if old != nil {
+			c.order.Remove(old)
+			delete(c.data, old.Value.(*ghEntry).key)
+		}
+	}
+	ele := c.order.PushFront(&ghEntry{key: key, value: value})
+	c.data[key] = ele
 }

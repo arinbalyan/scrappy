@@ -16,13 +16,6 @@ func NewSet() *Set {
 	return &Set{seen: make(map[string]bool)}
 }
 
-// Seen returns true if url was already recorded.
-func (s *Set) Seen(url string) bool {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	return s.seen[url]
-}
-
 // Add records url and returns true if it was newly added (not seen before).
 func (s *Set) Add(url string) bool {
 	s.mu.Lock()

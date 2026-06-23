@@ -44,6 +44,10 @@ go.work
 # Compiled binary (repo root)
 /scrappy
 
+# Local config (personal, not committed)
+config.yaml
+config.toml
+
 # Node / Playwright scripts
 scripts/node_modules/
 scripts/site-check.sh

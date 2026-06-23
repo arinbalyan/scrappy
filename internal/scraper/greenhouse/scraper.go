@@ -36,7 +36,7 @@ func (s *Scraper) SiteName() model.Site { return model.SiteGreenhouse }
 func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	util.Debug("scraper_start", map[string]any{"site": s.SiteName(), "results_wanted": input.ResultsWanted, "search_term": input.SearchTerm, "location": input.Location})
 
-	// Use the shared ATS seed resolution which checks env var → config/company_slugs.yaml.
+	// Use the shared ATS seed resolution which checks env var → config/company_slugs.toml.
 	// The config has 145+ greenhouse company seeds (stripe, airbnb, lyft, ...).
 	// We explicitly reject SeedFromSearch to prevent search terms like
 	// "AI Engineer OR ML Engineer" from being used as board slugs.
@@ -45,8 +45,8 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		seeds = nil
 	}
 	if len(seeds) == 0 {
-		util.Debug("greenhouse_skip", map[string]any{"reason": "no seeds configured — set SCRAPPY_GREENHOUSE_SEEDS or add greenhouse: slugs to config/company_slugs.yaml"})
-		return nil, fmt.Errorf("greenhouse no seeds: set SCRAPPY_GREENHOUSE_SEEDS env var (comma-separated company slugs) or add entries to config/company_slugs.yaml")
+		util.Debug("greenhouse_skip", map[string]any{"reason": "no seeds configured — set SCRAPPY_GREENHOUSE_SEEDS or add greenhouse: slugs to config/company_slugs.toml"})
+		return nil, fmt.Errorf("greenhouse no seeds: set SCRAPPY_GREENHOUSE_SEEDS env var (comma-separated company slugs) or add entries to config/company_slugs.toml")
 	}
 	util.Debug("greenhouse_seeds", map[string]any{"seeds": seeds, "src": ats.SeedSourceString(src)})
 

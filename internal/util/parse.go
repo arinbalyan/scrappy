@@ -1,8 +1,8 @@
 package util
 
 import (
-	"fmt"
 	"hash/fnv"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -11,7 +11,7 @@ import (
 func HashID(s string) string {
 	h := fnv.New64a()
 	h.Write([]byte(s))
-	return fmt.Sprintf("%d", h.Sum64())
+	return strconv.FormatUint(h.Sum64(), 10)
 }
 
 func NormalizeSlug(v string) string {

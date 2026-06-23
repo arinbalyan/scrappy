@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/util"
-	"gopkg.in/yaml.v3"
 )
 
 // Severity levels for diagnostic results.
@@ -117,10 +117,9 @@ func Run(ctx context.Context, cfg DoctorConfig) *Report {
 	checkGoVersion(report)
 	checkBinaryVersion(report)
 	checkConfigFile(report, cfg.ConfigPath)
-	checkConfigYAML(report, cfg.ConfigPath, cfg.FixMode)
+	checkConfigTOML(report, cfg.ConfigPath, cfg.FixMode)
 	checkEnvVars(report)
 	checkHomeDir(report)
-	checkDocker(report)
 	checkNetwork(report)
 	checkPlaywright(report)
 	checkDataDir(report, cfg.FixMode)
@@ -174,8 +173,8 @@ func checkBinaryVersion(r *Report) {
 func checkConfigFile(r *Report, configPath string) {
 	paths := []string{
 		configPath,
-		"config.yaml",
-		filepath.Join(os.Getenv("HOME"), ".scrappy", "config.yaml"),
+		"config.toml",
+		filepath.Join(os.Getenv("HOME"), ".scrappy", "config.toml"),
 	}
 
 	seen := map[string]bool{}
@@ -210,12 +209,12 @@ func checkConfigFile(r *Report, configPath string) {
 	r.Add(CheckResult{
 		Title:    "Config file",
 		Severity: SeverityInfo,
-		Message:  "No config.yaml found — using defaults",
+		Message:  "No config.toml found — using defaults",
 	})
 }
 
-func checkConfigYAML(r *Report, configPath string, fixMode bool) {
-	paths := []string{configPath, "config.yaml", filepath.Join(os.Getenv("HOME"), ".scrappy", "config.yaml")}
+func checkConfigTOML(r *Report, configPath string, fixMode bool) {
+	paths := []string{configPath, "config.toml", filepath.Join(os.Getenv("HOME"), ".scrappy", "config.toml")}
 	seen := map[string]bool{}
 
 	for _, p := range paths {
@@ -228,11 +227,11 @@ func checkConfigYAML(r *Report, configPath string, fixMode bool) {
 			continue
 		}
 
-		// Try to parse as YAML
+		// Try to parse as TOML
 		var raw interface{}
-		if err := yaml.Unmarshal(b, &raw); err != nil {
+		if err := toml.Unmarshal(b, &raw); err != nil {
 			r.Add(CheckResult{
-				Title:    "Config YAML syntax",
+				Title:    "Config TOML syntax",
 				Severity: SeverityFail,
 				Message:  fmt.Sprintf("%s: %v", p, err),
 			})
@@ -242,15 +241,15 @@ func checkConfigYAML(r *Report, configPath string, fixMode bool) {
 		// Try to parse into appConfig
 		var ac struct {
 			Defaults struct {
-				Search        interface{} `yaml:"search"`
-				ResultsWanted int        `yaml:"results_wanted"`
-				Format        string     `yaml:"format"`
-				MemoryCap     string     `yaml:"memory_cap"`
-			} `yaml:"defaults"`
-			Proxy string                 `yaml:"proxy"`
-			Sites map[string]interface{} `yaml:"sites"`
+				Search        interface{} `toml:"search"`
+				ResultsWanted int        `toml:"results_wanted"`
+				Format        string     `toml:"format"`
+				MemoryCap     string     `toml:"memory_cap"`
+			} `toml:"defaults"`
+			Proxy string                 `toml:"proxy"`
+			Sites map[string]interface{} `toml:"sites"`
 		}
-		if err := yaml.Unmarshal(b, &ac); err != nil {
+		if err := toml.Unmarshal(b, &ac); err != nil {
 			r.Add(CheckResult{
 				Title:    "Config structure",
 				Severity: SeverityFail,
@@ -261,7 +260,7 @@ func checkConfigYAML(r *Report, configPath string, fixMode bool) {
 
 		// Validate known fields
 		r.Add(CheckResult{
-			Title:    "Config YAML",
+			Title:    "Config TOML",
 			Severity: SeverityPass,
 			Message:  fmt.Sprintf("%s parsed successfully", p),
 		})
@@ -377,20 +376,6 @@ func checkHomeDir(r *Report) {
 			Message:  fmt.Sprintf("~/.scrappy/.env (%d bytes)", envInfo.Size()),
 		})
 	}
-}
-
-func checkDocker(r *Report) {
-	cmd := exec.Command("docker", "--version")
-	out, err := cmd.Output()
-	if err != nil {
-		return
-	}
-	v := strings.TrimSpace(string(out))
-	r.Add(CheckResult{
-		Title:    "Docker",
-		Severity: SeverityPass,
-		Message:  v,
-	})
 }
 
 func checkNetwork(r *Report) {

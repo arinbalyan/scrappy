@@ -12,17 +12,8 @@ type ConstraintResult struct {
 }
 
 // EvaluateConstraints checks the input for site-specific constraints and limitations.
-// Accepts public types — for external consumers like JobHunter.
+// ScraperInput is a type alias to model.ScraperInput, so no conversion needed.
 func EvaluateConstraints(input ScraperInput) ConstraintResult {
-	return evaluateConstraints(scraperInputToModel(input))
-}
-
-// EvaluateConstraintsInternal accepts internal types (used by cmd/scrappy).
-func EvaluateConstraintsInternal(input model.ScraperInput) ConstraintResult {
-	return evaluateConstraints(input)
-}
-
-func evaluateConstraints(input model.ScraperInput) ConstraintResult {
 	hoursOldSupported := map[model.Site]bool{model.SiteIndeed: true, model.SiteLinkedIn: true}
 	r := ConstraintResult{}
 	for _, s := range input.Sites {

@@ -11,8 +11,6 @@ func TestSet_AddAndSeen(t *testing.T) {
 	s := dedup.NewSet()
 	assert.True(t, s.Add("http://example.com"))
 	assert.False(t, s.Add("http://example.com"))
-	assert.True(t, s.Seen("http://example.com"))
-	assert.False(t, s.Seen("http://other.com"))
 }
 
 func TestSet_EmptyURL(t *testing.T) {
