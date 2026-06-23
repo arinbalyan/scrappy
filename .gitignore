@@ -1,0 +1,39 @@
+#Agent
+AGENTS.md
+.user-data/
+# Binaries
+scrappy_*
+scrappy
+*.exe
+
+# Dependencies
+vendor/
+
+# Config with secrets
+config.toml
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+*.tar.gz
+*.zip
+*.parquet
+dist/
+tmp/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Go
+*.test
+*.out
+coverage.txt
+coverage.html
+tmp/
+.user-data/
+jobs.csv

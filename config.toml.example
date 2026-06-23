@@ -1,0 +1,42 @@
+# Scrappy config — copy to config.toml and edit
+
+[defaults]
+concurrency = 4        # parallel scrapers
+delay_ms    = 1000     # ms between requests per scraper
+max_results = 200
+
+[output.csv]
+path = "jobs.csv"
+
+[output.postgres]
+# url = "postgres://user:pass@localhost:5432/scrappy?sslmode=disable"
+
+# ── Sites ─────────────────────────────────────────────────────────────
+# type: rss | html | api | graphql
+
+[[sites]]
+id     = "remoteok"
+type   = "rss"
+url    = "https://remoteok.com/remote-jobs.rss"
+
+[[sites]]
+id     = "weworkremotely"
+type   = "html"
+url    = "https://weworkremotely.com/categories/remote-programming-jobs"
+item_selector     = ".jobs li"
+title_selector    = "h2"
+company_selector  = ".company"
+loc_selector      = ".location"
+desc_selector     = ".description"
+date_selector     = "time"
+
+[[sites]]
+id        = "greenhouse-example"
+type      = "api"
+endpoint  = "https://boards-api.greenhouse.io/v1/boards/example/jobs"
+search_param = "search"
+
+[[sites]]
+id     = "example-graphql"
+type   = "graphql"
+url    = "https://api.example.com/graphql"
