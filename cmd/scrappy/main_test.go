@@ -10,8 +10,8 @@ import (
 
 func TestLoadAppConfigParsesDefaultsAndSites(t *testing.T) {
 	dir := t.TempDir()
-	p := filepath.Join(dir, "config.yaml")
-	data := []byte("defaults:\n  search: backend\n  location: Remote\n  results_wanted: 7\n  out: /tmp/jobs.csv\n  format: csv\nsites:\n  remoteok:\n    search: golang\n    location: Remote\n")
+	p := filepath.Join(dir, "config.toml")
+	data := []byte("[defaults]\nsearch = [\"backend\"]\nlocation = [\"Remote\"]\nresults_wanted = 7\nout = \"/tmp/jobs.csv\"\nformat = \"csv\"\n\n[sites.remoteok]\nsearch = [\"golang\"]\nlocation = [\"Remote\"]\n")
 	if err := os.WriteFile(p, data, 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
@@ -40,8 +40,8 @@ func TestLoadAppConfigParsesDefaultsAndSites(t *testing.T) {
 
 func TestLoadAppConfigParsesSiteSearchList(t *testing.T) {
 	dir := t.TempDir()
-	p := filepath.Join(dir, "config.yaml")
-	data := []byte("sites:\n  remoteok:\n    search:\n      - golang\n      - backend\n    location: Remote\n")
+	p := filepath.Join(dir, "config.toml")
+	data := []byte("[sites.remoteok]\nsearch = [\"golang\", \"backend\"]\nlocation = [\"Remote\"]\n")
 	if err := os.WriteFile(p, data, 0o644); err != nil {
 		t.Fatalf("write config: %v", err)
 	}
@@ -70,7 +70,7 @@ func TestRootCommandParsesEmailFlag(t *testing.T) {
 }
 
 func TestLoadAppConfigMissingFile(t *testing.T) {
-	cfg := loadAppConfig("/path/does/not/exist.yaml")
+	cfg := loadAppConfig("/path/does/not/exist.toml")
 	if cfg.Sites != nil && len(cfg.Sites) != 0 {
 		t.Fatalf("expected empty sites on missing file")
 	}

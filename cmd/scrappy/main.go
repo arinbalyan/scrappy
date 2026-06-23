@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -16,12 +17,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/arinbalyan/scrappy/internal/export"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/util"
 	"github.com/arinbalyan/scrappy/pkg/scrappy"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 var version = "0.1.0" // overridden at build via -ldflags="-X main.version=x.y.z"
@@ -54,13 +55,13 @@ SETUP
     SCRAPPY_PROXY_STICKY_WINDOW_N     stickiness window
 
 CONFIGURATION FILES (auto-detected)
-  1. config.yaml in current directory
-  2. ~/.scrappy/config.yaml (user-wide defaults)
+  1. config.toml in current directory
+  2. ~/.scrappy/config.toml (user-wide defaults)
 
   .env files are loaded from the same locations (beside config).
 
   Run 'scrappy' without flags to enter interactive mode, which
-  can save your preferences to ~/.scrappy/config.yaml.
+  can save your preferences to ~/.scrappy/config.toml.
 
 COMMANDS
   scrape    Run a scraping job (default command)
@@ -82,7 +83,7 @@ FLAGS
   --job-type           Filter: fulltime|parttime|contract|internship
   --hours-old          Only jobs posted within this many hours (0 = no filter)
   --log-level          Log verbosity: DEBUG|INFO|WARN|ERROR
-  --config             Path to per-site config yaml
+  --config             Path to per-site config toml
   --memory-cap         Memory budget: "512MB", "1GB", "256"=MB (0=unlimited).
                        Enables memory-pressure monitor; auto-scales concurrency.
   --json-pretty        Pretty-print JSON output on stdout (default: auto-detect)
@@ -145,7 +146,7 @@ EXAMPLES
       --location "Remote" --results-wanted 300 \
       --proxy socks5://proxy1:1080,socks5://proxy2:1080
 
-  Proxy from env / config (config.yaml overrides env, --proxy overrides both):
+  Proxy from env / config (config.toml overrides env, --proxy overrides both):
     SCRAPPY_PROXIES=socks5://user:pass@proxy:1080 \
       scrappy --sites linkedin --search "engineer" --results-wanted 100
 
@@ -153,7 +154,7 @@ ENVIRONMENT
   SCRAPPY_LOG_LEVEL    Default log level
   SCRAPPY_PROXIES      Comma-separated SOCKS5/HTTP proxy URLs (lowest priority)
 
-  PROXY PRECEDENCE: --proxy CLI flag  >  config.yaml proxy: field  >  SCRAPPY_PROXIES env`
+  PROXY PRECEDENCE: --proxy CLI flag  >  config.toml proxy: field  >  SCRAPPY_PROXIES env`
 
 func homeDir() string {
 	u, err := user.Current()
@@ -164,15 +165,15 @@ func homeDir() string {
 }
 
 func defaultConfigPath() string {
-	cwd := "config.yaml"
+	cwd := "config.toml"
 	if _, err := os.Stat(cwd); err == nil {
-		return "config.yaml"
+		return "config.toml"
 	}
-	userCfg := filepath.Join(homeDir(), ".scrappy", "config.yaml")
+	userCfg := filepath.Join(homeDir(), ".scrappy", "config.toml")
 	if _, err := os.Stat(userCfg); err == nil {
 		return userCfg
 	}
-	return "config.yaml"
+	return "config.toml"
 }
 
 func defaultEnvPath(configPath string) string {
@@ -224,68 +225,34 @@ type cliConfig struct {
 	SinceDate      string
 	JSONPretty     bool
 	JSONMinify     bool
-	Schema         bool
 	VersionJSON    bool
 	VerifyConcurrency int
 }
 
 type multiString []string
 
-func (s *multiString) UnmarshalYAML(value *yaml.Node) error {
-	switch value.Kind {
-	case yaml.ScalarNode:
-		term := strings.TrimSpace(value.Value)
-		if term == "" {
-			*s = nil
-			return nil
-		}
-		*s = []string{term}
-		return nil
-	case yaml.SequenceNode:
-		terms := make([]string, 0, len(value.Content))
-		for _, n := range value.Content {
-			if n.Kind != yaml.ScalarNode {
-				continue
-			}
-			term := strings.TrimSpace(n.Value)
-			if term == "" {
-				continue
-			}
-			terms = append(terms, term)
-		}
-		if len(terms) == 0 {
-			*s = nil
-			return nil
-		}
-		*s = terms
-		return nil
-	default:
-		return fmt.Errorf("field must be a string or list of strings")
-	}
-}
-
 type siteTarget struct {
-	Search        multiString `yaml:"search"`
-	Location      multiString `yaml:"location"`
-	Country       string      `yaml:"country,omitempty"`
-	IsRemote      *bool       `yaml:"is_remote,omitempty"`
-	ResultsWanted int         `yaml:"results_wanted,omitempty"`
+	Search        multiString `toml:"search"`
+	Location      multiString `toml:"location"`
+	Country       string      `toml:"country,omitempty"`
+	IsRemote      *bool       `toml:"is_remote,omitempty"`
+	ResultsWanted int         `toml:"results_wanted,omitempty"`
 }
 
 type appConfig struct {
 	Defaults struct {
-		Search        multiString `yaml:"search"`
-		Location      multiString `yaml:"location"`
-		ResultsWanted int         `yaml:"results_wanted"`
-		Out           string      `yaml:"out"`
-		Format        string      `yaml:"format"`
-		MemoryCap     string      `yaml:"memory_cap"`
-		IsRemote      bool        `yaml:"is_remote"`
-		RemoteOnly    bool        `yaml:"remote_only"`
-		JobType       string      `yaml:"job_type"`
-	} `yaml:"defaults"`
-	Proxy string                `yaml:"proxy,omitempty"`
-	Sites map[string]siteTarget `yaml:"sites"`
+		Search        multiString `toml:"search"`
+		Location      multiString `toml:"location"`
+		ResultsWanted int         `toml:"results_wanted"`
+		Out           string      `toml:"out"`
+		Format        string      `toml:"format"`
+		MemoryCap     string      `toml:"memory_cap"`
+		IsRemote      bool        `toml:"is_remote"`
+		RemoteOnly    bool        `toml:"remote_only"`
+		JobType       string      `toml:"job_type"`
+	} `toml:"defaults"`
+	Proxy string                `toml:"proxy,omitempty"`
+	Sites map[string]siteTarget `toml:"sites"`
 }
 
 var loadDotEnvOnce sync.Once
@@ -328,10 +295,6 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 		Version: version,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Early exits before any scraping logic.
-			if cfg.Schema {
-				printSchema()
-				return nil
-			}
 			if cfg.VersionJSON {
 				printVersionJSON(cfg.JSONPretty, cfg.JSONMinify)
 				return nil
@@ -366,7 +329,7 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().BoolVar(&cfg.Interactive, "interactive", false, "interactive wizard mode (auto-detected when no args given on TTY)")
 	root.Flags().BoolVar(&cfg.NonInteractive, "non-interactive", false, "disable interactive wizard")
 	root.Flags().StringVar(&cfg.LogLevel, "log-level", "", "log level: DEBUG|INFO|WARN|ERROR")
-	root.Flags().StringVar(&cfg.ConfigPath, "config", defaultConfigPath(), "path to config yaml")
+	root.Flags().StringVar(&cfg.ConfigPath, "config", defaultConfigPath(), "path to config toml")
 	root.Flags().BoolVar(&cfg.EmailOnly, "email", false, "only include jobs with at least one email")
 	root.Flags().IntVar(&cfg.VerifyConcurrency, "verify-concurrency", 5, "MX lookup concurrency (0 = sequential)")
 	root.Flags().IntVar(&cfg.Timeout, "timeout", 600, "scrape timeout in seconds")
@@ -374,7 +337,7 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().BoolVar(&cfg.IsRemote, "is-remote", false, "only jobs flagged as remote")
 	root.Flags().BoolVar(&cfg.RemoteOnly, "remote-only", false, "only truly remote jobs (no location)")
 	root.Flags().StringVar(&cfg.JobType, "job-type", "", "filter: fulltime|parttime|contract|internship")
-	root.Flags().StringVar(&cfg.Proxy, "proxy", os.Getenv("SCRAPPY_PROXIES"), "comma-separated proxy URLs (socks5://, http://); TCP-dial health check at startup, unhealthy proxies excluded; takes precedence over config.yaml proxy: and SCRAPPY_PROXIES env")
+	root.Flags().StringVar(&cfg.Proxy, "proxy", os.Getenv("SCRAPPY_PROXIES"), "comma-separated proxy URLs (socks5://, http://); TCP-dial health check at startup, unhealthy proxies excluded; takes precedence over config.toml proxy: and SCRAPPY_PROXIES env")
 	root.Flags().IntVar(&cfg.MinScore, "min-score", 0, "quality score floor (0-100)")
 	root.Flags().IntVar(&cfg.MaxRPS, "max-rps", 0, "global max requests per second (overrides per-site defaults)")
 	root.Flags().StringVar(&cfg.SiteRPS, "site-rps", "", "per-site RPS overrides, e.g. linkedin:1,indeed:10")
@@ -385,7 +348,6 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().StringVar(&cfg.SinceDate, "since", "", "only jobs posted on or after this date (RFC3339 or YYYY-MM-DD)")
 	root.Flags().BoolVar(&cfg.JSONPretty, "json-pretty", false, "pretty-print JSON output (stdout only, default: auto-detect)")
 	root.Flags().BoolVar(&cfg.JSONMinify, "json-minify", false, "force minified JSON output even on stdout")
-	root.Flags().BoolVar(&cfg.Schema, "schema", false, "print JSON Schema for JobPost type and exit")
 	root.Flags().BoolVar(&cfg.VersionJSON, "version-json", false, "print version info as JSON and exit")
 	root.Flags().BoolVar(&cfg.Dedup, "dedup", true, "deduplicate jobs by URL across sites")
 	root.Flags().BoolVar(&cfg.DedupByCompany, "dedup-by-company", false, "keep only one posting per company")
@@ -404,7 +366,7 @@ func runInteractive(cfg *cliConfig) {
 	}
 	if b, err := os.ReadFile(cfgPath); err == nil {
 		var ac appConfig
-		_ = yaml.Unmarshal(b, &ac)
+		_, _ = toml.Decode(string(b), &ac)
 		if len(ac.Defaults.Search) > 0 && cfg.Search == "" {
 			cfg.Search = strings.Join(ac.Defaults.Search, ",")
 		}
@@ -484,15 +446,14 @@ func runInteractive(cfg *cliConfig) {
 	fmt.Println()
 	fmt.Printf(" \033[38;5;240mTip:\033[0m For site-specific searches, add per-site config to \033[38;5;117m%s\033[0m\n", defaultConfigPath())
 	fmt.Println(" \033[38;5;240m     Example:\033[0m")
-	fmt.Println(" \033[38;5;240m       sites:\033[0m")
-	fmt.Println(" \033[38;5;240m         indeed:\033[0m")
-	fmt.Println(" \033[38;5;240m           search: '\"AI Engineer\" OR \"ML Engineer\"'\033[0m")
-	fmt.Println(" \033[38;5;240m           location: Remote\033[0m")
-	fmt.Println(" \033[38;5;240m           country: germany   # uses indeed-co header\033[0m")
-	fmt.Println(" \033[38;5;240m         linkedin:\033[0m")
-	fmt.Println(" \033[38;5;240m           search: 'AI Engineer OR ML Engineer'\033[0m")
-	fmt.Println(" \033[38;5;240m         reed:\033[0m")
-	fmt.Println(" \033[38;5;240m           location: United Kingdom\033[0m")
+	fmt.Println(" \033[38;5;240m       [sites.indeed]\033[0m")
+	fmt.Println(" \033[38;5;240m       search = ['\"AI Engineer\" OR \"ML Engineer\"']\033[0m")
+	fmt.Println(" \033[38;5;240m       location = ['Remote']\033[0m")
+	fmt.Println(" \033[38;5;240m       country = 'germany'   # uses indeed-co header\033[0m")
+	fmt.Println(" \033[38;5;240m       [sites.linkedin]\033[0m")
+	fmt.Println(" \033[38;5;240m       search = ['AI Engineer OR ML Engineer']\033[0m")
+	fmt.Println(" \033[38;5;240m       [sites.reed]\033[0m")
+	fmt.Println(" \033[38;5;240m       location = ['United Kingdom']\033[0m")
 	fmt.Println()
 }
 
@@ -742,7 +703,7 @@ func runOnce(cfg *cliConfig) error {
 		JobType:        model.JobType(cfg.JobType),
 	}
 
-	constraints := scrappy.EvaluateConstraintsInternal(input)
+	constraints := scrappy.EvaluateConstraints(input)
 	for _, w := range constraints.Warnings {
 		fmt.Printf("[constraint-warning] %s\n", w)
 	}
@@ -807,7 +768,7 @@ func runOnce(cfg *cliConfig) error {
 
 func promptSaveConfig(cfg *cliConfig) {
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("  \033[38;5;117m?\033[0m Save these settings to ~/.scrappy/config.yaml? (y/N): ")
+	fmt.Print("  \033[38;5;117m?\033[0m Save these settings to ~/.scrappy/config.toml? (y/N): ")
 	in, _ := reader.ReadString('\n')
 	in = strings.TrimSpace(strings.ToLower(in))
 	if in != "y" && in != "yes" {
@@ -833,14 +794,14 @@ func promptSaveConfig(cfg *cliConfig) {
 	ac.Defaults.RemoteOnly = cfg.RemoteOnly
 	ac.Defaults.JobType = cfg.JobType
 
-	b, err := yaml.Marshal(&ac)
-	if err != nil {
+	var buf bytes.Buffer
+	if err := toml.NewEncoder(&buf).Encode(&ac); err != nil {
 		fmt.Fprintf(os.Stderr, "  \033[31mError\033[0m marshalling config: %v\n", err)
 		return
 	}
 
-	cfgPath := filepath.Join(dir, "config.yaml")
-	if err := os.WriteFile(cfgPath, b, 0600); err != nil {
+	cfgPath := filepath.Join(dir, "config.toml")
+	if err := os.WriteFile(cfgPath, buf.Bytes(), 0600); err != nil {
 		fmt.Fprintf(os.Stderr, "  \033[31mError\033[0m writing %s: %v\n", cfgPath, err)
 		return
 	}
@@ -978,11 +939,10 @@ func loadAppConfig(path string) appConfig {
 	if strings.TrimSpace(path) == "" {
 		return c
 	}
-	b, err := os.ReadFile(path)
+	_, err := toml.DecodeFile(path, &c)
 	if err != nil {
 		return c
 	}
-	_ = yaml.Unmarshal(b, &c)
 	if c.Sites == nil {
 		c.Sites = map[string]siteTarget{}
 	}

@@ -18,19 +18,17 @@ func newDoctorCommand() *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:     "doctor",
-		Aliases: []string{"diagnose", "check", "health", "status"},
 		Short:   "Diagnose and fix scrappy setup issues",
 		Long: `Run diagnostics on your scrappy installation, configuration, and environment.
 
 Checks performed:
   - Go runtime version
   - Binary integrity
-  - Config file existence and YAML syntax
+  - Config file existence and TOML syntax
   - Config permissions (warns if world-readable)
   - Environment variables for API keys
   - DNS resolution and internet connectivity
   - Proxy reachability (if configured)
-  - Docker availability
   - Playwright/Node.js fallback scripts
   - ~/.scrappy/ data directory
 
@@ -40,7 +38,7 @@ EXAMPLES:
   scrappy doctor
   scrappy doctor --fix
   scrappy doctor --verbose
-  scrappy doctor --config /path/to/config.yaml
+  scrappy doctor --config /path/to/config.toml
 `,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			// Load .env first so env vars are visible to checks
@@ -79,7 +77,7 @@ EXAMPLES:
 		},
 	}
 
-	cmd.Flags().StringVarP(&configPath, "config", "c", "", "Path to config yaml (default: auto-detect)")
+	cmd.Flags().StringVarP(&configPath, "config", "c", "", "Path to config toml (default: auto-detect)")
 	cmd.Flags().BoolVarP(&fixMode, "fix", "f", false, "Automatically fix fixable issues (permissions, missing dirs)")
 	cmd.Flags().BoolVarP(&verbose, "verbose", "v", false, "Show detailed output for all checks")
 

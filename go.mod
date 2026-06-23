@@ -3,6 +3,8 @@ module github.com/arinbalyan/scrappy
 go 1.26.3
 
 require (
+	github.com/AfterShip/email-verifier v1.4.1
+	github.com/BurntSushi/toml v1.6.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	github.com/xitongsys/parquet-go v1.6.2
@@ -10,11 +12,9 @@ require (
 	github.com/xuri/excelize/v2 v2.10.1
 	golang.org/x/net v0.56.0
 	golang.org/x/time v0.15.0
-	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
-	github.com/AfterShip/email-verifier v1.4.1 // indirect
 	github.com/apache/arrow/go/arrow v0.0.0-20200730104253-651201b0f516 // indirect
 	github.com/apache/thrift v0.14.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -33,4 +33,5 @@ require (
 	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/text v0.38.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

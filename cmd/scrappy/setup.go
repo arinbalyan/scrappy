@@ -2,13 +2,14 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/BurntSushi/toml"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 func newSetupCommand() *cobra.Command {
@@ -16,7 +17,7 @@ func newSetupCommand() *cobra.Command {
 		Use:     "setup",
 		Aliases: []string{"init", "onboard", "wizard"},
 		Short:   "Run the interactive setup wizard to create your config",
-		Long: `Walk through an interactive setup to create ~/.scrappy/config.yaml
+		Long: `Walk through an interactive setup to create ~/.scrappy/config.toml
 and ~/.scrappy/.env with your API keys, proxies, and preferences.
 
 This is the same wizard that runs when you start scrappy without arguments,
@@ -111,26 +112,26 @@ EXAMPLES:
 				return fmt.Errorf("create %s: %w", scrappyDir, err)
 			}
 
-			// Write config.yaml
+			// Write config.toml
 			type siteCfg struct {
-				Search   []string `yaml:"search,omitempty"`
-				Location []string `yaml:"location,omitempty"`
+				Search   []string `toml:"search,omitempty"`
+				Location []string `toml:"location,omitempty"`
 			}
 			type configDefaults struct {
-				Search        []string `yaml:"search,omitempty"`
-				Location      []string `yaml:"location,omitempty"`
-				ResultsWanted int      `yaml:"results_wanted,omitempty"`
-				Out           string   `yaml:"out,omitempty"`
-				Format        string   `yaml:"format,omitempty"`
-				MemoryCap     string   `yaml:"memory_cap,omitempty"`
-				IsRemote      bool     `yaml:"is_remote,omitempty"`
-				JobType       string   `yaml:"job_type,omitempty"`
+				Search        []string `toml:"search,omitempty"`
+				Location      []string `toml:"location,omitempty"`
+				ResultsWanted int      `toml:"results_wanted,omitempty"`
+				Out           string   `toml:"out,omitempty"`
+				Format        string   `toml:"format,omitempty"`
+				MemoryCap     string   `toml:"memory_cap,omitempty"`
+				IsRemote      bool     `toml:"is_remote,omitempty"`
+				JobType       string   `toml:"job_type,omitempty"`
 			}
-			cfgYAML := struct {
-				Defaults configDefaults       `yaml:"defaults"`
-				Proxy    string               `yaml:"proxy,omitempty"`
-				Sites    string               `yaml:"sites,omitempty"`
-				SiteOverrides map[string]siteCfg   `yaml:"site_overrides,omitempty"`
+			cfgTOML := struct {
+				Defaults configDefaults       `toml:"defaults"`
+				Proxy    string               `toml:"proxy,omitempty"`
+				Sites    string               `toml:"sites,omitempty"`
+				SiteOverrides map[string]siteCfg   `toml:"site_overrides,omitempty"`
 			}{
 				Defaults: configDefaults{
 					ResultsWanted: resultsWanted,
@@ -143,22 +144,22 @@ EXAMPLES:
 				Proxy: proxy,
 			}
 			if search != "" {
-				cfgYAML.Defaults.Search = []string{search}
+				cfgTOML.Defaults.Search = []string{search}
 			}
 			if location != "" {
-				cfgYAML.Defaults.Location = []string{location}
+				cfgTOML.Defaults.Location = []string{location}
 			}
 
 			if sites != "" {
-				cfgYAML.Sites = sites
+				cfgTOML.Sites = sites
 			}
 
-			cfgBytes, err := yaml.Marshal(&cfgYAML)
-			if err != nil {
+			var buf bytes.Buffer
+			if err := toml.NewEncoder(&buf).Encode(&cfgTOML); err != nil {
 				return fmt.Errorf("marshal config: %w", err)
 			}
-			cfgPath := filepath.Join(scrappyDir, "config.yaml")
-			if err := os.WriteFile(cfgPath, cfgBytes, 0600); err != nil {
+			cfgPath := filepath.Join(scrappyDir, "config.toml")
+			if err := os.WriteFile(cfgPath, buf.Bytes(), 0600); err != nil {
 				return fmt.Errorf("write config: %w", err)
 			}
 			fmt.Printf("  \033[32m✓\033[0m Created %s\n", cfgPath)

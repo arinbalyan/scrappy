@@ -10,13 +10,13 @@ import (
 	"strings"
 	"sync"
 
-	"gopkg.in/yaml.v3"
+	"github.com/BurntSushi/toml"
 
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
-// SlugFile is the path to the company slugs YAML file.
-const SlugFile = "config/company_slugs.yaml"
+// SlugFile is the path to the company slugs TOML file.
+const SlugFile = "config/company_slugs.toml"
 
 var (
 	slugDB   map[string][]string
@@ -31,7 +31,7 @@ func loadSlugs() {
 		return // file not found — env/search only
 	}
 	var data map[string][]string
-	if err := yaml.Unmarshal(raw, &data); err != nil {
+	if err := toml.Unmarshal(raw, &data); err != nil {
 		return
 	}
 	slugDB = data
@@ -42,7 +42,7 @@ type SeedSource int
 
 const (
 	SeedFromEnv    SeedSource = iota // SCRAPPY_{PROVIDER}_SEEDS
-	SeedFromConfig                   // config/company_slugs.yaml
+	SeedFromConfig                   // config/company_slugs.toml
 	SeedFromSearch                   // SearchTerm used as company slug
 )
 
@@ -69,7 +69,7 @@ func normalizeKey(envKey string) string {
 	return strings.ToLower(k)
 }
 
-// aliasKeys provides fallback key names used in company_slugs.yaml.
+// aliasKeys provides fallback key names used in company_slugs.toml.
 func aliasKeys(key string) []string {
 	aliases := []string{key}
 	switch key {
@@ -117,7 +117,7 @@ func ResolveSeedsWithMeta(searchTerm string, envKey string) (seeds []string, src
 		}
 	}
 
-	// 2. Check config/company_slugs.yaml
+	// 2. Check config/company_slugs.toml
 	slugOnce.Do(loadSlugs)
 	key := normalizeKey(envKey)
 	for _, k := range aliasKeys(key) {
