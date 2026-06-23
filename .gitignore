@@ -30,9 +30,6 @@ vendor/
 *~
 Thumbs.db
 
-# Local-only AI assistant context (not committed)
-AGENTS.md
-
 # Temporary / generated
 tmp/
 .tmp/
