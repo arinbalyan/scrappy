@@ -64,52 +64,75 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	jobs := make([]model.JobPost, 0, wanted)
 
 	// ---------------------------------------------------------------
-	// Primary: fetch a standard web SERP (udm=8) which returns job
-	// pages from company career sites. Extract job data using:
-	//   1. JSON-LD (schema.org JobPosting from individual pages)
-	//   2. Inline regex patterns embedded by Google
+	// Primary: render in headless Chromium via Playwright.
+	// Google serves JS-rendered content; HTTP-only paths rarely work.
 	// ---------------------------------------------------------------
-	body, err := s.fetchPageStandard(ctx, query)
-	if err == nil {
-		// Try JSON-LD extraction first (schema.org JobPosting from
-		// company career pages that appear in search results)
-		page := util.ExtractJobPostingsJSONLD(body)
-		for _, j := range page {
-			jobs = append(jobs, j)
-			if len(jobs) >= wanted {
-				break
-			}
-		}
+	if browser.IsAvailable() {
+		u, _ := url.Parse(s.searchURL)
+		q := u.Query()
+		q.Set("q", buildQuery(input.SearchTerm, input))
+		q.Set("udm", "8")
+		q.Set("hl", "en")
+		u.RawQuery = q.Encode()
 
-		// Fallback: extract inline job data from the page HTML
-		if len(jobs) < wanted {
-			page = parseJobs(body)
+		result, bErr := browser.FetchPage(ctx, u.String(), "")
+		if bErr == nil && result.Status == 200 {
+			page := util.ExtractJobPostingsJSONLD([]byte(result.HTML))
 			for _, j := range page {
 				jobs = append(jobs, j)
 				if len(jobs) >= wanted {
 					break
 				}
 			}
-		}
-
-		// Fallback: try Google's AF_initDataCallback pattern
-		if len(jobs) < wanted {
-			page = parseAFInitData(body)
-			for _, j := range page {
-				jobs = append(jobs, j)
-				if len(jobs) >= wanted {
-					break
+			if len(jobs) < wanted {
+				page = parseJobs([]byte(result.HTML))
+				for _, j := range page {
+					jobs = append(jobs, j)
+					if len(jobs) >= wanted {
+						break
+					}
 				}
 			}
 		}
 	}
 
 	// ---------------------------------------------------------------
-	// Secondary: fetch with ibp=htl;jobs (legacy Jobs SERP). This
-	// often returns a minimal page that requires JS to render, but
-	// may contain inline data or redirect to udm=8.
+	// Fallback: try HTTP paths when browser isn't available.
 	// ---------------------------------------------------------------
 	if len(jobs) < wanted {
+		// Try udm=8 SERP
+		body, err := s.fetchPageStandard(ctx, query)
+		if err == nil {
+			page := util.ExtractJobPostingsJSONLD(body)
+			for _, j := range page {
+				jobs = append(jobs, j)
+				if len(jobs) >= wanted {
+					break
+				}
+			}
+			if len(jobs) < wanted {
+				page = parseJobs(body)
+				for _, j := range page {
+					jobs = append(jobs, j)
+					if len(jobs) >= wanted {
+						break
+					}
+				}
+			}
+			if len(jobs) < wanted {
+				page = parseAFInitData(body)
+				for _, j := range page {
+					jobs = append(jobs, j)
+					if len(jobs) >= wanted {
+						break
+					}
+				}
+			}
+		}
+	}
+
+	if len(jobs) < wanted {
+		// Try legacy ibp=htl;jobs endpoint
 		bodyLegacy, legacyErr := s.fetchPage(ctx, query, 0)
 		if legacyErr == nil {
 			page := parseJobs(bodyLegacy)
@@ -130,38 +153,6 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			}
 			if len(jobs) < wanted {
 				page = parseAFInitData(bodyLegacy)
-				for _, j := range page {
-					jobs = append(jobs, j)
-					if len(jobs) >= wanted {
-						break
-					}
-				}
-			}
-		}
-	}
-
-	// ---------------------------------------------------------------
-	// Tertiary: render in headless Chromium with standard SERP (udm=8).
-	// ---------------------------------------------------------------
-	if !util.HasMeaningfulJobs(jobs) && browser.IsAvailable() {
-		u, _ := url.Parse(s.searchURL)
-		q := u.Query()
-		q.Set("q", buildQuery(input.SearchTerm, input))
-		q.Set("udm", "8")
-		q.Set("hl", "en")
-		u.RawQuery = q.Encode()
-
-		result, bErr := browser.FetchPage(ctx, u.String(), "")
-		if bErr == nil && result.Status == 200 {
-			page := util.ExtractJobPostingsJSONLD([]byte(result.HTML))
-			for _, j := range page {
-				jobs = append(jobs, j)
-				if len(jobs) >= wanted {
-					break
-				}
-			}
-			if len(jobs) < wanted {
-				page = parseJobs([]byte(result.HTML))
 				for _, j := range page {
 					jobs = append(jobs, j)
 					if len(jobs) >= wanted {
