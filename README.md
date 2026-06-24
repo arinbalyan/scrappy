@@ -14,7 +14,6 @@
     <a href="https://github.com/arinbalyan/scrappy/forks">
       <img src="https://img.shields.io/github/forks/arinbalyan/scrappy" alt="Forks">
     </a>
-    <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Farinbalyan%2Fscrappy&countColor=%23263759" alt="Visitors">
   </p>
 </div>
 
@@ -156,3 +155,17 @@ jobs, err := engine.Scrape(ctx, scrappy.ScraperInput{
 ## License
 
 This project is licensed under the terms specified in the [LICENSE](LICENSE) file. Personal, non-commercial use only.
+
+<br>
+
+<div align="center">
+  <a href="https://star-history.com/#arinbalyan/scrappy&Timeline">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=arinbalyan/scrappy&type=Timeline&theme=dark" />
+      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=arinbalyan/scrappy&type=Timeline" />
+      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=arinbalyan/scrappy&type=Timeline" width="600" />
+    </picture>
+  </a>
+  <br><br>
+  <img src="https://api.visitorbadge.io/api/visitors?path=https%3A%2F%2Fgithub.com%2Farinbalyan%2Fscrappy&countColor=%23263759" alt="Visitors">
+</div>
