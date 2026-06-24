@@ -47,8 +47,8 @@ nav:
   - Installation: 002-Installation.md
   - CLI Reference: 003-CLI-Reference.md
   - Configuration: 004-Configuration.md
-  - Scraper Status: 005-Status.md
-  - Scraper Details:
+  - Scraper Status:
+    - Overview: 005-Status.md
     - All Sites: status/scrapers.md
     - Working: status/working.md
     - Not Working: status/not-working.md
