@@ -1,0 +1,56 @@
+site_name: scrappy
+site_description: Bulk job-board scraper for 100+ sites
+site_url: https://arinbalyan.github.io/scrappy/
+repo_url: https://github.com/arinbalyan/scrappy
+repo_name: arinbalyan/scrappy
+docs_dir: documentation/docs-site
+site_dir: site
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.highlight
+    - search.suggest
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.emoji
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - Quickstart: 001-Quickstart.md
+  - Installation: 002-Installation.md
+  - CLI Reference: 003-CLI-Reference.md
+  - Configuration: 004-Configuration.md
+  - Scraper Status: 005-Status.md
+  - Scraper Details:
+    - All Sites: status/scrapers.md
+    - Working: status/working.md
+    - Not Working: status/not-working.md
+    - Needs API Key: status/needs-api.md
+    - Needs Company Slug: status/needs-company-slug.md
