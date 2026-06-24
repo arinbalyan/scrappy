@@ -3,6 +3,18 @@ name: release
 on:
   push:
     branches: [main]
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'config/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'cmd/**'
+      - 'scripts/fetch-page.mjs'
+      - '.github/workflows/release.yml'
+      - '.github/workflows/promote.yml'
+      - '.github/scripts/promote.sh'
 
 permissions:
   contents: write
@@ -16,49 +28,45 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Bump patch version
+      - id: bump
+        name: Bump patch version
         run: |
           LATEST=$(git tag --sort=-creatordate | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1 || echo "v0.3.0")
-          echo "latest tag: $LATEST"
           MAJOR=$(echo "$LATEST" | cut -d. -f1 | tr -d v)
           MINOR=$(echo "$LATEST" | cut -d. -f2)
           PATCH=$(echo "$LATEST" | cut -d. -f3)
           NEW_PATCH=$((PATCH + 1))
           NEW_TAG="v${MAJOR}.${MINOR}.${NEW_PATCH}"
-          echo "new tag: $NEW_TAG"
-          echo "tag=$NEW_TAG" >> "$GITHUB_ENV"
+          echo "tag=$NEW_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Generate release notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ env.tag }}
         run: |
           PREV=$(git tag --sort=-creatordate | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -2 | tail -1 || echo "")
           if [ -z "$PREV" ]; then
             PREV=$(git rev-list --max-parents=0 HEAD)
           fi
+          TAG="${{ steps.bump.outputs.tag }}"
 
-          cat > /tmp/notes.md << NOTES
-## What's Changed
+          printf "## What's Changed\n\n" > /tmp/notes.md
 
-NOTES
+          gh pr list --state merged --limit 200 \
+            --json number,title,url,mergedAt,author \
+            | jq -r \
+              'map(select(.title | startswith("promote:") | not))
+               | sort_by(.mergedAt)
+               | .[] | "* \(.title) by @\(.author.login) in \(.url)"' \
+            >> /tmp/notes.md 2>/dev/null || true
 
-          gh pr list --state merged --limit 200 --json number,title,url,mergedAt,author \
-            | jq -r '
-              [.[] | select(.title | startswith("promote:") | not)]
-              | sort_by(.mergedAt)
-              | .[] | "* \(.title) by @\(.author.login) in \(.url)"
-            ' >> /tmp/notes.md 2>/dev/null || true
-
-          echo "" >> /tmp/notes.md
-          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREV...$TAG" >> /tmp/notes.md
+          printf "\n**Full Changelog**: https://github.com/%s/compare/%s...%s\n" \
+            "${{ github.repository }}" "$PREV" "$TAG" >> /tmp/notes.md
 
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git tag "$tag"
-          git push origin "$tag"
-          gh release create "$tag" \
-            --title "$tag" \
-            --notes-file /tmp/notes.md
+          TAG="${{ steps.bump.outputs.tag }}"
+          git tag "$TAG"
+          git push origin "$TAG"
+          gh release create "$TAG" --title "$TAG" --notes-file /tmp/notes.md
