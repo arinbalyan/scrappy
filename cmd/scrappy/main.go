@@ -12,12 +12,14 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/BurntSushi/toml"
+	internalemail "github.com/arinbalyan/scrappy/internal/email"
 	"github.com/arinbalyan/scrappy/internal/export"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/util"
@@ -35,77 +37,79 @@ const ascii = "\033[38;5;117m" + `
   ╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝        ╚═╝
 ` + "\033[0m"
 
-const longHelp = `Bulk job-board scraper for 55+ sites — Go-native, high concurrency,
+const longHelp = `Bulk job-board scraper for 141 sites — Go-native, high concurrency,
 low memory, and bulk-first design.
 
-SETUP
-  API keys (required for 5 sites):
-    ADZUNA_APP_ID / ADZUNA_APP_KEY   https://developer.adzuna.com/
-    CAREERJET_AFFID                   https://www.careerjet.com/partners/
-    INFOJOBS_CLIENT_ID/SECRET         https://developer.infojobs.net/
-    FINDWORK_API_KEY                  https://findwork.dev/developers/
-    ARBEITSAGENTUR_API_KEY            https://rest.arbeitsagentur.de/
-  Optional env vars:
-    SCRAPPY_PROXIES                   socks5://user:pass@host:port,...
-    SCRAPPY_LOG_LEVEL                 DEBUG|INFO|WARN|ERROR
-    SCRAPPY_GREENHOUSE_SEEDS          comma-separated company names
-    SCRAPPY_INDEED_API_KEY            Indeed API key (paid)
-    SCRAPPY_INDEED_CO                 Indeed company override
-    SCRAPPY_PROXY_ROTATE_EVERY_N      rotate every N requests
-    SCRAPPY_PROXY_STICKY_WINDOW_N     stickiness window
+SCRAPING FLAGS
+  --search             Comma-separated terms (e.g. "software engineer,AI Engineer")
+  --sites              Comma-separated site names (empty = all 141)
+  --location           Comma-separated locations (e.g. "Remote,New York")
+  --results-wanted     Max results total
+  --timeout            Scrape timeout in seconds (default 600)
+  --proxy              Comma-separated proxy URLs (socks5://, http://)
+  --memory-cap         Memory budget: "512MB", "1GB" (0=unlimited)
+  --max-rps            Global max requests per second
+  --site-rps           Per-site RPS: "linkedin:1,indeed:10"
+  --site-results-wanted Per-site caps: "indeed:5000,linkedin:1000"
 
-CONFIGURATION FILES (auto-detected)
-  1. config.toml in current directory
-  2. ~/.scrappy/config.toml (user-wide defaults)
+FILTER FLAGS
+  --email              Only jobs with >= 1 email address
+  --is-remote          Only remote jobs
+  --remote-only        Only truly remote (no location filter)
+  --job-type           fulltime|parttime|contract|internship
+  --hours-old          Jobs posted within N hours
+  --since              Jobs posted on or after date (RFC3339 or YYYY-MM-DD)
+  --min-score          Quality score floor (0-100)
+  --enforce-annual-salary  Normalize salaries to yearly
+
+OUTPUT FLAGS
+  --format             jsonl (default), csv, xlsx, parquet
+  --out                Output file path
+  --csv-emails-only    One row per email in CSV
+  --json-pretty        Pretty-print JSON
+  --json-minify        Minified JSON
+
+GITHUB FLAGS
+  --github-scrape      Discover emails from GitHub orgs/repos (requires --search)
+
+SETUP & DEBUG
+  --config             Path to config.toml
+  --log-level          DEBUG | INFO | WARN | ERROR
+  --non-interactive    Disable wizard (for scripts/CI)
+  --interactive        Force wizard mode
+  --dedup              Deduplicate jobs by URL (default: true)
+  --dedup-by-company   Keep one posting per company
+
+CONFIGURATION
+  Files (auto-detected):
+    1. config.toml in current directory
+    2. ~/.scrappy/config.toml (user-wide defaults)
+
+  API keys — set in .env:
+    ADZUNA_APP_ID / ADZUNA_APP_KEY         https://developer.adzuna.com/
+    CAREERJET_AFFID                         https://www.careerjet.com/partners/
+    INFOJOBS_CLIENT_ID/SECRET               https://developer.infojobs.net/
+    FINDWORK_API_KEY                        https://findwork.dev/developers/
+    ARBEITSAGENTUR_API_KEY                  https://rest.arbeitsagentur.de/
+    SCRAPPY_INDEED_API_KEY                  Indeed (paid)
+    SCRAPPY_DICE_API_KEY                    Dice
+    GITHUB_TOKEN                            GitHub API (for --github-scrape)
+
+  Optional env vars:
+    SCRAPPY_PROXIES                socks5://user:pass@host:port,...
+    SCRAPPY_LOG_LEVEL              DEBUG|INFO|WARN|ERROR
+    SCRAPPY_GREENHOUSE_SEEDS       company slugs for Greenhouse
+    SCRAPPY_INDEED_CO              Indeed company override
+    SCRAPPY_PROXY_ROTATE_EVERY_N   rotate proxy every N requests
+    SCRAPPY_PROXY_STICKY_WINDOW_N  proxy stickiness window
+    SCRAPPY_ATS_MAX_SEEDS          max company seeds per ATS (default 20)
 
   .env files are loaded from the same locations (beside config).
 
-  Run 'scrappy' without flags to enter interactive mode, which
-  can save your preferences to ~/.scrappy/config.toml.
-
 COMMANDS
   scrape    Run a scraping job (default command)
-  doctor    Run diagnostics on your scrappy setup (config, env, network)
-  setup     Interactive setup wizard to create your configuration
-
-FLAGS
-  --search             Comma-separated search terms (e.g. "AI Engineer,Software Dev")
-  --location           Comma-separated locations (e.g. "Remote,New York,Hyderabad")
-  --sites              Comma-separated site names (empty = all 55+)
-  --results-wanted     Max results total
-  --format             Output: jsonl (default), csv, xlsx, parquet
-  --out                Output file path (empty = stdout)
-  --timeout            Scrape timeout in seconds (default 600)
-  --proxy              Comma-separated proxy URLs (socks5://, http://)
-  --email              Only include jobs with >= 1 email
-  --is-remote          Only jobs flagged as remote (location-independent filter)
-  --remote-only        Only truly remote jobs (no location filter applied)
-  --job-type           Filter: fulltime|parttime|contract|internship
-  --hours-old          Only jobs posted within this many hours (0 = no filter)
-  --log-level          Log verbosity: DEBUG|INFO|WARN|ERROR
-  --config             Path to per-site config toml
-  --memory-cap         Memory budget: "512MB", "1GB", "256"=MB (0=unlimited).
-                       Enables memory-pressure monitor; auto-scales concurrency.
-  --json-pretty        Pretty-print JSON output on stdout (default: auto-detect)
-  --json-minify        Force minified JSON output even on TTY stdout
-  --non-interactive    Disable interactive wizard (for scripts)
-  --interactive        Force interactive mode (default: auto)
-
-SITES (55 total)
-  linkedin, indeed,
-  internshala, builtin, startupjobs, greenhouse, gunio,
-  himalayas, hiringcafe, huggingfacejobs, jobindex, remoteok,
-  remotive, remotefirstjobs, jobspresso, hasjob,
-  vuejobs, larajobs, arbeitnow, hackernews,
-  cryptocurrencyjobs, androidjobs, jobicy, devopsjobs,
-  crunchboard, cryptojobslist,
-  devopsjobs, aijobs, workingnomads,
-  ycjobs, ukvisajobs, google, adzuna,
-  simplyhired, careerbuilder, careerjet, dice,
-  monster, infojobs, reed, themuse, jobsdb,
-  snagajob, djinni, headhunter, mycareersfuture, jobstreet,
-  4dayweek, eurojobs, findwork,
-  web3career, arbeitsagentur
+  doctor    Run diagnostics on setup (config, env, network)
+  setup     Interactive setup wizard
 
 EXAMPLES
   Interactive wizard:
@@ -135,6 +139,10 @@ EXAMPLES
     scrappy --sites indeed --search "golang" --location "Remote" \
       --results-wanted 200 --format jsonl --out /data/jobs.jsonl \
       --non-interactive
+
+  GitHub email discovery:
+    scrappy --github-scrape --search "golang" --out github_emails.csv
+    GITHUB_TOKEN=ghp_xxx scrappy --github-scrape --search "torvalds"
 
   Single SOCKS5 proxy (avoid rate limits):
     scrappy --sites linkedin,indeed --search "AI Engineer" \
@@ -227,6 +235,7 @@ type cliConfig struct {
 	JSONMinify     bool
 	VersionJSON    bool
 	VerifyConcurrency int
+	GitHubScrape  bool
 }
 
 type multiString []string
@@ -290,7 +299,7 @@ func registerSubcommands() {
 func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root := &cobra.Command{
 		Use:     "scrappy",
-		Short:   "Bulk job-board scraper for 55+ sites",
+		Short:   "Bulk job-board scraper for 141 sites",
 		Long:    longHelp,
 		Version: version,
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -298,6 +307,9 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 			if cfg.VersionJSON {
 				printVersionJSON(cfg.JSONPretty, cfg.JSONMinify)
 				return nil
+			}
+			if cfg.GitHubScrape {
+				return runGitHubScrape(cfg)
 			}
 			if cfg.NonInteractive {
 				cfg.Interactive = false
@@ -322,7 +334,7 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 
 	root.Flags().StringVar(&cfg.Search, "search", "", "search term (e.g. \"software engineer\")")
 	root.Flags().StringVar(&cfg.Location, "location", "", "search location (e.g. \"San Francisco, CA\")")
-	root.Flags().StringVar(&cfg.Sites, "sites", "", "comma-separated site names (empty = all 55+)")
+	root.Flags().StringVar(&cfg.Sites, "sites", "", "comma-separated site names (empty = all 141)")
 	root.Flags().IntVar(&cfg.ResultsWanted, "results-wanted", 0, "max results")
 	root.Flags().StringVar(&cfg.Format, "format", "", "output format: jsonl|csv|xlsx|parquet")
 	root.Flags().StringVar(&cfg.Out, "out", "", "output path (empty = stdout)")
@@ -349,9 +361,22 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().BoolVar(&cfg.JSONPretty, "json-pretty", false, "pretty-print JSON output (stdout only, default: auto-detect)")
 	root.Flags().BoolVar(&cfg.JSONMinify, "json-minify", false, "force minified JSON output even on stdout")
 	root.Flags().BoolVar(&cfg.VersionJSON, "version-json", false, "print version info as JSON and exit")
+	root.Flags().BoolVar(&cfg.GitHubScrape, "github-scrape", false, "discover emails from GitHub orgs/repos instead of job scraping")
 	root.Flags().BoolVar(&cfg.Dedup, "dedup", true, "deduplicate jobs by URL across sites")
 	root.Flags().BoolVar(&cfg.DedupByCompany, "dedup-by-company", false, "keep only one posting per company")
 	root.SetVersionTemplate("scrappy v{{.Version}}\n")
+	// Custom help template — suppresses cobra's auto-generated Flags: section
+	// since we document flags inline in longHelp.
+	root.SetHelpTemplate(`{{.Long}}
+
+{{if .HasAvailableSubCommands}}
+COMMANDS
+{{range .Commands}}{{if .IsAvailableCommand}}
+  {{rpad .Name .NamePadding }} {{.Short}}{{end}}{{end}}
+
+Use "{{.CommandPath}} [command] --help" for more information.
+{{end}}
+`)
 	return root
 }
 
@@ -402,7 +427,7 @@ func runInteractive(cfg *cliConfig) {
 	fmt.Println(" \033[38;5;117m╭─ Main Settings ───────────────────────────────────╮\033[0m")
 	cfg.Search = ask(reader, "  Search term (e.g. \"AI Engineer\" or \"software engineer\")", cfg.Search)
 	cfg.Location = ask(reader, "  Location (e.g. \"Remote\" or \"San Francisco, CA\")", cfg.Location)
-	cfg.Sites = ask(reader, "  Sites (comma-separated, empty=all 55+, e.g. linkedin,indeed)", cfg.Sites)
+	cfg.Sites = ask(reader, "  Sites (comma-separated, empty=all 141, e.g. linkedin,indeed)", cfg.Sites)
 	cfg.ResultsWanted = askInt(reader, "  Results wanted (0 = unlimited)", cfg.ResultsWanted)
 	fmt.Println(" \033[38;5;117m╰────────────────────────────────────────────────────╯\033[0m")
 
@@ -932,6 +957,83 @@ func parseSites(v string) []model.Site {
 		}
 	}
 	return out
+}
+
+func runGitHubScrape(cfg *cliConfig) error {
+	login := strings.TrimSpace(cfg.Search)
+	if login == "" {
+		return fmt.Errorf("--github-scrape requires --search with a GitHub username")
+	}
+
+	fmt.Fprintf(os.Stderr, "\033[38;5;117mGitHub email discovery for: %s\033[0m\n", login)
+
+	token := os.Getenv("GITHUB_TOKEN")
+	g := internalemail.NewGitHubDiscoverer(token)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Timeout)*time.Second)
+	defer cancel()
+
+	result, err := g.DiscoverFromUser(ctx, login, 30)
+	if err != nil {
+		return fmt.Errorf("github discovery: %w", err)
+	}
+
+	// If no repos found from user orgs, try the search term as a direct org name
+	if len(result) == 0 {
+		util.Info("github_fallback", map[string]any{"treating_as_org": login})
+		repos, repoErr := g.ReposForOrg(ctx, login)
+		if repoErr == nil && len(repos) > 0 {
+			for _, fullName := range repos {
+				parts := strings.SplitN(fullName, "/", 2)
+				if len(parts) != 2 {
+					continue
+				}
+				emails, err := g.EmailsFromRepo(ctx, parts[0], parts[1], 30)
+				if err == nil && len(emails) > 0 {
+					result[fullName] = emails
+				}
+			}
+		}
+	}
+
+	// Count total emails
+	total := 0
+	for _, emails := range result {
+		total += len(emails)
+	}
+	fmt.Fprintf(os.Stderr, " \033[38;5;117m✓\033[0m Found %d emails across %d repos\n", total, len(result))
+
+	// Determine output
+	outPath := strings.TrimSpace(cfg.Out)
+	if outPath == "" {
+		outPath = "github_emails.csv"
+	}
+
+	// Write CSV output: repo, email
+	f, err := os.Create(outPath)
+	if err != nil {
+		return fmt.Errorf("create output: %w", err)
+	}
+	defer f.Close()
+
+	// Write header
+	fmt.Fprintf(f, "repo,email\n")
+
+	// Collect all repos sorted
+	repos := make([]string, 0, len(result))
+	for r := range result {
+		repos = append(repos, r)
+	}
+	sort.Strings(repos)
+
+	for _, repo := range repos {
+		for _, email := range result[repo] {
+			fmt.Fprintf(f, "%s,%s\n", repo, email)
+		}
+	}
+
+	fmt.Fprintf(os.Stderr, " \033[38;5;117m✓\033[0m Wrote %d rows to %s\n", total, outPath)
+	return nil
 }
 
 func loadAppConfig(path string) appConfig {
