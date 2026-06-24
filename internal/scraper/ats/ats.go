@@ -2,6 +2,7 @@ package ats
 
 import (
 	"context"
+	"embed"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -15,6 +16,9 @@ import (
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
+//go:embed company_slugs.toml
+var embeddedSlugs embed.FS
+
 // SlugFile is the path to the company slugs TOML file.
 const SlugFile = "config/company_slugs.toml"
 
@@ -23,12 +27,17 @@ var (
 	slugOnce sync.Once
 )
 
-// loadSlugs reads the company slugs file once.
+// loadSlugs reads the company slugs file once, falling back to embedded data.
 func loadSlugs() {
-	slugDB = make(map[string][]string)
-	raw, err := os.ReadFile(SlugFile)
-	if err != nil {
-		return // file not found — env/search only
+	raw, _ := embeddedSlugs.ReadFile("company_slugs.toml")
+
+	// Try file override (users can supply their own config/company_slugs.toml)
+	if fileRaw, err := os.ReadFile(SlugFile); err == nil {
+		raw = fileRaw
+	}
+
+	if len(raw) == 0 {
+		return
 	}
 	var data map[string][]string
 	if err := toml.Unmarshal(raw, &data); err != nil {
