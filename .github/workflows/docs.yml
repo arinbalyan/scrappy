@@ -32,12 +32,15 @@ jobs:
         run: pip install mkdocs mkdocs-material
 
       - name: Build site
-        run: mkdocs build --config-file scripts/mkdocs.yml
+        run: |
+          cd scripts
+          mkdocs build --config-file mkdocs.yml
+          cd ..
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: site
+          path: scripts/site
 
   deploy:
     runs-on: ubuntu-latest
