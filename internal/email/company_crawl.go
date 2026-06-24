@@ -19,7 +19,7 @@ import (
 // Ponytail: deliberately small. Stdlib net/url + 5 hard-coded path probes.
 // No config, no backoff, no retry. Failures are non-fatal; partial results
 // are still returned. The page probe order comes from the email discovery
-// roadmap (docs/EMAIL_DISCOVERY_ROADMAP.md) and yields ~70% of what
+// roadmap and yields ~70% of what
 // paid providers find for free.
 type MultiPageCompanyEnricher struct {
 	HTTPClient  *http.Client

@@ -1,15 +1,8 @@
 <div align="center">
   <h1>scrappy</h1>
-  <p><strong>Bulk job-board scraper for 100+ sites</strong></p>
+  <p><strong>Bulk job-board scraper</strong></p>
 
   <p>
-    <a href="https://github.com/arinbalyan/scrappy/actions/workflows/ci.yml">
-      <img src="https://github.com/arinbalyan/scrappy/actions/workflows/ci.yml/badge.svg" alt="CI">
-    </a>
-    <a href="https://github.com/arinbalyan/scrappy/actions/workflows/docs.yml">
-      <img src="https://github.com/arinbalyan/scrappy/actions/workflows/docs.yml/badge.svg" alt="Docs">
-    </a>
-    <a href="https://go.dev/">
       <img src="https://img.shields.io/github/go-mod/go-version/arinbalyan/scrappy" alt="Go Version">
     </a>
     <a href="LICENSE">
@@ -82,29 +75,12 @@ scrappy
 
 | # | Document | Description |
 |---|----------|-------------|
-| 001 | [Quickstart](docs/001-Quickstart.md) | Get running in 5 minutes |
-| 002 | [Architecture Overview](docs/002-Architecture-Overview.md) | High-level design and data flow |
-| 003 | [Installation](docs/003-Installation.md) | Install from source, Docker, or CI |
-| 004 | [CLI Reference](docs/004-CLI-Reference.md) | Complete flag reference with examples |
-| 005 | [Interactive Mode](docs/005-Interactive-Mode.md) | Wizard-based configuration |
-| 006 | [Non-Interactive Mode](docs/006-NonInteractive-Mode.md) | Script and cron usage |
-| 007 | [Multi-Value Search](docs/007-Multi-Value.md) | Cartesian product of terms and locations |
-| 008 | [Configuration](docs/008-Configuration.md) | YAML config file reference |
-| 009 | [Export Formats](docs/009-Export-Formats.md) | Output format details and column schema |
-| 010 | [Email](docs/010-Email.md) | Extraction, MX validation, enrichment |
-| 011 | [Quality](docs/011-Quality.md) | Deterministic scoring formula |
-| 012 | [Scraping](docs/012-Scraping.md) | Per-site notes and rate limits |
-| 013 | [Proxy](docs/013-Proxy.md) | Proxy setup for local and CI |
-| 014 | [Dedup](docs/014-Dedup.md) | Cross-site URL and company deduplication |
-| 015 | [Environment Variables](docs/015-Environment-Variables.md) | All supported environment variables |
-| 016 | [Memory Management](docs/016-Memory-Management.md) | Memory cap and concurrency scaling |
-| 017 | [Troubleshooting](docs/017-Troubleshooting.md) | Common issues and solutions |
-| 018 | [FAQ](docs/018-FAQ.md) | Frequently asked questions |
-| 019 | [Architecture Reference](docs/019-Architecture-Reference.md) | Detailed package architecture |
+| — | `scrappy --help` | Complete CLI reference with flag descriptions |
+| — | `.env.example` | All supported environment variables |
+
+Use `scrappy doctor` to diagnose your setup.
 
 ## Sites supported
-
-Per-site notes live in [docs/012-Scraping.md](docs/012-Scraping.md) and detailed pages in [docs/sites/](docs/sites/).
 
 | Site | Site | Site | Site |
 |------|------|------|------|
@@ -148,26 +124,7 @@ Per-site notes live in [docs/012-Scraping.md](docs/012-Scraping.md) and detailed
 
 ## Installation
 
-See [docs/003-Installation.md](docs/003-Installation.md) for Go, Docker, and CI installation.
-
-## Build with Makefile
-
-The project includes a `Makefile` for common development tasks:
-
-```bash
-make build      # Build the scrappy binary to bin/scrappy
-make test       # Run all unit tests
-make test-race  # Run tests with race detector
-make vet        # Run go vet
-make lint       # Run golangci-lint
-make clean      # Remove build artifacts
-make docker     # Build Docker image
-make all        # build + test + vet
-```
-
-A `.dockerignore` excludes unnecessary files from Docker builds for smaller images.
-
-## Go library usage
+Install via one-liner above, `go install`, or build from source with `go build ./cmd/scrappy`.
 
 ```go
 import (
@@ -183,13 +140,7 @@ jobs, err := engine.Scrape(ctx, scrappy.ScraperInput{
 })
 ```
 
-## Contributing
-
-See [docs/019-Architecture-Reference.md](docs/019-Architecture-Reference.md) for the package layout and [docs/012-Scraping.md](docs/012-Scraping.md) for scraping details.
-
-<br>
-
-<!-- Star History -->
+## Go library usage
 <div align="center">
   <a href="https://star-history.com/#arinbalyan/scrappy&Timeline">
     <picture>

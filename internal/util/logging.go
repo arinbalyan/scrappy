@@ -4,30 +4,17 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
 )
 
-// ---------------------------------------------------------------------------
-// Production-grade leveled logger
-// ---------------------------------------------------------------------------
+// ── Level ────────────────────────────────────────────────────────────────────
 
-var (
-	startTime    time.Time
-	defaultLogger = &Logger{level: LevelInfo, out: os.Stderr}
-)
-
-func init() {
-	startTime = time.Now()
-}
-
-// Level represents a log severity.
 type Level int
 
 const (
-	LevelDebug Level = iota - 1 // -1 so 0-level comparison works sanely
+	LevelDebug Level = iota - 1
 	LevelInfo
 	LevelWarn
 	LevelError
@@ -40,19 +27,27 @@ var levelLabels = map[Level]string{
 	LevelError: "ERROR",
 }
 
-// Logger is a simple, synchronous, human-readable logger.
+// ── Logger ────────────────────────────────────────────────────────────────────
+
 type Logger struct {
 	mu    sync.Mutex
 	level Level
 	out   io.Writer
 }
 
-// SetLogLevel sets the global minimum log level.
+var (
+	startTime     time.Time
+	defaultLogger = &Logger{level: LevelInfo, out: os.Stderr}
+)
+
+func init() {
+	startTime = time.Now()
+}
+
 func SetLogLevel(raw string) {
 	defaultLogger.SetLevel(ParseLogLevel(raw))
 }
 
-// ParseLogLevel converts a string to a Level.
 func ParseLogLevel(raw string) Level {
 	switch strings.ToUpper(strings.TrimSpace(raw)) {
 	case "DEBUG":
@@ -68,159 +63,178 @@ func ParseLogLevel(raw string) Level {
 	}
 }
 
-// SetLevel sets the logger's minimum level.
 func (l *Logger) SetLevel(level Level) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.level = level
 }
 
-// Enabled reports whether the given level will be emitted.
 func (l *Logger) Enabled(level Level) bool {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	return level >= l.level
 }
 
-// ---------------------------------------------------------------------------
-// resource header helpers
-// ---------------------------------------------------------------------------
+// ── Emit ──────────────────────────────────────────────────────────────────────
 
-// resHeader returns a compact resource snapshot: elapsed seconds, goroutines,
-// approximate RSS (heap alloc MB).
-func resHeader() string {
-	var m runtime.MemStats
-	runtime.ReadMemStats(&m)
-	secs := time.Since(startTime).Seconds()
-	return fmt.Sprintf("[%.1fs go=%d mem=%dMB]",
-		secs, runtime.NumGoroutine(), m.Alloc/(1024*1024))
+var isTerminal = func() bool {
+	fi, err := os.Stderr.Stat()
+	return err == nil && (fi.Mode()&os.ModeCharDevice) != 0
+}()
+
+const reset = "\033[0m"
+
+var levelColor = map[Level]string{
+	LevelDebug: "\033[90m", // grey
+	LevelInfo:  "\033[34m", // blue
+	LevelWarn:  "\033[33m", // yellow
+	LevelError: "\033[31m", // red
 }
 
-// ---------------------------------------------------------------------------
-// core emit
-// ---------------------------------------------------------------------------
+func labelColor(level Level) string {
+	if !isTerminal {
+		return ""
+	}
+	c, ok := levelColor[level]
+	if !ok {
+		return "\033[34m"
+	}
+	return c
+}
 
-// log emits one line. component is optional (may be "").
-func log(level Level, component, msg string) {
+func relSince(t time.Time) string {
+	d := time.Since(t)
+	switch {
+	case d < time.Second:
+		return fmt.Sprintf("%dms", d.Milliseconds())
+	case d < time.Minute:
+		return fmt.Sprintf("%.1fs", d.Seconds())
+	default:
+		return fmt.Sprintf("%.0fm%02ds", d.Minutes(), int(d.Seconds())%60)
+	}
+}
+
+func emit(level Level, component string, msg string, fields map[string]any) {
 	defaultLogger.mu.Lock()
 	defer defaultLogger.mu.Unlock()
 	if level < defaultLogger.level {
 		return
 	}
+
 	label := levelLabels[level]
-	if label == "" {
-		label = "INFO"
-	}
-	rh := resHeader()
-	var line string
-	if component != "" {
-		line = fmt.Sprintf("%s %s - %s - %s\n", label, rh, component, msg)
+	elapsed := relSince(startTime)
+
+	// Build:  LEVEL  [elapsed go=N mem=N]  component  message  k=v k=v
+	var header string
+	if isTerminal {
+		header = fmt.Sprintf("%s%-5s%s %s%-8s%s",
+			labelColor(level), label, reset,
+			"\033[90m", elapsed, reset,
+		)
+		if component != "" {
+			header += fmt.Sprintf(" \033[36m%s\033[0m", component)
+		}
 	} else {
-		line = fmt.Sprintf("%s %s - %s\n", label, rh, msg)
+		header = fmt.Sprintf("%-5s %s", label, elapsed)
+		if component != "" {
+			header += fmt.Sprintf(" %s", component)
+		}
 	}
-	fmt.Fprint(defaultLogger.out, line)
+	line := header
+	if msg != "" {
+		line += fmt.Sprintf(" %s", msg)
+	}
+	if len(fields) > 0 {
+		// Sort keys for stable output
+		keys := make([]string, 0, len(fields))
+		for k := range fields {
+			keys = append(keys, k)
+		}
+		for _, k := range keys {
+			v := fields[k]
+			if isTerminal {
+				line += fmt.Sprintf(" \033[90m%s=%v\033[0m", k, v)
+			} else {
+				line += fmt.Sprintf(" %s=%v", k, v)
+			}
+		}
+	}
+	fmt.Fprintln(defaultLogger.out, line)
 }
 
-// ---------------------------------------------------------------------------
-// Public logging functions
-//
-// Each accepts an optional component (e.g. site name) and a printf-style
-// message.  The component is extracted from a trailing string field named
-// "site" if present, otherwise the first string field is used.  Fields are
-// appended as space-separated key=value pairs.
-// ---------------------------------------------------------------------------
+// ── Public API ────────────────────────────────────────────────────────────────
 
-// Debug emits a DEBUG-level line.
 func Debug(msg string, fields map[string]any) {
-	if fields == nil {
-		log(LevelDebug, "", msg)
+	if !defaultLogger.Enabled(LevelDebug) {
 		return
 	}
 	component, rest := extractFields(fields)
-	log(LevelDebug, component, appendFields(msg, rest))
+	emit(LevelDebug, component, msg, rest)
 }
 
-// Info emits an INFO-level line.
 func Info(msg string, fields map[string]any) {
-	if fields == nil {
-		log(LevelInfo, "", msg)
+	if !defaultLogger.Enabled(LevelInfo) {
 		return
 	}
 	component, rest := extractFields(fields)
-	log(LevelInfo, component, appendFields(msg, rest))
+	emit(LevelInfo, component, msg, rest)
 }
 
-// Warn emits a WARN-level line.
 func Warn(msg string, fields map[string]any) {
-	if fields == nil {
-		log(LevelWarn, "", msg)
+	if !defaultLogger.Enabled(LevelWarn) {
 		return
 	}
 	component, rest := extractFields(fields)
-	log(LevelWarn, component, appendFields(msg, rest))
+	emit(LevelWarn, component, msg, rest)
 }
 
-// Error emits an ERROR-level line.
 func Error(msg string, fields map[string]any) {
-	if fields == nil {
-		log(LevelError, "", msg)
+	if !defaultLogger.Enabled(LevelError) {
 		return
 	}
 	component, rest := extractFields(fields)
-	log(LevelError, component, appendFields(msg, rest))
+	emit(LevelError, component, msg, rest)
 }
 
-// SystemError emits an ERROR-level line marked as system.
 func SystemError(msg string, fields map[string]any) {
-	if fields == nil {
-		log(LevelError, "system", msg)
+	if !defaultLogger.Enabled(LevelError) {
 		return
 	}
 	_, rest := extractFields(fields)
-	log(LevelError, "system", appendFields(msg, rest))
+	emit(LevelError, "system", msg, rest)
 }
 
-// APIMiss emits a DEBUG-level line about missing API data.
-// Downgraded from a separate level to DEBUG for simplicity.
 func APIMiss(msg string, fields map[string]any) {
-	if fields == nil {
-		log(LevelDebug, "", msg)
+	// Downgraded to DEBUG
+	if !defaultLogger.Enabled(LevelDebug) {
 		return
 	}
 	component, rest := extractFields(fields)
-	log(LevelDebug, component, appendFields(msg, rest))
+	emit(LevelDebug, component, "api_miss: "+msg, rest)
 }
 
-// ---------------------------------------------------------------------------
-// helpers
-// ---------------------------------------------------------------------------
+// ── Field helpers ─────────────────────────────────────────────────────────────
 
-// extractFields pulls a "site" or "component" key out of fields and returns
-// it as the component, along with the remaining key-value pairs.
-func extractFields(fields map[string]any) (component string, rest []string) {
-	rest = make([]string, 0, len(fields))
-
-	for k, v := range fields {
-		// skip internal/reserved fields
-		if k == "ts" || k == "level" {
-			continue
+func extractFields(fields map[string]any) (component string, rest map[string]any) {
+	if fields == nil {
+		return "", nil
+	}
+	if s, ok := fields["site"]; ok {
+		if str, ok := s.(string); ok {
+			component = str
 		}
-		// treat "site" / "component" as the log section header
-		if component == "" && (k == "site" || k == "component") {
-			if s := fmt.Sprintf("%v", v); s != "" {
-				component = s
-				continue
+	}
+	if component == "" {
+		for k, v := range fields {
+			if str, ok := v.(string); ok {
+				component = str
+				delete(fields, k)
+				break
 			}
 		}
-		rest = append(rest, fmt.Sprintf("%s=%v", k, v))
 	}
-	return
-}
-
-// appendFields concatenates msg with a formatted field list.
-func appendFields(msg string, fields []string) string {
-	if len(fields) == 0 {
-		return msg
+	if _, ok := fields["site"]; ok {
+		delete(fields, "site")
 	}
-	return msg + " " + strings.Join(fields, " ")
+	return component, fields
 }

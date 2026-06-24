@@ -48,6 +48,10 @@ go.work
 config.yaml
 config.toml
 
+# Run output (keep scripts only)
+scripts/run_all/*
+!scripts/run_all/*.sh
+
 # Node / Playwright scripts
 scripts/node_modules/
 scripts/site-check.sh

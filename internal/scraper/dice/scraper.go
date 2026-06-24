@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -27,8 +28,12 @@ const (
 var apiHeaders = map[string]string{
 	"Accept":       "application/json",
 	"Content-Type": "application/json",
-	"x-api-key":    "1YAt0R9wBg4WfsF9VB2778F5CHLAPMVW3WAZcKd8",
+	"x-api-key":    diceAPIKey(),
 	"User-Agent":   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+}
+
+func diceAPIKey() string {
+	return strings.TrimSpace(os.Getenv("SCRAPPY_DICE_API_KEY"))
 }
 
 // Browser-like headers for HTML fallback scraping.

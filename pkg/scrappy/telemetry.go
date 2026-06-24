@@ -1,5 +1,6 @@
 package scrappy
 
+// SiteTelemetry tracks per-site scrape results.
 type SiteTelemetry struct {
 	Site              Site        `json:"site"`
 	Attempted         bool        `json:"attempted"`
@@ -13,6 +14,8 @@ type SiteTelemetry struct {
 	StatusCodeCount   map[int]int `json:"status_code_counts,omitempty"`
 	ChallengeDetected bool        `json:"challenge_detected"`
 }
+
+// RunTelemetry aggregates site telemetry for a single scrape run.
 type RunTelemetry struct {
 	Sites            []SiteTelemetry `json:"sites"`
 	SuggestedSiteRPS map[Site]int   `json:"suggested_site_rps,omitempty"`
