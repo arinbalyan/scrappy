@@ -12,12 +12,14 @@ import (
 	"os/user"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/BurntSushi/toml"
+	internalemail "github.com/arinbalyan/scrappy/internal/email"
 	"github.com/arinbalyan/scrappy/internal/export"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/util"
@@ -227,6 +229,7 @@ type cliConfig struct {
 	JSONMinify     bool
 	VersionJSON    bool
 	VerifyConcurrency int
+	GitHubScrape  bool
 }
 
 type multiString []string
@@ -299,6 +302,9 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 				printVersionJSON(cfg.JSONPretty, cfg.JSONMinify)
 				return nil
 			}
+			if cfg.GitHubScrape {
+				return runGitHubScrape(cfg)
+			}
 			if cfg.NonInteractive {
 				cfg.Interactive = false
 			}
@@ -349,6 +355,7 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().BoolVar(&cfg.JSONPretty, "json-pretty", false, "pretty-print JSON output (stdout only, default: auto-detect)")
 	root.Flags().BoolVar(&cfg.JSONMinify, "json-minify", false, "force minified JSON output even on stdout")
 	root.Flags().BoolVar(&cfg.VersionJSON, "version-json", false, "print version info as JSON and exit")
+	root.Flags().BoolVar(&cfg.GitHubScrape, "github-scrape", false, "discover emails from GitHub orgs/repos instead of job scraping")
 	root.Flags().BoolVar(&cfg.Dedup, "dedup", true, "deduplicate jobs by URL across sites")
 	root.Flags().BoolVar(&cfg.DedupByCompany, "dedup-by-company", false, "keep only one posting per company")
 	root.SetVersionTemplate("scrappy v{{.Version}}\n")
@@ -932,6 +939,65 @@ func parseSites(v string) []model.Site {
 		}
 	}
 	return out
+}
+
+func runGitHubScrape(cfg *cliConfig) error {
+	login := strings.TrimSpace(cfg.Search)
+	if login == "" {
+		return fmt.Errorf("--github-scrape requires --search with a GitHub username")
+	}
+
+	fmt.Fprintf(os.Stderr, "\033[38;5;117mGitHub email discovery for: %s\033[0m\n", login)
+
+	token := os.Getenv("GITHUB_TOKEN")
+	g := internalemail.NewGitHubDiscoverer(token)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(cfg.Timeout)*time.Second)
+	defer cancel()
+
+	result, err := g.DiscoverFromUser(ctx, login, 30)
+	if err != nil {
+		return fmt.Errorf("github discovery: %w", err)
+	}
+
+	// Count total emails
+	total := 0
+	for _, emails := range result {
+		total += len(emails)
+	}
+	fmt.Fprintf(os.Stderr, " \033[38;5;117m✓\033[0m Found %d emails across %d repos\n", total, len(result))
+
+	// Determine output
+	outPath := strings.TrimSpace(cfg.Out)
+	if outPath == "" {
+		outPath = "github_emails.csv"
+	}
+
+	// Write CSV output: repo, email
+	f, err := os.Create(outPath)
+	if err != nil {
+		return fmt.Errorf("create output: %w", err)
+	}
+	defer f.Close()
+
+	// Write header
+	fmt.Fprintf(f, "repo,email\n")
+
+	// Collect all repos sorted
+	repos := make([]string, 0, len(result))
+	for r := range result {
+		repos = append(repos, r)
+	}
+	sort.Strings(repos)
+
+	for _, repo := range repos {
+		for _, email := range result[repo] {
+			fmt.Fprintf(f, "%s,%s\n", repo, email)
+		}
+	}
+
+	fmt.Fprintf(os.Stderr, " \033[38;5;117m✓\033[0m Wrote %d rows to %s\n", total, outPath)
+	return nil
 }
 
 func loadAppConfig(path string) appConfig {
