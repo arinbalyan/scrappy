@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -13,6 +14,8 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
+
+	utls "github.com/refraction-networking/utls"
 )
 
 var defaultUA = []string{
@@ -32,6 +35,35 @@ type ClientOptions struct {
 	BaseDelay             time.Duration
 	MaxDelay              time.Duration
 	Timeout               time.Duration
+}
+
+// utlsDialer returns a DialTLSContext function that uses uTLS to mimic
+// Chrome's TLS fingerprint instead of Go's telltale TLS handshake.
+func utlsDialer(dialer *net.Dialer) func(ctx context.Context, network, addr string) (net.Conn, error) {
+	return func(ctx context.Context, network, addr string) (net.Conn, error) {
+		tcpConn, err := dialer.DialContext(ctx, network, addr)
+		if err != nil {
+			return nil, err
+		}
+
+		host, _, err := net.SplitHostPort(addr)
+		if err != nil {
+			tcpConn.Close()
+			return nil, err
+		}
+
+		config := &utls.Config{
+			ServerName: host,
+			MinVersion: utls.VersionTLS12,
+		}
+
+		uconn := utls.UClient(tcpConn, config, utls.HelloChrome_Auto)
+		if err := uconn.HandshakeContext(ctx); err != nil {
+			tcpConn.Close()
+			return nil, err
+		}
+		return uconn, nil
+	}
 }
 
 func NewHTTPClient(opts ClientOptions) *http.Client {
@@ -71,9 +103,11 @@ func NewHTTPClient(opts ClientOptions) *http.Client {
 	}
 
 	jar, _ := cookiejar.New(nil)
+	dialer := &net.Dialer{Timeout: 8 * time.Second, KeepAlive: 30 * time.Second}
 	base := &http.Transport{
 		Proxy:               http.ProxyFromEnvironment,
-		DialContext:         (&net.Dialer{Timeout: 8 * time.Second, KeepAlive: 30 * time.Second}).DialContext,
+		DialContext:         dialer.DialContext,
+		DialTLSContext:      utlsDialer(dialer),
 		TLSHandshakeTimeout: 8 * time.Second,
 		MaxIdleConns:        100,
 		MaxIdleConnsPerHost: 10,
@@ -102,6 +136,44 @@ type smartRT struct {
 func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 	if req.Header.Get("User-Agent") == "" {
 		req.Header.Set("User-Agent", s.nextUserAgent())
+	}
+	// Add browser-like headers that Go's net/http doesn't send by default.
+	// These help avoid WAF detection even without strict header ordering.
+	if req.Header.Get("Accept") == "" {
+		req.Header.Set("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+	}
+	if req.Header.Get("Accept-Language") == "" {
+		req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+	}
+	if req.Header.Get("Sec-Fetch-Dest") == "" {
+		req.Header.Set("Sec-Fetch-Dest", "document")
+	}
+	if req.Header.Get("Sec-Fetch-Mode") == "" {
+		req.Header.Set("Sec-Fetch-Mode", "navigate")
+	}
+	if req.Header.Get("Sec-Fetch-Site") == "" {
+		req.Header.Set("Sec-Fetch-Site", "none")
+	}
+	if req.Header.Get("Sec-Fetch-User") == "" {
+		req.Header.Set("Sec-Fetch-User", "?1")
+	}
+	if req.Header.Get("Upgrade-Insecure-Requests") == "" {
+		req.Header.Set("Upgrade-Insecure-Requests", "1")
+	}
+	// Add Sec-Ch-Ua headers (critical for Chrome fingerprint).
+	// Extract browser brand from User-Agent to match.
+	if req.Header.Get("Sec-Ch-Ua") == "" {
+		ua := req.Header.Get("User-Agent")
+		brand := detectChromeBrand(ua)
+		if brand != "" {
+			req.Header.Set("Sec-Ch-Ua", brand)
+		}
+	}
+	if req.Header.Get("Sec-Ch-Ua-Mobile") == "" {
+		req.Header.Set("Sec-Ch-Ua-Mobile", "?0")
+	}
+	if req.Header.Get("Sec-Ch-Ua-Platform") == "" {
+		req.Header.Set("Sec-Ch-Ua-Platform", detectPlatform(req.Header.Get("User-Agent")))
 	}
 	Debug("http_roundtrip_start", map[string]any{"method": req.Method, "url": redactURL(req.URL)})
 
@@ -357,4 +429,46 @@ func (s *smartRT) retryDelay(attempt int, resp *http.Response) time.Duration {
 		}
 	}
 	return d + jitter
+}
+
+// detectChromeBrand returns the Sec-CH-UA header value based on the User-Agent.
+func detectChromeBrand(ua string) string {
+	if ua == "" {
+		return ""
+	}
+	// Chrome 124+
+	if strings.Contains(ua, "Chrome/124") {
+		return `"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"`
+	}
+	if strings.Contains(ua, "Chrome/125") {
+		return `"Chromium";v="125", "Google Chrome";v="125", "Not-A.Brand";v="99"`
+	}
+	if strings.Contains(ua, "Chrome/126") {
+		return `"Chromium";v="126", "Google Chrome";v="126", "Not-A.Brand";v="99"`
+	}
+	if strings.Contains(ua, "Chrome/130") {
+		return `"Chromium";v="130", "Google Chrome";v="130", "Not-A.Brand";v="99"`
+	}
+	if strings.Contains(ua, "Chrome/1") {
+		return `"Chromium";v="128", "Google Chrome";v="128", "Not-A.Brand";v="99"`
+	}
+	// Generic Safari fallback
+	if strings.Contains(ua, "Safari/") && !strings.Contains(ua, "Chrome") {
+		return `"Not=A?Brand";v="99", "Safari";v="17"`
+	}
+	return `"Chromium";v="128", "Google Chrome";v="128", "Not-A.Brand";v="99"`
+}
+
+// detectPlatform returns the Sec-CH-UA-Platform value based on the User-Agent.
+func detectPlatform(ua string) string {
+	if strings.Contains(ua, "Windows") {
+		return "\"Windows\""
+	}
+	if strings.Contains(ua, "Macintosh") || strings.Contains(ua, "Darwin") {
+		return "\"macOS\""
+	}
+	if strings.Contains(ua, "Linux") {
+		return "\"Linux\""
+	}
+	return "\"macOS\""
 }
