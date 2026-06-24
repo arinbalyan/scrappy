@@ -1,0 +1,53 @@
+name: promote
+
+on:
+  schedule:
+    - cron: '0 8 * * *'   # daily at 08:00 UTC
+  workflow_dispatch:
+    inputs:
+      step:
+        description: 'Which promotion to run'
+        type: choice
+        options:
+          - all
+          - dev-to-beta
+          - beta-to-staging
+          - staging-to-main
+      force:
+        description: 'Skip 7-day wait'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Promote dev → beta
+        if: |
+          github.event_name == 'schedule' ||
+          inputs.step == 'all' ||
+          inputs.step == 'dev-to-beta'
+        run: bash .github/scripts/promote.sh dev beta ${{ github.event_name == 'workflow_dispatch' && inputs.force && '--force' || '' }}
+
+      - name: Promote beta → staging
+        if: |
+          github.event_name == 'schedule' ||
+          inputs.step == 'all' ||
+          inputs.step == 'beta-to-staging'
+        run: bash .github/scripts/promote.sh beta staging ${{ github.event_name == 'workflow_dispatch' && inputs.force && '--force' || '' }}
+
+      - name: Promote staging → main
+        if: |
+          github.event_name == 'schedule' ||
+          inputs.step == 'all' ||
+          inputs.step == 'staging-to-main'
+        run: bash .github/scripts/promote.sh staging main ${{ github.event_name == 'workflow_dispatch' && inputs.force && '--force' || '' }}

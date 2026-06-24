@@ -47,6 +47,11 @@ go.work
 # Local config (personal, not committed)
 config.yaml
 config.toml
+sync-all.sh
+
+# Run output (keep scripts only)
+scripts/run_all/*
+!scripts/run_all/*.sh
 
 # Run output (keep scripts only)
 scripts/run_all/*
