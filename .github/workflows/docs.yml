@@ -4,8 +4,8 @@ on:
   push:
     branches: [main]
     paths:
-      - 'documentation/docs-site/**'
-      - 'mkdocs.yml'
+      - 'documentation/**'
+      - 'scripts/mkdocs.yml'
   workflow_dispatch:
 
 permissions:

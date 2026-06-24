@@ -3,7 +3,7 @@ site_description: Bulk job-board scraper for 100+ sites
 site_url: https://arinbalyan.github.io/scrappy/
 repo_url: https://github.com/arinbalyan/scrappy
 repo_name: arinbalyan/scrappy
-docs_dir: documentation/docs-site
+docs_dir: documentation
 site_dir: site
 
 theme:
