@@ -19,26 +19,69 @@ import (
 
 const RoleEmailSource = "description"
 
-// validTLDs contains the most common real-world TLDs.  Used by strictlyValidEmail
-// to reject regex false-positives where trailing word characters are appended to
-// a valid domain (e.g. "support@mercor.comps" or "user@jerry.aithe").
+// validTLDs contains common real-world TLDs. Used by strictlyValidEmail to
+// reject regex false-positives where trailing word characters are appended.
 var validTLDs = map[string]bool{
-	"com": true, "org": true, "net": true, "edu": true, "gov": true, "mil": true,
-	"io": true, "ai": true, "app": true, "dev": true, "tech": true, "co": true,
-	"uk": true, "de": true, "fr": true, "es": true, "it": true, "nl": true,
-	"ca": true, "au": true, "in": true, "jp": true, "cn": true, "br": true,
-	"ru": true, "kr": true, "ch": true, "se": true, "no": true, "dk": true,
-	"fi": true, "pl": true, "be": true, "at": true, "ie": true, "nz": true,
-	"za": true, "mx": true, "sg": true, "hk": true, "il": true, "pt": true,
-	"gr": true, "cz": true, "hu": true, "ro": true, "ua": true, "tr": true,
-	"my": true, "ph": true, "th": true, "vn": true, "eg": true, "ng": true,
-	"ar": true, "cl": true, "us": true,
-	// Common new-gTLDs used by companies.
-	"blog": true, "shop": true, "store": true, "online": true, "website": true,
-	"site": true, "cloud": true, "digital": true, "software": true, "studio": true,
-	"design": true, "agency": true, "careers": true, "jobs": true, "work": true,
-	"email": true, "mail": true, "company": true, "enterprises": true,
-	"fm": true, "ly": true, "me": true, "tv": true, "xxx": true,
+	// Original gTLDs
+	"com": true, "org": true, "net": true, "edu": true, "gov": true, "mil": true, "int": true,
+	// Popular ccTLDs
+	"io": true, "ai": true, "co": true, "uk": true, "de": true, "fr": true, "es": true,
+	"it": true, "nl": true, "ca": true, "au": true, "in": true, "jp": true, "cn": true,
+	"br": true, "ru": true, "kr": true, "ch": true, "se": true, "no": true, "dk": true,
+	"fi": true, "pl": true, "be": true, "at": true, "ie": true, "nz": true, "za": true,
+	"mx": true, "sg": true, "hk": true, "il": true, "pt": true, "gr": true, "cz": true,
+	"hu": true, "ro": true, "ua": true, "tr": true, "my": true, "ph": true, "th": true,
+	"vn": true, "eg": true, "ng": true, "ar": true, "cl": true, "us": true, "id": true,
+	"pk": true, "bd": true, "ke": true, "tz": true, "gh": true, "ir": true, "sa": true,
+	"ae": true, "qa": true, "om": true, "kw": true, "lb": true, "jo": true, "sk": true,
+	"bg": true, "hr": true, "lt": true, "lv": true, "ee": true, "is": true, "lu": true,
+	"mt": true, "cy": true, "ba": true, "rs": true, "me": true, "mk": true, "al": true,
+	// Business & tech new-gTLDs
+	"app": true, "dev": true, "tech": true, "blog": true, "shop": true, "store": true,
+	"online": true, "website": true, "site": true, "cloud": true, "digital": true,
+	"software": true, "studio": true, "design": true, "agency": true, "careers": true,
+	"jobs": true, "work": true, "email": true, "mail": true, "company": true,
+	"enterprises": true, "biz": true, "info": true, "pro": true, "name": true,
+	"mobi": true, "tel": true, "asia": true, "eu": true, "cat": true,
+	// Tech & IT new-gTLDs
+	"systems": true, "network": true, "computer": true, "engineering": true,
+	"codes": true, "guru": true, "live": true, "life": true, "global": true,
+	"world": true, "space": true, "host": true, "press": true, "page": true,
+	"marketing": true, "media": true, "news": true, "report": true, "review": true,
+	"social": true, "solutions": true, "support": true, "services": true, "tips": true,
+	"tools": true, "training": true, "video": true, "today": true,
+	// Finance & professional
+	"capital": true, "finance": true, "financial": true, "fund": true, "insurance": true,
+	"investments": true, "loan": true, "money": true, "tax": true, "law": true,
+	"legal": true, "accountant": true, "broker": true, "claims": true, "credit": true,
+	// Lifestyle & common new-gTLDs
+	"academy": true, "cafe": true, "camera": true, "camp": true, "care": true,
+	"center": true, "city": true, "club": true, "coffee": true, "community": true,
+	"construction": true, "consulting": true, "cool": true, "dance": true, "delivery": true,
+	"dental": true, "doctor": true, "dog": true, "domains": true, "education": true,
+	"engineer": true, "events": true, "exchange": true, "expert": true, "express": true,
+	"family": true, "farm": true, "film": true, "fitness": true, "flights": true,
+	"flowers": true, "foundation": true, "fun": true, "furniture": true, "gallery": true,
+	"garden": true, "glass": true, "gold": true, "golf": true, "graphics": true,
+	"guide": true, "health": true, "healthcare": true, "holiday": true,
+	"hospital": true, "house": true, "industries": true, "institute": true, "insure": true,
+	"international": true, "kaufen": true, "kitchen": true, "land": true, "lighting": true,
+	"limited": true, "link": true, "loans": true, "maison": true, "management": true,
+	"market": true, "medical": true, "men": true, "moda": true, "mortgage": true,
+	"museum": true, "navy": true, "ninja": true, "one": true, "organic": true,
+	"partners": true, "parts": true, "photo": true, "photography": true, "photos": true,
+	"pictures": true, "pizza": true, "place": true, "plumbing": true, "productions": true,
+	"properties": true, "realtor": true, "recipes": true, "rent": true, "repair": true,
+	"restaurant": true, "reviews": true, "rich": true, "rocks": true,
+	"school": true, "schule": true, "science": true, "security": true,
+	"shoes": true, "show": true, "singles": true, "solar": true, "style": true,
+	"supplies": true, "supply": true, "surgery": true, "tattoo": true, "technology": true,
+	"tennis": true, "theater": true, "tokyo": true, "tours": true,
+	"town": true, "toys": true, "trade": true, "university": true, "vacations": true,
+	"ventures": true, "vision": true, "voyage": true, "watch": true, "wine": true,
+	"works": true, "zone": true,
+	// Media & entertainment
+	"fm": true, "ly": true, "tv": true, "xxx": true, "tube": true,
 }
 
 // ─── Patterns ─────────────────────────────────────────────────────────────────
