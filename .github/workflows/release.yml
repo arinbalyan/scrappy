@@ -3,6 +3,18 @@ name: release
 on:
   push:
     branches: [main]
+    paths:
+      - '**.go'
+      - 'go.mod'
+      - 'go.sum'
+      - 'config/**'
+      - 'internal/**'
+      - 'pkg/**'
+      - 'cmd/**'
+      - 'scripts/fetch-page.mjs'
+      - '.github/workflows/release.yml'
+      - '.github/workflows/promote.yml'
+      - '.github/scripts/promote.sh'
 
 permissions:
   contents: write
