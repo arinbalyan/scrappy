@@ -108,7 +108,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	if input.Country == "" {
 		input.Country = model.CountryUSA
 	}
-	s.warmupOnce.Do(func() { s.warmupError = s.bootstrapSession(ctx, input.Country) })
+	s.warmupOnce.Do(func() {
+		warmupCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+		defer cancel()
+		s.warmupError = s.bootstrapSession(warmupCtx, input.Country)
+	})
 
 	if input.ResultsWanted <= 0 {
 		input.ResultsWanted = math.MaxInt32 // 0 = no limit, paginate until exhausted
