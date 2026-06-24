@@ -26,7 +26,7 @@ var (
 
 	// titleRe extracts the job title from an <a> or heading inside a card.
 	// SimplyHired uses: <h2><a data-testid="searchSerpJobTitle" ...>Title</a></h2>
-	titleRe = regexp.MustCompile(`(?is)(?:<a[^>]*data-testid="searchSerpJobTitle"[^>]*>|<h[23][^>]*>|<a[^>]*class="[^"]*jobposting-title[^"]*"[^>]*>)\s*([^<]+?)\s*</`)
+	titleRe = regexp.MustCompile(`(?is)<h2[^>]*data-testid="searchSerpJobTitle"[^>]*>.*?<a[^>]*>\s*([^<]+?)\s*</|<a[^>]*data-testid="searchSerpJobTitle"[^>]*>\s*([^<]+?)\s*<`)
 
 	// companyRe extracts the company name.
 	companyRe = regexp.MustCompile(`(?is)(?:data-testid="companyName"[^>]*>|class="[^"]*jobposting-company[^"]*"[^>]*>|class="[^"]*SerpJob-link--company[^"]*"[^>]*>|itemprop="name"[^>]*>)\s*([^<]+?)\s*<`)
@@ -53,7 +53,7 @@ type Scraper struct {
 // New creates a SimplyHired scraper with default settings.
 func New(client *http.Client) *Scraper {
 	if client == nil {
-		client = util.NewHTTPClient(util.ClientOptions{Retries: 3, Timeout: 25 * time.Second})
+		client = &http.Client{Timeout: 25 * time.Second}
 	}
 	return &Scraper{client: client, searchURL: searchURL}
 }
@@ -146,9 +146,7 @@ func (s *Scraper) fetchPage(ctx context.Context, searchTerm, location string, pa
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Accept", "text/html,application/xhtml+xml")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+	req.Header.Set("User-Agent", "Mozilla/5.0")
 
 	resp, err := s.client.Do(req)
 	if err != nil {
