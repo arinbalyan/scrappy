@@ -28,6 +28,31 @@ jobs:
           echo "new tag: $NEW_TAG"
           echo "tag=$NEW_TAG" >> "$GITHUB_ENV"
 
+      - name: Generate release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ env.tag }}
+        run: |
+          PREV=$(git tag --sort=-creatordate | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -2 | tail -1 || echo "")
+          if [ -z "$PREV" ]; then
+            PREV=$(git rev-list --max-parents=0 HEAD)
+          fi
+
+          cat > /tmp/notes.md << NOTES
+## What's Changed
+
+NOTES
+
+          gh pr list --state merged --limit 200 --json number,title,url,mergedAt,author \
+            | jq -r '
+              [.[] | select(.title | startswith("promote:") | not)]
+              | sort_by(.mergedAt)
+              | .[] | "* \(.title) by @\(.author.login) in \(.url)"
+            ' >> /tmp/notes.md 2>/dev/null || true
+
+          echo "" >> /tmp/notes.md
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/$PREV...$TAG" >> /tmp/notes.md
+
       - name: Create release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -36,4 +61,4 @@ jobs:
           git push origin "$tag"
           gh release create "$tag" \
             --title "$tag" \
-            --generate-notes
+            --notes-file /tmp/notes.md
