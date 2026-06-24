@@ -39,16 +39,11 @@ if [ -z "$PR_URL" ]; then
     --fill 2>/dev/null || true
 fi
 
-# Merge
-git checkout -B temp-promote "origin/$FROM"
-git push origin "temp-promote:$TO" 2>/dev/null || {
-  echo "fast-forward failed — creating merge commit"
-  git fetch origin "$TO"
-  git checkout -B temp-merge "origin/$TO"
-  git merge --no-ff "origin/$FROM" -m "promote: $FROM → $TO"
-  git push origin "temp-merge:$TO"
-}
-git branch -D temp-promote 2>/dev/null || true
+# Merge with explicit merge commit (no fast-forward)
+git fetch origin "$TO"
+git checkout -B temp-merge "origin/$TO"
+git merge --no-ff "origin/$FROM" -m "promote: $FROM → $TO"
+git push origin "temp-merge:$TO"
 git branch -D temp-merge 2>/dev/null || true
 
 echo "promoted $FROM → $TO"
