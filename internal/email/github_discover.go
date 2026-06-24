@@ -267,6 +267,168 @@ func (g *GitHubDiscoverer) fetchJSON(ctx context.Context, rawURL string, _ []byt
 // isGitHubNoreply returns true for GitHub's privacy-protection addresses
 // (noreply.github.com and the older users.noreply.github.com) and
 // common bot patterns.
+// OrgsForUser returns the organization logins the given user belongs to.
+func (g *GitHubDiscoverer) OrgsForUser(ctx context.Context, login string) ([]string, error) {
+	login = strings.TrimSpace(login)
+	if login == "" {
+		return nil, nil
+	}
+	url := fmt.Sprintf("https://api.github.com/users/%s/orgs", url.PathEscape(login))
+	body, err := g.fetchJSON(ctx, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("github_orgs: %w", err)
+	}
+	var orgs []struct {
+		Login string `json:"login"`
+	}
+	if err := json.Unmarshal(body, &orgs); err != nil {
+		return nil, fmt.Errorf("github_orgs_decode: %w", err)
+	}
+	out := make([]string, 0, len(orgs))
+	for _, o := range orgs {
+		if o.Login != "" {
+			out = append(out, o.Login)
+		}
+	}
+	return out, nil
+}
+
+// ReposForOrg returns the full repo names (owner/name) for a GitHub org.
+func (g *GitHubDiscoverer) ReposForOrg(ctx context.Context, org string) ([]string, error) {
+	org = strings.TrimSpace(org)
+	if org == "" {
+		return nil, nil
+	}
+	url := fmt.Sprintf("https://api.github.com/orgs/%s/repos?per_page=50&sort=pushed&type=public", url.PathEscape(org))
+	body, err := g.fetchJSON(ctx, url, nil)
+	if err != nil {
+		return nil, fmt.Errorf("github_org_repos: %w", err)
+	}
+	var repos []struct {
+		FullName string `json:"full_name"`
+		Fork     bool   `json:"fork"`
+	}
+	if err := json.Unmarshal(body, &repos); err != nil {
+		return nil, fmt.Errorf("github_org_repos_decode: %w", err)
+	}
+	out := make([]string, 0, len(repos))
+	for _, r := range repos {
+		if !r.Fork && r.FullName != "" {
+			out = append(out, r.FullName)
+		}
+	}
+	return out, nil
+}
+
+// EmailsFromRepo returns unique personal emails from recent commits in a repo.
+// Uses the same approach as CommitsForAuthor but for a specific repo.
+func (g *GitHubDiscoverer) EmailsFromRepo(ctx context.Context, owner, repo string, maxCommits int) ([]string, error) {
+	owner = strings.TrimSpace(owner)
+	repo = strings.TrimSpace(repo)
+	if owner == "" || repo == "" {
+		return nil, nil
+	}
+
+	cacheKey := owner + "/" + repo
+	if cached, ok := g.Cache.Get(cacheKey); ok {
+		return cached, nil
+	}
+
+	if maxCommits <= 0 || maxCommits > 100 {
+		maxCommits = 30
+	}
+
+	commitsURL := fmt.Sprintf("https://api.github.com/repos/%s/%s/commits?per_page=%d",
+		url.PathEscape(owner), url.PathEscape(repo), maxCommits)
+	commits, err := g.fetchJSON(ctx, commitsURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("github_repo_commits: %w", err)
+	}
+
+	type commitItem struct {
+		Author *struct {
+			Email string `json:"email"`
+			Login string `json:"login"`
+		} `json:"author"`
+		Commit *struct {
+			Author *struct {
+				Email string `json:"email"`
+			} `json:"author"`
+		} `json:"commit"`
+	}
+	var commitsList []commitItem
+	if err := json.Unmarshal(commits, &commitsList); err != nil {
+		return nil, fmt.Errorf("github_repo_commits_decode: %w", err)
+	}
+
+	seen := make(map[string]bool)
+	out := make([]string, 0)
+	for _, c := range commitsList {
+		var email string
+		if c.Commit != nil && c.Commit.Author != nil {
+			email = c.Commit.Author.Email
+		}
+		if email == "" && c.Author != nil {
+			email = c.Author.Email
+		}
+		email = strings.TrimSpace(email)
+		if email == "" || isGitHubNoreply(email) || seen[email] {
+			continue
+		}
+		seen[email] = true
+		out = append(out, email)
+	}
+
+	g.Cache.Put(cacheKey, out)
+	return out, nil
+}
+
+// DiscoverFromUser discovers organizations and repos from a GitHub login,
+// then extracts contributor emails from recent commits. minCommits controls
+// how many recent commits to scan per repo (default 30, max 100).
+func (g *GitHubDiscoverer) DiscoverFromUser(ctx context.Context, login string, minCommits int) (map[string][]string, error) {
+	login = strings.TrimSpace(login)
+	if login == "" {
+		return nil, nil
+	}
+	util.Info("github_discover", map[string]any{"user": login})
+
+	// 1. Get orgs the user belongs to.
+	orgs, err := g.OrgsForUser(ctx, login)
+	if err != nil {
+		return nil, fmt.Errorf("discover_orgs: %w", err)
+	}
+	util.Info("github_orgs", map[string]any{"user": login, "orgs": len(orgs)})
+
+	result := make(map[string][]string)
+
+	// 2. For each org, get repos and extract emails from each repo.
+	for _, org := range orgs {
+		repos, err := g.ReposForOrg(ctx, org)
+		if err != nil {
+			util.Debug("github_org_repos_err", map[string]any{"org": org, "err": err.Error()})
+			continue
+		}
+		for _, fullName := range repos {
+			parts := strings.SplitN(fullName, "/", 2)
+			if len(parts) != 2 {
+				continue
+			}
+			emails, err := g.EmailsFromRepo(ctx, parts[0], parts[1], minCommits)
+			if err != nil {
+				util.Debug("github_repo_emails_err", map[string]any{"repo": fullName, "err": err.Error()})
+				continue
+			}
+			if len(emails) > 0 {
+				result[fullName] = emails
+			}
+		}
+	}
+
+	util.Info("github_discover_done", map[string]any{"user": login, "repos_with_emails": len(result)})
+	return result, nil
+}
+
 func isGitHubNoreply(email string) bool {
 	e := strings.ToLower(email)
 	if strings.HasSuffix(e, "@users.noreply.github.com") {
