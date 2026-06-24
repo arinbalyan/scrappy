@@ -1,5 +1,5 @@
 site_name: scrappy
-site_description: Bulk job-board scraper for 100+ sites
+site_description: Bulk job-board scraper for 141 sites
 site_url: https://arinbalyan.github.io/scrappy/
 repo_url: https://github.com/arinbalyan/scrappy
 repo_name: arinbalyan/scrappy
@@ -54,3 +54,13 @@ nav:
     - Not Working: status/not-working.md
     - Needs API Key: status/needs-api.md
     - Needs Company Slug: status/needs-company-slug.md
+  - Architecture: 006-Architecture.md
+  - Email Extraction: 007-Email-Extraction.md
+  - Quality Scoring: 008-Quality-Scoring.md
+  - Export Formats: 009-Export-Formats.md
+  - Proxy: 010-Proxy.md
+  - Dedup: 011-Dedup.md
+  - Browser Automation: 012-Browser-Automation.md
+  - GitHub Discovery: 013-GitHub-Discovery.md
+  - Normalize: 014-Normalize.md
+  - Rate Limiting: 015-Rate-Limiting.md
