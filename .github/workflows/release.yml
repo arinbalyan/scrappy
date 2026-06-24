@@ -36,5 +36,4 @@ jobs:
           git push origin "$tag"
           gh release create "$tag" \
             --title "$tag" \
-            --notes "Release $tag — see CHANGELOG.md for details" \
             --generate-notes
