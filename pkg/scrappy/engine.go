@@ -184,11 +184,8 @@ var requiredEnvVars = map[model.Site][]string{
 	model.SiteAuthenticJobs:  {"AUTHENTICJOBS_API_KEY"},
 }
 
-type PostProcessor func(context.Context, *model.JobPost) error
-
 type Engine struct {
 	scrapers     map[model.Site]scraper.Scraper
-	hooks        []PostProcessor
 	telemetry    RunTelemetry
 	siteFailOpen bool
 }
@@ -341,18 +338,6 @@ func NewEngine() *Engine {
 	return &Engine{scrapers: m, siteFailOpen: true}
 }
 
-func (e *Engine) SetSiteFailOpen(enabled bool) {
-	e.siteFailOpen = enabled
-}
-
-func (e *Engine) Telemetry() RunTelemetry {
-	return e.telemetry
-}
-
-func (e *Engine) RegisterHook(h PostProcessor) {
-	e.hooks = append(e.hooks, h)
-}
-
 func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
 	sites := input.Sites
 	if len(sites) == 0 {
@@ -501,12 +486,15 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			st := SiteTelemetry{Site: Site(site), Attempted: true, StatusCodeCount: map[int]int{}}
 			aggregated := make([]model.JobPost, 0)
 			var lastErr error
+			siteStart := time.Now()
+			method := scraper.Method(site)
+			util.Info("scrape_start", map[string]any{"site": site, "method": method, "terms": len(terms), "locs": len(locs)})
 			for _, term := range terms {
 				for _, loc := range locs {
 					siteInput := baseInput
 					siteInput.SearchTerm = term
 					siteInput.Location = loc
-					util.Info("Scraping", map[string]any{"site": site, "search": siteInput.SearchTerm, "location": siteInput.Location})
+					util.Debug("scrape_try", map[string]any{"site": site, "search": siteInput.SearchTerm, "location": siteInput.Location})
 					jobs, err := sc.Scrape(ctx, siteInput)
 					aggregated = append(aggregated, jobs...)
 					if err != nil {
@@ -516,9 +504,9 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 						st.ChallengeDetected = containsAny(st.Error, "captcha", "cloudflare", "attention required", "forbidden", "blocked")
 						if e.siteFailOpen {
 							st.FailOpenReason = classifyFailOpenReason(err)
-							util.Warn("fail_open", map[string]any{"site": site, "reason": st.FailOpenReason, "err": st.Error, "partial": len(aggregated), "term": term, "location": loc})
+							util.Warn("fail_open", map[string]any{"site": site, "method": method, "reason": st.FailOpenReason, "err": st.Error, "partial": len(aggregated), "term": term, "location": loc})
 						} else {
-							util.Error("scrape_failed", map[string]any{"site": site, "err": st.Error, "partial": len(aggregated), "term": term, "location": loc})
+							util.Error("scrape_failed", map[string]any{"site": site, "method": method, "err": st.Error, "partial": len(aggregated), "term": term, "location": loc})
 						}
 						allMu.Lock()
 						e.telemetry.SuggestedSiteRPS[Site(site)] = suggestRPS(input.SiteRPS[site], err)
@@ -529,8 +517,10 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 					}
 				}
 			}
+			elapsed := time.Since(siteStart)
 			if lastErr != nil && len(aggregated) == 0 {
 				// All (term, loc) combos failed with zero results.
+				util.Warn("scrape_failed_all", map[string]any{"site": site, "method": method, "elapsed": elapsed.String(), "err": lastErr.Error()})
 				resultsCh <- siteResult{site: site, st: st, ok: false}
 				return
 			}
@@ -540,10 +530,9 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			st.ResultCount = len(aggregated)
 			if st.Success && len(aggregated) == 0 {
 				st.EmptyPageRate = 1
-				util.APIMiss("no_results", map[string]any{"site": site})
-			}
-			if st.Error == "" || len(aggregated) > 0 {
-				util.Info("scraped", map[string]any{"site": site, "jobs": len(aggregated)})
+				util.APIMiss("no_results", map[string]any{"site": site, "method": method})
+			} else if len(aggregated) > 0 {
+				util.Info("scrape_done", map[string]any{"site": site, "method": method, "jobs": len(aggregated), "elapsed": elapsed.String()})
 			}
 			allMu.Lock()
 			e.telemetry.SuggestedSiteRPS[Site(site)] = suggestRPS(input.SiteRPS[site], nil)
@@ -617,15 +606,6 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				jobs[i].Compensation = normalize.AnnualizeCompensation(jobs[i].Compensation)
 			}
 			jobs[i].QualityScore = quality.Score(&jobs[i])
-			for _, h := range e.hooks {
-				if err := h(ctx, &jobs[i]); err != nil {
-					if e.siteFailOpen {
-						util.Warn("hook_failed", map[string]any{"site": res.site, "job_id": jobs[i].ID, "err": err.Error()})
-						continue
-					}
-					return nil, fmt.Errorf("post-process %s: %w", jobs[i].ID, err)
-				}
-			}
 			util.Debug("job", map[string]any{"site": res.site, "job_id": jobs[i].ID, "title": jobs[i].Title})
 
 			// Immediate global deduplication to save memory.

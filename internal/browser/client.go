@@ -18,6 +18,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/arinbalyan/scrappy/internal/util"
 )
 
 // PageResult holds the browser-fetched page content.
@@ -78,6 +80,9 @@ func FetchPage(ctx context.Context, targetURL string, waitSelector string) (*Pag
 		return nil, fmt.Errorf("browser: invalid target URL: %q", targetURL)
 	}
 
+	start := time.Now()
+	util.Debug("browser_fetch", map[string]any{"url": u.Host + u.Path, "wait": waitSelector})
+
 	args := []string{scriptPath, targetURL}
 	if waitSelector != "" {
 		args = append(args, "--wait", waitSelector)
@@ -136,8 +141,10 @@ func FetchPage(ctx context.Context, targetURL string, waitSelector string) (*Pag
 			// Normalized fallback; script may omit status in edge cases.
 			result.Status = 200
 		}
+		util.Debug("browser_fetched", map[string]any{"url": u.Host + u.Path, "status": result.Status, "html_len": len(result.HTML), "elapsed": time.Since(start).String()})
 		return &result, nil
 	}
+	util.Warn("browser_fetch_failed", map[string]any{"url": u.Host + u.Path, "elapsed": time.Since(start).String(), "err": lastErr.Error()})
 	return nil, lastErr
 }
 

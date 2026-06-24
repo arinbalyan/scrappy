@@ -15,7 +15,6 @@ import (
 func newSetupCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:     "setup",
-		Aliases: []string{"init", "onboard", "wizard"},
 		Short:   "Run the interactive setup wizard to create your config",
 		Long: `Walk through an interactive setup to create ~/.scrappy/config.toml
 and ~/.scrappy/.env with your API keys, proxies, and preferences.
