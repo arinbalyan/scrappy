@@ -139,19 +139,6 @@ jobs, err := engine.Scrape(ctx, scrappy.ScraperInput{
 })
 ```
 
-## Go library usage
-<div align="center">
-  <a href="https://star-history.com/#arinbalyan/scrappy&Timeline">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=arinbalyan/scrappy&type=Timeline&theme=dark" />
-      <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=arinbalyan/scrappy&type=Timeline" />
-      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=arinbalyan/scrappy&type=Timeline" width="600" />
-    </picture>
-  </a>
-</div>
-
-<br>
-
 ## License
 
 This project is licensed under the terms specified in the [LICENSE](LICENSE) file. Personal, non-commercial use only.

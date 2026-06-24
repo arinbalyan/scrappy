@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# promote.sh <from_branch> <to_branch> [--force]
+# promote.sh <from_branch> <to_branch> [--force] [--pr-only]
 # Merges from_branch into to_branch if the last commit is 7+ days old (or --force).
+# With --pr-only, creates a PR instead of merging directly.
 set -euo pipefail
 
 FROM=$1
 TO=$2
 FORCE=${3:-}
+PR_ONLY=${4:-}
 
 git fetch origin "$FROM" "$TO"
 
-# Check if FROM has commits ahead of TO
 AHEAD=$(git rev-list --count "origin/$TO..origin/$FROM" 2>/dev/null || echo 0)
 if [ "$AHEAD" -eq 0 ]; then
   echo "no new commits on $FROM since last $TO promotion — skipping"
@@ -17,7 +18,6 @@ if [ "$AHEAD" -eq 0 ]; then
 fi
 
 if [ "$FORCE" != "--force" ]; then
-  # Check age of the latest commit on FROM
   LAST_TS=$(git log -1 --format=%ct "origin/$FROM")
   NOW=$(date +%s)
   AGE_DAYS=$(( (NOW - LAST_TS) / 86400 ))
@@ -28,18 +28,38 @@ if [ "$FORCE" != "--force" ]; then
   fi
 fi
 
-# Create a PR for visibility (or just merge directly)
+# Build PR body with commit log
+LOG=$(git log --oneline "origin/$TO..origin/$FROM" 2>/dev/null || echo "")
+COUNT=$(echo "$LOG" | wc -l)
+
 PR_URL=$(gh pr list --head "$FROM" --base "$TO" --json url --jq '.[0].url' 2>/dev/null || echo "")
 if [ -z "$PR_URL" ]; then
   gh pr create \
     --head "$FROM" \
     --base "$TO" \
     --title "promote: $FROM → $TO" \
-    --body "Automated promotion triggered by $(date -u +%Y-%m-%d)" \
-    --fill 2>/dev/null || true
+    --body "## Promote: $FROM → $TO
+
+### Commits ($COUNT)
+
+$LOG
+
+---
+Automated promotion." 2>/dev/null || true
+  PR_URL=$(gh pr list --head "$FROM" --base "$TO" --json url --jq '.[0].url' 2>/dev/null || echo "")
 fi
 
-# Merge with explicit merge commit (no fast-forward)
+if [ -n "$PR_URL" ]; then
+  echo "PR: $PR_URL"
+fi
+
+# If --pr-only, stop here (don't merge)
+if [ "$PR_ONLY" = "--pr-only" ]; then
+  echo "PR created — merge it manually when ready"
+  exit 0
+fi
+
+# Merge with explicit merge commit
 git fetch origin "$TO"
 git checkout -B temp-merge "origin/$TO"
 git merge --no-ff "origin/$FROM" -m "promote: $FROM → $TO"

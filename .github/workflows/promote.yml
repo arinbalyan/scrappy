@@ -2,21 +2,14 @@ name: promote
 
 on:
   schedule:
-    - cron: '0 8 * * *'   # daily at 08:00 UTC
+    - cron: '0 8 * * *'   # daily at 08:00 UTC — auto promotes dev→beta→staging
   workflow_dispatch:
     inputs:
       step:
-        description: 'Which promotion to run'
+        description: 'Which step to run'
         type: choice
         options:
-          - all
-          - dev-to-beta
-          - beta-to-staging
           - staging-to-main
-      force:
-        description: 'Skip 7-day wait'
-        type: boolean
-        default: false
 
 permissions:
   contents: write
@@ -31,23 +24,16 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Auto-promotions (daily cron, 7-day gate)
       - name: Promote dev → beta
-        if: |
-          github.event_name == 'schedule' ||
-          inputs.step == 'all' ||
-          inputs.step == 'dev-to-beta'
-        run: bash .github/scripts/promote.sh dev beta ${{ github.event_name == 'workflow_dispatch' && inputs.force && '--force' || '' }}
+        if: github.event_name == 'schedule'
+        run: bash .github/scripts/promote.sh dev beta
 
       - name: Promote beta → staging
-        if: |
-          github.event_name == 'schedule' ||
-          inputs.step == 'all' ||
-          inputs.step == 'beta-to-staging'
-        run: bash .github/scripts/promote.sh beta staging ${{ github.event_name == 'workflow_dispatch' && inputs.force && '--force' || '' }}
+        if: github.event_name == 'schedule'
+        run: bash .github/scripts/promote.sh beta staging
 
-      - name: Promote staging → main
-        if: |
-          github.event_name == 'schedule' ||
-          inputs.step == 'all' ||
-          inputs.step == 'staging-to-main'
-        run: bash .github/scripts/promote.sh staging main ${{ github.event_name == 'workflow_dispatch' && inputs.force && '--force' || '' }}
+      # Manual: create PR from staging → main (no auto-merge)
+      - name: Create PR staging → main
+        if: github.event_name == 'workflow_dispatch' && inputs.step == 'staging-to-main'
+        run: bash .github/scripts/promote.sh staging main --force --pr-only
