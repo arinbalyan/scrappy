@@ -82,6 +82,11 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 }
 
 func (s *Scraper) scrapeSinglePass(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
+	// First, try the faster guest API which doesn't need auth.
+	if jobs := s.tryGuestAPI(ctx, input); len(jobs) > 0 {
+		return jobs, nil
+	}
+
 	seen := map[string]struct{}{}
 	jobs := make([]model.JobPost, 0, min(input.ResultsWanted, 10000))
 	start := 0
@@ -255,6 +260,60 @@ func (s *Scraper) adaptiveBackoff(ctx context.Context, retry int) {
 	jitter := time.Duration(rand.Intn(500)) * time.Millisecond
 	wait := base + jitter
 	_ = util.SleepWithContext(ctx, wait)
+}
+
+// tryGuestAPI attempts to fetch jobs using LinkedIn's guest endpoint which
+// doesn't require authentication. Much faster than Playwright (~2s vs 12s).
+func (s *Scraper) tryGuestAPI(ctx context.Context, input model.ScraperInput) []model.JobPost {
+	util.Debug("linkedin_try_guest_api", map[string]any{"search": input.SearchTerm, "location": input.Location})
+
+	u, _ := url.Parse(s.baseURL + "/jobs-guest/jobs/api/seeMoreJobPostings/search")
+	q := u.Query()
+	q.Set("keywords", input.SearchTerm)
+	if input.Location != "" {
+		q.Set("location", input.Location)
+	}
+	if input.IsRemote {
+		q.Set("f_WT", "2")
+	}
+	if jt := linkedInJobTypeCode(input.JobType); jt != "" {
+		q.Set("f_JT", jt)
+	}
+	q.Set("start", "0")
+	u.RawQuery = q.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		util.Debug("linkedin_guest_api_req_err", map[string]any{"err": err.Error()})
+		return nil
+	}
+	req.Header.Set("accept", "text/html,application/xhtml+xml")
+	req.Header.Set("accept-language", "en-US,en;q=0.9")
+	req.Header.Set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		util.Debug("linkedin_guest_api_err", map[string]any{"err": err.Error()})
+		return nil
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		util.Debug("linkedin_guest_api_status", map[string]any{"status": resp.StatusCode})
+		return nil
+	}
+
+	body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
+	if err != nil {
+		util.Debug("linkedin_guest_api_read_err", map[string]any{"err": err.Error()})
+		return nil
+	}
+
+	jobs := parseJobCards(string(body), s.baseURL)
+	if len(jobs) > 0 {
+		util.Info("linkedin_guest_api_success", map[string]any{"jobs": len(jobs)})
+	}
+	return jobs
 }
 
 func (s *Scraper) tryBrowserFallback(ctx context.Context) {
