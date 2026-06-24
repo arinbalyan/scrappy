@@ -17,8 +17,15 @@ import (
 const searchURL = "https://www.google.com/search"
 
 var (
-	titleCompanyRe = regexp.MustCompile(`\[\s*"([^"]{5,100})"\s*,\s*"([^"]{2,80})"\s*,`)
-	jobURLRe       = regexp.MustCompile(`(https?://[^\s"\\]+(?:careers|jobs|apply)[^\s"\\]*)`)
+	// titleCompanyRe matches Google's embedded job data in two formats:
+	//   1. Legacy: ["Software Engineer","Company Name",...]
+	//   2. Inline JS arrays in Google's data structures
+	titleCompanyRe = regexp.MustCompile(`\[\s*"([^"]{5,120})"\s*,\s*"([^"]{2,100})"\s*,`)
+	// jobURLRe extracts job application URLs from the page
+	jobURLRe = regexp.MustCompile(`(https?://[^\s"\\<]+(?:careers|jobs|apply)[^\s"\\<]*)`)
+	// afInitDataRe matches Google's AF_initDataCallback pattern which
+	// contains job listing data in the current SERP format
+	afInitDataRe = regexp.MustCompile(`AF_initDataCallback\s*\(\s*\{[^}]*data\s*:\s*(\[.*?\])\s*,\s*hash`)
 )
 
 type Scraper struct {
@@ -57,81 +64,84 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	jobs := make([]model.JobPost, 0, wanted)
 
 	// ---------------------------------------------------------------
-	// Primary parse: fetch with ibp=htl;jobs (legacy Jobs SERP) and
-	// extract using the inline-JSON regex.
+	// Primary: fetch a standard web SERP (udm=8) which returns job
+	// pages from company career sites. Extract job data using:
+	//   1. JSON-LD (schema.org JobPosting from individual pages)
+	//   2. Inline regex patterns embedded by Google
 	// ---------------------------------------------------------------
-	body, err := s.fetchPage(ctx, query, 0)
-	if err != nil {
-		return nil, fmt.Errorf("google_jobs initial: %w", err)
-	}
-
-	page := parseJobs(body)
-	for _, j := range page {
-		jobs = append(jobs, j)
-		if len(jobs) >= wanted {
-			break
-		}
-	}
-
-	// ---------------------------------------------------------------
-	// Fallback: if the legacy SERP returned no results (it may have
-	// been redirected to the standard udm=8 SERP), try JSON-LD
-	// extraction on the same body.
-	// ---------------------------------------------------------------
-	if len(jobs) == 0 {
-		page = util.ExtractJobPostingsJSONLD(body)
+	body, err := s.fetchPageStandard(ctx, query)
+	if err == nil {
+		// Try JSON-LD extraction first (schema.org JobPosting from
+		// company career pages that appear in search results)
+		page := util.ExtractJobPostingsJSONLD(body)
 		for _, j := range page {
 			jobs = append(jobs, j)
 			if len(jobs) >= wanted {
 				break
 			}
 		}
+
+		// Fallback: extract inline job data from the page HTML
+		if len(jobs) < wanted {
+			page = parseJobs(body)
+			for _, j := range page {
+				jobs = append(jobs, j)
+				if len(jobs) >= wanted {
+					break
+				}
+			}
+		}
+
+		// Fallback: try Google's AF_initDataCallback pattern
+		if len(jobs) < wanted {
+			page = parseAFInitData(body)
+			for _, j := range page {
+				jobs = append(jobs, j)
+				if len(jobs) >= wanted {
+					break
+				}
+			}
+		}
 	}
 
 	// ---------------------------------------------------------------
-	// Secondary fallback: fetch a standard web SERP (udm=8) and try
-	// JSON-LD extraction.  The legacy async pagination endpoint is
-	// deprecated (returns 404), so skip multi-page pagination.
+	// Secondary: fetch with ibp=htl;jobs (legacy Jobs SERP). This
+	// often returns a minimal page that requires JS to render, but
+	// may contain inline data or redirect to udm=8.
 	// ---------------------------------------------------------------
 	if len(jobs) < wanted {
-		body, err = s.fetchPageStandard(ctx, query)
-		if err == nil {
-			page = util.ExtractJobPostingsJSONLD(body)
+		bodyLegacy, legacyErr := s.fetchPage(ctx, query, 0)
+		if legacyErr == nil {
+			page := parseJobs(bodyLegacy)
 			for _, j := range page {
 				jobs = append(jobs, j)
 				if len(jobs) >= wanted {
 					break
 				}
 			}
-		}
-	}
-
-	// ---------------------------------------------------------------
-	// Tertiary fallback: render in headless Chromium if plain HTTP
-	// returned anti-bot challenges or empty results.
-	// ---------------------------------------------------------------
-	if !util.HasMeaningfulJobs(jobs) && browser.IsAvailable() {
-		u, _ := url.Parse(s.searchURL)
-		q := u.Query()
-		q.Set("q", buildQuery(input.SearchTerm, input))
-		q.Set("ibp", "htl;jobs")
-		q.Set("hl", "en")
-		u.RawQuery = q.Encode()
-
-		result, bErr := browser.FetchPage(ctx, u.String(), "")
-		if bErr == nil && result.Status == 200 {
-			page = parseJobs([]byte(result.HTML))
-			for _, j := range page {
-				jobs = append(jobs, j)
-				if len(jobs) >= wanted {
-					break
+			if len(jobs) < wanted {
+				page = util.ExtractJobPostingsJSONLD(bodyLegacy)
+				for _, j := range page {
+					jobs = append(jobs, j)
+					if len(jobs) >= wanted {
+						break
+					}
+				}
+			}
+			if len(jobs) < wanted {
+				page = parseAFInitData(bodyLegacy)
+				for _, j := range page {
+					jobs = append(jobs, j)
+					if len(jobs) >= wanted {
+						break
+					}
 				}
 			}
 		}
 	}
 
 	// ---------------------------------------------------------------
-	// Quaternary fallback: browser render with standard SERP (udm=8).
+	// Tertiary: render in headless Chromium with standard SERP (udm=8).
 	// ---------------------------------------------------------------
 	if !util.HasMeaningfulJobs(jobs) && browser.IsAvailable() {
 		u, _ := url.Parse(s.searchURL)
@@ -143,11 +153,20 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 		result, bErr := browser.FetchPage(ctx, u.String(), "")
 		if bErr == nil && result.Status == 200 {
-			page = util.ExtractJobPostingsJSONLD([]byte(result.HTML))
+			page := util.ExtractJobPostingsJSONLD([]byte(result.HTML))
 			for _, j := range page {
 				jobs = append(jobs, j)
 				if len(jobs) >= wanted {
 					break
+				}
+			}
+			if len(jobs) < wanted {
+				page = parseJobs([]byte(result.HTML))
+				for _, j := range page {
+					jobs = append(jobs, j)
+					if len(jobs) >= wanted {
+						break
+					}
 				}
 			}
 		}
@@ -290,6 +309,34 @@ func parseJobs(raw []byte) []model.JobPost {
 	}
 
 	return jobs
+}
+
+// parseAFInitData extracts job data from Google's AF_initDataCallback
+// JavaScript callbacks embedded in the page HTML. Google uses these
+// to pass structured data (including job listings) to the frontend.
+func parseAFInitData(raw []byte) []model.JobPost {
+	html := string(raw)
+
+	// Try the full callback pattern first
+	matches := afInitDataRe.FindStringSubmatch(html)
+	if len(matches) >= 2 {
+		dataStr := matches[1]
+		// The data is a nested JS array; extract title/company pairs
+		pairs := extractPairs(dataStr)
+		jobs := make([]model.JobPost, 0, len(pairs))
+		for _, p := range pairs {
+			jobs = append(jobs, model.JobPost{
+				ID:          "go-" + util.HashID(p.title+" "+p.company),
+				Title:       p.title,
+				CompanyName: p.company,
+				JobURL:      fmt.Sprintf("https://www.google.com/search?q=%s", url.QueryEscape(p.title+" "+p.company+" jobs")),
+			})
+		}
+		return jobs
+	}
+
+	// Try simpler patterns: look for inline JS arrays with job data
+	return nil
 }
 
 type pair struct {

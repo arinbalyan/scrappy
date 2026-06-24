@@ -1,3 +1,4 @@
+// NICHE: environmental job board. Returns 0 for general tech searches.
 package ecojobs
 
 import (

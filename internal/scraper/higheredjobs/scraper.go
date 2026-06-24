@@ -1,3 +1,4 @@
+// NICHE: academic job board. Returns 0 for general tech searches.
 package higheredjobs
 
 import (

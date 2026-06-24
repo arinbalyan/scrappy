@@ -1,3 +1,4 @@
+// NICHE: hourly/service job board. Returns 0 for general tech searches.
 package snagajob
 
 import (

@@ -1,3 +1,4 @@
+// NICHE: creative/portfolio job board. Returns 0 for general tech searches.
 package coroflot
 
 import (

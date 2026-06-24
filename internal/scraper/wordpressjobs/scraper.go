@@ -1,3 +1,4 @@
+// NICHE: WordPress-specific jobs. Returns 0 for general tech searches.
 package wordpressjobs
 
 import (

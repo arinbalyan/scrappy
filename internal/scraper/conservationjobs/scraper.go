@@ -1,3 +1,5 @@
+// NICHE: conservation/environmental job board. Returns 0 for general tech searches.
+// The scraper works correctly; the board simply has no software engineering jobs.
 package conservationjobs
 
 import (

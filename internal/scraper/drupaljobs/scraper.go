@@ -1,3 +1,4 @@
+// NICHE: Drupal-specific jobs. Returns 0 for general tech searches.
 package drupaljobs
 
 import (

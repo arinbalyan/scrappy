@@ -60,8 +60,9 @@ type pagePropsWrapper struct {
 }
 
 type pageProps struct {
-	Jobs     []listing `json:"jobs,omitempty"`
-	Listings []listing `json:"listings,omitempty"`
+	Jobs        []listing              `json:"jobs,omitempty"`
+	Listings    []listing              `json:"listings,omitempty"`
+	ApolloState map[string]json.RawMessage `json:"apolloState,omitempty"`
 }
 
 type listing struct {
@@ -195,6 +196,8 @@ func extractNextData(html string) string {
 }
 
 // extractListings extracts job listings from the __NEXT_DATA__ struct.
+// It tries multiple data paths in order: direct jobs, direct listings,
+// Apollo cache entries (current format), and raw cache items.
 func extractListings(nd *nextData) []listing {
 	if nd == nil || nd.Props == nil || nd.Props.PageProps == nil {
 		return nil
@@ -206,7 +209,64 @@ func extractListings(nd *nextData) []listing {
 	if len(pp.Jobs) > 0 {
 		return pp.Jobs
 	}
+
+	// Try Apollo cache format: Wellfound migrated from direct pageProps
+	// to an Apollo Client cache under pageProps.apolloState.
+	if len(pp.ApolloState) > 0 {
+		return extractFromApolloCache(pp.ApolloState)
+	}
+
 	return nil
+}
+
+// extractFromApolloCache walks the Apollo Client cache data to find
+// job listings. The Apollo cache stores entity records at the top level
+// keyed by "Type:id" (e.g. "JobListing:12345").
+func extractFromApolloCache(cache map[string]json.RawMessage) []listing {
+	var result []listing
+
+	// Collect all JobListing entries from the cache
+	for key, raw := range cache {
+		if !strings.HasPrefix(key, "JobListing:") && !strings.HasPrefix(key, "JobsListing:") {
+			continue
+		}
+		var l listing
+		if err := json.Unmarshal(raw, &l); err != nil {
+			continue
+		}
+		if l.Title == "" {
+			continue
+		}
+		result = append(result, l)
+	}
+
+	// Additional paths: look for job data nested under RootQuery
+	// in the apolloState.data structure
+	if dataRaw, ok := cache["data"]; ok {
+		var dataObj map[string]json.RawMessage
+		if err := json.Unmarshal(dataRaw, &dataObj); err == nil {
+			// Try RootQuery.searchJobsV3.jobs or similar paths
+			for _, key := range []string{"RootQuery", "rootQuery"} {
+				if rqRaw, ok := dataObj[key]; ok {
+					var rq map[string]json.RawMessage
+					if json.Unmarshal(rqRaw, &rq) == nil {
+						for _, searchKey := range []string{"searchJobsV3", "jobsSearch", "searchJobs"} {
+							if sjRaw, ok := rq[searchKey]; ok {
+								var sj struct {
+									Jobs []listing `json:"jobs"`
+								}
+								if json.Unmarshal(sjRaw, &sj) == nil && len(sj.Jobs) > 0 {
+									return sj.Jobs
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return result
 }
 
 // mapListing converts a Wellfound listing to a JobPost.

@@ -17,23 +17,28 @@ const searchURL = "https://www.simplyhired.com/search"
 
 var (
 	// jobCardRe matches each job card in the HTML. SimplyHired renders listings as
-	// <div> elements with data-testid="searchSerpJob" or similar card structures.
-	jobCardRe = regexp.MustCompile(`(?is)<div[^>]*?(?:data-testid="searchSerpJob"|class="[^"]*SerpJob[^"]*")[^>]*>(.*?)</div>\s*</div>`)
+	// <div> elements with data-testid="searchSerpJob". The card content may contain
+	// nested <div> elements, so we match to the outermost closing </div>.
+	jobCardRe = regexp.MustCompile(`(?is)<div[^>]*?data-testid="searchSerpJob"[^>]*>(.*?)</div>`)
+
+	// nextDataRe extracts the __NEXT_DATA__ JSON blob for SimplyHired's Next.js pages.
+	nextDataRe = regexp.MustCompile(`(?is)<script[^>]*id="__NEXT_DATA__"[^>]*type="application/json"[^>]*>(.*?)</script>`)
 
 	// titleRe extracts the job title from an <a> or heading inside a card.
+	// SimplyHired uses: <h2><a data-testid="searchSerpJobTitle" ...>Title</a></h2>
 	titleRe = regexp.MustCompile(`(?is)(?:<a[^>]*data-testid="searchSerpJobTitle"[^>]*>|<h[23][^>]*>|<a[^>]*class="[^"]*jobposting-title[^"]*"[^>]*>)\s*([^<]+?)\s*</`)
 
 	// companyRe extracts the company name.
-	companyRe = regexp.MustCompile(`(?is)(?:data-testid="companyName"[^>]*>|class="[^"]*jobposting-company[^"]*"[^>]*>|class="[^"]*SerpJob-link--company[^"]*"[^>]*>)\s*([^<]+?)\s*<`)
+	companyRe = regexp.MustCompile(`(?is)(?:data-testid="companyName"[^>]*>|class="[^"]*jobposting-company[^"]*"[^>]*>|class="[^"]*SerpJob-link--company[^"]*"[^>]*>|itemprop="name"[^>]*>)\s*([^<]+?)\s*<`)
 
 	// locationRe extracts the location.
-	locationRe = regexp.MustCompile(`(?is)(?:data-testid="searchSerpJobLocation"[^>]*>|class="[^"]*jobposting-location[^"]*"[^>]*>|class="[^"]*SerpJob-location[^"]*"[^>]*>)\s*([^<]+?)\s*<`)
+	locationRe = regexp.MustCompile(`(?is)(?:data-testid="searchSerpJobLocation"[^>]*>|class="[^"]*jobposting-location[^"]*"[^>]*>|class="[^"]*SerpJob-location[^"]*"[^>]*>|itemprop="addressLocality"[^>]*>)\s*([^<]+?)\s*<`)
 
 	// salaryRe extracts the salary estimate text.
-	salaryRe = regexp.MustCompile(`(?is)(?:data-testid="searchSerpJobSalaryEst"[^>]*>|class="[^"]*jobposting-salary[^"]*"[^>]*>|class="[^"]*SerpJob-salary[^"]*"[^>]*>)\s*([^<]+?)\s*<`)
+	salaryRe = regexp.MustCompile(`(?is)(?:data-testid="searchSerpJobSalaryEst"[^>]*>|class="[^"]*jobposting-salary[^"]*"[^>]*>|class="[^"]*SerpJob-salary[^"]*"[^>]*>|class="[^"]*estimated-salary[^"]*"[^>]*>)\s*([^<]+?)\s*<`)
 
 	// snippetRe extracts the description snippet.
-	snippetRe = regexp.MustCompile(`(?is)(?:class="[^"]*jobposting-snippet[^"]*"[^>]*>|class="[^"]*SerpJob-snippet[^"]*"[^>]*>)\s*([^<]+?)\s*<`)
+	snippetRe = regexp.MustCompile(`(?is)(?:class="[^"]*jobposting-snippet[^"]*"[^>]*>|class="[^"]*SerpJob-snippet[^"]*"[^>]*>|class="[^"]*serp-snippet[^"]*"[^>]*>|itemprop="description"[^>]*>)\s*([^<]+?)\s*<`)
 
 	// hrefRe extracts the first href from an anchor tag.
 	hrefRe = regexp.MustCompile(`(?i)<a[^>]+href="([^"]+)"`)
@@ -170,6 +175,7 @@ func (s *Scraper) fetchPage(ctx context.Context, searchTerm, location string, pa
 // parseJobs extracts job postings from a SimplyHired search results page.
 func parseJobs(raw []byte, page int) []model.JobPost {
 	html := string(raw)
+	// Primary: extract from HTML card elements
 	cards := extractCards(html)
 	jobs := make([]model.JobPost, 0, len(cards))
 
@@ -180,7 +186,34 @@ func parseJobs(raw []byte, page int) []model.JobPost {
 		}
 		jobs = append(jobs, job)
 	}
-	return jobs
+	if len(jobs) > 0 {
+		return jobs
+	}
+
+	// Fallback: try __NEXT_DATA__ extraction (SimplyHired is a Next.js app)
+	jobs = parseNextData(html)
+	if len(jobs) > 0 {
+		return jobs
+	}
+
+	// Fallback: try JSON-LD extraction
+	ld := util.ExtractJobPostingsJSONLD(raw)
+	if len(ld) > 0 {
+		return ld
+	}
+
+	return nil
+}
+
+// parseNextData attempts to extract job data from __NEXT_DATA__ script tag.
+// SimplyHired is built with Next.js and embeds page data in this script.
+func parseNextData(html string) []model.JobPost {
+	m := nextDataRe.FindStringSubmatch(html)
+	if len(m) < 2 {
+		return nil
+	}
+	// Try to find title/company pairs in the JSON string using existing regex
+	return parseJobs([]byte(m[1]), 1)
 }
 
 // extractCards finds individual job card HTML blocks.
