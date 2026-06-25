@@ -874,7 +874,8 @@ func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, enr
 	// Company-page enrichment: if the job has a CompanyURL and at least one domain,
 	// fetch the company page and extract emails from it. This catches emails that
 	// are on the company's careers/contact page but not in the job description.
-	if enricher != nil && job.CompanyURL != "" && ctx.Err() == nil {
+	// Only runs when MX verification is enabled (verifyConcurrency > 0).
+	if enricher != nil && job.CompanyURL != "" && verifyConcurrency > 0 && ctx.Err() == nil {
 		companyEmails, err := enricher.Enrich(ctx, job.CompanyURL)
 		if err == nil && len(companyEmails) > 0 {
 			for _, e := range companyEmails {
