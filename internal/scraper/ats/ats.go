@@ -13,6 +13,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 
+	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/util"
 )
 
@@ -193,4 +194,78 @@ func FetchJSON(ctx context.Context, client *http.Client, url string, target any)
 func BuildID(prefix string, slug string, jobID string) string {
 	raw := slug + "-" + jobID
 	return prefix + "-" + util.HashID(raw)
+}
+
+// ProcessSeeds concurrently fetches job data for multiple ATS company slugs.
+// It fans out seeds across nWorkers goroutines, calling fetchFn for each slug.
+// fetchFn returns jobs and a bool indicating whether to continue to the next slug.
+// Results are collected in order but fetched concurrently.
+func ProcessSeeds(ctx context.Context, seeds []string, nWorkers int, wanted int, fetchFn func(ctx context.Context, slug string) ([]model.JobPost, error)) []model.JobPost {
+	if nWorkers <= 0 {
+		nWorkers = 3
+	}
+	if len(seeds) == 0 {
+		return nil
+	}
+
+	type seedResult struct {
+		jobs []model.JobPost
+	}
+
+	seedCh := make(chan string, len(seeds))
+	for _, s := range seeds {
+		seedCh <- s
+	}
+	close(seedCh)
+
+	resultCh := make(chan seedResult, len(seeds))
+	var wg sync.WaitGroup
+
+	sem := make(chan struct{}, nWorkers)
+	for range seeds {
+		sem <- struct{}{}
+	}
+	close(sem)
+
+	for s := range seedCh {
+		select {
+		case <-ctx.Done():
+			wg.Wait()
+			close(resultCh)
+			// Collect whatever we have
+			var all []model.JobPost
+			for r := range resultCh {
+				all = append(all, r.jobs...)
+				if wanted > 0 && len(all) >= wanted {
+					return all[:wanted]
+				}
+			}
+			return all
+		default:
+		}
+
+		wg.Add(1)
+		go func(slug string) {
+			defer wg.Done()
+			jobs, err := fetchFn(ctx, slug)
+			if err != nil {
+				return
+			}
+			if len(jobs) > 0 {
+				resultCh <- seedResult{jobs: jobs}
+			}
+		}(s)
+	}
+
+	wg.Wait()
+	close(resultCh)
+
+	var all []model.JobPost
+	for r := range resultCh {
+		all = append(all, r.jobs...)
+		if wanted > 0 && len(all) >= wanted {
+			return all[:wanted]
+		}
+	}
+	return all
 }

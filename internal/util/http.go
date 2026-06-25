@@ -1,7 +1,6 @@
 package util
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -14,8 +13,6 @@ import (
 	"strings"
 	"sync/atomic"
 	"time"
-
-	utls "github.com/refraction-networking/utls"
 )
 
 var defaultUA = []string{
@@ -37,34 +34,6 @@ type ClientOptions struct {
 	Timeout               time.Duration
 }
 
-// utlsDialer returns a DialTLSContext function that uses uTLS to mimic
-// Chrome's TLS fingerprint instead of Go's telltale TLS handshake.
-func utlsDialer(dialer *net.Dialer) func(ctx context.Context, network, addr string) (net.Conn, error) {
-	return func(ctx context.Context, network, addr string) (net.Conn, error) {
-		tcpConn, err := dialer.DialContext(ctx, network, addr)
-		if err != nil {
-			return nil, err
-		}
-
-		host, _, err := net.SplitHostPort(addr)
-		if err != nil {
-			tcpConn.Close()
-			return nil, err
-		}
-
-		config := &utls.Config{
-			ServerName: host,
-			MinVersion: utls.VersionTLS12,
-		}
-
-		uconn := utls.UClient(tcpConn, config, utls.HelloChrome_Auto)
-		if err := uconn.HandshakeContext(ctx); err != nil {
-			tcpConn.Close()
-			return nil, err
-		}
-		return uconn, nil
-	}
-}
 
 func NewHTTPClient(opts ClientOptions) *http.Client {
 	if strings.TrimSpace(opts.ProxyURL) == "" {
@@ -107,7 +76,6 @@ func NewHTTPClient(opts ClientOptions) *http.Client {
 	base := &http.Transport{
 		Proxy:               http.ProxyFromEnvironment,
 		DialContext:         dialer.DialContext,
-		DialTLSContext:      utlsDialer(dialer),
 		TLSHandshakeTimeout: 8 * time.Second,
 		MaxIdleConns:        100,
 		MaxIdleConnsPerHost: 10,
