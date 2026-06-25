@@ -36,6 +36,16 @@
 ### One-line install
 
 ```bash
+# Linux & macOS
+curl -fsSL https://arinbalyan.github.io/scrappy/install.sh | sh
+
+# Windows (PowerShell)
+irm https://arinbalyan.github.io/scrappy/install.ps1 | iex
+```
+
+### Manual install
+
+```bash
 # Linux (x86_64)
 curl -fsSL https://github.com/arinbalyan/scrappy/releases/latest/download/scrappy_linux_amd64.tar.gz | tar xz && sudo mv scrappy_linux_amd64 /usr/local/bin/scrappy
 

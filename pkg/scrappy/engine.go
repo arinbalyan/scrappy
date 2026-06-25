@@ -182,6 +182,8 @@ var requiredEnvVars = map[model.Site][]string{
 	model.SiteWeb3Career:     {"WEB3CAREER_API_TOKEN"},
 	model.SiteJobTechDev:     {"JOBTECHDEV_API_KEY"},
 	model.SiteAuthenticJobs:  {"AUTHENTICJOBS_API_KEY"},
+	model.SiteFranceTravail:  {"FRANCETRAVAIL_CLIENT_ID", "FRANCETRAVAIL_CLIENT_SECRET"},
+	model.SiteTalroo:         {"TALROO_PUBLISHER_ID", "TALROO_PUBLISHER_PASS"},
 }
 
 type Engine struct {
@@ -627,6 +629,9 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			if input.ResultsWanted > 0 && len(all) > input.ResultsWanted*2 {
 				all = all[:input.ResultsWanted]
 				runtime.GC()
+			}
+			if len(seenGlobal) > input.ResultsWanted*3 {
+				seenGlobal = make(map[string]struct{}, input.ResultsWanted)
 			}
 		}
 	}

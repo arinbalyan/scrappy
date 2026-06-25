@@ -77,7 +77,7 @@ func NewHTTPClient(opts ClientOptions) *http.Client {
 		Proxy:               http.ProxyFromEnvironment,
 		DialContext:         dialer.DialContext,
 		TLSHandshakeTimeout: 8 * time.Second,
-		MaxIdleConns:        100,
+		MaxIdleConns:        300,
 		MaxIdleConnsPerHost: 10,
 		IdleConnTimeout:     90 * time.Second,
 	}
@@ -169,16 +169,16 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 			// Permanent errors (NXDOMAIN, TLS cert failure, etc.) — fail immediately,
 			// because retrying won't help.
 			if isPermanentError(err) {
-				Error("http_roundtrip_failed_permanent", map[string]any{"method": req.Method, "url": req.URL.String(), "err": err.Error()})
+				Error("http_roundtrip_failed_permanent", map[string]any{"method": req.Method, "url": redactURL(req.URL), "err": err.Error()})
 				return nil, fmt.Errorf("permanent: %w", err)
 			}
-			Warn("http_roundtrip_error_retry", map[string]any{"method": req.Method, "url": req.URL.String(), "attempt": i + 1, "err": err.Error()})
+			Warn("http_roundtrip_error_retry", map[string]any{"method": req.Method, "url": redactURL(req.URL), "attempt": i + 1, "err": err.Error()})
 			lastErr = err
 		} else if resp != nil {
 			// Repeated 429 — fail fast after the first retry, the server
 			// is not going to accept us within this batch window.
 			if resp.StatusCode == http.StatusTooManyRequests && saw429 {
-				Error("http_roundtrip_failed_rate_limit", map[string]any{"method": req.Method, "url": req.URL.String(), "status": resp.StatusCode, "attempt": i + 1})
+				Error("http_roundtrip_failed_rate_limit", map[string]any{"method": req.Method, "url": redactURL(req.URL), "status": resp.StatusCode, "attempt": i + 1})
 				resp.Body.Close()
 				return nil, fmt.Errorf("permanent: rate limited (repeated 429)")
 			}
@@ -200,7 +200,7 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 		time.Sleep(d)
 	}
 	if lastErr != nil {
-		Error("http_roundtrip_failed", map[string]any{"method": req.Method, "url": req.URL.String(), "err": lastErr.Error()})
+		Error("http_roundtrip_failed", map[string]any{"method": req.Method, "url": redactURL(req.URL), "err": lastErr.Error()})
 	}
 	return nil, lastErr
 }
