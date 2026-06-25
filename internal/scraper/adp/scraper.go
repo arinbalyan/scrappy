@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -94,42 +95,35 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 	out := make([]model.JobPost, 0, wanted)
 	seen := make(map[string]bool)
+	var mu sync.Mutex
 
-	for _, slug := range seeds {
-		if len(out) >= wanted {
-			break
-		}
-
+	fetchFn := func(ctx context.Context, slug string) ([]model.JobPost, error) {
 		u := s.apiURL + "?cid=" + url.QueryEscape(slug)
 		var resp adpResponse
 		if err := ats.FetchJSON(ctx, s.client, u, &resp); err != nil {
-			util.Warn("adp_fetch_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			util.Debug("adp_fetch_skip", map[string]any{"slug": slug, "err": err.Error()})
+			return nil, err
 		}
-
+		var jobs []model.JobPost
 		for _, job := range resp.JobRequisitions {
-			if len(out) >= wanted {
-				break
-			}
-
 			title := strings.TrimSpace(job.JobTitle)
 			if title == "" {
 				continue
 			}
-
 			id := ats.BuildID("adp", slug, job.JobRequisitionID)
+			mu.Lock()
 			if seen[id] {
+				mu.Unlock()
 				continue
 			}
 			seen[id] = true
+			mu.Unlock()
 
-			// Description
 			desc := strings.TrimSpace(job.JobDescription)
 			if desc == "" {
 				desc = strings.TrimSpace(job.ShortDescription)
 			}
 
-			// Location — prefer first from array, fall back to single
 			var loc *adpLocation
 			if len(job.Locations) > 0 {
 				loc = &job.Locations[0]
@@ -181,12 +175,15 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 
 			out = append(out, jp)
 		}
+		return jobs, nil
 	}
 
-	if !util.HasMeaningfulJobs(out) {
+	// Process seeds concurrently (3 workers) to reduce total scrape time.
+	results := ats.ProcessSeeds(ctx, seeds, 3, wanted, fetchFn)
+	if len(results) == 0 {
 		return nil, fmt.Errorf("adp no parseable jobs")
 	}
-	return out, nil
+	return results, nil
 }
 
 func normalizeEmploymentType(employmentType, workerType string) string {
