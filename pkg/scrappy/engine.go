@@ -895,10 +895,8 @@ func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, enr
 	}
 
 	// Run MX verification on every email with bounded concurrency.
-	if verifier != nil {
-		if verifyConcurrency <= 0 {
-			verifyConcurrency = 5 // default
-		}
+	// 0 = skip MX verification (faster, no DNS timeouts).
+	if verifier != nil && verifyConcurrency > 0 {
 		sem := make(chan struct{}, verifyConcurrency)
 		var mu sync.Mutex
 		var wg sync.WaitGroup

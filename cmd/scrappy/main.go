@@ -343,7 +343,7 @@ func newRootCommand(cfg *cliConfig) *cobra.Command {
 	root.Flags().StringVar(&cfg.LogLevel, "log-level", "", "log level: DEBUG|INFO|WARN|ERROR")
 	root.Flags().StringVar(&cfg.ConfigPath, "config", defaultConfigPath(), "path to config toml")
 	root.Flags().BoolVar(&cfg.EmailOnly, "email", false, "only include jobs with at least one email")
-	root.Flags().IntVar(&cfg.VerifyConcurrency, "verify-concurrency", 5, "MX lookup concurrency (0 = sequential)")
+	root.Flags().IntVar(&cfg.VerifyConcurrency, "verify-concurrency", 5, "MX lookup concurrency (0 = skip MX verification)")
 	root.Flags().IntVar(&cfg.Timeout, "timeout", 600, "scrape timeout in seconds")
 	root.Flags().StringVar(&cfg.MemoryCap, "memory-cap", "", "memory budget (e.g. 512MB, 1GB)")
 	root.Flags().BoolVar(&cfg.IsRemote, "is-remote", false, "only jobs flagged as remote")
