@@ -75,6 +75,7 @@ for site in "${SITES[@]}"; do
     --format jsonl \
     --out "$site_out" \
     --log-level INFO \
+    --verify-concurrency 0 \
     2>"$site_err"
   exit_code=$?
   site_end=$(date +%s%N)
