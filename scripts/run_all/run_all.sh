@@ -73,7 +73,7 @@ for site in "${SITES[@]}"; do
 
   site_start=$(date +%s%N)
   set +e
-  timeout 60 "$BINARY" \
+  timeout 120 "$BINARY" \
     --non-interactive \
     --search "software engineer" \
     --sites "$site" \
