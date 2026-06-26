@@ -105,6 +105,9 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 	if req.Header.Get("User-Agent") == "" {
 		req.Header.Set("User-Agent", s.nextUserAgent())
 	}
+	// Skip browser-like headers for API calls (they trigger WAFs on /api/ endpoints).
+	isAPI := strings.Contains(req.URL.Path, "/api/") || strings.Contains(req.URL.Path, "/v1/") || strings.Contains(req.URL.Path, "/v2/") || strings.Contains(req.URL.Path, "/v3/")
+	if !isAPI {
 	// Add browser-like headers that Go's net/http doesn't send by default.
 	// These help avoid WAF detection even without strict header ordering.
 	if req.Header.Get("Accept") == "" {
@@ -142,6 +145,7 @@ func (s *smartRT) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 	if req.Header.Get("Sec-Ch-Ua-Platform") == "" {
 		req.Header.Set("Sec-Ch-Ua-Platform", detectPlatform(req.Header.Get("User-Agent")))
+	}
 	}
 	Debug("http_roundtrip_start", map[string]any{"method": req.Method, "url": redactURL(req.URL)})
 
