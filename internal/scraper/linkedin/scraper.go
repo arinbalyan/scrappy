@@ -3,7 +3,6 @@ package linkedin
 import (
 	"context"
 	"fmt"
-	"io"
 	"math"
 	"math/rand"
 	"net/http"
@@ -421,7 +420,7 @@ func (s *Scraper) fetchJobDetails(ctx context.Context, jobID string) (details, e
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return details{}, fmt.Errorf("linkedin details status %d", resp.StatusCode)
 	}
-	b, err := io.ReadAll(resp.Body)
+	b, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 	if err != nil {
 		return details{}, err
 	}
