@@ -78,41 +78,36 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		wanted = 100
 	}
 
-	out := make([]model.JobPost, 0, wanted)
-	for _, slug := range seeds {
-		if len(out) >= wanted {
-			break
-		}
-
+	fetchFn := func(ctx context.Context, slug string) ([]model.JobPost, error) {
 		u := s.buildURL(slug)
 
 		body, err := s.fetchRaw(ctx, u)
 		if err != nil {
 			util.Warn("pinpoint_fetch_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
 		listings, err := s.parseResponse(body)
 		if err != nil {
 			util.Warn("pinpoint_parse_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
+		var jobs []model.JobPost
 		for _, listing := range listings {
-			if len(out) >= wanted {
-				break
-			}
 			jp := s.toJobPost(listing, slug)
 			if jp != nil {
-				out = append(out, *jp)
+				jobs = append(jobs, *jp)
 			}
 		}
+		return jobs, nil
 	}
 
-	if !util.HasMeaningfulJobs(out) {
+	results := ats.ProcessSeeds(ctx, seeds, 3, wanted, fetchFn)
+	if len(results) == 0 {
 		return nil, fmt.Errorf("pinpoint no parseable jobs")
 	}
-	return out, nil
+	return results, nil
 }
 
 func (s *Scraper) fetchRaw(ctx context.Context, u string) ([]byte, error) {

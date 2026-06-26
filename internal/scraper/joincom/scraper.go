@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -112,34 +113,39 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 	util.Debug("joincom_seeds", map[string]any{"seeds": seeds, "src": src})
 
-	var out []model.JobPost
-	seen := map[string]struct{}{}
+	wanted := input.ResultsWanted
+	if wanted <= 0 {
+		wanted = defaultResultsWanted
+	}
 
-	for _, seed := range seeds {
-		if input.ResultsWanted > 0 && len(out) >= input.ResultsWanted {
-			break
-		}
-		jobs, err := s.collectJobs(ctx, input, seed)
+	seen := map[string]struct{}{}
+	var mu sync.Mutex
+
+	fetchFn := func(ctx context.Context, slug string) ([]model.JobPost, error) {
+		jobs, err := s.collectJobs(ctx, input, slug)
 		if err != nil {
-			util.Warn("joincom_seed_fail", map[string]any{"seed": seed, "err": err.Error()})
-			continue
+			util.Warn("joincom_seed_fail", map[string]any{"seed": slug, "err": err.Error()})
+			return nil, err
 		}
+		var result []model.JobPost
 		for _, jp := range jobs {
+			mu.Lock()
 			if _, ok := seen[jp.ID]; ok {
+				mu.Unlock()
 				continue
 			}
 			seen[jp.ID] = struct{}{}
-			out = append(out, jp)
-			if input.ResultsWanted > 0 && len(out) >= input.ResultsWanted {
-				break
-			}
+			mu.Unlock()
+			result = append(result, jp)
 		}
+		return result, nil
 	}
 
-	if !util.HasMeaningfulJobs(out) {
+	results := ats.ProcessSeeds(ctx, seeds, 3, wanted, fetchFn)
+	if !util.HasMeaningfulJobs(results) {
 		return nil, fmt.Errorf("joincom no parseable jobs")
 	}
-	return out, nil
+	return results, nil
 }
 
 type tenantContext struct {

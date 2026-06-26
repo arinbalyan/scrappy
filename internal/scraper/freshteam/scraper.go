@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -90,20 +91,16 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		wanted = 25
 	}
 
-	out := make([]model.JobPost, 0, wanted)
 	seen := make(map[string]bool)
+	var mu sync.Mutex
 
-	for _, slug := range seeds {
-		if len(out) >= wanted {
-			break
-		}
-
+	fetchFn := func(ctx context.Context, slug string) ([]model.JobPost, error) {
 		u := s.buildURL(slug)
 
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 		if err != nil {
 			util.Warn("freshteam_request_err", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 		req.Header.Set("Accept", "application/json")
 		req.Header.Set("User-Agent", "Mozilla/5.0")
@@ -114,42 +111,42 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		resp, err := s.client.Do(req)
 		if err != nil {
 			util.Warn("freshteam_fetch_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
 		body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 		resp.Body.Close()
 		if err != nil {
 			util.Warn("freshteam_read_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			util.Warn("freshteam_status", map[string]any{"slug": slug, "status": resp.StatusCode})
-			continue
+			return nil, fmt.Errorf("status %d", resp.StatusCode)
 		}
 
 		var postings []freshteamJobPosting
 		if err := json.Unmarshal(body, &postings); err != nil {
 			util.Warn("freshteam_decode_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
+		var jobs []model.JobPost
 		for _, posting := range postings {
-			if len(out) >= wanted {
-				break
-			}
-
 			title := strings.TrimSpace(posting.Title)
 			if title == "" {
 				continue
 			}
 
 			id := ats.BuildID("freshteam", slug, fmt.Sprintf("%d", posting.ID))
+			mu.Lock()
 			if seen[id] {
+				mu.Unlock()
 				continue
 			}
 			seen[id] = true
+			mu.Unlock()
 
 			// Location from branch field
 			l := model.Location{}
@@ -182,14 +179,16 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 				jp.DatePosted = util.ParseDatePosted(dp)
 			}
 
-			out = append(out, jp)
+			jobs = append(jobs, jp)
 		}
+		return jobs, nil
 	}
 
-	if !util.HasMeaningfulJobs(out) {
+	results := ats.ProcessSeeds(ctx, seeds, 3, wanted, fetchFn)
+	if len(results) == 0 {
 		return nil, fmt.Errorf("freshteam no parseable jobs")
 	}
-	return out, nil
+	return results, nil
 }
 
 func (s *Scraper) buildURL(slug string) string {

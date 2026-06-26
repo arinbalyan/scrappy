@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -76,34 +77,39 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 	util.Debug("jobvite_seeds", map[string]any{"seeds": seeds, "src": src})
 
-	var out []model.JobPost
-	seen := map[string]struct{}{}
+	wanted := input.ResultsWanted
+	if wanted <= 0 {
+		wanted = 100
+	}
 
-	for _, seed := range seeds {
-		if input.ResultsWanted > 0 && len(out) >= input.ResultsWanted {
-			break
-		}
-		jobs, err := s.fetchJobs(ctx, input, seed)
+	seen := map[string]struct{}{}
+	var mu sync.Mutex
+
+	fetchFn := func(ctx context.Context, slug string) ([]model.JobPost, error) {
+		jobs, err := s.fetchJobs(ctx, input, slug)
 		if err != nil {
-			util.Warn("jobvite_seed_fail", map[string]any{"seed": seed, "err": err.Error()})
-			continue
+			util.Warn("jobvite_seed_fail", map[string]any{"seed": slug, "err": err.Error()})
+			return nil, err
 		}
+		var result []model.JobPost
 		for _, jp := range jobs {
+			mu.Lock()
 			if _, ok := seen[jp.ID]; ok {
+				mu.Unlock()
 				continue
 			}
 			seen[jp.ID] = struct{}{}
-			out = append(out, jp)
-			if input.ResultsWanted > 0 && len(out) >= input.ResultsWanted {
-				break
-			}
+			mu.Unlock()
+			result = append(result, jp)
 		}
+		return result, nil
 	}
 
-	if !util.HasMeaningfulJobs(out) {
+	results := ats.ProcessSeeds(ctx, seeds, 3, wanted, fetchFn)
+	if !util.HasMeaningfulJobs(results) {
 		return nil, fmt.Errorf("jobvite no parseable jobs")
 	}
-	return out, nil
+	return results, nil
 }
 
 func (s *Scraper) fetchJobs(ctx context.Context, input model.ScraperInput, seed string) ([]model.JobPost, error) {

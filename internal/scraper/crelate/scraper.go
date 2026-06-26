@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -76,23 +77,16 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		wanted = 25
 	}
 
-	out := make([]model.JobPost, 0, wanted)
 	seen := make(map[string]bool)
+	var mu sync.Mutex
 
-	for i, slug := range seeds {
-		if i > 0 {
-			_ = util.SleepWithContext(ctx, 700*time.Millisecond)
-		}
-		if len(out) >= wanted {
-			break
-		}
-
+	fetchFn := func(ctx context.Context, slug string) ([]model.JobPost, error) {
 		u := fmt.Sprintf("%s?published=true&offset=0&limit=%d", s.apiURL, wanted)
 
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 		if err != nil {
 			util.Warn("crelate_request_err", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 		req.Header.Set("Accept", "application/json")
 		req.Header.Set("User-Agent", "Mozilla/5.0")
@@ -101,42 +95,42 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		resp, err := s.client.Do(req)
 		if err != nil {
 			util.Warn("crelate_fetch_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
 		body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 		resp.Body.Close()
 		if err != nil {
 			util.Warn("crelate_read_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			util.Warn("crelate_status", map[string]any{"slug": slug, "status": resp.StatusCode})
-			continue
+			return nil, fmt.Errorf("status %d", resp.StatusCode)
 		}
 
-		var jobs []crelateJob
-		if err := json.Unmarshal(body, &jobs); err != nil {
+		var apiJobs []crelateJob
+		if err := json.Unmarshal(body, &apiJobs); err != nil {
 			util.Warn("crelate_decode_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
-		for _, job := range jobs {
-			if len(out) >= wanted {
-				break
-			}
-
+		var jobs []model.JobPost
+		for _, job := range apiJobs {
 			title := strings.TrimSpace(job.Name)
 			if title == "" || job.ID == "" {
 				continue
 			}
 
 			id := ats.BuildID("crelate", slug, job.ID)
+			mu.Lock()
 			if seen[id] {
+				mu.Unlock()
 				continue
 			}
 			seen[id] = true
+			mu.Unlock()
 
 			// Location
 			l := model.Location{
@@ -164,12 +158,14 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 				jp.DatePosted = util.ParseDatePosted(dp)
 			}
 
-			out = append(out, jp)
+			jobs = append(jobs, jp)
 		}
+		return jobs, nil
 	}
 
-	if !util.HasMeaningfulJobs(out) {
+	results := ats.ProcessSeeds(ctx, seeds, 3, wanted, fetchFn)
+	if len(results) == 0 {
 		return nil, fmt.Errorf("crelate no parseable jobs")
 	}
-	return out, nil
+	return results, nil
 }

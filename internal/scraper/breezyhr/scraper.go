@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -78,19 +79,15 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		wanted = 25
 	}
 
-	out := make([]model.JobPost, 0, wanted)
 	seen := make(map[string]bool)
+	var mu sync.Mutex
 
-	for _, slug := range seeds {
-		if len(out) >= wanted {
-			break
-		}
-
+	fetchFn := func(ctx context.Context, slug string) ([]model.JobPost, error) {
 		u := s.buildURL(slug)
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 		if err != nil {
 			util.Warn("breezyhr_request_err", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 		req.Header.Set("Accept", "application/json")
 		req.Header.Set("User-Agent", "Mozilla/5.0")
@@ -98,32 +95,29 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		resp, err := s.client.Do(req)
 		if err != nil {
 			util.Warn("breezyhr_fetch_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
 		body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 		resp.Body.Close()
 		if err != nil {
 			util.Warn("breezyhr_read_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			util.Warn("breezyhr_status", map[string]any{"slug": slug, "status": resp.StatusCode})
-			continue
+			return nil, fmt.Errorf("status %d", resp.StatusCode)
 		}
 
 		var listings []breezyListing
 		if err := json.Unmarshal(body, &listings); err != nil {
 			util.Warn("breezyhr_decode_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
+		var jobs []model.JobPost
 		for _, listing := range listings {
-			if len(out) >= wanted {
-				break
-			}
-
 			title := strings.TrimSpace(listing.Name)
 			if title == "" {
 				title = strings.TrimSpace(listing.Title)
@@ -141,10 +135,13 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			}
 
 			id := ats.BuildID("breezyhr", slug, jobID)
+			mu.Lock()
 			if seen[id] {
+				mu.Unlock()
 				continue
 			}
 			seen[id] = true
+			mu.Unlock()
 
 			// Location
 			l := model.Location{}
@@ -190,14 +187,16 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 				jp.DatePosted = util.ParseDatePosted(cd)
 			}
 
-			out = append(out, jp)
+			jobs = append(jobs, jp)
 		}
+		return jobs, nil
 	}
 
-	if !util.HasMeaningfulJobs(out) {
+	results := ats.ProcessSeeds(ctx, seeds, 3, wanted, fetchFn)
+	if len(results) == 0 {
 		return nil, fmt.Errorf("breezyhr no parseable jobs")
 	}
-	return out, nil
+	return results, nil
 }
 
 func (s *Scraper) buildURL(slug string) string {

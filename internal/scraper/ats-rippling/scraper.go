@@ -108,18 +108,13 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		wanted = 100
 	}
 
-	out := make([]model.JobPost, 0, wanted)
-	for _, slug := range seeds {
-		if len(out) >= wanted {
-			break
-		}
-
+	fetchFn := func(ctx context.Context, slug string) ([]model.JobPost, error) {
 		u := s.buildURL(slug)
 
 		req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 		if err != nil {
 			util.Warn("rippling_request_err", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 		req.Header.Set("Accept", "text/html,application/xhtml+xml")
 		req.Header.Set("User-Agent", "Mozilla/5.0")
@@ -127,42 +122,42 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		resp, err := s.client.Do(req)
 		if err != nil {
 			util.Warn("rippling_fetch_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
 		body, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 		resp.Body.Close()
 		if err != nil {
 			util.Warn("rippling_read_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
 		if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 			util.Warn("rippling_status", map[string]any{"slug": slug, "status": resp.StatusCode})
-			continue
+			return nil, fmt.Errorf("status %d", resp.StatusCode)
 		}
 
-		jobs, err := s.extractJobs(body)
+		extracted, err := s.extractJobs(body)
 		if err != nil {
 			util.Warn("rippling_extract_fail", map[string]any{"slug": slug, "err": err.Error()})
-			continue
+			return nil, err
 		}
 
-		for _, job := range jobs {
-			if len(out) >= wanted {
-				break
-			}
+		var jobs []model.JobPost
+		for _, job := range extracted {
 			jp := s.toJobPost(job, slug)
 			if jp != nil {
-				out = append(out, *jp)
+				jobs = append(jobs, *jp)
 			}
 		}
+		return jobs, nil
 	}
 
-	if !util.HasMeaningfulJobs(out) {
+	results := ats.ProcessSeeds(ctx, seeds, 3, wanted, fetchFn)
+	if len(results) == 0 {
 		return nil, fmt.Errorf("rippling no parseable jobs")
 	}
-	return out, nil
+	return results, nil
 }
 
 func (s *Scraper) extractJobs(body []byte) ([]ripplingJob, error) {
