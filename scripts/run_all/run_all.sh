@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+FILTER_SITE="${1:-}"  # optional: run a single site (e.g. ./run_all.sh greenhouse)
+
 cd "$(dirname "$0")/../.."
 
 BINARY="./scrappy"
@@ -59,6 +61,10 @@ count=0
 declare -A SITE_JOBS SITE_STATUS SITE_EXIT SITE_FIELDS SITE_ELAPSED SITE_METHOD
 
 for site in "${SITES[@]}"; do
+  # If a filter site is specified, skip everything else
+  if [ -n "$FILTER_SITE" ] && [ "$site" != "$FILTER_SITE" ]; then
+    continue
+  fi
   count=$((count + 1))
   echo ""
   echo "[$count/$total] scraping $site ..."
