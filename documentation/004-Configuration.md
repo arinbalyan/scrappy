@@ -11,13 +11,18 @@ scrappy uses a TOML config file for per-site search terms, locations, and defaul
 
 ```toml
 [defaults]
-  search = "software engineer"
+  search = ["software engineer"]
   location = ["Remote", "United States", "India"]
   is_remote = true
   results_wanted = 100000
   format = "csv"
   out = "./data/jobs.csv"
 ```
+
+!!! note "`search` and `location` are always arrays"
+    A bare scalar like `search = "software engineer"` aborts TOML decoding
+    and silently drops the entire `[defaults]` block. Always use the bracket
+    form (`search = ["software engineer"]`), even for a single term.
 
 ## Per-site configuration
 
@@ -31,7 +36,7 @@ Override search terms and locations per site:
 
   [sites.remoteok]
     search = ["software engineer", "full stack", "backend"]
-    location = "Remote"
+    location = ["Remote"]
 
   [sites.linkedin]
     search = ["\"Software Engineer\" OR \"SDE\"", "\"AI Engineer\" OR \"ML Engineer\""]

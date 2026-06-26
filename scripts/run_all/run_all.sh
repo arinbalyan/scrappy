@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+FILTER_SITE="${1:-}"
+
 cd "$(dirname "$0")/../.."
 
 BINARY="./scrappy"
@@ -11,20 +13,13 @@ fi
 
 OUTDIR="scripts/run_all"
 mkdir -p "$OUTDIR"
-JSON_TMP=$(mktemp)
 RESULT_JSON="$OUTDIR/results.json"
 LOGFILE="$OUTDIR/run_all.log"
 TMPDIR=$(mktemp -d)
-trap 'rm -rf "$TMPDIR" "$JSON_TMP"' EXIT
+RESDIR=$(mktemp -d)
+trap 'rm -rf "$TMPDIR" "$RESDIR"' EXIT
 
 rm -f "$LOGFILE" "$RESULT_JSON"
-exec > >(tee -a "$LOGFILE") 2>&1
-
-echo "run_all started at $(date)"
-echo ""
-
-# ── Sites that need API keys (skip automatically, listed for reference) ──
-# These will be tried but flagged in the summary
 
 SITES=(
   linkedin indeed internshala builtin startupjobs greenhouse gunio himalayas
@@ -51,89 +46,87 @@ SITES=(
   academiccareers wuzzuf
 )
 
-# Build JSON entries in memory (tmpfile), write atomically at end
-echo '[' > "$JSON_TMP"
-first=true
+CONCURRENCY=16
 total=${#SITES[@]}
-count=0
-declare -A SITE_JOBS SITE_STATUS SITE_EXIT SITE_FIELDS SITE_ELAPSED SITE_METHOD
+
+echo "run_all started at $(date) — $total sites, $CONCURRENCY concurrent"
+echo ""
+
+# ── Worker Pool ──────────────────────────────────────────
+running=0
+pids=()
+indices=()
 
 for site in "${SITES[@]}"; do
-  count=$((count + 1))
-  echo ""
-  echo "[$count/$total] scraping $site ..."
-  site_out="$TMPDIR/$site.json"
-  site_err="$TMPDIR/$site.err"
+  [ -n "$FILTER_SITE" ] && [ "$site" != "$FILTER_SITE" ] && continue
 
-  site_start=$(date +%s%N)
-  set +e
-  timeout 60 "$BINARY" \
-    --non-interactive \
-    --search "software engineer" \
-    --sites "$site" \
-    --results-wanted 100 \
-    --format jsonl \
-    --out "$site_out" \
-    --log-level INFO \
-    --verify-concurrency 0 \
-    2>"$site_err"
-  exit_code=$?
-  site_end=$(date +%s%N)
-  set -e
+  # Wait if pool is full
+  while [ "$running" -ge "$CONCURRENCY" ]; do
+    wait -n 2>/dev/null || true
+    running=$((running - 1))
+  done
 
-  # Append site stderr to combined log
-  if [ -s "$site_err" ]; then
-    cat "$site_err" >> "$LOGFILE"
-  fi
+  running=$((running + 1))
 
-  elapsed_ms=$(( (site_end - site_start) / 1000000 ))
-  if [ "$elapsed_ms" -lt 1000 ]; then
-    elapsed_str="${elapsed_ms}ms"
-  else
-    elapsed_str="$(echo "scale=1; $elapsed_ms / 1000" | bc)s"
-  fi
+  (
+    site_out="$TMPDIR/$site.json"
+    site_err="$TMPDIR/$site.err"
+    start=$(date +%s%N)
 
-  status="success"
-  [ $exit_code -eq 124 ] && status="timeout"
-  [ $exit_code -ne 0 ] && [ $exit_code -ne 124 ] && status="failed"
+    set +e
+    timeout 120 "$BINARY" \
+      --non-interactive \
+      --search "software engineer" \
+      --sites "$site" \
+      --results-wanted 100 \
+      --format jsonl \
+      --out "$site_out" \
+      --log-level ERROR \
+      --verify-concurrency 0 \
+      2>"$site_err"
+    exit_code=$?
+    set -e
+    end=$(date +%s%N)
 
-  jobs=0
-  fields=""
-  if [ -f "$site_out" ] && [ -s "$site_out" ]; then
-    jobs=$(wc -l < "$site_out")
-    fields=$(head -1 "$site_out" 2>/dev/null | jq -r 'keys | join(",")' 2>/dev/null || echo "")
-  fi
+    elapsed_ms=$(( (end - start) / 1000000 ))
+    [ "$elapsed_ms" -lt 1000 ] && elapsed_str="${elapsed_ms}ms" || elapsed_str="$(echo "scale=1; $elapsed_ms / 1000" | bc)s"
 
-  # Store for summary
-  SITE_JOBS[$site]=$jobs
-  SITE_STATUS[$site]=$status
-  SITE_EXIT[$site]=$exit_code
-  SITE_FIELDS[$site]=$fields
-  SITE_ELAPSED[$site]=$elapsed_str
+    status="success"
+    [ $exit_code -eq 124 ] && status="timeout"
+    [ $exit_code -ne 0 ] && [ $exit_code -ne 124 ] && status="failed"
 
-  echo "  status=$status jobs=$jobs elapsed=$elapsed_str exit=$exit_code"
+    jobs=0
+    if [ -f "$site_out" ] && [ -s "$site_out" ]; then
+      jobs=$(wc -l < "$site_out")
+    fi
 
-  # Build JSON entry
-  if [ "$first" = true ]; then
-    first=false
-  else
-    echo "," >> "$JSON_TMP"
-  fi
+    cat > "$RESDIR/$site" <<RES
+status=$status
+jobs=$jobs
+elapsed=$elapsed_str
+exit_code=$exit_code
+RES
 
-  cat >> "$JSON_TMP" <<RESULT
-  {
-    "site": "$site",
-    "status": "$status",
-    "jobs": $jobs,
-    "fields": "$fields",
-    "elapsed": "$elapsed_str",
-    "exit_code": $exit_code
-  }
-RESULT
+    if [ -s "$site_err" ]; then
+      {
+        echo ""
+        echo "[$(date +%H:%M:%S)] scraping $site ..."
+        cat "$site_err"
+        echo "  status=$status jobs=$jobs elapsed=$elapsed_str exit=$exit_code"
+      } >> "$LOGFILE"
+    fi
+
+    printf "\033[36m[%s]\033[0m %-25s \033[33m%-7s\033[0m jobs=%-4d %s\n" \
+      "$(date +%H:%M:%S)" "$site" "$status" "$jobs" "$elapsed_str"
+  ) &
+  pids+=($!)
+
 done
 
-echo ']' >> "$JSON_TMP"
-mv "$JSON_TMP" "$RESULT_JSON"
+# Wait for all
+for pid in "${pids[@]}"; do
+  wait "$pid" 2>/dev/null || true
+done
 
 echo ""
 echo "══════════════════════════════════════════════"
@@ -141,16 +134,25 @@ echo "  DONE — $(date)"
 echo "══════════════════════════════════════════════"
 echo ""
 
-# ── Summary ────────────────────────────────────────────────────
+# ── Aggregate results ────────────────────────────────
+echo '[' > "$RESULT_JSON"
+first=true
 SITES_WITH_JOBS=()
 SITES_ZERO_JOBS=()
 SITES_TIMEOUT=()
 SITES_FAILED=()
 
 for site in "${SITES[@]}"; do
-  jobs=${SITE_JOBS[$site]:-0}
-  status=${SITE_STATUS[$site]:-unknown}
-  if [ "$jobs" -gt 0 ]; then
+  res="$RESDIR/$site"
+  [ ! -f "$res" ] && continue
+  status=$(grep '^status=' "$res" | cut -d= -f2-)
+  jobs=$(grep '^jobs=' "$res" | cut -d= -f2-)
+  elapsed=$(grep '^elapsed=' "$res" | cut -d= -f2-)
+  exit_code=$(grep '^exit_code=' "$res" | cut -d= -f2-)
+
+  [ -z "$exit_code" ] && exit_code=-1
+
+  if [ "$jobs" -gt 0 ] 2>/dev/null; then
     SITES_WITH_JOBS+=("$site")
   elif [ "$status" = "timeout" ]; then
     SITES_TIMEOUT+=("$site")
@@ -159,51 +161,48 @@ for site in "${SITES[@]}"; do
   else
     SITES_ZERO_JOBS+=("$site")
   fi
+
+  [ "$first" = true ] && first=false || echo "," >> "$RESULT_JSON"
+  cat >> "$RESULT_JSON" <<RES
+  {"site":"$site","status":"$status","jobs":$jobs,"elapsed":"$elapsed","exit_code":$exit_code}
+RES
 done
 
+echo ']' >> "$RESULT_JSON"
+
+# ── Summary ────────────────────────────────────────────
 echo "┌─────────────────────────────────────────────────────────┐"
-echo "│                    SUMMARY                              │"
-echo "├─────────────────────────────────────────────────────────┤"
-printf "│ %-25s %6d / %-3d                          │\n" "Sites with jobs"    "${#SITES_WITH_JOBS[@]}" "$total"
-printf "│ %-25s %6d                                   │\n" "Zero jobs (success)" "${#SITES_ZERO_JOBS[@]}"
-printf "│ %-25s %6d                                   │\n" "Timeout"             "${#SITES_TIMEOUT[@]}"
-printf "│ %-25s %6d                                   │\n" "Failed"              "${#SITES_FAILED[@]}"
+printf "│ %-54s│\n" "Sites with jobs: ${#SITES_WITH_JOBS[@]} / $total"
+printf "│ %-54s│\n" "Zero jobs: ${#SITES_ZERO_JOBS[@]}"
+printf "│ %-54s│\n" "Timeout: ${#SITES_TIMEOUT[@]}"
+printf "│ %-54s│\n" "Failed: ${#SITES_FAILED[@]}"
 echo "└─────────────────────────────────────────────────────────┘"
 
-if [ "${#SITES_WITH_JOBS[@]}" -gt 0 ]; then
+[ "${#SITES_WITH_JOBS[@]}" -gt 0 ] && {
   echo ""
-  echo "── Working (sorted by job count) ──"
-  printf "  %-25s %s\n" "SITE" "JOBS"
+  echo "── Working ──"
   for site in "${SITES_WITH_JOBS[@]}"; do
-    printf "  %-25s %s\n" "$site" "${SITE_JOBS[$site]}"
-  done | sort -k2 -rn
-fi
+    echo "$(grep '^jobs=' "$RESDIR/$site" | cut -d= -f2-) $site"
+  done | sort -rn | while read -r j s; do printf "  %-25s %s\n" "$s" "$j"; done
+}
 
-if [ "${#SITES_TIMEOUT[@]}" -gt 0 ]; then
-  echo ""
-  echo "── Timeout ──"
-  for site in "${SITES_TIMEOUT[@]}"; do
-    echo "  $site"
-  done | sort
-fi
+[ "${#SITES_TIMEOUT[@]}" -gt 0 ] && { echo ""; echo "── Timeout ──"; printf '  %s\n' "${SITES_TIMEOUT[@]}" | sort; }
 
-if [ "${#SITES_ZERO_JOBS[@]}" -gt 0 ]; then
+[ "${#SITES_ZERO_JOBS[@]}" -gt 0 ] && {
   echo ""
-  echo "── Zero jobs (may need API keys or company seeds) ──"
-  # Known API-key sites
+  echo "── Zero jobs ──"
   API_KEYS="adzuna careerjet infojobs findwork arbeitsagentur web3career jobtechdev authenticjobs exa francetravail talroo upwork indeed dice"
   for site in "${SITES_ZERO_JOBS[@]}"; do
     label=""
     for k in $API_KEYS; do
       [ "$site" = "$k" ] && label=" (needs API key)" && break
     done
-    [[ "$site" == ats-* ]] && label=" (needs company seed env var)"
+    [[ "$site" == ats-* ]] && label=" (needs company seed)"
     echo "  $site$label"
   done | sort
-fi
+}
 
 echo ""
 echo "Results: $RESULT_JSON"
 echo "Logs:    $LOGFILE"
-# Validate
 python3 -c "import json; json.load(open('$RESULT_JSON'))" 2>/dev/null && echo "Valid JSON ✓" || echo "Invalid JSON ✗"
