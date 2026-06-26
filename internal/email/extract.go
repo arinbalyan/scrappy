@@ -4,10 +4,11 @@ package email
 
 import (
 	"context"
-	"io"
+	"fmt"
 	"net"
 	"net/http"
 	"net/mail"
+	"net/url"
 	"regexp"
 	"strings"
 	"time"
@@ -87,16 +88,12 @@ var validTLDs = map[string]bool{
 // ─── Patterns ─────────────────────────────────────────────────────────────────
 
 var (
-	// mailRegex matches standard email-like strings.
-	// The domain part uses a bounded segment structure (no greedy dot-extension)
-	// to prevent consuming adjacent field text like .pay or .job.
-	// The (?![.\w]) negative lookahead rejects matches where the regex stops
-	// at a TLD boundary but adjacent text continues with a dot or word char.
-	mailRegex = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+(?:---[a-zA-Z0-9._%+\-]+)*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b`)
-
 	// mailRegexIndex is the same pattern but used with FindAllStringIndex so we
 	// can validate the match context in the original text (see forOverconsumption).
 	mailRegexIndex = regexp.MustCompile(`[a-zA-Z0-9._%+\-]+(?:---[a-zA-Z0-9._%+\-]+)*@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}\b`)
+
+	// reIPAddr matches IP-address-like patterns for domain validation.
+	reIPAddr = regexp.MustCompile(`^\d+\.\d+$`)
 
 	// compoundTLDs are known multi-level TLD suffixes where the last two segments
 	// function as a single TLD (e.g., .co.uk, .com.au). The shorter-domain check
@@ -164,7 +161,7 @@ func isBlockedDomain(addr string) bool {
 	// Block IP-address domains (e.g., user@[192.168.1.1]).
 	if strings.HasPrefix(dl, "[") || strings.HasPrefix(dl, "192.") ||
 		strings.HasPrefix(dl, "10.") || strings.HasPrefix(dl, "172.") ||
-		strings.Count(dl, ".") == 1 && regexp.MustCompile(`^\d+\.\d+$`).MatchString(dl) {
+		strings.Count(dl, ".") == 1 && reIPAddr.MatchString(dl) {
 		return true
 	}
 	for _, suffix := range invalidDomainSuffixes {
@@ -680,6 +677,13 @@ func (e *CompanyPageEnricher) Enrich(ctx context.Context, companyURL string) ([]
 	if e.HTTPClient == nil || companyURL == "" {
 		return nil, nil
 	}
+	u, err := url.Parse(companyURL)
+	if err != nil {
+		return nil, err
+	}
+	if isPrivateIP(u.Hostname()) {
+		return nil, fmt.Errorf("blocked private IP: %s", companyURL)
+	}
 	e.sem <- struct{}{}
 	defer func() { <-e.sem }()
 
@@ -701,10 +705,9 @@ func (e *CompanyPageEnricher) Enrich(ctx context.Context, companyURL string) ([]
 		util.Debug("email_enrich_fetch_err", map[string]any{"url": companyURL, "err": err.Error()})
 		return nil, nil // non-fatal
 	}
-	defer io.Copy(io.Discard, resp.Body)
 	defer resp.Body.Close()
 
-	b, err := io.ReadAll(resp.Body)
+	b, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 	if err != nil {
 		util.Debug("email_enrich_read_err", map[string]any{"url": companyURL, "err": err.Error()})
 		return nil, nil // non-fatal

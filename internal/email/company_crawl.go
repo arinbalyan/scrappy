@@ -3,7 +3,7 @@ package email
 import (
 	"context"
 	"fmt"
-	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -90,6 +90,13 @@ func NewMultiPageCompanyEnricher(client *http.Client, concurrency int, pauseMs i
 func (e *MultiPageCompanyEnricher) Enrich(ctx context.Context, companyURL string) ([]Email, error) {
 	if e.HTTPClient == nil || companyURL == "" {
 		return nil, nil
+	}
+	u, err := url.Parse(companyURL)
+	if err != nil {
+		return nil, err
+	}
+	if isPrivateIP(u.Hostname()) {
+		return nil, fmt.Errorf("blocked private IP: %s", companyURL)
 	}
 
 	pages := e.candidatePages(companyURL)
@@ -237,11 +244,9 @@ func (e *MultiPageCompanyEnricher) fetchAndExtract(ctx context.Context, pageURL 
 		util.Debug("email_multipg_fetch_err", map[string]any{"url": pageURL, "err": err.Error()})
 		return nil
 	}
-	// Read at most 4 MiB (matches the engine's default body limit).
-	limited := io.LimitReader(resp.Body, 4<<20)
 	defer resp.Body.Close()
 
-	b, err := io.ReadAll(limited)
+	b, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 	if err != nil {
 		util.Debug("email_multipg_read_err", map[string]any{"url": pageURL, "err": err.Error()})
 		return nil
@@ -255,6 +260,18 @@ func (e *MultiPageCompanyEnricher) fetchAndExtract(ctx context.Context, pageURL 
 // extracted hostname rather than a full URL.
 func (e *MultiPageCompanyEnricher) EnrichJob(ctx context.Context, companyURL string) ([]Email, error) {
 	return e.Enrich(ctx, companyURL)
+}
+
+// isPrivateIP checks if a host resolves to a private, loopback, or link-local IP.
+func isPrivateIP(host string) bool {
+	if host == "localhost" || host == "127.0.0.1" || host == "::1" {
+		return true
+	}
+	ip := net.ParseIP(host)
+	if ip == nil {
+		return false
+	}
+	return ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast()
 }
 
 // String returns a short human-readable label for debug logs.

@@ -89,7 +89,7 @@ func (s *Scraper) fetchBoard(ctx context.Context, boardToken string, input model
 			Name string `json:"name"`
 		} `json:"location"`
 		Content     string `json:"content,omitempty"`
-		Department string `json:"departments,omitempty"`
+		Department json.RawMessage `json:"departments,omitempty"`
 	}
 	type ghResponse struct {
 		Jobs []ghJob `json:"jobs"`
@@ -149,8 +149,17 @@ func (s *Scraper) fetchBoard(ctx context.Context, boardToken string, input model
 				jp.DatePosted = &t
 			}
 		}
-		if r.Department != "" {
-			jp.Department = r.Department
+		if r.Department != nil {
+			// departments can be a string or an array in the API
+			var deptStr string
+			if err := json.Unmarshal(r.Department, &deptStr); err == nil {
+				jp.Department = deptStr
+			} else {
+				var deptArr []string
+				if err := json.Unmarshal(r.Department, &deptArr); err == nil && len(deptArr) > 0 {
+					jp.Department = deptArr[0]
+				}
+			}
 		}
 		out = append(out, jp)
 	}

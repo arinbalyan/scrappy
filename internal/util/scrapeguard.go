@@ -1,6 +1,7 @@
 package util
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -21,14 +22,12 @@ func DetectAntiBotChallenge(body []byte) string {
 	if len(body) < 256 {
 		return ""
 	}
-	s := string(body)
-
 	switch {
-	case strings.Contains(s, "x-datadome") || strings.Contains(s, "datadome") || strings.Contains(s, "#cmsg"):
+	case bytes.Contains(body, []byte("x-datadome")) || bytes.Contains(body, []byte("datadome")) || bytes.Contains(body, []byte("#cmsg")):
 		return "datadome"
-	case strings.Contains(s, "__cf_chl_opt") || strings.Contains(s, "cf-mitigated") || strings.Contains(s, "/cdn-cgi/") && strings.Contains(s, "Just a moment"):
+	case bytes.Contains(body, []byte("__cf_chl_opt")) || bytes.Contains(body, []byte("cf-mitigated")) || bytes.Contains(body, []byte("/cdn-cgi/")) && bytes.Contains(body, []byte("Just a moment")):
 		return "cloudflare"
-	case strings.Contains(s, "Please enable JavaScript") || strings.Contains(s, "enable javascript") || strings.Contains(s, "enable JS") || strings.Contains(s, "js challenge") || strings.Contains(s, "js-support"):
+	case bytes.Contains(body, []byte("Please enable JavaScript")) || bytes.Contains(body, []byte("enable javascript")) || bytes.Contains(body, []byte("enable JS")) || bytes.Contains(body, []byte("js challenge")) || bytes.Contains(body, []byte("js-support")):
 		return "javascript_required"
 	default:
 		return ""
