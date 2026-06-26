@@ -72,25 +72,28 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 	}
 	util.Debug("hiringthing_seeds", map[string]any{"seeds": seeds, "src": src})
 
-	wanted := input.ResultsWanted
-	if wanted <= 0 {
-		wanted = 25
-	}
-
-	fetchFn := func(ctx context.Context, slug string) ([]model.JobPost, error) {
-		jobs, err := s.fetchJobs(ctx, input, slug)
-		if err != nil {
-			util.Warn("hiringthing_seed_fail", map[string]any{"seed": slug, "err": err.Error()})
-			return nil, err
+	// Collect jobs across all seeds (HiringThing has one API endpoint but supports multi-tenant)
+	var out []model.JobPost
+	for _, seed := range seeds {
+		if input.ResultsWanted > 0 && len(out) >= input.ResultsWanted {
+			break
 		}
-		return jobs, nil
+		jobs, err := s.fetchJobs(ctx, input, seed)
+		if err != nil {
+			util.Warn("hiringthing_seed_fail", map[string]any{"seed": seed, "err": err.Error()})
+			continue
+		}
+		out = append(out, jobs...)
 	}
 
-	results := ats.ProcessSeeds(ctx, seeds, 3, wanted, fetchFn)
-	if !util.HasMeaningfulJobs(results) {
+	if input.ResultsWanted > 0 && len(out) > input.ResultsWanted {
+		out = out[:input.ResultsWanted]
+	}
+
+	if !util.HasMeaningfulJobs(out) {
 		return nil, fmt.Errorf("hiringthing no parseable jobs")
 	}
-	return results, nil
+	return out, nil
 }
 
 func (s *Scraper) fetchJobs(ctx context.Context, input model.ScraperInput, seed string) ([]model.JobPost, error) {

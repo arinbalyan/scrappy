@@ -109,13 +109,21 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		wanted = 100
 	}
 
-	fetchFn := func(ctx context.Context, slug string) ([]model.JobPost, error) {
+	out := make([]model.JobPost, 0, wanted)
+	for _, slug := range seeds {
+		if len(out) >= wanted {
+			break
+		}
+
 		company, wdNumber, site := parseWorkdaySlug(slug)
 		u := s.buildURL(company, wdNumber, site)
 		offset := 0
 
-		var jobs []model.JobPost
 		for {
+			if len(out) >= wanted {
+				break
+			}
+
 			payload := wdSearchPayload{
 				AppliedFacets: map[string]interface{}{},
 				Limit:         workdayPageSize,
@@ -125,13 +133,13 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			body, err := json.Marshal(payload)
 			if err != nil {
 				util.Warn("workday_marshal_fail", map[string]any{"company": company, "err": err.Error()})
-				return jobs, nil
+				break
 			}
 
 			req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(body))
 			if err != nil {
 				util.Warn("workday_request_err", map[string]any{"company": company, "err": err.Error()})
-				return jobs, nil
+				break
 			}
 			req.Header.Set("Accept", "application/json")
 			req.Header.Set("Content-Type", "application/json")
@@ -140,25 +148,25 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			resp, err := s.client.Do(req)
 			if err != nil {
 				util.Warn("workday_fetch_fail", map[string]any{"company": company, "offset": offset, "err": err.Error()})
-				return jobs, nil
+				break
 			}
 
 			respBody, err := util.ReadBodyLimited(resp.Body, util.DefaultMaxBodyBytes)
 			resp.Body.Close()
 			if err != nil {
 				util.Warn("workday_read_fail", map[string]any{"company": company, "err": err.Error()})
-				return jobs, nil
+				break
 			}
 
 			if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 				util.Warn("workday_status", map[string]any{"company": company, "offset": offset, "status": resp.StatusCode})
-				return jobs, nil
+				break
 			}
 
 			var searchResp wdSearchResponse
 			if err := json.Unmarshal(respBody, &searchResp); err != nil {
 				util.Warn("workday_decode_fail", map[string]any{"company": company, "err": err.Error()})
-				return jobs, nil
+				break
 			}
 
 			if len(searchResp.JobPostings) == 0 {
@@ -166,9 +174,12 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 			}
 
 			for _, listing := range searchResp.JobPostings {
+				if len(out) >= wanted {
+					break
+				}
 				jp := s.toJobPost(listing, company, wdNumber, site)
 				if jp != nil {
-					jobs = append(jobs, *jp)
+					out = append(out, *jp)
 				}
 			}
 
@@ -177,14 +188,12 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 				break
 			}
 		}
-		return jobs, nil
 	}
 
-	results := ats.ProcessSeeds(ctx, seeds, 3, wanted, fetchFn)
-	if len(results) == 0 {
+	if !util.HasMeaningfulJobs(out) {
 		return nil, fmt.Errorf("workday no parseable jobs")
 	}
-	return results, nil
+	return out, nil
 }
 
 func (s *Scraper) toJobPost(listing wdJobListItem, company, wdNumber, site string) *model.JobPost {

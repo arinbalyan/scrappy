@@ -88,27 +88,36 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		wanted = 100
 	}
 
-	fetchFn := func(ctx context.Context, slug string) ([]model.JobPost, error) {
+	out := make([]model.JobPost, 0, wanted)
+	for i, slug := range seeds {
+		if i > 0 {
+			_ = util.SleepWithContext(ctx, 700*time.Millisecond)
+		}
+		if len(out) >= wanted {
+			break
+		}
+
 		positions, err := s.fetchXML(ctx, slug)
 		if err != nil {
 			util.Warn("personio_fetch_fail", map[string]any{"slug": slug, "err": err.Error()})
-			return nil, err
+			continue
 		}
-		var jobs []model.JobPost
+
 		for _, pos := range positions {
+			if len(out) >= wanted {
+				break
+			}
 			jp := s.mapPosition(pos, slug)
 			if jp != nil {
-				jobs = append(jobs, *jp)
+				out = append(out, *jp)
 			}
 		}
-		return jobs, nil
 	}
 
-	results := ats.ProcessSeeds(ctx, seeds, 3, wanted, fetchFn)
-	if len(results) == 0 {
+	if !util.HasMeaningfulJobs(out) {
 		return nil, fmt.Errorf("personio no parseable jobs")
 	}
-	return results, nil
+	return out, nil
 }
 
 func (s *Scraper) fetchXML(ctx context.Context, slug string) ([]personioXMLPosition, error) {
