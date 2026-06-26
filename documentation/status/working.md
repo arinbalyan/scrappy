@@ -1,8 +1,8 @@
 # Working — Sites that return jobs
 
-These sites work out of the box with the default config. **49 of 141 sites** working.
+These sites work out of the box with the default config. **49 of 141 sites** (3 more intermittent) working.
 
-## Returning Jobs (49 sites)
+## Returning Jobs (49 sites + 3 intermittent)
 
 | Site | Jobs (avg) | Method | Notes |
 |------|-----------|--------|-------|
@@ -57,6 +57,10 @@ These sites work out of the box with the default config. **49 of 141 sites** wor
 | themuse | 1 | http_api | Career platform |
 | jobspresso | 1 | html_parse | Remote tech |
 
+
+| hackernews | 3 | html_parse | HN Who is Hiring thread |
+| ats-talentlyft | 7 | ats | ATS with 26 slugs (intermittent) |
+| ats-gem | 47 | ats | ATS with 40 slugs (intermittent) |
 ## Niche Boards (no SWE jobs expected, RSS feeds work)
 
 These sites work correctly but return 0 results for "software engineer" searches:

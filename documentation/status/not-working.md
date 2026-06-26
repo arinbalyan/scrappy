@@ -8,14 +8,11 @@ These ATS scrapers have company slugs populated but the API endpoints are unreac
 |------|-------|-------------|
 | ats-adp | 31 | ADP API unreachable or slow |
 | ats-freshteam | 35 | Needs API key |
-| ats-gem | 40 | API timeout |
 | ats-icims | 39 | API slow |
 | ats-jobvite | 32 | API timeout |
 | ats-pinpoint | 34 | API slow/unreachable |
-| ats-talentlyft | 26 | API timeout |
 | ats-trakstar | 29 | API timeout |
 | ats-ukg | 41 | API timeout |
-| hackernews | — | RSS feed slow |
 
 ## ATS with 0 jobs (slugs are stale/incorrect)
 
