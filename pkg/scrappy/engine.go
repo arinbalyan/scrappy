@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/BurntSushi/toml"
+
 	internalemail "github.com/arinbalyan/scrappy/internal/email"
 	"github.com/arinbalyan/scrappy/internal/model"
 	"github.com/arinbalyan/scrappy/internal/normalize"
@@ -186,13 +188,56 @@ var requiredEnvVars = map[model.Site][]string{
 	model.SiteTalroo:         {"TALROO_PUBLISHER_ID", "TALROO_PUBLISHER_PASS"},
 }
 
+// Option configures Engine construction.
+type Option func(*Engine)
+
+// WithConfig loads scrappy's config.toml and populates per-site search terms,
+// locations, and country settings on every Scrape() call. The file is loaded
+// once at engine creation; missing file is silently ignored.
+func WithConfig(path string) Option {
+	return func(e *Engine) {
+		if path == "" {
+			return
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return // silently skip missing config
+		}
+		var cfg struct {
+			Defaults struct {
+				Search   []string `toml:"search"`
+				Location []string `toml:"location"`
+			} `toml:"defaults"`
+			Sites map[string]struct {
+				Search   []string `toml:"search"`
+				Location []string `toml:"location"`
+				Country  string   `toml:"country"`
+			} `toml:"sites"`
+		}
+		if err := toml.Unmarshal(data, &cfg); err != nil {
+			return
+		}
+		e.configSearch = cfg.Defaults.Search
+		e.configLocation = cfg.Defaults.Location
+		e.configSites = cfg.Sites
+	}
+}
+
 type Engine struct {
 	scrapers     map[model.Site]scraper.Scraper
 	telemetry    RunTelemetry
 	siteFailOpen bool
+
+	configSearch  []string
+	configLocation []string
+	configSites   map[string]struct {
+		Search   []string `toml:"search"`
+		Location []string `toml:"location"`
+		Country  string   `toml:"country"`
+	}
 }
 
-func NewEngine() *Engine {
+func NewEngine(opts ...Option) *Engine {
 	s := []scraper.Scraper{
 		indeedscraper.New(nil),
 		linkedinscraper.New(nil),
@@ -337,7 +382,11 @@ func NewEngine() *Engine {
 	for _, sc := range s {
 		m[sc.SiteName()] = sc
 	}
-	return &Engine{scrapers: m, siteFailOpen: true}
+	e := &Engine{scrapers: m, siteFailOpen: true}
+	for _, opt := range opts {
+		opt(e)
+	}
+	return e
 }
 
 func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
@@ -446,7 +495,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 					baseInput.ResultsWanted = n
 				}
 			}
-			if baseInput.SiteLocation != nil {
+				if baseInput.SiteLocation != nil {
 				if v := strings.TrimSpace(baseInput.SiteLocation[site]); v != "" {
 					baseInput.Location = v
 				}
@@ -482,6 +531,10 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				locs = baseInput.Locations
 			}
 			if len(locs) == 0 {
+				locs = []string{""}
+			}
+			// ponytail: skip_location — remote-only boards don't need location combos
+			if baseInput.SiteSkipLocation != nil && baseInput.SiteSkipLocation[site] {
 				locs = []string{""}
 			}
 
