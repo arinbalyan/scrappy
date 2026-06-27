@@ -5,12 +5,15 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"os/exec"
 	"runtime"
 	"runtime/metrics"
 	"sort"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/BurntSushi/toml"
 
 	internalemail "github.com/arinbalyan/scrappy/internal/email"
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -186,13 +189,63 @@ var requiredEnvVars = map[model.Site][]string{
 	model.SiteTalroo:         {"TALROO_PUBLISHER_ID", "TALROO_PUBLISHER_PASS"},
 }
 
+// Option configures Engine construction.
+type Option func(*Engine)
+
+// WithConfig loads scrappy's config.toml and populates per-site search terms,
+// locations, and country settings on every Scrape() call. The file is loaded
+// once at engine creation; missing file is silently ignored.
+func WithConfig(path string) Option {
+	return func(e *Engine) {
+		if path == "" {
+			return
+		}
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return // silently skip missing config
+		}
+		var cfg struct {
+			Defaults struct {
+				Search   []string `toml:"search"`
+				Location []string `toml:"location"`
+			} `toml:"defaults"`
+			Sites map[string]struct {
+				Search   []string `toml:"search"`
+				Location []string `toml:"location"`
+				Country  string   `toml:"country"`
+			} `toml:"sites"`
+		}
+		if err := toml.Unmarshal(data, &cfg); err != nil {
+			return
+		}
+		e.configSearch = cfg.Defaults.Search
+		e.configLocation = cfg.Defaults.Location
+		e.configSites = cfg.Sites
+		e.configPath = path
+	}
+}
+
 type Engine struct {
 	scrapers     map[model.Site]scraper.Scraper
 	telemetry    RunTelemetry
 	siteFailOpen bool
+
+	configSearch  []string
+	configLocation []string
+	configSites   map[string]struct {
+		Search   []string `toml:"search"`
+		Location []string `toml:"location"`
+		Country  string   `toml:"country"`
+	}
+	configPath string // saved by WithConfig for ReloadConfig
+
+	// playwrightCached caches whether Node.js + playwright is available.
+	// Checked lazily on first required playwright scrape.
+	playwrightCached     *bool
+	playwrightCachedOnce sync.Once
 }
 
-func NewEngine() *Engine {
+func NewEngine(opts ...Option) *Engine {
 	s := []scraper.Scraper{
 		indeedscraper.New(nil),
 		linkedinscraper.New(nil),
@@ -337,7 +390,11 @@ func NewEngine() *Engine {
 	for _, sc := range s {
 		m[sc.SiteName()] = sc
 	}
-	return &Engine{scrapers: m, siteFailOpen: true}
+	e := &Engine{scrapers: m, siteFailOpen: true}
+	for _, opt := range opts {
+		opt(e)
+	}
+	return e
 }
 
 func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.JobPost, error) {
@@ -446,7 +503,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 					baseInput.ResultsWanted = n
 				}
 			}
-			if baseInput.SiteLocation != nil {
+				if baseInput.SiteLocation != nil {
 				if v := strings.TrimSpace(baseInput.SiteLocation[site]); v != "" {
 					baseInput.Location = v
 				}
@@ -484,6 +541,10 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			if len(locs) == 0 {
 				locs = []string{""}
 			}
+			// ponytail: skip_location — remote-only boards don't need location combos
+			if baseInput.SiteSkipLocation != nil && baseInput.SiteSkipLocation[site] {
+				locs = []string{""}
+			}
 
 			st := SiteTelemetry{Site: Site(site), Attempted: true, StatusCodeCount: map[int]int{}}
 			aggregated := make([]model.JobPost, 0)
@@ -491,14 +552,49 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			siteStart := time.Now()
 			method := scraper.Method(site)
 			util.Info("scrape_start", map[string]any{"site": site, "method": method, "terms": len(terms), "locs": len(locs)})
+
+			// Quick-fail if Playwright is missing for a playwright site
+			if method == "playwright" && !e.playwrightCheck() {
+				err := fmt.Errorf("%s: requires Playwright but Node.js or playwright module is not installed (run: npx playwright install chromium)", site)
+				st.Error = err.Error()
+				st.Success = false
+				util.Warn("playwright_missing", map[string]any{"site": site})
+				allMu.Lock()
+				telemetryBySite[site] = st
+				allMu.Unlock()
+				resultsCh <- siteResult{site: site, st: st, ok: false}
+				return
+			}
+
 			for _, term := range terms {
 				for _, loc := range locs {
 					siteInput := baseInput
 					siteInput.SearchTerm = term
 					siteInput.Location = loc
 					util.Debug("scrape_try", map[string]any{"site": site, "search": siteInput.SearchTerm, "location": siteInput.Location})
-					jobs, err := sc.Scrape(ctx, siteInput)
+
+					// Per-site timeout override
+					scrapeCtx := ctx
+					if baseInput.SiteTimeout != nil {
+						if d, ok := baseInput.SiteTimeout[site]; ok && d > 0 {
+							var cancel context.CancelFunc
+							scrapeCtx, cancel = context.WithTimeout(ctx, d)
+							defer cancel()
+						}
+					}
+
+					jobs, err := sc.Scrape(scrapeCtx, siteInput)
 					aggregated = append(aggregated, jobs...)
+
+					// ponytail: streaming — push each job through JobStream when set
+					if baseInput.JobStream != nil && len(jobs) > 0 {
+						for i := range jobs {
+							select {
+							case baseInput.JobStream <- jobs[i]:
+							case <-ctx.Done():
+							}
+						}
+					}
 					if err != nil {
 						lastErr = err
 						st.Error = err.Error()
@@ -540,6 +636,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			e.telemetry.SuggestedSiteRPS[Site(site)] = suggestRPS(input.SiteRPS[site], nil)
 			telemetryBySite[site] = st
 			allMu.Unlock()
+			normalizeIsRemote(aggregated, site, baseInput)
 			if len(aggregated) > 0 || st.Success {
 				resultsCh <- siteResult{site: site, jobs: aggregated, st: st, ok: true}
 			}
@@ -683,6 +780,25 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	}
 
 	sort.SliceStable(all, func(i, j int) bool { return all[i].ID < all[j].ID })
+
+	// ponytail: title+company dedup — catch same job posted on different sites
+	if input.DedupByCompany || input.Dedup {
+		seenNormalized := make(map[string]bool, len(all))
+		filtered := all[:0]
+		for _, j := range all {
+			key := strings.ToLower(strings.TrimSpace(j.Title + "|" + j.CompanyName))
+			if key == "|" {
+				filtered = append(filtered, j)
+				continue
+			}
+			if seenNormalized[key] {
+				continue
+			}
+			seenNormalized[key] = true
+			filtered = append(filtered, j)
+		}
+		all = filtered
+	}
 	if input.ResultsWanted > 0 && len(all) > input.ResultsWanted {
 		all = all[:input.ResultsWanted]
 	}
@@ -787,6 +903,10 @@ func containsAny(s string, vals ...string) bool {
 func globalConcurrency(input model.ScraperInput) int {
 	// Scale concurrency based on memory cap if set.
 	if input.MemoryCapMB > 0 {
+		// Scale down under heap pressure
+		if allocMB := getHeapAllocMB(); allocMB > 0 && uint64(allocMB)*100/uint64(input.MemoryCapMB) > 60 {
+			return 2
+		}
 		switch {
 		case input.MemoryCapMB <= 256:
 			return 3
@@ -1008,4 +1128,130 @@ func parseSinceDate(s string) (time.Time, error) {
 // ScraperInput and JobPost are type aliases to model types, so no conversion needed.
 func (e *Engine) ScrapeJobs(ctx context.Context, input ScraperInput) ([]JobPost, error) {
 	return e.Scrape(ctx, input)
+}
+
+// ScrapeJobsFull returns jobs plus per-site result metadata in one call.
+// Use this when you need to know which sites succeeded/failed and why.
+func (e *Engine) ScrapeJobsFull(ctx context.Context, input ScraperInput) (*ScrapeResult, error) {
+	jobs, err := e.Scrape(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	sites := make([]SiteResult, len(e.telemetry.Sites))
+	for i, st := range e.telemetry.Sites {
+		sr := SiteResult{
+			Site: st.Site,
+			Jobs: st.ResultCount,
+		}
+		if st.Error != "" {
+			err := fmt.Errorf("%s", st.Error)
+			sr.Error = st.Error
+			sr.Kind = ErrorKind(err)
+		}
+		sites[i] = sr
+	}
+	return &ScrapeResult{Jobs: jobs, Sites: sites}, nil
+}
+
+// ScrapeJobsStream scrapes all sites and calls cb for each job as it arrives.
+// Blocks until all sites complete. Useful for long-running scrapes where you
+// want progressive results rather than waiting minutes for everything.
+func (e *Engine) ScrapeJobsStream(ctx context.Context, input ScraperInput, cb func(JobPost)) error {
+	ch := make(chan JobPost, 1000)
+	input.JobStream = ch
+
+	// Run scrape in background
+	type scrapeOut struct {
+		err  error
+	}
+	resultCh := make(chan scrapeOut, 1)
+	go func() {
+		_, err := e.Scrape(ctx, input)
+		resultCh <- scrapeOut{err: err}
+		close(ch)
+	}()
+
+	// Drain the stream channel, calling cb for each job
+	for j := range ch {
+		cb(j)
+	}
+
+	res := <-resultCh
+	return res.err
+}
+
+// playwrightCheck returns true if Node.js can resolve the playwright module.
+// Uses sync.Once to cache the result after the first check.
+func (e *Engine) playwrightCheck() bool {
+	e.playwrightCachedOnce.Do(func() {
+		ok := true
+		out, err := exec.Command("node", "-e", "require('playwright')").CombinedOutput()
+		if err != nil {
+			ok = false
+		}
+		_ = out
+		e.playwrightCached = &ok
+	})
+	return e.playwrightCached != nil && *e.playwrightCached
+}
+
+// ReloadConfig re-reads the config file that was passed to WithConfig.
+// Useful for long-running consumers (e.g. JobHunter) that want to pick up
+// config changes without restarting.
+func (e *Engine) ReloadConfig() error {
+	if e.configPath == "" {
+		return nil // no config was set
+	}
+	data, err := os.ReadFile(e.configPath)
+	if err != nil {
+		return fmt.Errorf("reload config: %w", err)
+	}
+	var cfg struct {
+		Defaults struct {
+			Search   []string `toml:"search"`
+			Location []string `toml:"location"`
+		} `toml:"defaults"`
+		Sites map[string]struct {
+			Search   []string `toml:"search"`
+			Location []string `toml:"location"`
+			Country  string   `toml:"country"`
+		} `toml:"sites"`
+	}
+	if err := toml.Unmarshal(data, &cfg); err != nil {
+		return fmt.Errorf("reload config parse: %w", err)
+	}
+	e.configSearch = cfg.Defaults.Search
+	e.configLocation = cfg.Defaults.Location
+	e.configSites = cfg.Sites
+	return nil
+}
+
+// normalizeIsRemote sets IsRemote on jobs based on site, location, and input signals.
+func normalizeIsRemote(jobs []model.JobPost, site model.Site, input model.ScraperInput) {
+	if input.RemoteOnly {
+		for i := range jobs {
+			jobs[i].IsRemote = true
+		}
+		return
+	}
+
+	// Site-level: remote-only boards
+	siteStr := strings.ToLower(string(site))
+	isRemoteSite := strings.Contains(siteStr, "remote") ||
+		siteStr == "weworkremotely" ||
+		siteStr == "workingnomads" ||
+		siteStr == "4dayweek"
+
+	for i := range jobs {
+		if isRemoteSite {
+			jobs[i].IsRemote = true
+			continue
+		}
+		if jobs[i].IsRemote {
+			continue // already set by scraper
+		}
+		// Location-level: check for "remote" in location fields
+		loc := jobs[i].Location
+		jobs[i].IsRemote = strings.Contains(strings.ToLower(loc.City+" "+loc.State+" "+loc.Country), "remote")
+	}
 }
