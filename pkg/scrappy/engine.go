@@ -636,6 +636,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			e.telemetry.SuggestedSiteRPS[Site(site)] = suggestRPS(input.SiteRPS[site], nil)
 			telemetryBySite[site] = st
 			allMu.Unlock()
+			normalizeIsRemote(aggregated, site, baseInput)
 			if len(aggregated) > 0 || st.Success {
 				resultsCh <- siteResult{site: site, jobs: aggregated, st: st, ok: true}
 			}
@@ -1223,4 +1224,34 @@ func (e *Engine) ReloadConfig() error {
 	e.configLocation = cfg.Defaults.Location
 	e.configSites = cfg.Sites
 	return nil
+}
+
+// normalizeIsRemote sets IsRemote on jobs based on site, location, and input signals.
+func normalizeIsRemote(jobs []model.JobPost, site model.Site, input model.ScraperInput) {
+	if input.RemoteOnly {
+		for i := range jobs {
+			jobs[i].IsRemote = true
+		}
+		return
+	}
+
+	// Site-level: remote-only boards
+	siteStr := strings.ToLower(string(site))
+	isRemoteSite := strings.Contains(siteStr, "remote") ||
+		siteStr == "weworkremotely" ||
+		siteStr == "workingnomads" ||
+		siteStr == "4dayweek"
+
+	for i := range jobs {
+		if isRemoteSite {
+			jobs[i].IsRemote = true
+			continue
+		}
+		if jobs[i].IsRemote {
+			continue // already set by scraper
+		}
+		// Location-level: check for "remote" in location fields
+		loc := jobs[i].Location
+		jobs[i].IsRemote = strings.Contains(strings.ToLower(loc.City+" "+loc.State+" "+loc.Country), "remote")
+	}
 }
