@@ -26,7 +26,14 @@ const SlugFile = "config/company_slugs.toml"
 var (
 	slugDB   map[string][]string
 	slugOnce sync.Once
+
+	// slugStaleness tracks consecutive 0-job runs per company slug.
+	// Used by scrapers to deprioritize dead slugs over time.
+	slugStaleness   map[string]int
+	slugStalenessMu sync.Mutex
 )
+
+const StalenessThreshold = 3 // consecutive 0-job runs before a slug is considered stale
 
 // loadSlugs reads the company slugs file once, falling back to embedded data.
 func loadSlugs() {
@@ -268,4 +275,38 @@ func ProcessSeeds(ctx context.Context, seeds []string, nWorkers int, wanted int,
 		}
 	}
 	return all
+}
+
+// MarkStale increments the staleness counter for a company slug.
+// Call this when a slug returns 0 jobs — after StalenessThreshold consecutive
+// failures the slug is reported by StaleSlugs().
+func MarkStale(slug string) {
+	slugStalenessMu.Lock()
+	defer slugStalenessMu.Unlock()
+	if slugStaleness == nil {
+		slugStaleness = make(map[string]int)
+	}
+	slugStaleness[slug]++
+}
+
+// MarkFresh resets the staleness counter when a slug starts returning jobs again.
+func MarkFresh(slug string) {
+	slugStalenessMu.Lock()
+	defer slugStalenessMu.Unlock()
+	delete(slugStaleness, slug)
+}
+
+// StaleSlugs returns all slugs whose consecutive 0-job count
+// has reached StalenessThreshold. Consumers can use this to update
+// company_slugs.toml or exclude dead slugs from future runs.
+func StaleSlugs() []string {
+	slugStalenessMu.Lock()
+	defer slugStalenessMu.Unlock()
+	var out []string
+	for slug, n := range slugStaleness {
+		if n >= StalenessThreshold {
+			out = append(out, slug)
+		}
+	}
+	return out
 }

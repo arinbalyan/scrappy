@@ -69,4 +69,8 @@ type ScraperInput struct {
 	// When set, concurrency is scaled and periodic heap checks
 	// may throttle or defer new scrape launches.
 	MemoryCapMB int `json:"memory_cap_mb,omitempty"`
+
+	// JobStream receives each job as it is scraped (before dedup/filtering).
+	// When set, ScrapeJobsStream writes progressive results here.
+	JobStream chan<- JobPost `json:"-"`
 }

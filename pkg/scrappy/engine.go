@@ -221,6 +221,7 @@ func WithConfig(path string) Option {
 		e.configSearch = cfg.Defaults.Search
 		e.configLocation = cfg.Defaults.Location
 		e.configSites = cfg.Sites
+		e.configPath = path
 	}
 }
 
@@ -236,6 +237,7 @@ type Engine struct {
 		Location []string `toml:"location"`
 		Country  string   `toml:"country"`
 	}
+	configPath string // saved by WithConfig for ReloadConfig
 
 	// playwrightCached caches whether Node.js + playwright is available.
 	// Checked lazily on first required playwright scrape.
@@ -583,6 +585,16 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 
 					jobs, err := sc.Scrape(scrapeCtx, siteInput)
 					aggregated = append(aggregated, jobs...)
+
+					// ponytail: streaming — push each job through JobStream when set
+					if baseInput.JobStream != nil && len(jobs) > 0 {
+						for i := range jobs {
+							select {
+							case baseInput.JobStream <- jobs[i]:
+							case <-ctx.Done():
+							}
+						}
+					}
 					if err != nil {
 						lastErr = err
 						st.Error = err.Error()
@@ -767,6 +779,25 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 	}
 
 	sort.SliceStable(all, func(i, j int) bool { return all[i].ID < all[j].ID })
+
+	// ponytail: title+company dedup — catch same job posted on different sites
+	if input.DedupByCompany || input.Dedup {
+		seenNormalized := make(map[string]bool, len(all))
+		filtered := all[:0]
+		for _, j := range all {
+			key := strings.ToLower(strings.TrimSpace(j.Title + "|" + j.CompanyName))
+			if key == "|" {
+				filtered = append(filtered, j)
+				continue
+			}
+			if seenNormalized[key] {
+				continue
+			}
+			seenNormalized[key] = true
+			filtered = append(filtered, j)
+		}
+		all = filtered
+	}
 	if input.ResultsWanted > 0 && len(all) > input.ResultsWanted {
 		all = all[:input.ResultsWanted]
 	}
@@ -871,6 +902,10 @@ func containsAny(s string, vals ...string) bool {
 func globalConcurrency(input model.ScraperInput) int {
 	// Scale concurrency based on memory cap if set.
 	if input.MemoryCapMB > 0 {
+		// Scale down under heap pressure
+		if allocMB := getHeapAllocMB(); allocMB > 0 && uint64(allocMB)*100/uint64(input.MemoryCapMB) > 60 {
+			return 2
+		}
 		switch {
 		case input.MemoryCapMB <= 256:
 			return 3
@@ -1117,6 +1152,33 @@ func (e *Engine) ScrapeJobsFull(ctx context.Context, input ScraperInput) (*Scrap
 	return &ScrapeResult{Jobs: jobs, Sites: sites}, nil
 }
 
+// ScrapeJobsStream scrapes all sites and calls cb for each job as it arrives.
+// Blocks until all sites complete. Useful for long-running scrapes where you
+// want progressive results rather than waiting minutes for everything.
+func (e *Engine) ScrapeJobsStream(ctx context.Context, input ScraperInput, cb func(JobPost)) error {
+	ch := make(chan JobPost, 1000)
+	input.JobStream = ch
+
+	// Run scrape in background
+	type scrapeOut struct {
+		err  error
+	}
+	resultCh := make(chan scrapeOut, 1)
+	go func() {
+		_, err := e.Scrape(ctx, input)
+		resultCh <- scrapeOut{err: err}
+		close(ch)
+	}()
+
+	// Drain the stream channel, calling cb for each job
+	for j := range ch {
+		cb(j)
+	}
+
+	res := <-resultCh
+	return res.err
+}
+
 // playwrightCheck returns true if Node.js can resolve the playwright module.
 // Uses sync.Once to cache the result after the first check.
 func (e *Engine) playwrightCheck() bool {
@@ -1130,4 +1192,35 @@ func (e *Engine) playwrightCheck() bool {
 		e.playwrightCached = &ok
 	})
 	return e.playwrightCached != nil && *e.playwrightCached
+}
+
+// ReloadConfig re-reads the config file that was passed to WithConfig.
+// Useful for long-running consumers (e.g. JobHunter) that want to pick up
+// config changes without restarting.
+func (e *Engine) ReloadConfig() error {
+	if e.configPath == "" {
+		return nil // no config was set
+	}
+	data, err := os.ReadFile(e.configPath)
+	if err != nil {
+		return fmt.Errorf("reload config: %w", err)
+	}
+	var cfg struct {
+		Defaults struct {
+			Search   []string `toml:"search"`
+			Location []string `toml:"location"`
+		} `toml:"defaults"`
+		Sites map[string]struct {
+			Search   []string `toml:"search"`
+			Location []string `toml:"location"`
+			Country  string   `toml:"country"`
+		} `toml:"sites"`
+	}
+	if err := toml.Unmarshal(data, &cfg); err != nil {
+		return fmt.Errorf("reload config parse: %w", err)
+	}
+	e.configSearch = cfg.Defaults.Search
+	e.configLocation = cfg.Defaults.Location
+	e.configSites = cfg.Sites
+	return nil
 }
