@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // ScraperInput holds all parameters for a scraping run.
 type ScraperInput struct {
 	Sites               []Site  `json:"sites"`
@@ -54,8 +56,21 @@ type ScraperInput struct {
 	SiteLocations  map[Site][]string   `json:"site_locations,omitempty"`
 	SiteCountry    map[Site]Country    `json:"site_country,omitempty"`
 
+	// SiteSkipLocation skips location iteration for specific sites.
+	// Remote-only boards (remoteok, himalayas, ycjobs) set this to avoid
+	// generating search_terms × locations combinations that waste API calls.
+	SiteSkipLocation map[Site]bool           `json:"site_skip_location,omitempty"`
+
+	// SiteTimeout overrides the context timeout for individual sites.
+	// Useful when some sites are much slower than others.
+	SiteTimeout map[Site]time.Duration `json:"-"` // JSON serialisation is not meaningful for durations
+
 	// Memory cap in MB.  0 = unlimited (default).
 	// When set, concurrency is scaled and periodic heap checks
 	// may throttle or defer new scrape launches.
 	MemoryCapMB int `json:"memory_cap_mb,omitempty"`
+
+	// JobStream receives each job as it is scraped (before dedup/filtering).
+	// When set, ScrapeJobsStream writes progressive results here.
+	JobStream chan<- JobPost `json:"-"`
 }

@@ -25,6 +25,9 @@ const (
 	browserFallbackAfter = 3
 )
 
+// liRateLimit throttles requests to LinkedIn's guest API (~5 req/s) to avoid 429s.
+var liRateLimit = time.NewTicker(200 * time.Millisecond)
+
 var (
 	reJobCardHref   = regexp.MustCompile(`href="([^"]*?/jobs/view/(?:[^"/?]*-)?(\d+)[^"]*)"`)
 	reTitleSR       = regexp.MustCompile(`<span class="sr-only">([^<]+)</span>`)
@@ -290,6 +293,12 @@ func (s *Scraper) tryGuestAPI(ctx context.Context, input model.ScraperInput) []m
 	req.Header.Set("accept-language", "en-US,en;q=0.9")
 	req.Header.Set("user-agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
+	// ponytail: rate-limit wait respects context cancellation
+	select {
+	case <-liRateLimit.C:
+	case <-ctx.Done():
+		return nil
+	}
 	resp, err := s.client.Do(req)
 	if err != nil {
 		util.Debug("linkedin_guest_api_err", map[string]any{"err": err.Error()})
@@ -383,6 +392,12 @@ func (s *Scraper) fetchSearchPage(ctx context.Context, input model.ScraperInput,
 	req.Header.Set("sec-ch-ua-mobile", "?0")
 	req.Header.Set("sec-ch-ua-platform", `"macOS"`)
 
+	// ponytail: rate-limit wait respects context cancellation
+	select {
+	case <-liRateLimit.C:
+	case <-ctx.Done():
+		return "", ctx.Err()
+	}
 	resp, err := s.client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("execute linkedin search request: %w", err)
