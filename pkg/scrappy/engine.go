@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"os/exec"
 	"runtime"
 	"runtime/metrics"
 	"sort"
@@ -235,6 +236,11 @@ type Engine struct {
 		Location []string `toml:"location"`
 		Country  string   `toml:"country"`
 	}
+
+	// playwrightCached caches whether Node.js + playwright is available.
+	// Checked lazily on first required playwright scrape.
+	playwrightCached     *bool
+	playwrightCachedOnce sync.Once
 }
 
 func NewEngine(opts ...Option) *Engine {
@@ -544,13 +550,38 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			siteStart := time.Now()
 			method := scraper.Method(site)
 			util.Info("scrape_start", map[string]any{"site": site, "method": method, "terms": len(terms), "locs": len(locs)})
+
+			// Quick-fail if Playwright is missing for a playwright site
+			if method == "playwright" && !e.playwrightCheck() {
+				err := fmt.Errorf("%s: requires Playwright but Node.js or playwright module is not installed (run: npx playwright install chromium)", site)
+				st.Error = err.Error()
+				st.Success = false
+				util.Warn("playwright_missing", map[string]any{"site": site})
+				allMu.Lock()
+				telemetryBySite[site] = st
+				allMu.Unlock()
+				resultsCh <- siteResult{site: site, st: st, ok: false}
+				return
+			}
+
 			for _, term := range terms {
 				for _, loc := range locs {
 					siteInput := baseInput
 					siteInput.SearchTerm = term
 					siteInput.Location = loc
 					util.Debug("scrape_try", map[string]any{"site": site, "search": siteInput.SearchTerm, "location": siteInput.Location})
-					jobs, err := sc.Scrape(ctx, siteInput)
+
+					// Per-site timeout override
+					scrapeCtx := ctx
+					if baseInput.SiteTimeout != nil {
+						if d, ok := baseInput.SiteTimeout[site]; ok && d > 0 {
+							var cancel context.CancelFunc
+							scrapeCtx, cancel = context.WithTimeout(ctx, d)
+							defer cancel()
+						}
+					}
+
+					jobs, err := sc.Scrape(scrapeCtx, siteInput)
 					aggregated = append(aggregated, jobs...)
 					if err != nil {
 						lastErr = err
@@ -1061,4 +1092,19 @@ func parseSinceDate(s string) (time.Time, error) {
 // ScraperInput and JobPost are type aliases to model types, so no conversion needed.
 func (e *Engine) ScrapeJobs(ctx context.Context, input ScraperInput) ([]JobPost, error) {
 	return e.Scrape(ctx, input)
+}
+
+// playwrightCheck returns true if Node.js can resolve the playwright module.
+// Uses sync.Once to cache the result after the first check.
+func (e *Engine) playwrightCheck() bool {
+	e.playwrightCachedOnce.Do(func() {
+		ok := true
+		out, err := exec.Command("node", "-e", "require('playwright')").CombinedOutput()
+		if err != nil {
+			ok = false
+		}
+		_ = out
+		e.playwrightCached = &ok
+	})
+	return e.playwrightCached != nil && *e.playwrightCached
 }
