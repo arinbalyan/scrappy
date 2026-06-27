@@ -42,6 +42,20 @@ type SiteInfo struct {
 	NeedsAPIKey bool   `json:"needs_api_key"`
 }
 
+// SiteResult holds per-site outcome from a scrape run.
+type SiteResult struct {
+	Site  Site   `json:"site"`
+	Jobs  int    `json:"jobs"`
+	Error string `json:"error,omitempty"`  // empty if success
+	Kind  string `json:"kind,omitempty"`  // error classification (see ErrorKind)
+}
+
+// ScrapeResult wraps the full output of a scrape run.
+type ScrapeResult struct {
+	Jobs  []JobPost    `json:"jobs"`
+	Sites []SiteResult `json:"sites"`
+}
+
 // AvailableSites returns all registered site names.
 func (e *Engine) AvailableSites() []Site {
 	sites := make([]Site, 0, len(e.scrapers))

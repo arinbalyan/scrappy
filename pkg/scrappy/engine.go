@@ -1094,6 +1094,29 @@ func (e *Engine) ScrapeJobs(ctx context.Context, input ScraperInput) ([]JobPost,
 	return e.Scrape(ctx, input)
 }
 
+// ScrapeJobsFull returns jobs plus per-site result metadata in one call.
+// Use this when you need to know which sites succeeded/failed and why.
+func (e *Engine) ScrapeJobsFull(ctx context.Context, input ScraperInput) (*ScrapeResult, error) {
+	jobs, err := e.Scrape(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+	sites := make([]SiteResult, len(e.telemetry.Sites))
+	for i, st := range e.telemetry.Sites {
+		sr := SiteResult{
+			Site: st.Site,
+			Jobs: st.ResultCount,
+		}
+		if st.Error != "" {
+			err := fmt.Errorf("%s", st.Error)
+			sr.Error = st.Error
+			sr.Kind = ErrorKind(err)
+		}
+		sites[i] = sr
+	}
+	return &ScrapeResult{Jobs: jobs, Sites: sites}, nil
+}
+
 // playwrightCheck returns true if Node.js can resolve the playwright module.
 // Uses sync.Once to cache the result after the first check.
 func (e *Engine) playwrightCheck() bool {
