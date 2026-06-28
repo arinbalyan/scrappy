@@ -3,6 +3,7 @@ package scrappy
 import (
 	"context"
 	"fmt"
+	netmail "net/mail"
 	"net/url"
 	"os"
 	"os/exec"
@@ -701,6 +702,29 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				}
 			}
 			enrichJobEmails(&jobs[i], mxVerifier, companyEnricher, ctx, input.VerifyConcurrency)
+
+			// ponytail: EmailEnrich — auto-generate hr@company.com from domain
+			// when a job has a domain but no recruiter emails were found.
+			if input.EmailEnrich && len(jobs[i].Emails) == 0 && jobs[i].Domain != "" {
+				if !strings.HasPrefix(jobs[i].Domain, "gmail.") &&
+					!strings.HasPrefix(jobs[i].Domain, "outlook.") &&
+					!strings.HasPrefix(jobs[i].Domain, "yahoo.") &&
+					!strings.HasPrefix(jobs[i].Domain, "hotmail.") &&
+					!strings.HasPrefix(jobs[i].Domain, "aol.") &&
+					strings.Contains(jobs[i].Domain, ".") {
+					for _, prefix := range []string{"hr", "careers", "recruiting", "jobs"} {
+						addr := prefix + "@" + jobs[i].Domain
+						if _, err := netmail.ParseAddress(addr); err == nil {
+							jobs[i].Emails = append(jobs[i].Emails, model.Email{
+								Addr:   addr,
+								Source: "enrich",
+								Role:   true, // hr/careers/recruiting/jobs are role addresses
+							})
+							break
+						}
+					}
+				}
+			}
 			if input.EnforceAnnualSalary {
 				jobs[i].Compensation = normalize.AnnualizeCompensation(jobs[i].Compensation)
 			}
@@ -971,7 +995,7 @@ func enrichJobEmails(job *model.JobPost, verifier *internalemail.MXVerifier, enr
 	// Extract emails from description + company description text.
 	text := jobTextForEmailExtraction(job)
 	if text != "" {
-		found := internalemail.Extract(text)
+		found := internalemail.ExtractFromHTML(text)
 		for _, e := range found {
 			job.Emails = append(job.Emails, model.Email{
 				Addr:   e.Addr,
