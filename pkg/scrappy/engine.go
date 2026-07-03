@@ -757,6 +757,63 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		}
 	}
 
+	// Domain-level batch enrichment: visit each company's website ONCE and
+	// apply found emails to all jobs from that domain. This catches company
+	// contact pages (hr@, careers@) that individual job listings don't show.
+	// Runs only when EmailEnrich is enabled and jobs have CompanyURLs.
+	if input.EmailEnrich {
+		type domainInfo struct {
+			origin string
+			jobs   []int
+		}
+		domains := make(map[string]*domainInfo)
+		for idx, j := range all {
+			if j.CompanyURL == "" || len(j.Emails) > 0 {
+				continue
+			}
+			u, err := url.Parse(j.CompanyURL)
+			if err != nil {
+				continue
+			}
+			origin := u.Scheme + "://" + u.Host
+			if info, ok := domains[origin]; ok {
+				info.jobs = append(info.jobs, idx)
+			} else {
+				domains[origin] = &domainInfo{origin: origin, jobs: []int{idx}}
+			}
+		}
+
+		if len(domains) > 0 {
+			mpe := internalemail.NewMultiPageCompanyEnricher(
+				util.NewHTTPClient(util.ClientOptions{Retries: 1, Timeout: 10 * time.Second}),
+				3, 50,
+			)
+			for origin, info := range domains {
+				if ctx.Err() != nil {
+					break
+				}
+				emails, err := mpe.Enrich(ctx, origin)
+				if err != nil || len(emails) == 0 {
+					continue
+				}
+				util.Info("domain_enrich", map[string]any{
+					"origin": origin, "emails": len(emails),
+					"jobs": len(info.jobs),
+				})
+				for _, idx := range info.jobs {
+					for _, e := range emails {
+						all[idx].Emails = append(all[idx].Emails, model.Email{
+							Addr:   e.Addr,
+							Source: "domain_enrich",
+							Role:   e.Role,
+						})
+					}
+					all[idx].Emails = dedupEmails(all[idx].Emails)
+				}
+			}
+		}
+	}
+
 	for _, site := range sites {
 		if st, ok := telemetryBySite[site]; ok {
 			e.telemetry.Sites = append(e.telemetry.Sites, st)
