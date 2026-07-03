@@ -3,6 +3,7 @@ package scrappy
 import (
 	"context"
 	"fmt"
+	"net"
 	netmail "net/mail"
 	"net/url"
 	"os"
@@ -753,6 +754,124 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			}
 			if len(seenGlobal) > input.ResultsWanted*3 {
 				seenGlobal = make(map[string]struct{}, input.ResultsWanted)
+			}
+		}
+	}
+
+	// Domain-level batch enrichment: visit each company's website ONCE and
+	// apply found emails to all jobs from that domain. This catches company
+	// contact pages (hr@, careers@) that individual job listings don't show.
+	// Runs only when EmailEnrich is enabled and jobs have CompanyURLs.
+	if input.EmailEnrich {
+		type domainInfo struct {
+			origin string
+			jobs   []int
+		}
+		domains := make(map[string]*domainInfo)
+
+		for idx, j := range all {
+			if len(j.Emails) > 0 {
+				continue
+			}
+			var origins []string
+
+			// Try CompanyURL (skip if it points back to the source site)
+			if j.CompanyURL != "" {
+				u, err := url.Parse(j.CompanyURL)
+				if err == nil {
+					siteHost := strings.ToLower(strings.TrimPrefix(j.Site, "www."))
+					urlHost := strings.ToLower(strings.TrimPrefix(u.Host, "www."))
+					if !strings.Contains(urlHost, siteHost) && !strings.Contains(siteHost, urlHost) {
+						origins = append(origins, u.Scheme+"://"+u.Host)
+					}
+				}
+			}
+
+			// Try deriving domain from company name (multiple TLDs)
+			if name := strings.TrimSpace(j.CompanyName); name != "" {
+				slug := strings.ToLower(name)
+				slug = strings.NewReplacer(" ", "", ".", "", "-", "", "&", "", ",", "").Replace(slug)
+				for _, tld := range []string{".com", ".io", ".co", ".org"} {
+					if _, err := net.DefaultResolver.LookupHost(ctx, slug+tld); err == nil {
+						candidate := "https://" + slug + tld
+						origins = append(origins, candidate)
+						all[idx].CompanyURL = candidate
+						break // first resolving TLD wins
+					}
+				}
+			}
+
+			for _, origin := range origins {
+				if info, ok := domains[origin]; ok {
+					info.jobs = append(info.jobs, idx)
+				} else {
+					domains[origin] = &domainInfo{origin: origin, jobs: []int{idx}}
+				}
+			}
+		}
+
+		if len(domains) > 0 {
+			mpe := internalemail.NewMultiPageCompanyEnricher(
+				util.NewHTTPClient(util.ClientOptions{Retries: 1, Timeout: 10 * time.Second}),
+				3, 50,
+			)
+			for origin, info := range domains {
+				if ctx.Err() != nil {
+					break
+				}
+				emails, err := mpe.Enrich(ctx, origin)
+				if err != nil || len(emails) == 0 {
+					continue
+				}
+				util.Info("domain_enrich", map[string]any{
+					"origin": origin, "emails": len(emails),
+					"jobs": len(info.jobs),
+				})
+				for _, idx := range info.jobs {
+					for _, e := range emails {
+						all[idx].Emails = append(all[idx].Emails, model.Email{
+							Addr:   e.Addr,
+							Source: "domain_enrich",
+							Role:   e.Role,
+						})
+					}
+					all[idx].Emails = dedupEmails(all[idx].Emails)
+				}
+			}
+		}
+
+		// Second EmailEnrich pass: jobs that gained a CompanyURL from domain heuristic
+		// but the website had no contact page. Generate hr@{domain} as fallback.
+		for idx, j := range all {
+			if len(j.Emails) > 0 || j.CompanyURL == "" {
+				continue
+			}
+			domain := j.Domain
+			if domain == "" {
+				if u, err := url.Parse(j.CompanyURL); err == nil && u.Host != "" {
+					domain = strings.TrimPrefix(u.Host, "www.")
+				}
+			}
+			if domain == "" || !strings.Contains(domain, ".") {
+				continue
+			}
+			if strings.HasPrefix(domain, "gmail.") ||
+				strings.HasPrefix(domain, "outlook.") ||
+				strings.HasPrefix(domain, "yahoo.") ||
+				strings.HasPrefix(domain, "hotmail.") ||
+				strings.HasPrefix(domain, "aol.") {
+				continue
+			}
+			for _, prefix := range []string{"hr", "careers", "recruiting", "jobs"} {
+				addr := prefix + "@" + domain
+				if _, err := netmail.ParseAddress(addr); err == nil {
+					all[idx].Emails = append(all[idx].Emails, model.Email{
+						Addr:   addr,
+						Source: "enrich",
+						Role:   true,
+					})
+					break
+				}
 			}
 		}
 	}
