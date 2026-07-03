@@ -769,44 +769,40 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		}
 		domains := make(map[string]*domainInfo)
 
-		// First pass: jobs with CompanyURL
 		for idx, j := range all {
-			if j.CompanyURL == "" || len(j.Emails) > 0 {
+			if len(j.Emails) > 0 {
 				continue
 			}
-			u, err := url.Parse(j.CompanyURL)
-			if err != nil {
-				continue
-			}
-			origin := u.Scheme + "://" + u.Host
-			if info, ok := domains[origin]; ok {
-				info.jobs = append(info.jobs, idx)
-			} else {
-				domains[origin] = &domainInfo{origin: origin, jobs: []int{idx}}
-			}
-		}
+			var origins []string
 
-		// Second pass: jobs with CompanyName but no CompanyURL — derive a URL
-		for idx, j := range all {
-			if j.CompanyURL != "" || j.CompanyName == "" || len(j.Emails) > 0 {
-				continue
+			// Try CompanyURL (skip if it points back to the source site)
+			if j.CompanyURL != "" {
+				u, err := url.Parse(j.CompanyURL)
+				if err == nil {
+					siteHost := strings.ToLower(strings.TrimPrefix(j.Site, "www."))
+					urlHost := strings.ToLower(strings.TrimPrefix(u.Host, "www."))
+					if !strings.Contains(urlHost, siteHost) && !strings.Contains(siteHost, urlHost) {
+						origins = append(origins, u.Scheme+"://"+u.Host)
+					}
+				}
 			}
-			name := strings.TrimSpace(j.CompanyName)
-			if name == "" {
-				continue
+
+			// Try deriving domain from company name
+			if name := strings.TrimSpace(j.CompanyName); name != "" {
+				slug := strings.ToLower(name)
+				slug = strings.NewReplacer(" ", "", ".", "", "-", "", "&", "", ",", "").Replace(slug)
+				if _, err := net.DefaultResolver.LookupHost(ctx, slug+".com"); err == nil {
+					candidate := "https://" + slug + ".com"
+					origins = append(origins, candidate)
+					all[idx].CompanyURL = candidate
+				}
 			}
-			// Derive domain: lowercase, remove non-alphanumeric, try .com
-			slug := strings.ToLower(name)
-			slug = strings.NewReplacer(" ", "", ".", "", "-", "", "&", "", ",", "").Replace(slug)
-			candidate := "https://" + slug + ".com"
-			// Keep it short — just resolve to check
-			if _, err := net.DefaultResolver.LookupHost(ctx, slug+".com"); err == nil {
-				util.Debug("domain_enrich_derived", map[string]any{"company": name, "url": candidate})
-				all[idx].CompanyURL = candidate
-				if info, ok := domains[candidate]; ok {
+
+			for _, origin := range origins {
+				if info, ok := domains[origin]; ok {
 					info.jobs = append(info.jobs, idx)
 				} else {
-					domains[candidate] = &domainInfo{origin: candidate, jobs: []int{idx}}
+					domains[origin] = &domainInfo{origin: origin, jobs: []int{idx}}
 				}
 			}
 		}
