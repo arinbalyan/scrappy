@@ -3,6 +3,7 @@ package scrappy
 import (
 	"context"
 	"fmt"
+	"net"
 	netmail "net/mail"
 	"net/url"
 	"os"
@@ -767,6 +768,8 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			jobs   []int
 		}
 		domains := make(map[string]*domainInfo)
+
+		// First pass: jobs with CompanyURL
 		for idx, j := range all {
 			if j.CompanyURL == "" || len(j.Emails) > 0 {
 				continue
@@ -780,6 +783,31 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				info.jobs = append(info.jobs, idx)
 			} else {
 				domains[origin] = &domainInfo{origin: origin, jobs: []int{idx}}
+			}
+		}
+
+		// Second pass: jobs with CompanyName but no CompanyURL — derive a URL
+		for idx, j := range all {
+			if j.CompanyURL != "" || j.CompanyName == "" || len(j.Emails) > 0 {
+				continue
+			}
+			name := strings.TrimSpace(j.CompanyName)
+			if name == "" {
+				continue
+			}
+			// Derive domain: lowercase, remove non-alphanumeric, try .com
+			slug := strings.ToLower(name)
+			slug = strings.NewReplacer(" ", "", ".", "", "-", "", "&", "", ",", "").Replace(slug)
+			candidate := "https://" + slug + ".com"
+			// Keep it short — just resolve to check
+			if _, err := net.DefaultResolver.LookupHost(ctx, slug+".com"); err == nil {
+				util.Debug("domain_enrich_derived", map[string]any{"company": name, "url": candidate})
+				all[idx].CompanyURL = candidate
+				if info, ok := domains[candidate]; ok {
+					info.jobs = append(info.jobs, idx)
+				} else {
+					domains[candidate] = &domainInfo{origin: candidate, jobs: []int{idx}}
+				}
 			}
 		}
 
