@@ -787,14 +787,17 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				}
 			}
 
-			// Try deriving domain from company name
+			// Try deriving domain from company name (multiple TLDs)
 			if name := strings.TrimSpace(j.CompanyName); name != "" {
 				slug := strings.ToLower(name)
 				slug = strings.NewReplacer(" ", "", ".", "", "-", "", "&", "", ",", "").Replace(slug)
-				if _, err := net.DefaultResolver.LookupHost(ctx, slug+".com"); err == nil {
-					candidate := "https://" + slug + ".com"
-					origins = append(origins, candidate)
-					all[idx].CompanyURL = candidate
+				for _, tld := range []string{".com", ".io", ".co", ".org"} {
+					if _, err := net.DefaultResolver.LookupHost(ctx, slug+tld); err == nil {
+						candidate := "https://" + slug + tld
+						origins = append(origins, candidate)
+						all[idx].CompanyURL = candidate
+						break // first resolving TLD wins
+					}
 				}
 			}
 
@@ -833,6 +836,41 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 						})
 					}
 					all[idx].Emails = dedupEmails(all[idx].Emails)
+				}
+			}
+		}
+
+		// Second EmailEnrich pass: jobs that gained a CompanyURL from domain heuristic
+		// but the website had no contact page. Generate hr@{domain} as fallback.
+		for idx, j := range all {
+			if len(j.Emails) > 0 || j.CompanyURL == "" {
+				continue
+			}
+			domain := j.Domain
+			if domain == "" {
+				if u, err := url.Parse(j.CompanyURL); err == nil && u.Host != "" {
+					domain = strings.TrimPrefix(u.Host, "www.")
+				}
+			}
+			if domain == "" || !strings.Contains(domain, ".") {
+				continue
+			}
+			if strings.HasPrefix(domain, "gmail.") ||
+				strings.HasPrefix(domain, "outlook.") ||
+				strings.HasPrefix(domain, "yahoo.") ||
+				strings.HasPrefix(domain, "hotmail.") ||
+				strings.HasPrefix(domain, "aol.") {
+				continue
+			}
+			for _, prefix := range []string{"hr", "careers", "recruiting", "jobs"} {
+				addr := prefix + "@" + domain
+				if _, err := netmail.ParseAddress(addr); err == nil {
+					all[idx].Emails = append(all[idx].Emails, model.Email{
+						Addr:   addr,
+						Source: "enrich",
+						Role:   true,
+					})
+					break
 				}
 			}
 		}
