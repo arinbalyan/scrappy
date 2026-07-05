@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/arinbalyan/scrappy/internal/model"
@@ -48,30 +49,60 @@ func (s *Scraper) Scrape(ctx context.Context, input model.ScraperInput) ([]model
 		util.Debug("greenhouse_skip", map[string]any{"reason": "no seeds configured — set SCRAPPY_GREENHOUSE_SEEDS or add greenhouse: slugs to config/company_slugs.toml"})
 		return nil, fmt.Errorf("greenhouse no seeds: set SCRAPPY_GREENHOUSE_SEEDS env var (comma-separated company slugs) or add entries to config/company_slugs.toml")
 	}
-	util.Debug("greenhouse_seeds", map[string]any{"seeds": seeds, "src": ats.SeedSourceString(src)})
+	util.Debug("greenhouse_seeds", map[string]any{"seeds": len(seeds), "src": ats.SeedSourceString(src)})
 
-	out := make([]model.JobPost, 0, input.ResultsWanted)
-	seen := map[string]struct{}{}
-	for _, seed := range seeds {
-		if input.ResultsWanted > 0 && len(out) >= input.ResultsWanted {
-			break
-		}
-		jobs, err := s.fetchBoard(ctx, seed, input)
-		if err != nil {
-			util.Warn("greenhouse_seed_fail", map[string]any{"seed": seed, "err": err.Error()})
-			continue
-		}
-		for _, jp := range jobs {
-			if _, ok := seen[jp.ID]; ok {
-				continue
-			}
-			seen[jp.ID] = struct{}{}
-			out = append(out, jp)
-			if input.ResultsWanted > 0 && len(out) >= input.ResultsWanted {
-				break
-			}
-		}
+	nWorkers := 5
+	if len(seeds) < nWorkers {
+		nWorkers = len(seeds)
 	}
+	seedCh := make(chan string, len(seeds))
+	for _, s := range seeds {
+		seedCh <- s
+	}
+	close(seedCh)
+
+	var (
+		mu  sync.Mutex
+		out []model.JobPost
+		seen = map[string]struct{}{}
+		wg  sync.WaitGroup
+    )
+	for i := 0; i < nWorkers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for seed := range seedCh {
+				if input.ResultsWanted > 0 {
+					mu.Lock()
+					done := len(out) >= input.ResultsWanted
+					mu.Unlock()
+					if done {
+						return
+					}
+				}
+				jobs, err := s.fetchBoard(ctx, seed, input)
+				if err != nil {
+					util.Warn("greenhouse_seed_fail", map[string]any{"seed": seed, "err": err.Error()})
+					continue
+				}
+				mu.Lock()
+				for _, jp := range jobs {
+					if _, ok := seen[jp.ID]; ok {
+						continue
+					}
+					seen[jp.ID] = struct{}{}
+					out = append(out, jp)
+					if input.ResultsWanted > 0 && len(out) >= input.ResultsWanted {
+						mu.Unlock()
+						return
+					}
+				}
+				mu.Unlock()
+			}
+		}()
+	}
+	wg.Wait()
+
 	if !util.HasMeaningfulJobs(out) {
 		return nil, fmt.Errorf("greenhouse no parseable jobs")
 	}
