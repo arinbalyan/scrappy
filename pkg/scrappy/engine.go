@@ -815,7 +815,13 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				util.NewHTTPClient(util.ClientOptions{Retries: 1, Timeout: 10 * time.Second}),
 				3, 50,
 			)
-			for origin, info := range domains {
+			// Cap domains to prevent OOM on large scrapes with thousands of unique companies
+		const maxEnrichDomains = 200
+		enriched := 0
+		for origin, info := range domains {
+			if enriched >= maxEnrichDomains {
+				break
+			}
 				if ctx.Err() != nil {
 					break
 				}
@@ -827,6 +833,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 					"origin": origin, "emails": len(emails),
 					"jobs": len(info.jobs),
 				})
+				enriched++
 				for _, idx := range info.jobs {
 					for _, e := range emails {
 						all[idx].Emails = append(all[idx].Emails, model.Email{
