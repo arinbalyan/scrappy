@@ -669,6 +669,10 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		if !res.ok {
 			continue
 		}
+		// ponytail: check context — return partial results without processing remaining sites
+		if ctx.Err() != nil {
+			break
+		}
 		jobs := res.jobs
 		for i := range jobs {
 			normalizeJobPost(&jobs[i])
