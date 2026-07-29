@@ -588,15 +588,7 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 					jobs, err := sc.Scrape(scrapeCtx, siteInput)
 					aggregated = append(aggregated, jobs...)
 
-					// ponytail: streaming — push each job through JobStream when set
-					if baseInput.JobStream != nil && len(jobs) > 0 {
-						for i := range jobs {
-							select {
-							case baseInput.JobStream <- jobs[i]:
-							case <-ctx.Done():
-							}
-						}
-					}
+
 					if err != nil {
 						lastErr = err
 						st.Error = err.Error()
@@ -748,6 +740,16 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 				continue
 			}
 			seenGlobal[key] = struct{}{}
+
+			// ponytail: push through JobStream AFTER email extraction, so
+			// streaming consumers (JobHunter) receive jobs with emails attached.
+			if baseInput.JobStream != nil {
+				select {
+				case baseInput.JobStream <- jobs[i]:
+				case <-ctx.Done():
+				}
+			}
+
 			all = append(all, jobs[i])
 			// Eagerly trim to ResultsWanted to prevent runaway heap growth.
 			// Trim at 2x target so late-arriving higher-quality results can replace
