@@ -743,9 +743,9 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 
 			// ponytail: push through JobStream AFTER email extraction, so
 			// streaming consumers (JobHunter) receive jobs with emails attached.
-			if baseInput.JobStream != nil {
+			if input.JobStream != nil {
 				select {
-				case baseInput.JobStream <- jobs[i]:
+				case input.JobStream <- jobs[i]:
 				case <-ctx.Done():
 				}
 			}
