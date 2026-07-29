@@ -661,10 +661,6 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 		if !res.ok {
 			continue
 		}
-		// ponytail: check context — return partial results without processing remaining sites
-		if ctx.Err() != nil {
-			break
-		}
 		jobs := res.jobs
 		for i := range jobs {
 			normalizeJobPost(&jobs[i])
@@ -761,6 +757,12 @@ func (e *Engine) Scrape(ctx context.Context, input model.ScraperInput) ([]model.
 			if len(seenGlobal) > input.ResultsWanted*3 {
 				seenGlobal = make(map[string]struct{}, input.ResultsWanted)
 			}
+		}
+		// ponytail: check context AFTER processing current batch, so
+		// partial results survive a context cancellation instead of
+		// getting discarded on the resultsCh floor.
+		if ctx.Err() != nil {
+			break
 		}
 	}
 
