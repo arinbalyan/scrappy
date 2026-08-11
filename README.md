@@ -1,10 +1,11 @@
+
+
 <div align="center">
   <h1>scrappy</h1>
   <p><strong>Bulk job-board scraper</strong></p>
 
   <p>
       <img src="https://img.shields.io/github/go-mod/go-version/arinbalyan/scrappy" alt="Go Version">
-    </a>
     <a href="LICENSE">
       <img src="https://img.shields.io/badge/license-non--commercial-blue" alt="License">
     </a>
