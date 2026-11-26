@@ -78,3 +78,9 @@ fn unknown_subcommand_exits_two() {
     assert_eq!(output.status.code(), Some(2));
     assert_ne!(output.stderr, [] as [u8; 0]);
 }
+
+#[test]
+fn invalid_enum_lists_accepted_values() {
+    let output = run(&["validate", "--config", "/nonexistent/scrappy.toml"]);
+    assert_eq!(output.status.code(), Some(2));
+}

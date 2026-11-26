@@ -14,6 +14,7 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
 
 pub mod file;
+pub mod validation;
 
 /// Path for the user-level config file below the home directory.
 pub const USER_CONFIG_PATH: &str = "scrappy/config.toml";
@@ -84,6 +85,26 @@ pub const CONFIG_SCHEMA: &[FieldInfo] = &[
     FieldInfo {
         name: "is_remote",
         kind: "boolean",
+        default: "unset",
+    },
+    FieldInfo {
+        name: "job_type",
+        kind: "enum",
+        default: "unset",
+    },
+    FieldInfo {
+        name: "min_score",
+        kind: "integer 0-100",
+        default: "unset",
+    },
+    FieldInfo {
+        name: "hours_old",
+        kind: "integer hours",
+        default: "unset",
+    },
+    FieldInfo {
+        name: "date",
+        kind: "date YYYY-MM-DD",
         default: "unset",
     },
 ];
@@ -167,6 +188,14 @@ pub struct Config {
     pub log_level: Option<String>,
     /// Tri-state remote filter.
     pub is_remote: Option<bool>,
+    /// Job type filter.
+    pub job_type: Option<String>,
+    /// Minimum quality score.
+    pub min_score: Option<u8>,
+    /// Maximum age of a job post in hours.
+    pub hours_old: Option<u64>,
+    /// Date bound for job posts.
+    pub date: Option<String>,
 }
 
 /// Inputs used to build a layered configuration.
@@ -239,6 +268,10 @@ fn merge_environment(merged: &mut BTreeMap<String, serde_json::Value>) -> Result
         "memory_mb",
         "log_level",
         "is_remote",
+        "job_type",
+        "min_score",
+        "hours_old",
+        "date",
     ] {
         let name = format!("{ENV_PREFIX}{}", field.to_uppercase());
         let Ok(raw) = std::env::var(&name) else {
@@ -246,8 +279,18 @@ fn merge_environment(merged: &mut BTreeMap<String, serde_json::Value>) -> Result
         };
         let value = if field == "search" || field == "sources" {
             parse_list_or_scalar(&raw)
-        } else if field == "concurrency" || field == "timeout" || field == "memory_mb" {
+        } else if field == "concurrency"
+            || field == "timeout"
+            || field == "memory_mb"
+            || field == "hours_old"
+        {
             raw.parse::<u64>()
+                .map(serde_json::Value::from)
+                .map_err(|error| ConfigError {
+                    message: format!("invalid {name}: {error}"),
+                })?
+        } else if field == "min_score" {
+            raw.parse::<u8>()
                 .map(serde_json::Value::from)
                 .map_err(|error| ConfigError {
                     message: format!("invalid {name}: {error}"),
@@ -304,46 +347,7 @@ pub fn user_config_path() -> PathBuf {
 /// # Errors
 /// Returns `ConfigError` for out-of-range values or unsupported names.
 pub fn validate(config: &Config) -> Result<(), ConfigError> {
-    if let Some(level) = &config.log_level
-        && !LOG_LEVELS.contains(&level.as_str())
-    {
-        return Err(ConfigError {
-            message: format!(
-                "invalid log_level '{level}'; accepted values: {}",
-                LOG_LEVELS.join(", ")
-            ),
-        });
-    }
-    if let Some(format) = &config.format
-        && !OUTPUT_FORMATS.contains(&format.as_str())
-    {
-        return Err(ConfigError {
-            message: format!(
-                "invalid format '{format}'; accepted values: {}",
-                OUTPUT_FORMATS.join(", ")
-            ),
-        });
-    }
-    if config.memory_mb == Some(0) {
-        return Err(ConfigError {
-            message: "memory_mb must be greater than zero".to_owned(),
-        });
-    }
-    if config.timeout == Some(0) {
-        return Err(ConfigError {
-            message: "timeout must be greater than zero".to_owned(),
-        });
-    }
-    if let Some(rates) = &config.rates {
-        for (source, rate) in rates {
-            if source.is_empty() || *rate == 0 {
-                return Err(ConfigError {
-                    message: format!("invalid rate for source '{source}': {rate}"),
-                });
-            }
-        }
-    }
-    Ok(())
+    validation::validate(config)
 }
 
 /// Return accepted values for a named enum field.
@@ -352,6 +356,7 @@ pub fn enum_values(name: &str) -> Option<&'static [&'static str]> {
     match name {
         "format" => Some(OUTPUT_FORMATS),
         "log_level" => Some(LOG_LEVELS),
+        "job_type" => Some(validation::JOB_TYPES),
         _ => None,
     }
 }

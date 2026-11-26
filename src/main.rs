@@ -5,7 +5,7 @@ use std::path::Path;
 
 use scrappy::cli::{self, Cli, CommandKind, ConfigAction};
 use scrappy::config::file as config_file;
-use scrappy::config::{Config, validate};
+use scrappy::config::{self, Config, validate};
 use scrappy::engine::contract::{self, EXIT_USAGE};
 
 fn main() {
@@ -30,7 +30,8 @@ fn dispatch(cli: Cli) -> Result<(), String> {
             validate(&config).map_err(|error| error.message)?;
             eprintln!("scrappy: source selection is unavailable in this build");
         }
-        CommandKind::Run(_) | CommandKind::Validate(_) | CommandKind::ListSources(_) => {
+        CommandKind::Validate(args) => dispatch_validate(args)?,
+        CommandKind::Run(_) | CommandKind::ListSources(_) => {
             cli::print_help();
         }
         CommandKind::Doctor(args) => {
@@ -49,6 +50,18 @@ fn dispatch(cli: Cli) -> Result<(), String> {
             }
         }
     }
+    Ok(())
+}
+
+fn dispatch_validate(args: cli::GlobalArgs) -> Result<(), String> {
+    let sources = config::Sources {
+        files: args.config,
+        hermetic: args.no_default_config,
+        ..config::Sources::default()
+    };
+    let resolved = config::resolve(&sources).map_err(|error| error.message)?;
+    validate(&resolved).map_err(|error| error.message)?;
+    println!("ok");
     Ok(())
 }
 

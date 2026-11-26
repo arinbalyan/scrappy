@@ -68,3 +68,12 @@ fn malformed_stdin_config_exits_two_before_fetch() {
         assert_ne!(output.stderr, [] as [u8; 0]);
     }
 }
+
+#[test]
+fn invalid_enum_in_stdin_config_lists_values() {
+    let output = run_with_stdin(&["run", "--stdin-config"], r#"{"job_type":"unknown"}"#);
+    assert_eq!(output.status.code(), Some(2));
+    let text = String::from_utf8_lossy(&output.stderr);
+    assert!(text.contains("fulltime"));
+    assert!(text.contains("config schema --enum job_type"));
+}

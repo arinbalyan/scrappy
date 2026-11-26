@@ -1,6 +1,6 @@
 # CLI reference
 
-The command tree lives in src/cli.rs. Every subcommand supports `--help` and
+The command tree lives in src/cli/mod.rs. Every subcommand supports `--help` and
 `--version`, and help output includes a copyable example. The current commands
 are `run`, `validate`, `config` with its seven actions, `list-sources`,
 `doctor` with `--fix`, `completion`, and `version`.

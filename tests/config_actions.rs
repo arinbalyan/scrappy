@@ -93,6 +93,10 @@ fn schema_lists_every_field() {
         "memory_mb",
         "log_level",
         "is_remote",
+        "job_type",
+        "min_score",
+        "hours_old",
+        "date",
     ] {
         assert!(text.contains(field), "schema omitted {field}");
     }
