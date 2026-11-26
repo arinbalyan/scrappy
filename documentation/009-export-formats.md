@@ -14,3 +14,13 @@ cannot set the domain or earn the domain-match point.
 
 src/output/record.rs also reads serialized jobs and rejects records whose
 schema_version is unknown before any other field is interpreted.
+
+src/output/writer.rs encodes NDJSON, JSON, and CSV from the same normalized
+jobs. CSV uses a fixed column order and quotes fields containing commas,
+quotes, or newlines. write_line emits one complete NDJSON line and flushes it
+so a downstream consumer can read records while the run is still active.
+
+Saved artifacts use a private temporary file, mode 0600, and a rename, so a
+failed write leaves the final path unchanged. Each artifact gets a manifest
+with its size and hash. Reading the manifest and comparing the hash detects a
+result file changed after writing.

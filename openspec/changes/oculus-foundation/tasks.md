@@ -66,8 +66,8 @@
 ## 6. Output contract
 
 - [x] 6.1 Implement normalized record with schema version, provenance, timestamp, and content hash and verify serialization includes every field
-- [ ] 6.2 Implement NDJSON, JSON, and CSV writers with correct escaping and verify each format with a golden test
-- [ ] 6.3 Implement atomic file writes and hash manifests and verify no partial file remains after a simulated failure
+- [x] 6.2 Implement NDJSON, JSON, and CSV writers with correct escaping and verify each format with a golden test
+- [x] 6.3 Implement atomic file writes and hash manifests and verify no partial file remains after a simulated failure
 - [x] 6.4 Implement schema version reader rejection and verify an unknown version produces a clear error
 - [x] 6.5 Add enriched record fields and email provenance to the normalized schema, and verify an adversarial company-domain fixture cannot inflate quality_score
 - [ ] 6.6 Implement immediate stdout line flush with no partial lines on cancellation and verify emitted records survive an interrupted run
