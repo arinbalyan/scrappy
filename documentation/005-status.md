@@ -18,6 +18,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | ats-rippling | Rippling ATS | requires_slug | ready | HtmlStatic | plain |
 | ats-smartrecruiters | SmartRecruiters ATS | requires_slug | ready | Ats | plain |
 | ats-talentlyft | TalentLyft ATS | requires_slug | ready | Ats | plain |
+| ats-trakstar | Trakstar ATS | requires_slug | ready | Ats | plain |
 | ats-workable | Workable ATS | requires_slug | ready | Ats | plain |
 | authenticjobs | AuthenticJobs | blocked | blocked | Keyed | plain |
 | bamboohr | BambooHR | requires_slug | ready | Ats | plain |
@@ -59,6 +60,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | icrunchdata | iCrunchData | blocked | blocked | FeedsApi | plain |
 | infojobs | InfoJobs | keyed | missing_credentials | Keyed | plain |
 | internshala | Internshala | working | ready | HtmlStatic | plain |
+| ismartrecruit | iSmartRecruit | keyed | missing_credentials | Keyed | plain |
 | jobdataapi | JobDataAPI | working | ready | FeedsApi | plain |
 | jobicy | Jobicy | working | ready | FeedsApi | plain |
 | jobindex | Jobindex | working | ready | HtmlStatic | plain |

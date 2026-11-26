@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://{slug}.hire.trakstar.com/api/v1/openings",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

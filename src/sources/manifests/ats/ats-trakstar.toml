@@ -1,0 +1,37 @@
+version = 1
+id = "ats-trakstar"
+name = "Trakstar ATS"
+family = "ats"
+health = "requires_slug"
+request = "https://{slug}.hire.trakstar.com/api/v1/openings"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public opening endpoints"
+attribution = "Trakstar"
+slugs = ["example-co"]
+fixtures = ["ats-trakstar"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company", "company_name"]
+
+[field_aliases.url]
+names = ["url", "apply_url"]
+
+[field_aliases.location]
+names = ["city", "state", "country", "location"]
+
+[field_aliases.description]
+names = ["description"]
+

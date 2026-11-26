@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://app.ismartrecruit.com/WebsiteJSONAPI?apiKey={key:ISMARTRECRUIT_API_KEY}&jobTitle={query:job_title}&city={query:city}&start=0&numOfRecords=25",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

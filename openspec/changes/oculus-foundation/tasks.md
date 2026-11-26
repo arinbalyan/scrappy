@@ -162,6 +162,13 @@
 - [x] 11f.3 Record live probe results, update health labels where needed, and regenerate documentation/005-status.md
 - [x] 11f.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
 
+## 11g. Keyed and slug-based API source ports
+
+- [x] 11g.1 Port ismartrecruit and ats-trakstar with manifests, behavior docs, and six-file fixtures
+- [x] 11g.2 Add offline golden replay coverage in tests/tier10_api_replay.rs with rendered requests and golden records
+- [x] 11g.3 Record live probe results, update health labels where needed, and regenerate documentation/005-status.md
+- [x] 11g.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
+
 ## 12. CI and release
 
 - [ ] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes

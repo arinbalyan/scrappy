@@ -1,0 +1,21 @@
+[
+  {
+    "jobId": "601",
+    "jobTitle": "Backend Engineer",
+    "companyName": "Example Co",
+    "applyUrl": "https://apply.example.test/601",
+    "city": "Remote",
+    "country": "US",
+    "description": "<p>Build services.</p>"
+  },
+  {
+    "jobId": "602",
+    "jobTitle": "AI Engineer",
+    "companyName": "Example Co",
+    "applyUrl": "",
+    "url": "https://app.ismartrecruit.com/jobDescription/602",
+    "city": "London",
+    "country": "UK",
+    "description": "Ship models."
+  }
+]

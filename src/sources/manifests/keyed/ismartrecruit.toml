@@ -1,0 +1,37 @@
+version = 1
+id = "ismartrecruit"
+name = "iSmartRecruit"
+family = "keyed"
+health = "keyed"
+request = "https://app.ismartrecruit.com/WebsiteJSONAPI?apiKey={key:ISMARTRECRUIT_API_KEY}&jobTitle={query:job_title}&city={query:city}&start=0&numOfRecords=25"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow credentialed API use within published quotas; skip without credentials"
+attribution = "iSmartRecruit"
+credentials = ["ISMARTRECRUIT_API_KEY"]
+fixtures = ["ismartrecruit"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["jobTitle"]
+
+[field_aliases.company]
+names = ["companyName", "company"]
+
+[field_aliases.url]
+names = ["applyUrl", "url"]
+
+[field_aliases.location]
+names = ["city", "country"]
+
+[field_aliases.description]
+names = ["description"]
+

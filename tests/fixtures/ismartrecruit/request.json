@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://app.ismartrecruit.com/WebsiteJSONAPI?apiKey=sample-key&jobTitle=engineer&city=remote&start=0&numOfRecords=25",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

@@ -1,0 +1,25 @@
+[
+  {
+    "id": 701,
+    "title": "Backend Engineer",
+    "company": "example-co",
+    "url": "https://example-co.hire.trakstar.com/openings/701",
+    "city": "Austin",
+    "state": "TX",
+    "country": "US",
+    "description": "<p>Build APIs.</p>",
+    "department": "Engineering",
+    "employment_type": "Full-time"
+  },
+  {
+    "id": 702,
+    "title": "Platform Engineer",
+    "company": "example-co",
+    "url": "",
+    "apply_url": "https://apply.example.test/702",
+    "location": "Remote",
+    "description": "Operate clusters.",
+    "department": "Infrastructure",
+    "employment_type": "Full-time"
+  }
+]

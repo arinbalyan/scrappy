@@ -1,0 +1,8 @@
+{
+  "fetched_at": "2026-11-26T00:00:00Z",
+  "substitutions": {
+    "ISMARTRECRUIT_API_KEY": "sample-key",
+    "job_title": "engineer",
+    "city": "remote"
+  }
+}
