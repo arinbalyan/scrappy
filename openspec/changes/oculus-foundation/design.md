@@ -6,6 +6,13 @@ See proposal.md for motivation and specs/ for the behavior contract. The branch 
 
 ## Goals / Non-Goals
 
+The authoritative source tree uses one directory per subsystem with a
+`mod.rs` root: `src/cli`, `src/config`, `src/sources` (with `manifest.rs`,
+`registry.rs`, and `manifests/<family>/`), `src/fetching`, `src/parsing`,
+`src/engine`, `src/output`, `src/security`, `src/checkpoint`, and
+`src/metrics`. The runtime bridge contract lives in `src/engine/contract.rs`.
+Integration tests are directory-based targets declared in Cargo.toml.
+
 **Goals:**
 
 - Produce a small installable Rust binary with a clean CLI and typed configuration.

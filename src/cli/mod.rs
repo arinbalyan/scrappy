@@ -175,8 +175,12 @@ pub enum ConfigAction {
         key: String,
     },
     /// Print the runtime config schema.
-    #[command(after_help = "Example: scrappy config schema")]
-    Schema,
+    #[command(after_help = "Example: scrappy config schema --enum format")]
+    Schema {
+        /// Print accepted values for a named enum field.
+        #[arg(long)]
+        r#enum: Option<String>,
+    },
 }
 
 /// Record output formats.

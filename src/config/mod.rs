@@ -13,12 +13,20 @@ use std::path::{Path, PathBuf};
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
 
+pub mod file;
+
 /// Path for the user-level config file below the home directory.
 pub const USER_CONFIG_PATH: &str = "scrappy/config.toml";
 /// Path for the project-level config file.
 pub const PROJECT_CONFIG_PATH: &str = "config.toml";
 /// Prefix for environment variables that overlay config values.
 pub const ENV_PREFIX: &str = "SCRAPPY_";
+
+/// Accepted values for the `log_level` field.
+pub const LOG_LEVELS: &[&str] = &["error", "warn", "info", "debug", "trace"];
+
+/// Accepted values for the `format` field.
+pub const OUTPUT_FORMATS: &[&str] = &["ndjson", "json", "csv"];
 
 /// One documented config field.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -296,27 +304,25 @@ pub fn user_config_path() -> PathBuf {
 /// # Errors
 /// Returns `ConfigError` for out-of-range values or unsupported names.
 pub fn validate(config: &Config) -> Result<(), ConfigError> {
-    if let Some(level) = &config.log_level {
-        const LEVELS: [&str; 5] = ["error", "warn", "info", "debug", "trace"];
-        if !LEVELS.contains(&level.as_str()) {
-            return Err(ConfigError {
-                message: format!(
-                    "invalid log_level '{level}'; accepted values: {}",
-                    LEVELS.join(", ")
-                ),
-            });
-        }
+    if let Some(level) = &config.log_level
+        && !LOG_LEVELS.contains(&level.as_str())
+    {
+        return Err(ConfigError {
+            message: format!(
+                "invalid log_level '{level}'; accepted values: {}",
+                LOG_LEVELS.join(", ")
+            ),
+        });
     }
-    if let Some(format) = &config.format {
-        const FORMATS: [&str; 3] = ["ndjson", "json", "csv"];
-        if !FORMATS.contains(&format.as_str()) {
-            return Err(ConfigError {
-                message: format!(
-                    "invalid format '{format}'; accepted values: {}",
-                    FORMATS.join(", ")
-                ),
-            });
-        }
+    if let Some(format) = &config.format
+        && !OUTPUT_FORMATS.contains(&format.as_str())
+    {
+        return Err(ConfigError {
+            message: format!(
+                "invalid format '{format}'; accepted values: {}",
+                OUTPUT_FORMATS.join(", ")
+            ),
+        });
     }
     if config.memory_mb == Some(0) {
         return Err(ConfigError {
@@ -338,6 +344,16 @@ pub fn validate(config: &Config) -> Result<(), ConfigError> {
         }
     }
     Ok(())
+}
+
+/// Return accepted values for a named enum field.
+#[must_use]
+pub fn enum_values(name: &str) -> Option<&'static [&'static str]> {
+    match name {
+        "format" => Some(OUTPUT_FORMATS),
+        "log_level" => Some(LOG_LEVELS),
+        _ => None,
+    }
 }
 
 /// Parse a config document from a string.

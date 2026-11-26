@@ -9,6 +9,14 @@ repository = "https://github.com/arinbalyan/scrappy"
 keywords = ["cli", "scraper", "jobs"]
 categories = ["command-line-utilities"]
 
+[[test]]
+name = "cli_contract"
+path = "tests/cli_contract/mod.rs"
+
+[[test]]
+name = "bridge_contract"
+path = "tests/bridge_contract/mod.rs"
+
 [features]
 default = []
 emulation = []
