@@ -54,7 +54,7 @@
 
 ## 5. Engine behavior
 
-- [ ] 5.1 Implement per-source governor rate limits and tokio concurrency semaphores and verify separate source limits with a timing test
+- [x] 5.1 Implement per-source governor rate limits and tokio concurrency semaphores and verify separate source limits with a timing test
 - [ ] 5.2 Implement bounded jittered retries with Retry-After and cancellation and verify an oversized delay is interrupted on cancel
 - [ ] 5.3 Implement challenge detection and per-source circuit breaker and verify a challenge response stops the source
 - [ ] 5.4 Implement canonical URL normalization and content-hash dedup with a disable switch and verify idempotent output across two runs

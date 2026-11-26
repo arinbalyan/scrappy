@@ -12,3 +12,12 @@ declared in Cargo.toml. Fixtures live in tests/fixtures/<source_id>/ and
 behavior docs in documentation/scrapers/<source_id>.md. Empty directories keep
 a short README. The canonical tree is recorded in
 openspec/changes/oculus-foundation/design.md.
+
+The engine reserves each request through src/engine/governor.rs. Every source
+gets its own governor token bucket and tokio semaphore, so one source never
+consumes another source's rate or concurrency budget. Rates come from manifest
+limits and config overrides in requests per minute. Registering a source with
+a zero rate or zero concurrency is rejected. The global kill switch stops all
+sources, including requests already waiting on a rate or concurrency slot.
+Kill-switch cancellation is checked before and after each wait, so no request
+starts after the switch is activated.

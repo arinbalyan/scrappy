@@ -5,3 +5,4 @@
 // Rust guideline compliant 2026-10-09
 
 pub mod contract;
+pub mod governor;
