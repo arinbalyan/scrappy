@@ -1,0 +1,64 @@
+schema: spec-driven
+
+# Project context: constraints an agent cannot infer from a clean branch.
+context: |
+  Scrappy oculus is a clean-room rebuild of the job scraper in Rust. The
+  branch preserves main's history with all inherited files removed, so the
+  working tree starts with no implementation. The old Go implementation lives
+  on main and is a read-only reference for observed behavior only. JobHunter,
+  job-ops, and JobRadar are sibling projects and are read-only references.
+
+  No source code, fixtures, documentation, prompts, config files, or branding
+  may be copied from the old implementation or from sibling projects. Rebuild
+  behavior independently from observed contracts and write all files fresh.
+  Record design provenance in a NOTICE file when implementation begins.
+
+  The old scrappy license is personal, non-commercial use with attribution.
+  The new branch will use an MIT-style permissive license. Only the repository
+  owner may make that relicensing decision; artifacts must not assume any
+  third-party code is relicensed.
+
+  Target a small installable command-line binary with explicit subcommands,
+  typed TOML config, layered precedence, structured NDJSON output, and
+  fixture-driven tests. Rust is the chosen language. The default build should
+  stay small, with browser automation behind an opt-in feature.
+
+  Production-grade expectations include structural secret redaction, no
+  secrets in logs, errors, fixtures, or output; SSRF protection that resolves
+  DNS; per-source rate limits and concurrency caps; content-hash deduplication;
+  challenge detection with backoff; checkpoint/resume; and locked, audited
+  dependency builds.
+
+# Per-artifact rules.
+rules:
+  proposal:
+    - State that this is a clean-room rebuild on a branch with inherited files removed.
+    - State that no implementation or .gitignore happens during the propose workflow.
+    - Name which old behaviors are observed and which improvements are new.
+    - State the license boundary explicitly.
+  design:
+    - Describe the fetcher trait and the separation of fetching from parsing.
+    - Describe the source manifest schema and fixture contract.
+    - Address wreq/BoringSSL versus rustls build tradeoffs and the browser feature gate.
+    - Address every old security gap found in the audits.
+  specs:
+    - Every requirement must be verifiable through tests, CLI behavior, or CI checks.
+    - Never require secret values in fixtures, artifacts, or committed examples.
+    - State exact config precedence and stdout/stderr separation.
+    - State that unknown sources and invalid inputs exit nonzero.
+  tasks:
+    - Keep .gitignore, LICENSE, NOTICE, and Cargo scaffolding as implementation tasks.
+    - Break work into independently verifiable chunks with explicit test commands.
+    - Include a source-by-source port order based on the audit's tier list.
+    - Include live validation as a separate opt-in task, never a normal CI dependency.
+
+# Guidance for later apply/archive operations.
+operations:
+  apply:
+    guidance:
+      - Do not copy code or text from main or sibling projects.
+      - Keep normal tests network-free and replay fixtures through real parsers.
+      - Report any dependency version that differs from the design before pinning.
+  archive:
+    guidance:
+      - Summarize which spec requirements were verified and by which commands.
