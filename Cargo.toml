@@ -18,6 +18,9 @@ test-util = []
 [dependencies]
 clap = { version = "4.6.10", features = ["derive", "env"] }
 clap_complete = "4.6.12"
+serde = { version = "1.0.229", features = ["derive"] }
+toml = "1.2.3"
+serde_json = "1.0.154"
 
 [lints.rust]
 ambiguous_negative_literals = "warn"

@@ -6,3 +6,5 @@
 // Rust guideline compliant 2026-10-09
 
 pub mod cli;
+
+pub mod config;
