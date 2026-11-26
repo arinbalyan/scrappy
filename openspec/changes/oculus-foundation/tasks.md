@@ -45,12 +45,12 @@
 
 ## 4. Fetching and parsing foundation
 
-- [ ] 4.1 Define the Fetcher trait with validated request and bounded response types and verify a mock fetcher can drive a parser test
-- [ ] 4.2 Implement plain HTTP fetcher with reqwest rustls and verify it works against a local test server
+- [x] 4.1 Define the Fetcher trait with validated request and bounded response types and verify a mock fetcher can drive a parser test
+- [x] 4.2 Implement plain HTTP fetcher with reqwest rustls and verify it works against a local test server
 - [ ] 4.3 Implement emulation HTTP fetcher behind the emulation feature with pinned wreq profiles and verify a build with the feature and a build without it
 - [ ] 4.4 Implement browser fetcher behind the browser feature with pinned Chromium, proxy passing, response caps, and private-address checks, and verify doctor reports browser availability
-- [ ] 4.5 Implement normalized record parser pipeline and verify required-field rejection with a unit test
-- [ ] 4.6 Add shared emulation-profile headers and one thread-safe proxy selector with health feedback for all fetchers, and verify hints match the profile and rejected proxies are never reused
+- [x] 4.5 Implement normalized record parser pipeline and verify required-field rejection with a unit test
+- [x] 4.6 Add shared emulation-profile headers and one thread-safe proxy selector with health feedback for all fetchers, and verify hints match the profile and rejected proxies are never reused
 
 ## 5. Engine behavior
 
