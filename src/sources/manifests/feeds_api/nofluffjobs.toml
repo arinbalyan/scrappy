@@ -3,7 +3,7 @@ id = "nofluffjobs"
 name = "NoFluffJobs"
 family = "feeds_api"
 health = "working"
-request = "https://nofluffjobs.com/api/rss"
+request = "https://nofluffjobs.com/api/posting"
 parser = "json"
 fetcher = "plain"
 pagination = "none"
@@ -18,11 +18,11 @@ fixtures = ["nofluffjobs"]
 [field_aliases.title]
 names = ["title"]
 [field_aliases.company]
-names = ["company", "company_name"]
+names = ["name", "company"]
 [field_aliases.url]
-names = ["url", "link"]
+names = ["url", "id"]
 [field_aliases.location]
-names = ["location", "city"]
+names = ["location.places.0.city", "location.places.0.country.name", "location"]
 [field_aliases.description]
-names = ["description", "text"]
+names = ["category", "technology", "description"]
 

@@ -122,6 +122,12 @@
 - [x] 11.2 Port adzuna, careerjet, and findwork with credential declarations and fixtures, and verify missing keys skip without requests
 - [x] 11.3 Write scraper behavior docs for every Tier 3 source and verify each source id has a matching document
 
+## 11a. Niche feed and API source ports
+
+- [x] 11a.1 Port berlinstartupjobs, conservationjobs, djinni, drupaljobs, echojobs, eurojobs, nofluffjobs, remotefirstjobs, themuse, and wordpressjobs with manifests, behavior docs, and six-file fixtures
+- [x] 11a.2 Add offline golden replay coverage for each niche source and verify the suite passes without networking
+- [x] 11a.3 Align the nofluffjobs manifest and fixtures with the historical posting API and verify replay passes
+
 ## 12. CI and release
 
 - [ ] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes

@@ -1,16 +1,34 @@
 [
   {
+    "id": "backend-1",
+    "name": "Northstar Labs",
     "title": "Backend Engineer",
-    "company": "Northstar Labs",
-    "url": "https://nofluffjobs.com/job/backend-1",
-    "location": "Remote",
-    "description": "Build services."
+    "technology": "Rust",
+    "category": "Engineering",
+    "seniority": ["mid"],
+    "location": {
+      "places": [{"city": "Berlin", "country": {"code": "DE", "name": "Germany"}}],
+      "fullyRemote": true
+    },
+    "salary": {"from": 70000, "to": 90000, "currency": "EUR", "type": "year"},
+    "posted": 1764000000000,
+    "url": "backend-1",
+    "regions": ["Europe"]
   },
   {
+    "id": "data-2",
+    "name": "Maple Systems",
     "title": "Data Engineer",
-    "company": "Maple Systems",
-    "url": "https://nofluffjobs.com/job/data-2",
-    "location": "Hybrid",
-    "description": "Build pipelines."
+    "technology": "Python",
+    "category": "Engineering",
+    "seniority": ["senior"],
+    "location": {
+      "places": [{"city": "Warsaw", "country": {"code": "PL", "name": "Poland"}}],
+      "fullyRemote": false
+    },
+    "salary": {"from": 120000, "to": 160000, "currency": "PLN", "type": "year"},
+    "posted": 1764086400000,
+    "url": "data-2",
+    "regions": ["Europe"]
   }
 ]
