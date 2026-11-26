@@ -4,4 +4,6 @@
 
 // Rust guideline compliant 2026-10-09
 
+pub mod manifest;
 pub mod manifests;
+pub mod registry;

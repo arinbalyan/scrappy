@@ -73,3 +73,58 @@ fn every_expected_document_exists() {
         );
     }
 }
+
+#[test]
+fn canonical_tree_is_present() {
+    let expected = [
+        "README.md",
+        "LICENSE",
+        "NOTICE",
+        "src/main.rs",
+        "src/lib.rs",
+        "src/cli/mod.rs",
+        "src/cli/doctor.rs",
+        "src/config/mod.rs",
+        "src/config/file.rs",
+        "src/sources/mod.rs",
+        "src/sources/manifest.rs",
+        "src/sources/registry.rs",
+        "src/sources/manifests/mod.rs",
+        "src/sources/manifests/feeds_api/README.md",
+        "src/sources/manifests/ats/README.md",
+        "src/sources/manifests/html_static/README.md",
+        "src/sources/manifests/html_rendered/README.md",
+        "src/sources/manifests/keyed/README.md",
+        "src/fetching/mod.rs",
+        "src/fetching/plain.rs",
+        "src/fetching/emulation.rs",
+        "src/fetching/browser.rs",
+        "src/fetching/proxy.rs",
+        "src/parsing/mod.rs",
+        "src/parsing/json.rs",
+        "src/parsing/rss.rs",
+        "src/parsing/html.rs",
+        "src/parsing/jsonld.rs",
+        "src/engine/mod.rs",
+        "src/engine/contract.rs",
+        "src/output/mod.rs",
+        "src/security/mod.rs",
+        "src/checkpoint/mod.rs",
+        "src/metrics/mod.rs",
+        "tests/cli_contract/mod.rs",
+        "tests/cli_contract/doctor.rs",
+        "tests/bridge_contract/mod.rs",
+        "tests/config_actions.rs",
+        "tests/docs_parity.rs",
+        "tests/fixtures/README.md",
+        "tests/live/README.md",
+        "documentation/scrapers/README.md",
+        ".github/workflows/ci.yml",
+        "openspec/changes/oculus-foundation/design.md",
+    ];
+    let missing: Vec<&str> = expected
+        .into_iter()
+        .filter(|path| !repo_root().join(path).exists())
+        .collect();
+    assert!(missing.is_empty(), "missing canonical paths: {missing:?}");
+}

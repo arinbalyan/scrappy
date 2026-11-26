@@ -6,12 +6,84 @@ See proposal.md for motivation and specs/ for the behavior contract. The branch 
 
 ## Goals / Non-Goals
 
-The authoritative source tree uses one directory per subsystem with a
-`mod.rs` root: `src/cli`, `src/config`, `src/sources` (with `manifest.rs`,
-`registry.rs`, and `manifests/<family>/`), `src/fetching`, `src/parsing`,
-`src/engine`, `src/output`, `src/security`, `src/checkpoint`, and
-`src/metrics`. The runtime bridge contract lives in `src/engine/contract.rs`.
-Integration tests are directory-based targets declared in Cargo.toml.
+The authoritative source tree is fixed by the layout below. Each subsystem is
+a directory with a `mod.rs` root. `src/sources` contains `manifest.rs`,
+`registry.rs`, and `manifests/` with one directory per adapter family. The
+runtime bridge contract lives in `src/engine/contract.rs`. Integration tests
+are directory-based targets declared in Cargo.toml.
+
+```text
+scrappy/
+  Cargo.toml
+  Cargo.lock
+  README.md
+  LICENSE
+  NOTICE
+  .gitignore
+  openspec/
+  .codex/skills/ms-rust/
+  documentation/
+    001-quickstart.md ... 015-security.md
+    scrapers/
+  src/
+    main.rs
+    lib.rs
+    cli/
+      mod.rs
+      doctor.rs
+    config/
+      mod.rs
+      file.rs
+    sources/
+      mod.rs
+      manifest.rs
+      registry.rs
+      manifests/
+        mod.rs
+        feeds_api/
+        ats/
+        html_static/
+        html_rendered/
+        keyed/
+    fetching/
+      mod.rs
+      plain.rs
+      emulation.rs
+      browser.rs
+      proxy.rs
+    parsing/
+      mod.rs
+      json.rs
+      rss.rs
+      html.rs
+      jsonld.rs
+    engine/
+      mod.rs
+      contract.rs
+    output/mod.rs
+    security/mod.rs
+    checkpoint/mod.rs
+    metrics/mod.rs
+  tests/
+    fixtures/<source_id>/
+      request.json
+      response.body
+      headers.json
+      golden.ndjson
+    cli_contract/
+      mod.rs
+      doctor.rs
+    bridge_contract/
+      mod.rs
+    config_actions.rs
+    docs_parity.rs
+    live/
+  .github/workflows/
+```
+
+Empty directories keep a short README so the layout is visible in version
+control. Source manifests and fixtures use the paths shown above, and
+documentation uses repository-relative paths only.
 
 **Goals:**
 

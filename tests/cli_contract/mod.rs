@@ -1,3 +1,5 @@
+mod doctor;
+
 use std::process::{Command, Output};
 
 fn run(args: &[&str]) -> Output {
@@ -74,5 +76,5 @@ fn completion_supports_shells_and_rejects_unknown() {
 fn unknown_subcommand_exits_two() {
     let output = run(&["not-a-command"]);
     assert_eq!(output.status.code(), Some(2));
-    assert_ne!(output.stderr, []);
+    assert_ne!(output.stderr, [] as [u8; 0]);
 }

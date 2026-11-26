@@ -30,11 +30,23 @@ fn dispatch(cli: Cli) -> Result<(), String> {
             validate(&config).map_err(|error| error.message)?;
             eprintln!("scrappy: source selection is unavailable in this build");
         }
-        CommandKind::Run(_)
-        | CommandKind::Validate(_)
-        | CommandKind::ListSources(_)
-        | CommandKind::Doctor(_) => {
+        CommandKind::Run(_) | CommandKind::Validate(_) | CommandKind::ListSources(_) => {
             cli::print_help();
+        }
+        CommandKind::Doctor(args) => {
+            let report = if args.fix {
+                cli::doctor::report_with_fix(&args.global.config)
+            } else {
+                cli::doctor::report(&args.global.config)
+            };
+            match args.format {
+                cli::DoctorFormat::Json => println!(
+                    "{}",
+                    cli::doctor::render_json(&report)
+                        .map_err(|error| format!("cannot encode doctor report: {error}"))?
+                ),
+                cli::DoctorFormat::Text => print!("{}", cli::doctor::render_text(&report)),
+            }
         }
     }
     Ok(())

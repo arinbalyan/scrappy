@@ -94,6 +94,21 @@ Normal CI SHALL verify that default source selection contains only registered ma
 - **WHEN** a manifest is registered without a fixture set or a status document is edited by hand
 - **THEN** the parity check fails and names the drifted source or file
 
+### Requirement: Canonical source tree
+The repository SHALL keep the module and test layout recorded in design.md as
+the canonical tree. `src/sources` SHALL contain `manifest.rs`, `registry.rs`,
+and `manifests/` with the five adapter-family directories. Empty directories
+SHALL keep a short README so the layout is visible in version control. A
+parity check SHALL fail when a required path from that tree is missing.
+
+#### Scenario: Canonical tree is present
+- **WHEN** the parity check runs on a clean tree
+- **THEN** every module, manifest family directory, and test directory from design.md exists
+
+#### Scenario: Layout drift fails CI
+- **WHEN** a required directory or module file is removed
+- **THEN** the parity check fails and names the missing path
+
 ### Requirement: Documentation parity
 The repository SHALL keep a `documentation/` folder with a document for the CLI, configuration, architecture, sources, testing, and security. Every documented source path SHALL be relative to the scrappy repository root and SHALL exist. Source comments SHALL remain short; long explanations and runbooks SHALL live in `documentation/`.
 

@@ -20,7 +20,7 @@
 - [x] 2.5 Add strict validation for unknown keys, unknown sources, dates, memory limits, and rate maps, and verify invalid input exits nonzero with a stderr diagnostic
 - [x] 2.6 Implement machine-separated stdout and stderr and verify that warnings do not corrupt JSON output
 - [x] 2.7 Implement atomic config set that preserves unknown and per-source sections with 0700 directories and 0600 files, and verify with a tempdir test
-- [ ] 2.8 Implement doctor with named checks for config, schema, sources, credentials, proxies, browser, fixtures, output writability, and features, with JSON output and a fix action that counts failed repairs as failures, and verify key values are redacted
+- [x] 2.8 Implement doctor with named checks for config, schema, sources, credentials, proxies, browser, fixtures, output writability, and features, with JSON output and a fix action that counts failed repairs as failures, and verify key values are redacted
 - [x] 2.9 Implement run --stdin-config with one JSON document, EOF start, and full run-config key validation, and verify malformed input exits 2 with no fetch
 - [x] 2.10 Implement structured NDJSON progress events on stderr with run id, source id, counters, terminal event, and published exit codes 0 through 5, and verify a consumer can parse every event line
 - [ ] 2.11 Add actionable validation for enums, ranges, unsupported filters, and preflight diagnostics, and verify each invalid case exits 2 before any request
@@ -28,7 +28,7 @@
 - [x] 2.13 Implement config schema and enum-value printing from the runtime schema, and verify every runtime field is documented
 - [x] 2.14 Implement shell completion generation and verify supported shells produce scripts while an unsupported shell exits 2
 - [x] 2.15 Implement config init as a non-destructive write that refuses to overwrite an existing file unless explicitly forced, and verify the original file is unchanged on a refused write
-- [ ] 2.16 Restrict doctor fix to documented safe repairs of config files and generated artifacts, and verify it never modifies source, fixture, or manifest files
+- [x] 2.16 Restrict doctor fix to documented safe repairs of config files and generated artifacts, and verify it never modifies source, fixture, or manifest files
 - [ ] 2.17 Add scraper behavior docs under documentation/scrapers/ and define the record format used when a scraper is fixed
 
 ## 3. Source registry and manifests

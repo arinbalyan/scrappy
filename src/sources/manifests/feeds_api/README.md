@@ -1,0 +1,3 @@
+# Family: feeds_api
+
+Manifests for this family live here. See documentation/013-source-registry.md.
