@@ -192,7 +192,7 @@
 
 ## 11k. Remaining public and seed-based source ports
 
-- [x] 11k.1 Port jobtechdev, wellfound, and jobylon with manifests, behavior docs, and six-file fixtures
+- [x] 11k.1 Port jobtechdev, wellfound, and jobylon with manifests, behavior docs, and six-file fixtures. Record deliberate skips: ziprecruiter needs cursor pagination and a session handshake, gem needs GraphQL batch envelopes, arbeitsagentur needs a live key and URL synthesis, bayt needs relative URL resolution, and ashby/bullhorn/tesla are already represented by ATS or multi-stage capabilities outside the manifest schema.
 - [x] 11k.2 Add offline golden replay coverage in tests/tier14_remaining_replay.rs and verify the suite passes without networking
 - [x] 11k.3 Record live probe results, update health labels where needed, and regenerate documentation/005-status.md
 - [x] 11k.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
