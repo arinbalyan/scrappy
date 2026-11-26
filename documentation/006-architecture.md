@@ -37,3 +37,10 @@ sample with no query strings or long tokens. src/engine/breaker.rs keeps one
 circuit breaker per source. Repeated challenge or failure responses open that
 source only, and a successful response clears its failures. A cooldown allows
 a stopped source to be tried again later.
+
+Result caps live in src/engine/limits.rs. A source's effective cap is the
+smaller of its per-source cap and the global cap, so a larger per-source cap
+cannot raise the global cap. When fail-open is enabled, a failed source does
+not stop the run; its sanitized diagnostic appears in the terminal summary
+along with emitted, skipped, and resolved cap counts. Unknown sources still
+fail the run.
