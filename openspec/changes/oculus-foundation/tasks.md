@@ -9,17 +9,20 @@
 
 ## 2. CLI and configuration foundation
 
-- [ ] 2.1 Implement clap subcommands for run, validate, config show, config set, list-sources, and doctor and verify that help lists every subcommand and flag
+- [ ] 2.1 Implement clap subcommands for run, validate, config init/show/set/unset/edit/explain/schema, list-sources, doctor with fix, completion, and version with global --help and --version, and verify that help lists every subcommand, flag, and one example per subcommand
 - [ ] 2.2 Implement typed Config with Option fields and layered resolution in CLI, environment, project config, user config, default order, and verify precedence with a table-driven test
 - [ ] 2.3 Add OneOrMany deserialization for scalar and array config values and verify both forms load in tests
 - [ ] 2.4 Add tri-state boolean flags with negative counterparts and verify that explicit false overrides config true
 - [ ] 2.5 Add strict validation for unknown keys, unknown sources, dates, memory limits, and rate maps, and verify invalid input exits nonzero with a stderr diagnostic
 - [ ] 2.6 Implement machine-separated stdout and stderr and verify that warnings do not corrupt JSON output
 - [ ] 2.7 Implement atomic config set that preserves unknown and per-source sections with 0700 directories and 0600 files, and verify with a tempdir test
-- [ ] 2.8 Implement doctor using the runtime config schema with redacted key reporting, and verify it lists the same files the runtime loads
+- [ ] 2.8 Implement doctor with named checks for config, schema, sources, credentials, proxies, browser, fixtures, output writability, and features, with JSON output and a fix action that counts failed repairs as failures, and verify key values are redacted
 - [ ] 2.9 Implement run --stdin-config with one JSON document, EOF start, and full run-config key validation, and verify malformed input exits 2 with no fetch
 - [ ] 2.10 Implement structured NDJSON progress events on stderr with run id, source id, counters, terminal event, and published exit codes 0 through 5, and verify a consumer can parse every event line
 - [ ] 2.11 Add actionable validation for enums, ranges, unsupported filters, and preflight diagnostics, and verify each invalid case exits 2 before any request
+- [ ] 2.12 Implement config init with a commented template documenting field types, defaults, and environment variables, and verify no secret values appear in the template
+- [ ] 2.13 Implement config schema and enum-value printing from the runtime schema, and verify every runtime field is documented
+- [ ] 2.14 Implement shell completion generation and verify supported shells produce scripts while an unsupported shell exits 2
 
 ## 3. Source registry and manifests
 
@@ -76,7 +79,7 @@
 
 - [ ] 8.1 Define fixture directory contract with request descriptor, response body, headers, frozen timestamp, and golden record, and verify a validator test passes
 - [ ] 8.2 Build fixture replay harness that injects saved responses into real parsers and verify a parser test passes with networking disabled
-- [ ] 8.3 Add CLI contract tests for precedence, scalar forms, explicit false, formats, config writes, doctor parity, and invalid exits, and verify the suite passes
+- [ ] 8.3 Add CLI contract tests for precedence, scalar forms, explicit false, formats, config writes, doctor parity, doctor fix failure counting, init template, schema output, completion, version, and invalid exits, and verify the suite passes
 - [ ] 8.4 Add secret-leak CI check with synthetic secrets and verify the check fails on an injected leak
 - [ ] 8.5 Add bridge contract tests for stdin config, progress events, exit codes, flush behavior, and cancellation, and verify the suite passes offline
 

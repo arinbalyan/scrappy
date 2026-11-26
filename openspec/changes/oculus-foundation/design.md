@@ -40,9 +40,13 @@ Alternative considered: a workspace with many crates. Rejected for a single cont
 
 ### 2. CLI and configuration
 
-Use clap 4 derive for subcommands and typed arguments. Use serde and toml for config documents and figment for layered extraction. Environment values are read as a layer, never as clap flag defaults. Every field is Option<T> until resolution, then converted to validated typed values.
+Use clap 4 derive for subcommands and typed arguments. The command tree is `run`, `validate`, `config` (`init`, `show`, `set`, `unset`, `edit`, `explain`, `schema`), `list-sources`, `doctor` (with `fix`), `completion`, and `version`. Root and every subcommand support `--help` and `--version`; help includes one copyable example per subcommand and explains every flag. `completion` emits shell scripts and rejects unsupported shells. `version` exits without loading config.
 
-Layer order is explicit CLI, environment, project config, user config, built-in default. The config flag may be repeated to add files; a no-default-config flag makes the run hermetic. Each field records its resolved source so config show can explain it. Booleans use Option<bool> with generated negative flags.
+Use serde and toml for config documents and figment for layered extraction. Environment values are read as a layer, never as clap flag defaults. Every field is Option<T> until resolution, then converted to validated typed values. List fields use a OneOrMany deserializer so a scalar and an array are both valid and an empty array stays empty. Booleans use Option<bool> with generated negative flags so explicit false survives lower layers.
+
+Layer order is explicit CLI, environment, project config, user config, built-in default. The config flag may be repeated to add files; a no-default-config flag makes the run hermetic. Each resolved field records its winning layer and location so `config explain` can name it without printing secrets. `config init` generates a commented template with field types, defaults, and environment variable names. `config set`, `config unset`, and `config edit` operate on an explicit path and preserve unknown and per-source sections through a read-modify-atomic-write cycle. `config schema` prints the same schema used by the runtime parser.
+
+Doctor derives its checks from the runtime schema and manifests. It reports named checks for config, schema, sources, credentials, proxies, browser, fixtures, output writability, and features. `doctor fix` applies only documented safe repairs and counts a failed fix as a failure. Doctor supports JSON output and never prints secret values.
 
 Alternative considered: keeping the old flat flag set and patching merge logic. Rejected because the audit found defects in nearly every merge path; a typed resolver is smaller and fully testable.
 

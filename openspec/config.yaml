@@ -39,12 +39,14 @@ rules:
   design:
     - Describe the fetcher trait and the separation of fetching from parsing.
     - Describe the source manifest schema and fixture contract.
+    - Describe the full command tree, config actions, doctor checks, and help expectations.
     - Address wreq/BoringSSL versus rustls build tradeoffs and the browser feature gate.
     - Address every old security gap found in the audits.
   specs:
     - Every requirement must be verifiable through tests, CLI behavior, or CI checks.
     - Never require secret values in fixtures, artifacts, or committed examples.
     - State exact config precedence and stdout/stderr separation.
+    - State the command surface, global help and version behavior, and the doctor check taxonomy.
     - State that unknown sources and invalid inputs exit nonzero.
   tasks:
     - Keep .gitignore, LICENSE, NOTICE, and Cargo scaffolding as implementation tasks.

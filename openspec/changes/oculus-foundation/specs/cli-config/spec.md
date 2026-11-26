@@ -7,15 +7,27 @@ Defines the command-line surface, layered configuration resolution, validation, 
 ## ADDED Requirements
 
 ### Requirement: Explicit subcommands
-The binary SHALL expose subcommands for running a scrape, validating configuration, showing resolved configuration, setting configuration values, listing sources, and running doctor diagnostics. Help output SHALL list every supported flag and subcommand.
+The binary SHALL expose `run`, `validate`, `config`, `list-sources`, `doctor`, `completion`, and `version` subcommands. The `config` subcommand SHALL provide `init`, `show`, `set`, `unset`, `edit`, `explain`, and `schema` actions. The `doctor` subcommand SHALL provide a `fix` action.
 
 #### Scenario: Help lists the full surface
 - **WHEN** a user runs the binary with --help
-- **THEN** every supported subcommand and flag is shown
+- **THEN** every supported subcommand and global flag is shown with a short description and an example
+
+#### Scenario: Version is available everywhere
+- **WHEN** a user runs `scrappy --version` or `scrappy run --version`
+- **THEN** the binary prints the version and exits zero without loading config
+
+#### Scenario: Subcommand help is independent of config
+- **WHEN** a user runs `scrappy <subcommand> --help` with a broken config file present
+- **THEN** help is printed and no config is loaded
 
 #### Scenario: Unknown subcommand fails
 - **WHEN** a user supplies an unrecognized subcommand
-- **THEN** the binary exits nonzero and prints valid subcommands to stderr
+- **THEN** the binary exits 2 and prints valid subcommands to stderr
+
+#### Scenario: Shell completion is generated
+- **WHEN** a user requests completion for a supported shell
+- **THEN** the binary prints a completion script for that shell and an unsupported shell exits 2
 
 ### Requirement: Layered configuration precedence
 Every configurable field SHALL be resolved in this order: explicit CLI value, process environment, project config file, user config file, built-in default. Explicit files given by the user SHALL be layered, and a hermetic flag SHALL disable default config discovery. No environment value SHALL be used as a CLI flag default.
@@ -32,6 +44,10 @@ Every configurable field SHALL be resolved in this order: explicit CLI value, pr
 - **WHEN** a user requests a hermetic run
 - **THEN** no discovered config file or environment file is loaded
 
+#### Scenario: Every resolved value names its layer
+- **WHEN** a user asks the binary to explain a resolved field
+- **THEN** the output names the winning layer, the file or flag, and the final value with secrets redacted
+
 ### Requirement: Tri-state boolean options
 Boolean options SHALL distinguish unset, true, and false. An explicit false value from the CLI or config SHALL override a true value from a lower-precedence source. Every boolean flag SHALL have a negative counterpart.
 
@@ -42,6 +58,10 @@ Boolean options SHALL distinguish unset, true, and false. An explicit false valu
 #### Scenario: Unset uses lower layer
 - **WHEN** a boolean is absent from CLI and environment but set in the project config
 - **THEN** the resolved value comes from the project config
+
+#### Scenario: Explicit false in config stays false
+- **WHEN** a config file sets a boolean to false and no higher layer sets it
+- **THEN** the resolved value is false and the old default true is not restored
 
 ### Requirement: Scalar and list config values
 Fields that accept multiple values SHALL accept both a single scalar and an array in TOML. A scalar SHALL be treated as a one-element list and SHALL NOT cause configuration loading to fail or drop other fields.
@@ -54,6 +74,10 @@ Fields that accept multiple values SHALL accept both a single scalar and an arra
 - **WHEN** a config file contains search as an array of strings
 - **THEN** resolution succeeds and the search list contains every string
 
+#### Scenario: Empty list is preserved
+- **WHEN** a config file contains an empty array for a list field
+- **THEN** resolution succeeds with an empty list instead of substituting a default
+
 ### Requirement: Strict validation and failure
 Unknown config keys, unknown source IDs, invalid dates, invalid memory limits, invalid rate maps, and malformed config SHALL produce a diagnostic on stderr and a nonzero exit code. Warnings SHALL NOT be silently discarded.
 
@@ -63,7 +87,11 @@ Unknown config keys, unknown source IDs, invalid dates, invalid memory limits, i
 
 #### Scenario: Malformed config fails with a diagnostic
 - **WHEN** a config file cannot be decoded by the runtime schema
-- **THEN** the binary exits nonzero and reports the file and field
+- **THEN** the binary exits 2 and reports the file, field, and a remedy
+
+#### Scenario: Unknown key suggests a remedy
+- **WHEN** a config file contains an unknown key
+- **THEN** validation names the key and the closest valid key from the schema
 
 ### Requirement: Machine-separated output streams
 stdout SHALL contain only the serialized result in the requested format. Logs, warnings, progress, and diagnostics SHALL go to stderr. A warning SHALL NOT corrupt stdout output.
@@ -87,6 +115,17 @@ Format selection SHALL apply identically to stdout and to files. There SHALL be 
 - **WHEN** a user sets the output destination to stdout explicitly
 - **THEN** the result is written to stdout in the selected format
 
+### Requirement: Config template and editing workflow
+The binary SHALL generate a commented config template with sane defaults through a config init action. The template SHALL document each field, its type, its default, and its environment variable. An interactive editing action MAY open an editor on the explicit config path. All config-writing actions SHALL fail cleanly when no explicit path is given and SHALL refuse to write credentials.
+
+#### Scenario: Init writes a documented template
+- **WHEN** a user runs `scrappy config init --path <path>`
+- **THEN** the file contains documented fields, defaults, and environment variable names and contains no secret values
+
+#### Scenario: Edit honors the explicit path
+- **WHEN** a user runs a config editing action with an explicit path
+- **THEN** the editor opens exactly that file and no discovered config is modified
+
 ### Requirement: Lossless atomic config writes
 Config mutation SHALL read the existing document, change only the named keys, preserve all other sections including per-source sections, and write through a temporary file and rename. Config directories SHALL use mode 0700 and config files mode 0600. Credentials SHALL NOT be written into config files.
 
@@ -98,6 +137,10 @@ Config mutation SHALL read the existing document, change only the named keys, pr
 - **WHEN** a config file is written
 - **THEN** its mode is 0600 and its parent directory mode is 0700
 
+#### Scenario: Unset removes only the named key
+- **WHEN** a user unsets a value in a config with per-source sections
+- **THEN** that key is removed and all other keys and sections remain unchanged
+
 ### Requirement: Doctor parity with runtime
 The doctor command SHALL use the same config schema as the runtime, report the exact files the runtime would load, and report API key availability as a count or name without revealing values.
 
@@ -108,6 +151,39 @@ The doctor command SHALL use the same config schema as the runtime, report the e
 #### Scenario: Doctor hides key values
 - **WHEN** all expected API keys are present
 - **THEN** doctor reports key names or counts and never prints key values
+
+### Requirement: Doctor check taxonomy
+Doctor SHALL report named checks for config discovery and parsing, schema and source validation, credential presence without values, proxy reachability, browser dependency availability, source manifest and fixture parity, output destination writability, and feature availability. Each check SHALL report pass, warn, fail, or skip with a reason. A missing optional credential SHALL NOT prevent unrelated checks from running. Doctor SHALL never print a secret, a raw cookie, or a query-string token.
+
+#### Scenario: Doctor reports every named check
+- **WHEN** doctor runs with a complete config
+- **THEN** output includes a result for every check named in this requirement
+
+#### Scenario: Missing key does not suppress proxy checks
+- **WHEN** an optional API key is absent and proxies are configured
+- **THEN** every configured proxy still receives a check result
+
+### Requirement: Doctor output and fix mode
+Doctor SHALL support JSON output and an explicit fix action that applies only documented safe repairs. A failed fix SHALL count as a failure and produce a nonzero exit.
+
+#### Scenario: Doctor fix reports a failed repair
+- **WHEN** a safe fix is attempted and fails
+- **THEN** the check status is fail and doctor exits nonzero
+
+#### Scenario: Doctor JSON is machine-readable
+- **WHEN** a caller requests doctor output as JSON
+- **THEN** stdout contains one JSON object with named checks and statuses and stderr contains no JSON unless diagnostics are explicitly requested as JSON
+
+### Requirement: Config schema documentation
+The binary SHALL print the complete config schema, including field names, types, defaults, environment variables, and accepted enum values, through a schema action on `config` or `validate`. The printed schema SHALL be the same schema used by the runtime parser and doctor. A user SHALL be able to ask for the accepted values of a named enum without reading source code.
+
+#### Scenario: Schema output matches runtime parsing
+- **WHEN** a user prints the schema
+- **THEN** every field accepted by the runtime parser is listed with its type and default
+
+#### Scenario: Enum values are discoverable
+- **WHEN** a user asks for the values of an enum field
+- **THEN** the binary prints every accepted value and exits zero
 
 ### Requirement: Honest rate semantics
 Rate options SHALL enforce token-bucket requests per interval and concurrency options SHALL enforce parallel request caps. The two concepts SHALL be exposed separately.
@@ -170,6 +246,10 @@ Every config-reading and config-writing subcommand SHALL honor the same explicit
 #### Scenario: Setup honors the explicit config path
 - **WHEN** a user passes an explicit config path to a config-writing subcommand
 - **THEN** that path is both written and loaded by the runtime and doctor
+
+#### Scenario: Environment file is parsed with a real parser
+- **WHEN** an environment file contains quotes, inline comments, export syntax, or a proxy URL
+- **THEN** the parser produces correct values and a malformed entry fails with a field-level diagnostic
 
 #### Scenario: Rejected proxy is not reused
 - **WHEN** a proxy fails its health check
