@@ -7,3 +7,9 @@ files in .codex/skills/ms-rust/. Add the compliance marker at the top of every
 compliant Rust file. Run cargo fmt, cargo clippy --all-targets -- -D warnings,
 and cargo doc --no-deps as the baseline gate. The parity check in
 tests/docs_parity.rs verifies that documented paths exist.
+
+src/checkpoint/mod.rs stores a versioned checkpoint with a fingerprint of the
+resolved config, completed source ids, and emitted content hashes. Resume
+rejects a checkpoint when its version or fingerprint no longer matches.
+Checkpoints are written to a temporary file and renamed into place so an
+interrupted save leaves no partial state.

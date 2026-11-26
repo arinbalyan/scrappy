@@ -58,7 +58,7 @@
 - [x] 5.2 Implement bounded jittered retries with Retry-After and cancellation and verify an oversized delay is interrupted on cancel
 - [x] 5.3 Implement challenge detection and per-source circuit breaker and verify a challenge response stops the source
 - [x] 5.4 Implement canonical URL normalization and content-hash dedup with a disable switch and verify idempotent output across two runs
-- [ ] 5.5 Implement versioned checkpoint and resume bound to a config fingerprint and verify a matching checkpoint skips completed work
+- [x] 5.5 Implement versioned checkpoint and resume bound to a config fingerprint and verify a matching checkpoint skips completed work
 - [ ] 5.6 Implement global and per-source result caps and fail-open policy and verify the run summary records skipped failures
 - [ ] 5.7 Implement enrichment before emission with contact provenance, deterministic scoring, authoritative company_domain, dedup, and source attribution, and verify every stdout record is final
 - [ ] 5.8 Implement challenge attention events with opaque resume state bound to the config fingerprint and verify only the challenged source pauses
