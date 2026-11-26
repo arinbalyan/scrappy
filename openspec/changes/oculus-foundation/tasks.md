@@ -183,6 +183,13 @@
 - [x] 11i.3 Record live probe results, update health labels where needed, and regenerate documentation/005-status.md
 - [x] 11i.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
 
+## 11j. Remaining ATS API source port audit
+
+- [x] 11j.1 Audit every historical ATS-family directory against current manifest IDs and document which sources remain unported, including any adapter capability gaps
+- [x] 11j.2 Port remaining tenant and ATS sources that fit the current manifest schema, using one replay test module, and record each deliberate skip with a reason in its behavior doc
+- [x] 11j.3 Record live probe results, update health labels where needed, and regenerate documentation/005-status.md
+- [x] 11j.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
+
 ## 12. CI and release
 
 - [ ] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes

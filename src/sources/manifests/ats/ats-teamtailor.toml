@@ -1,0 +1,35 @@
+version = 1
+id = "ats-teamtailor"
+name = "Teamtailor"
+family = "ats"
+health = "requires_slug"
+request = "https://career.teamtailor.com/widget/jobs/{slug}"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public tenant board endpoints; skip access-controlled boards"
+attribution = "Teamtailor"
+slugs = ["example-co"]
+fixtures = ["ats-teamtailor"]
+[field_aliases.url]
+names = ["links.careersite-url", "attributes.apply-url", "attributes.external-url"]
+
+[field_aliases.title]
+names = ["attributes.title"]
+
+[field_aliases.company]
+names = ["company.name", "id"]
+
+[field_aliases.location]
+names = ["attributes.city"]
+
+[field_aliases.description]
+names = ["attributes.body"]
+
+[parser_options]
+envelope = ["data"]
+

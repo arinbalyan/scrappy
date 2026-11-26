@@ -1,0 +1,42 @@
+version = 1
+id = "ats-recruiterflow"
+name = "Recruiterflow"
+family = "ats"
+health = "requires_slug"
+request = "https://api.recruiterflow.com/api/external/job/list"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public tenant board endpoints; skip access-controlled boards"
+attribution = "Recruiterflow"
+slugs = ["example-co"]
+fixtures = ["ats-recruiterflow"]
+[field_aliases.url]
+names = ["url", "id"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["slug"]
+
+[field_aliases.location]
+names = ["location"]
+
+[field_aliases.description]
+names = ["description"]
+
+[parser_options]
+envelope = ["data"]
+
+[request_options]
+
+[request_options.headers]
+rf-api-key = "{slug}"
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+

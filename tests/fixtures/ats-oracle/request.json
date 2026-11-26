@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://example-co.fa.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions?onlyData=true&finder=findReqs;siteNumber=CX_45001,facetsList=LOCATIONS;WORK_LOCATIONS;WORKPLACE_TYPES;TITLES;CATEGORIES;ORGANIZATIONS;POSTING_DATES;FLEX_FIELDS,limit=100,sortBy=POSTING_DATES_DESC",
+  "headers": {
+    "accept": "application/json"
+  }
+}
+

@@ -14,12 +14,18 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | androidjobs | Android Jobs | working | ready | FeedsApi | plain |
 | arbeitnow | Arbeitnow | working | ready | FeedsApi | plain |
 | ats-ashby | Ashby ATS | requires_slug | ready | Ats | plain |
+| ats-oracle | Oracle | requires_slug | ready | Ats | plain |
+| ats-pinpoint | Pinpoint | requires_slug | ready | Ats | plain |
 | ats-recruitee | Recruitee ATS | requires_slug | ready | Ats | plain |
+| ats-recruiterflow | Recruiterflow | requires_slug | ready | Ats | plain |
 | ats-rippling | Rippling ATS | requires_slug | ready | HtmlStatic | plain |
 | ats-smartrecruiters | SmartRecruiters ATS | requires_slug | ready | Ats | plain |
 | ats-talentlyft | TalentLyft ATS | requires_slug | ready | Ats | plain |
+| ats-teamtailor | Teamtailor | requires_slug | ready | Ats | plain |
 | ats-trakstar | Trakstar ATS | requires_slug | ready | Ats | plain |
+| ats-ukg | UKG | requires_slug | ready | Ats | plain |
 | ats-workable | Workable ATS | requires_slug | ready | Ats | plain |
+| ats-workday | Workday | requires_slug | ready | Ats | plain |
 | authenticjobs | AuthenticJobs | blocked | blocked | Keyed | plain |
 | bamboohr | BambooHR | requires_slug | ready | Ats | plain |
 | berlinstartupjobs | Berlin Startup Jobs | working | ready | FeedsApi | plain |

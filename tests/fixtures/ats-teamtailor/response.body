@@ -1,0 +1,37 @@
+{
+  "data": [
+    {
+      "company": {
+        "name": "example-co"
+      },
+      "id": "9101",
+      "type": "jobs",
+      "links": {
+        "careersite-url": "https://career.teamtailor.com/example-co/jobs/9101"
+      },
+      "attributes": {
+        "title": "Frontend Engineer",
+        "body": "Build interfaces",
+        "city": "Lisbon",
+        "remote": false
+      }
+    },
+    {
+      "company": {
+        "name": "example-co"
+      },
+      "id": "9102",
+      "type": "jobs",
+      "links": {
+        "careersite-url": "https://career.teamtailor.com/example-co/jobs/9102"
+      },
+      "attributes": {
+        "title": "Platform Engineer",
+        "body": "Build runtime",
+        "city": "Remote",
+        "remote": true
+      }
+    }
+  ]
+}
+

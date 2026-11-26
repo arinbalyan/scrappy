@@ -1,0 +1,11 @@
+{
+  "method": "POST",
+  "url": "https://example-co.wd5.myworkdayjobs.com/wday/cxs/example-co/External/jobs",
+  "headers": {
+    "content-type": "application/json",
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  },
+  "body": "{\"appliedFacets\":{},\"limit\":20,\"offset\":0,\"searchText\":\"\"}"
+}
+

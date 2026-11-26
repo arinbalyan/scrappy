@@ -1,0 +1,32 @@
+version = 1
+id = "ats-oracle"
+name = "Oracle"
+family = "ats"
+health = "requires_slug"
+request = "https://{slug}.fa.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions?onlyData=true&finder=findReqs;siteNumber=CX_45001,facetsList=LOCATIONS;WORK_LOCATIONS;WORKPLACE_TYPES;TITLES;CATEGORIES;ORGANIZATIONS;POSTING_DATES;FLEX_FIELDS,limit=100,sortBy=POSTING_DATES_DESC"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public tenant board endpoints; skip access-controlled boards"
+attribution = "Oracle"
+slugs = ["example-co"]
+fixtures = ["ats-oracle"]
+[field_aliases.url]
+names = ["ExternalUrl", "url"]
+
+[field_aliases.title]
+names = ["Title"]
+
+[field_aliases.company]
+names = ["EmployerName", "slug"]
+
+[field_aliases.location]
+names = ["PrimaryLocation"]
+
+[parser_options]
+envelope = ["items", "0", "requisitionList"]
+

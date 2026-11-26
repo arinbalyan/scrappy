@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://recruiting.ultipro.com/example-co/OpportunitySearch",
+  "headers": {
+    "accept": "application/json"
+  }
+}
+

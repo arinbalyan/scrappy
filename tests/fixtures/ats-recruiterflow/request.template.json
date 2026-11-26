@@ -1,0 +1,10 @@
+{
+  "method": "GET",
+  "url": "https://api.recruiterflow.com/api/external/job/list",
+  "headers": {
+    "rf-api-key": "{slug}",
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}
+

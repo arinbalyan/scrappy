@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://{slug}.pinpointhq.com/postings.json",
+  "headers": {
+    "accept": "application/json"
+  }
+}
+

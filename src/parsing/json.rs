@@ -133,10 +133,18 @@ pub fn record_from_value(value: &Value) -> Option<Record> {
     record_from_aliases(value, None)
 }
 
+/// Select a nested value by object key or numeric array index.
 fn envelope<'a>(value: &'a Value, path: &[String]) -> Option<&'a Value> {
     let mut current = value;
     for segment in path {
-        current = current.get(segment)?;
+        current = match current {
+            Value::Object(map) => map.get(segment)?,
+            Value::Array(items) => {
+                let index = segment.parse::<usize>().ok()?;
+                items.get(index)?
+            }
+            _ => return None,
+        };
     }
     Some(current)
 }

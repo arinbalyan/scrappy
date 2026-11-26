@@ -1,0 +1,26 @@
+{
+  "data": [
+    {
+      "id": 4101,
+      "url": "https://recruiterflow.com/jobs/example-co/4101",
+      "title": "Backend Engineer",
+      "location": "Berlin",
+      "description": "Build APIs",
+      "company": "example-co",
+      "status": "open",
+      "created_at": "2026-11-20"
+    },
+    {
+      "id": 4102,
+      "url": "https://recruiterflow.com/jobs/example-co/4102",
+      "title": "ML Engineer",
+      "location": "Remote",
+      "description": "Train models",
+      "company": "example-co",
+      "status": "open",
+      "created_at": "2026-11-21"
+    }
+  ],
+  "total_items": 2
+}
+

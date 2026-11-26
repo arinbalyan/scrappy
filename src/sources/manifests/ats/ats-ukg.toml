@@ -1,0 +1,35 @@
+version = 1
+id = "ats-ukg"
+name = "UKG"
+family = "ats"
+health = "requires_slug"
+request = "https://recruiting.ultipro.com/{slug}/OpportunitySearch"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public tenant board endpoints; skip access-controlled boards"
+attribution = "UKG"
+slugs = ["example-co"]
+fixtures = ["ats-ukg"]
+[field_aliases.url]
+names = ["applyUrl", "id"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["companyName", "slug"]
+
+[field_aliases.location]
+names = ["locations.0.city", "location.city"]
+
+[field_aliases.description]
+names = ["description", "shortDescription"]
+
+[parser_options]
+envelope = ["opportunities"]
+

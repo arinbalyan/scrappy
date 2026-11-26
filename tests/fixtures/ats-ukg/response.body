@@ -1,0 +1,34 @@
+{
+  "opportunities": [
+    {
+      "id": "opp-1",
+      "title": "HR Systems Analyst",
+      "description": "Configure HR",
+      "companyName": "Example Co",
+      "applyUrl": "https://recruiting.ultipro.com/example-co/OpportunityDetail?opportunityId=opp-1",
+      "locations": [
+        {
+          "city": "Chicago",
+          "state": "IL",
+          "country": "US",
+          "formattedAddress": "Chicago, IL"
+        }
+      ]
+    },
+    {
+      "id": "opp-2",
+      "title": "Payroll Specialist",
+      "shortDescription": "Run payroll",
+      "locations": [
+        {
+          "city": "Remote",
+          "state": "US",
+          "country": "US",
+          "formattedAddress": "Remote"
+        }
+      ],
+      "companyName": "Example Co",
+      "applyUrl": "https://recruiting.ultipro.com/example-co/OpportunityDetail?opportunityId=opp-2"
+    }
+  ]
+}

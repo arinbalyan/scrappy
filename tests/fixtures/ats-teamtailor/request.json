@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://career.teamtailor.com/widget/jobs/example-co",
+  "headers": {
+    "accept": "application/json"
+  }
+}
+

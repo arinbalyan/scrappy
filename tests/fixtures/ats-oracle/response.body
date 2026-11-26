@@ -1,0 +1,25 @@
+{
+  "items": [
+    {
+      "requisitionList": [
+        {
+          "Id": "req-1",
+          "Title": "Cloud Engineer",
+          "PrimaryLocation": "Austin",
+          "EmployerName": "Example Co",
+          "ExternalUrl": "https://example-co.oraclecloud.com/careers/job/cloud-engineer",
+          "url": "https://example-co.oraclecloud.com/careers/job/cloud-engineer"
+        },
+        {
+          "Id": "req-2",
+          "Title": "Data Architect",
+          "PrimaryLocation": "Remote",
+          "ExternalUrlSeo": "data-architect",
+          "EmployerName": "Example Co",
+          "url": "https://example-co.oraclecloud.com/careers/job/data-architect"
+        }
+      ]
+    }
+  ]
+}
+

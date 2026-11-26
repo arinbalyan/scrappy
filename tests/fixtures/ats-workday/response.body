@@ -1,0 +1,22 @@
+{
+  "total": 2,
+  "jobPostings": [
+    {
+      "title": "Software Engineer",
+      "url": "https://example-co.wd5.myworkdayjobs.com/en-US/External/job/Software_Engineer/US123",
+      "externalPath": "/en-US/External/job/Software_Engineer/US123",
+      "locationsText": "San Francisco, CA",
+      "postedOn": "11/20/2026",
+      "company": "example-co"
+    },
+    {
+      "title": "Staff Engineer",
+      "url": "https://example-co.wd5.myworkdayjobs.com/en-US/External/job/Staff_Engineer/US124",
+      "externalPath": "/en-US/External/job/Staff_Engineer/US124",
+      "locationsText": "Remote",
+      "postedOn": "11/21/2026",
+      "company": "example-co"
+    }
+  ]
+}
+

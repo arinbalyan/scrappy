@@ -1,0 +1,41 @@
+version = 1
+id = "ats-workday"
+name = "Workday"
+family = "ats"
+health = "requires_slug"
+request = "https://{slug}.wd5.myworkdayjobs.com/wday/cxs/{slug}/External/jobs"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public tenant board endpoints; skip access-controlled boards"
+attribution = "Workday"
+slugs = ["example-co"]
+fixtures = ["ats-workday"]
+[field_aliases.url]
+names = ["url", "externalPath"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["slug"]
+
+[field_aliases.location]
+names = ["locationsText"]
+
+[request_options]
+method = "post"
+body = '{{"appliedFacets":{{}},"limit":20,"offset":0,"searchText":""}}'
+
+[request_options.headers]
+content-type = "application/json"
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[parser_options]
+envelope = ["jobPostings"]
+
