@@ -29,6 +29,19 @@ context: |
   challenge detection with backoff; checkpoint/resume; and locked, audited
   dependency builds.
 
+  Rust code must follow the project-local ms-rust skill installed at
+  .codex/skills/ms-rust/SKILL.md. Load that skill and only the applicable
+  guideline files before writing, reviewing, or modifying any .rs file.
+  Follow the Microsoft Pragmatic Rust Guidelines it contains, including the
+  canonical documentation format and the compliance marker where required.
+
+  Keep source comments short and factual. Long explanations, design notes,
+  architecture decisions, command references, config field tables, and
+  operational runbooks belong in documentation/ inside the repository, with
+  file paths written relative to the scrappy repository root. Prefer a short
+  doc comment that states why or what, then link to the relevant document for
+  the full explanation. Do not put large comment blocks in source files.
+
 # Per-artifact rules.
 rules:
   proposal:
@@ -40,6 +53,8 @@ rules:
     - Describe the fetcher trait and the separation of fetching from parsing.
     - Describe the source manifest schema and fixture contract.
     - Describe the full command tree, config actions, doctor checks, and help expectations.
+    - Describe the documentation/ layout and which topics live in each document.
+    - Describe the Rust code style, lint, formatting, and review expectations from the ms-rust skill.
     - Address wreq/BoringSSL versus rustls build tradeoffs and the browser feature gate.
     - Address every old security gap found in the audits.
   specs:
@@ -50,6 +65,7 @@ rules:
     - State that unknown sources and invalid inputs exit nonzero.
   tasks:
     - Keep .gitignore, LICENSE, NOTICE, and Cargo scaffolding as implementation tasks.
+    - Keep the ms-rust skill, documentation/ scaffold, and documentation parity check as implementation tasks.
     - Break work into independently verifiable chunks with explicit test commands.
     - Include a source-by-source port order based on the audit's tier list.
     - Include live validation as a separate opt-in task, never a normal CI dependency.
@@ -59,6 +75,8 @@ operations:
   apply:
     guidance:
       - Do not copy code or text from main or sibling projects.
+      - Invoke the ms-rust skill before any Rust file is written or changed.
+      - Keep comments short; put long explanations in documentation/ with repo-relative paths.
       - Keep normal tests network-free and replay fixtures through real parsers.
       - Report any dependency version that differs from the design before pinning.
   archive:

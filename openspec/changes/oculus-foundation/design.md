@@ -38,6 +38,16 @@ Use a single Cargo package with a binary and library boundary.
 
 Alternative considered: a workspace with many crates. Rejected for a single contributor because it adds build overhead and indirection without a team boundary to enforce.
 
+### 1a. Documentation and code style
+
+Keep source comments short and factual. A comment or doc comment states what an item does or why a choice exists, then points to the relevant document in `documentation/` when more detail is needed. Long explanations, design notes, command references, config field tables, and operational runbooks live in `documentation/`. Document paths are written relative to the scrappy repository root.
+
+The `documentation/` folder holds `001-quickstart.md`, `002-installation.md`, `003-cli-reference.md`, `004-configuration.md`, `005-status.md`, `006-architecture.md`, `007-email-extraction.md`, `008-quality-scoring.md`, `009-export-formats.md`, `010-proxy.md`, `011-dedup.md`, `012-browser-automation.md`, `013-source-registry.md`, `014-testing.md`, and `015-security.md`. Each document names the source modules it explains. A documentation parity check in CI fails when a document references a missing path or a public module has no documentation entry.
+
+The project-local ms-rust skill lives at `.codex/skills/ms-rust/SKILL.md`. It contains the Microsoft Pragmatic Rust Guidelines and the compliance marker rule. Before writing or reviewing any `.rs` file, load that skill and only the guideline files relevant to the task. Apply `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, and `cargo doc --no-deps` as the baseline quality gate. Keep public items documented in canonical form and keep implementation detail out of public docs.
+
+Alternative considered: long inline comments and a README-only documentation model. Rejected because the old project drifted from its own docs and the new binary needs a stable reference for CLI, config, sources, and operations.
+
 ### 2. CLI and configuration
 
 Use clap 4 derive for subcommands and typed arguments. The command tree is `run`, `validate`, `config` (`init`, `show`, `set`, `unset`, `edit`, `explain`, `schema`), `list-sources`, `doctor` (with `fix`), `completion`, and `version`. Root and every subcommand support `--help` and `--version`; help includes one copyable example per subcommand and explains every flag. `completion` emits shell scripts and rejects unsupported shells. `version` exits without loading config.

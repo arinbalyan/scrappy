@@ -93,3 +93,25 @@ Normal CI SHALL verify that default source selection contains only registered ma
 #### Scenario: Drift fails CI
 - **WHEN** a manifest is registered without a fixture set or a status document is edited by hand
 - **THEN** the parity check fails and names the drifted source or file
+
+### Requirement: Documentation parity
+The repository SHALL keep a `documentation/` folder with a document for the CLI, configuration, architecture, sources, testing, and security. Every documented source path SHALL be relative to the scrappy repository root and SHALL exist. Source comments SHALL remain short; long explanations and runbooks SHALL live in `documentation/`.
+
+#### Scenario: Style gate passes
+- **WHEN** normal CI runs on a clean tree with valid documentation paths
+- **THEN** the documentation parity check succeeds
+
+#### Scenario: Documentation drift fails CI
+- **WHEN** a document names a source path that does not exist
+- **THEN** the documentation parity check fails and names the document and missing path
+
+### Requirement: Rust style gate
+Normal CI SHALL run `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, and `cargo doc --no-deps`. Rust work SHALL follow the project-local ms-rust skill at `.codex/skills/ms-rust/SKILL.md`.
+
+#### Scenario: Style gate passes
+- **WHEN** normal CI runs on a clean tree
+- **THEN** formatting, clippy with warnings denied, and documentation generation all succeed
+
+#### Scenario: Rust skill is present
+- **WHEN** a contributor starts work on a Rust file
+- **THEN** `.codex/skills/ms-rust/SKILL.md` and its referenced guideline files are present in the repository
