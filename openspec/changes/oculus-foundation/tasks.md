@@ -14,10 +14,10 @@
 ## 2. CLI and configuration foundation
 
 - [x] 2.1 Implement clap subcommands for run, validate, config init/show/set/unset/edit/explain/schema, list-sources, doctor with fix, completion, and version with global --help and --version, and verify that help lists every subcommand, flag, and one example per subcommand
-- [ ] 2.2 Implement typed Config with Option fields and layered resolution in CLI, environment, project config, user config, default order, and verify precedence with a table-driven test
-- [ ] 2.3 Add OneOrMany deserialization for scalar and array config values and verify both forms load in tests
-- [ ] 2.4 Add tri-state boolean flags with negative counterparts and verify that explicit false overrides config true
-- [ ] 2.5 Add strict validation for unknown keys, unknown sources, dates, memory limits, and rate maps, and verify invalid input exits nonzero with a stderr diagnostic
+- [x] 2.2 Implement typed Config with Option fields and layered resolution in CLI, environment, project config, user config, default order, and verify precedence with a table-driven test
+- [x] 2.3 Add OneOrMany deserialization for scalar and array config values and verify both forms load in tests
+- [x] 2.4 Add tri-state boolean flags with negative counterparts and verify that explicit false overrides config true
+- [x] 2.5 Add strict validation for unknown keys, unknown sources, dates, memory limits, and rate maps, and verify invalid input exits nonzero with a stderr diagnostic
 - [ ] 2.6 Implement machine-separated stdout and stderr and verify that warnings do not corrupt JSON output
 - [ ] 2.7 Implement atomic config set that preserves unknown and per-source sections with 0700 directories and 0600 files, and verify with a tempdir test
 - [ ] 2.8 Implement doctor with named checks for config, schema, sources, credentials, proxies, browser, fixtures, output writability, and features, with JSON output and a fix action that counts failed repairs as failures, and verify key values are redacted

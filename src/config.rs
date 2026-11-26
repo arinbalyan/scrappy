@@ -337,3 +337,43 @@ mod tests {
         assert!(validate(&config).is_err());
     }
 }
+
+#[cfg(test)]
+mod precedence_tests {
+    use super::*;
+
+    #[test]
+    fn cli_overrides_lower_layers() {
+        let cli = Config {
+            format: Some("csv".to_owned()),
+            ..Config::default()
+        };
+        let config = resolve(&Sources {
+            hermetic: true,
+            cli,
+            ..Sources::default()
+        })
+        .expect("resolution succeeds");
+        assert_eq!(config.format.as_deref(), Some("csv"));
+    }
+
+    #[test]
+    fn hermetic_ignores_files() {
+        let dir = std::env::temp_dir().join(format!("scrappy-test-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("temp dir created");
+        let path = dir.join("config.toml");
+        std::fs::write(
+            &path,
+            "format = 'json'
+",
+        )
+        .expect("config written");
+        let config = resolve(&Sources {
+            hermetic: true,
+            ..Sources::default()
+        })
+        .expect("resolution succeeds");
+        assert_eq!(config.format, None);
+        std::fs::remove_file(path).expect("config removed");
+    }
+}
