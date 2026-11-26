@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "{base_url}?count={count}",
+  "headers": {
+    "accept": "application/json"
+  }
+}

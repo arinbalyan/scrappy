@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+<title>Sample remote roles</title>
+<item>
+  <title>Example Org: Backend Engineer</title>
+  <link>https://jobs.example.test/roles/101</link>
+  <description>Build services in a distributed system.</description>
+  <region>Anywhere</region><country>Exampleland</country><state>Region A</state>
+  <skills>rust, sql</skills><pubDate>Mon, 02 Nov 2026 09:00:00 +0000</pubDate>
+</item>
+<item>
+  <title>Sample Labs: Frontend Engineer</title>
+  <link>https://jobs.example.test/roles/102</link>
+  <description>Build accessible interfaces.</description>
+  <region>Remote</region><country>Exampleland</country>
+  <skills>typescript</skills><pubDate>Tue, 03 Nov 2026 09:00:00 +0000</pubDate>
+</item>
+</channel></rss>

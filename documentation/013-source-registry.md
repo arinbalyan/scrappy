@@ -21,3 +21,11 @@ slug, credential, and query substitutions to build a validated
 fetching::Request, then uses the selected parser to turn a fetched response
 into normalized records. The adapter never calls the network and redacts
 credentials from all diagnostics.
+
+`tests/source_registry_contract.rs` checks the built-in registry against its
+supporting files. Each manifest must have a behavior document in
+`documentation/scrapers/<source_id>.md`, a health state drawn from the declared
+`Health` values, and a file under the directory for its declared family. Every
+registered fixture set must contain the six canonical files listed in
+`tests/fixtures/README.md`. Manifests may name credentials but must never carry
+a credential value or secret.

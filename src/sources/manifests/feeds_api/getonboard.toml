@@ -1,0 +1,34 @@
+version = 1
+id = "getonboard"
+name = "GetOnBoard"
+family = "feeds_api"
+health = "working"
+request = "https://www.getonbrd.com/api/v0/search/jobs?per_page={query:per_page}&page=1&query={query:term}"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "GetOnBoard"
+fixtures = ["getonboard"]
+
+[parser_options]
+envelope = ["data"]
+
+[field_aliases.url]
+names = ["links.public_url"]
+
+[field_aliases.title]
+names = ["attributes.title"]
+
+[field_aliases.company]
+names = ["attributes.company"]
+
+[field_aliases.location]
+names = ["attributes.location_cities.0", "attributes.location_cities"]
+
+[field_aliases.description]
+names = ["attributes.description"]

@@ -1,0 +1,16 @@
+version = 1
+id = "golangjobs"
+name = "Golang Jobs"
+family = "feeds_api"
+health = "working"
+request = "https://www.golangprojects.com/rss.xml"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 1
+robots = "allow"
+attribution = "Golang Jobs"
+fixtures = ["golangjobs"]

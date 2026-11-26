@@ -1,0 +1,60 @@
+{
+  "data": {
+    "jobs": [
+      {
+        "title": "Functional Engineer",
+        "company": {
+          "name": "Example Org"
+        },
+        "location": {
+          "city": "City One",
+          "country": "Exampleland"
+        },
+        "remote": true,
+        "remuneration": {
+          "timePeriod": "year",
+          "competitive": false,
+          "currency": "USD",
+          "min": 90000,
+          "max": 110000
+        },
+        "slug": "role-501",
+        "firstPublished": "2026-11-02T09:00:00Z",
+        "descriptionHtml": "<p>Generic role description.</p>",
+        "tags": [
+          {
+            "label": "haskell"
+          }
+        ],
+        "url": "https://jobs.example.test/roles/501"
+      },
+      {
+        "title": "Runtime Engineer",
+        "company": {
+          "name": "Sample Labs"
+        },
+        "location": {
+          "city": "City Two",
+          "country": "Exampleland"
+        },
+        "remote": true,
+        "remuneration": {
+          "timePeriod": "year",
+          "competitive": false,
+          "currency": "USD",
+          "min": 90000,
+          "max": 110000
+        },
+        "slug": "role-502",
+        "firstPublished": "2026-11-02T09:00:00Z",
+        "descriptionHtml": "<p>Generic role description.</p>",
+        "tags": [
+          {
+            "label": "scala"
+          }
+        ],
+        "url": "https://jobs.example.test/roles/502"
+      }
+    ]
+  }
+}

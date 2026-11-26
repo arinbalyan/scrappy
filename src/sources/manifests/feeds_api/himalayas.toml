@@ -1,0 +1,31 @@
+version = 1
+id = "himalayas"
+name = "Himalayas"
+family = "feeds_api"
+health = "working"
+request = "https://himalayas.app/jobs/api?limit={query:limit}&offset={query:offset}"
+parser = "json"
+fetcher = "plain"
+pagination = "offset:20:10"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow"
+attribution = "Himalayas"
+fixtures = ["himalayas"]
+
+[field_aliases.title]
+names = ["title", "position"]
+[field_aliases.company]
+names = ["companyName", "company.name", "company"]
+[field_aliases.url]
+names = ["applicationLink", "url", "link"]
+[field_aliases.location]
+names = ["locationRestrictions", "location", "city"]
+[field_aliases.description]
+names = ["description", "text"]
+
+[parser_options]
+envelope = ["jobs"]
+

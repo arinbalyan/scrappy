@@ -1,0 +1,66 @@
+{
+  "data": [
+    {
+      "id": "301",
+      "type": "job",
+      "attributes": {
+        "title": "Backend Engineer",
+        "description": "Generic role description.",
+        "company": "Example Org",
+        "min_salary": 50000,
+        "max_salary": 70000,
+        "remote": true,
+        "seniority": "senior",
+        "published_at": 1793592000,
+        "countries": [
+          "Exampleland"
+        ],
+      "location_cities": "City One",
+        "tags": [
+          "rust"
+        ]
+      },
+      "links": {
+        "public_url": "https://jobs.example.test/postings/301"
+      }
+    },
+    {
+      "id": "302",
+      "type": "job",
+      "attributes": {
+        "title": "Data Engineer",
+        "description": "Generic role description.",
+        "company": "Sample Labs",
+        "min_salary": 50000,
+        "max_salary": 70000,
+        "remote": true,
+        "seniority": {
+          "name": "mid"
+        },
+        "published_at": 1793592000,
+        "countries": [
+          "Exampleland"
+        ],
+        "location_cities": {
+          "data": [
+            {
+              "id": "c1",
+              "type": "location_city"
+            }
+          ]
+        },
+        "tags": [
+          "sql"
+        ]
+      },
+      "links": {
+        "public_url": "https://jobs.example.test/postings/302"
+      }
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "total_pages": 1,
+    "total_results": 2
+  }
+}

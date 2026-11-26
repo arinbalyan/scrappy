@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://landing.jobs/api/v1/jobs?offset={query:offset}&limit={query:limit}",
+  "headers": {
+    "accept": "application/json"
+  }
+}

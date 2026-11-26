@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://devopsjobs.io/jobs.rss",
+  "headers": {
+    "accept": "application/rss+xml, application/xml"
+  }
+}

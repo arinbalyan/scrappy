@@ -1,0 +1,28 @@
+{
+  "jobs": [
+    {
+      "id": 801,
+      "title": "Backend Engineer",
+      "company_name": "Example Co",
+      "candidate_required_location": "Worldwide",
+      "url": "https://jobs.example.test/801",
+      "description": "Build services"
+    },
+    {
+      "id": 802,
+      "title": "Data Engineer",
+      "company_name": "Sample Labs",
+      "candidate_required_location": "Europe",
+      "url": "https://jobs.example.test/802",
+      "description": "Build pipelines"
+    },
+    {
+      "id": 803,
+      "title": "Gardener",
+      "company_name": "Unrelated Co",
+      "candidate_required_location": "Local",
+      "url": "https://jobs.example.test/803",
+      "description": "Tend plants"
+    }
+  ]
+}

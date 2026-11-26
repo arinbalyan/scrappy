@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.getonbrd.com/api/v0/search/jobs?per_page=20&page=1&query=engineer",
+  "headers": {
+    "accept": "application/json"
+  }
+}

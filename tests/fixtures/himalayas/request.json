@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://himalayas.app/jobs/api?limit=20&offset=0",
+  "headers": {
+    "accept": "application/json"
+  }
+}

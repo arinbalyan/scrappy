@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://aijobs.ai/remote",
+  "headers": {
+    "accept": "application/json"
+  }
+}

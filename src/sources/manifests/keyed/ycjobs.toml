@@ -1,0 +1,24 @@
+version = 1
+id = "ycjobs"
+name = "YC Jobs"
+family = "keyed"
+health = "blocked"
+request = "https://www.ycombinator.com/jobs"
+request_template = "simple-html-fallback"
+parser = "html"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "YC Jobs"
+fixtures = ["ycjobs"]
+
+[selectors]
+item = "div.listing"
+title = ".title"
+company = "span.company"
+url = "a.job-link"
+url_attribute = "href"

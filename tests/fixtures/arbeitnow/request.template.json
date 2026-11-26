@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "{base_url}?page={page}",
+  "headers": {
+    "accept": "application/json"
+  }
+}

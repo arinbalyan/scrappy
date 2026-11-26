@@ -1,0 +1,80 @@
+{
+  "fetched_at": "2026-11-26T00:00:00Z",
+  "substitutions": {
+    "base_url": "https://hacker-news.firebaseio.com/v0"
+  },
+  "replay": {
+    "1201": {
+      "id": 1201,
+      "type": "story",
+      "title": "Example Co is hiring engineers",
+      "text": "<p>Work on services.</p>",
+      "url": "https://jobs.example.test/1201",
+      "time": 1764067200
+    },
+    "1202": {
+      "id": 1202,
+      "type": "story",
+      "title": "Sample Labs is hiring engineers",
+      "text": "<p>Build pipelines.</p>",
+      "url": "https://jobs.example.test/1202",
+      "time": 1764067200
+    },
+    "1203": {
+      "id": 1203,
+      "type": "story",
+      "title": "Test Org is hiring engineers",
+      "text": "<p>Build tools.</p>",
+      "url": "https://jobs.example.test/1203",
+      "time": 1764067200
+    },
+    "1204": {
+      "id": 1204,
+      "type": "story",
+      "title": "Hidden Co is hiring engineers",
+      "text": "<p>No URL on this item.</p>",
+      "time": 1764067200
+    }
+  },
+  "items": [
+    {
+      "id": 1201,
+      "type": "story",
+      "title": "Example Co is hiring engineers",
+      "company": "Example Co",
+      "company_name": "Example Co",
+      "url": "https://jobs.example.test/1201",
+      "text": "<p>Work on services.</p>",
+      "time": 1764067200
+    },
+    {
+      "id": 1202,
+      "type": "story",
+      "title": "Sample Labs is hiring engineers",
+      "company": "Sample Labs",
+      "company_name": "Sample Labs",
+      "url": "https://jobs.example.test/1202",
+      "text": "<p>Build pipelines.</p>",
+      "time": 1764067200
+    },
+    {
+      "id": 1203,
+      "type": "story",
+      "title": "Test Org is hiring engineers",
+      "company": "Test Org",
+      "company_name": "Test Org",
+      "url": "https://jobs.example.test/1203",
+      "text": "<p>Build tools.</p>",
+      "time": 1764067200
+    },
+    {
+      "id": 1204,
+      "type": "story",
+      "title": "Hidden Co is hiring engineers",
+      "company": "Hidden Co",
+      "company_name": "Hidden Co",
+      "text": "<p>No URL on this item.</p>",
+      "time": 1764067200
+    }
+  ]
+}

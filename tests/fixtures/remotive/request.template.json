@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "{base_url}?search={search}",
+  "headers": {
+    "accept": "application/json"
+  }
+}

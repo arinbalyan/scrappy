@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.fossjobs.net/rss/all/",
+  "headers": {
+    "accept": "application/rss+xml, application/xml"
+  }
+}

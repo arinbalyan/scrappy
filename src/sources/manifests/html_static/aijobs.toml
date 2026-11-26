@@ -1,0 +1,23 @@
+version = 1
+id = "aijobs"
+name = "AI Jobs"
+family = "html_static"
+health = "working"
+request = "https://aijobs.ai/remote"
+parser = "html"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "AI Jobs"
+fixtures = ["aijobs"]
+
+[selectors]
+item = "li.job-item"
+title = ".title"
+company = "span.company"
+url = "a.job-link"
+url_attribute = "href"

@@ -1,0 +1,34 @@
+version = 1
+id = "4dayweek"
+name = "4 Day Week"
+family = "feeds_api"
+health = "working"
+request = "https://4dayweek.io/api/jobs"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "4 Day Week"
+fixtures = ["4dayweek"]
+
+[parser_options]
+envelope = ["jobs"]
+
+[field_aliases.url]
+names = ["url"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company.name", "company_name"]
+
+[field_aliases.location]
+names = ["location"]
+
+[field_aliases.description]
+names = ["description"]

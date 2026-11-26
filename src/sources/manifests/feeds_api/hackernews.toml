@@ -1,0 +1,26 @@
+version = 1
+id = "hackernews"
+name = "Hacker News"
+family = "feeds_api"
+health = "working"
+request = "https://hacker-news.firebaseio.com/v0/jobstories.json"
+parser = "json"
+fetcher = "plain"
+pagination = "fanout:10:45"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow"
+attribution = "Hacker News"
+fixtures = ["hackernews"]
+
+[field_aliases.title]
+names = ["title"]
+[field_aliases.company]
+names = ["company", "company_name"]
+[field_aliases.url]
+names = ["url"]
+[field_aliases.description]
+names = ["text", "description"]
+

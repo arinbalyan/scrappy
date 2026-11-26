@@ -1,0 +1,16 @@
+version = 1
+id = "ecojobs"
+name = "Eco Jobs"
+family = "feeds_api"
+health = "stale"
+request = "https://www.ecojobs.com/rss.xml"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Eco Jobs"
+fixtures = ["ecojobs"]

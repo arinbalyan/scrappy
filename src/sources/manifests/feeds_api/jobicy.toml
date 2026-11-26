@@ -1,0 +1,31 @@
+version = 1
+id = "jobicy"
+name = "Jobicy"
+family = "feeds_api"
+health = "working"
+request = "https://jobicy.com/api/v2/remote-jobs?count={query:count}"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow"
+attribution = "Jobicy"
+fixtures = ["jobicy"]
+
+[field_aliases.title]
+names = ["jobTitle", "title", "position"]
+[field_aliases.company]
+names = ["companyName", "company", "organization"]
+[field_aliases.url]
+names = ["url", "link"]
+[field_aliases.location]
+names = ["jobGeo", "location", "city"]
+[field_aliases.description]
+names = ["jobDescription", "description", "text"]
+
+[parser_options]
+envelope = ["jobs"]
+

@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://functional.works-hub.com/api/graphql",
+  "headers": {
+    "accept": "application/json"
+  }
+}

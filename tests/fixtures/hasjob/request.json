@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://hasjob.co/feed",
+  "headers": {
+    "accept": "application/rss+xml, application/xml"
+  }
+}

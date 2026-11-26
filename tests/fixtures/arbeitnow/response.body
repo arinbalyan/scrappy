@@ -1,0 +1,25 @@
+{
+  "data": [
+    {
+      "slug": "backend-701",
+      "company_name": "Example Co",
+      "title": "Backend Engineer",
+      "description": "<p>Work on <strong>services</strong>.</p>",
+      "url": "https://jobs.example.test/701",
+      "location": "Berlin",
+      "remote": true
+    },
+    {
+      "slug": "data-702",
+      "company_name": "Sample Labs",
+      "title": "Data Engineer",
+      "description": "<p>Build <i>pipelines</i>.</p>",
+      "url": "https://jobs.example.test/702",
+      "location": "Remote",
+      "remote": true
+    }
+  ],
+  "links": {
+    "next": "https://www.arbeitnow.com/api/job-board-api?page=2"
+  }
+}

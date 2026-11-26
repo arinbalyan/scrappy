@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://jobicy.com/api/v2/remote-jobs?count=50",
+  "headers": {
+    "accept": "application/json"
+  }
+}

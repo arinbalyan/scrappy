@@ -1,0 +1,20 @@
+version = 1
+id = "weworkremotely"
+name = "We Work Remotely"
+family = "feeds_api"
+health = "working"
+request = "https://weworkremotely.com/remote-jobs.rss"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "We Work Remotely"
+fixtures = ["weworkremotely"]
+
+[parser_options]
+title_separator = ": "
+company_first = true

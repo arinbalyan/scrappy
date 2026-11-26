@@ -1,0 +1,37 @@
+{
+  "jobs": [
+    {
+      "guid": "h-1001",
+      "title": "Backend Engineer",
+      "companyName": "Example Co",
+      "locationRestrictions": "Worldwide",
+      "minSalary": 90000,
+      "maxSalary": 120000,
+      "currency": "USD",
+      "seniority": [
+        "mid"
+      ],
+      "pubDate": 1764067200,
+      "applicationLink": "https://jobs.example.test/1001",
+      "description": "Build services"
+    },
+    {
+      "guid": "h-1002",
+      "title": "Data Engineer",
+      "companyName": "Sample Labs",
+      "locationRestrictions": "Europe",
+      "minSalary": 80000,
+      "maxSalary": 110000,
+      "currency": "USD",
+      "seniority": [
+        "senior"
+      ],
+      "pubDate": 1764067200,
+      "applicationLink": "https://jobs.example.test/1002",
+      "description": "Build pipelines"
+    }
+  ],
+  "totalCount": 2,
+  "offset": 0,
+  "limit": 20
+}

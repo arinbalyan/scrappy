@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "{base_url}",
+  "headers": {
+    "accept": "application/rss+xml, application/xml"
+  }
+}

@@ -7,6 +7,33 @@ manifest in `src/sources/manifests/` and rerun the generator.
 
 | Source | Name | Health | Availability | Family | Fetcher |
 | --- | --- | --- | --- | --- | --- |
+| 4dayweek | 4 Day Week | working | ready | FeedsApi | plain |
+| aijobs | AI Jobs | working | ready | HtmlStatic | plain |
+| androidjobs | Android Jobs | working | ready | FeedsApi | plain |
+| arbeitnow | Arbeitnow | working | ready | FeedsApi | plain |
+| crunchboard | Crunchboard | working | ready | FeedsApi | plain |
+| cryptocurrencyjobs | Cryptocurrency Jobs | working | ready | FeedsApi | plain |
+| devopsjobs | Devopsjobs | working | ready | FeedsApi | plain |
+| ecojobs | Eco Jobs | stale | ready | FeedsApi | plain |
+| fossjobs | Fossjobs | working | ready | FeedsApi | plain |
+| functionalworks | Functional Works | stale | ready | FeedsApi | plain |
+| getonboard | GetOnBoard | working | ready | FeedsApi | plain |
+| golangjobs | Golang Jobs | working | ready | FeedsApi | plain |
+| gunio | Gun.io Jobs | working | ready | HtmlStatic | plain |
+| hackernews | Hacker News | working | ready | FeedsApi | plain |
+| hasjob | Hasjob | working | ready | FeedsApi | plain |
+| himalayas | Himalayas | working | ready | FeedsApi | plain |
+| huggingfacejobs | Hugging Face Jobs | working | ready | HtmlStatic | plain |
+| jobicy | Jobicy | working | ready | FeedsApi | plain |
+| jobspresso | Jobspresso | working | ready | FeedsApi | plain |
+| landingjobs | Landingjobs | working | ready | FeedsApi | plain |
+| pythonjobs | Python Jobs | working | ready | FeedsApi | plain |
+| railsjobs | Rails Jobs | working | ready | FeedsApi | plain |
+| realworkfromanywhere | Real Work From Anywhere | working | ready | FeedsApi | plain |
 | remoteok | RemoteOK | working | ready | FeedsApi | plain |
+| remotive | Remotive | working | ready | FeedsApi | plain |
+| weworkremotely | We Work Remotely | working | ready | FeedsApi | plain |
+| workingnomads | Working Nomads | working | ready | FeedsApi | plain |
+| ycjobs | YC Jobs | blocked | blocked | Keyed | plain |
 
 The source registry is described in `documentation/013-source-registry.md`.

@@ -1,0 +1,34 @@
+version = 1
+id = "functionalworks"
+name = "Functional Works"
+family = "feeds_api"
+health = "stale"
+request = "https://functional.works-hub.com/api/graphql"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Functional Works"
+fixtures = ["functionalworks"]
+
+[parser_options]
+envelope = ["data", "jobs"]
+
+[field_aliases.url]
+names = ["url"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company.name"]
+
+[field_aliases.location]
+names = ["location.city"]
+
+[field_aliases.description]
+names = ["descriptionHtml"]

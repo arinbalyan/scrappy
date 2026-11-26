@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="en"><body>
+<ul class="jobs">
+<li class="job-row"><a class="job-link" href="/jobs/701"><span class="title">Backend Engineer</span></a><span class="company">Example Org</span></li>
+<li class="job-row"><a class="job-link" href="/jobs/702"><span class="title">Frontend Engineer</span></a><span class="company">Sample Labs</span></li>
+<li class="job-row"><a class="job-link" href="/jobs/701"><span class="title">Backend Engineer (repeat)</span></a><span class="company">Example Org</span></li>
+</ul></body></html>

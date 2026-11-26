@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.workingnomads.com/api/exposed_jobs",
+  "headers": {
+    "accept": "application/json"
+  }
+}

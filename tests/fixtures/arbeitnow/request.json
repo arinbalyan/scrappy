@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.arbeitnow.com/api/job-board-api?page=1",
+  "headers": {
+    "accept": "application/json"
+  }
+}

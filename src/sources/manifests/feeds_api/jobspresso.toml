@@ -1,0 +1,20 @@
+version = 1
+id = "jobspresso"
+name = "Jobspresso"
+family = "feeds_api"
+health = "working"
+request = "https://jobspresso.co/feed/?post_type=job_listing"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 1
+robots = "allow"
+attribution = "Jobspresso"
+fixtures = ["jobspresso"]
+
+[parser_options]
+title_separator = ": "
+company_first = true

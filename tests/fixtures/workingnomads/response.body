@@ -1,0 +1,20 @@
+[
+  {
+    "slug": "backend-901",
+    "title": "Backend Engineer",
+    "company_name": "Example Co",
+    "location": "Remote",
+    "pub_date": "2026-11-26T00:00:00Z",
+    "url": "https://jobs.example.test/901",
+    "description": "Build services"
+  },
+  {
+    "slug": "data-902",
+    "title": "Data Engineer",
+    "company_name": "Sample Labs",
+    "location": "Europe",
+    "pub_date": "2026-11-26T00:00:00Z",
+    "url": "https://jobs.example.test/902",
+    "description": "Build pipelines"
+  }
+]

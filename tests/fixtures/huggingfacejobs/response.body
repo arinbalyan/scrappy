@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en"><body>
+<nav><a href="/about">About</a><a href="/teams">Teams</a></nav>
+<main>
+<div class="listing"><a class="job-link" href="/jobs/601"><span class="title">ML Engineer</span></a><span class="company">Example Org</span></div>
+<div class="listing"><a class="job-link" href="https://jobs.example.test/roles/602"><span class="title">Data Engineer</span></a><span class="company">Sample Labs</span></div>
+<div class="listing"><a class="job-link" href="/jobs/601"><span class="title">ML Engineer (duplicate)</span></a><span class="company">Example Org</span></div>
+</main></body></html>

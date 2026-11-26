@@ -4,6 +4,7 @@ name = "RemoteOK"
 family = "feeds_api"
 health = "working"
 request = "https://remoteok.com/api"
+request_template = "base"
 parser = "json"
 fetcher = "plain"
 pagination = "none"
@@ -14,3 +15,15 @@ max_concurrency = 1
 robots = "allow"
 attribution = "RemoteOK"
 fixtures = ["remoteok"]
+
+[field_aliases.title]
+names = ["position", "title", "job_title"]
+
+[field_aliases.company]
+names = ["company", "company_name", "organization"]
+
+[field_aliases.url]
+names = ["url", "link", "apply_url"]
+
+[field_aliases.location]
+names = ["location", "city"]

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+  <title>Generic job feed</title>
+  <item>
+    <title>Platform Engineer - Cedar Systems - Austin</title>
+    <link>https://devopsjobs.io/jobs/8101</link>
+    <description><![CDATA[<p>Maintain build pipelines and alerts.</p>]]></description>
+    <pubDate>Thu, 26 Nov 2026 09:00:00 +0000</pubDate>
+  </item>
+  <item>
+    <title>Site Reliability Engineer - Harbor Cloud - Lisbon</title>
+    <link>https://devopsjobs.io/jobs/8102</link>
+    <description><![CDATA[<p>Improve service uptime and dashboards.</p>]]></description>
+    <pubDate>Thu, 26 Nov 2026 09:00:00 +0000</pubDate>
+  </item>
+</channel></rss>

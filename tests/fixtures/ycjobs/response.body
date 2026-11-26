@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="en"><body>
+<nav><a href="/companies">Companies</a><a href="/about">About</a></nav>
+<main>
+<div class="listing"><a class="job-link" href="/jobs/901"><span class="title">Software Engineer</span></a><span class="company">Example Org</span></div>
+<div class="listing"><a class="job-link" href="/jobs/902"><span class="title">Platform Engineer</span></a><span class="company">Sample Labs</span></div>
+</main></body></html>

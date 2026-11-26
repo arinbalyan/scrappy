@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+  <title>Generic job feed</title>
+  <item>
+    <title>Open Source Maintainer</title>
+    <link>https://www.fossjobs.net/jobs/3101</link>
+    <description><![CDATA[<p>Maintain a public package and review patches.</p>]]></description>
+    <pubDate>Thu, 26 Nov 2026 09:00:00 +0000</pubDate>
+  </item>
+  <item>
+    <title>Community Support Engineer</title>
+    <link>https://www.fossjobs.net/jobs/3102</link>
+    <description>Plain description with an ampersand &amp; a bracket.</description>
+    <pubDate>Thu, 26 Nov 2026 09:00:00 +0000</pubDate>
+  </item>
+</channel></rss>

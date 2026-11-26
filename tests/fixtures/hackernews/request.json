@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://hacker-news.firebaseio.com/v0/jobstories.json",
+  "headers": {
+    "accept": "application/json"
+  }
+}

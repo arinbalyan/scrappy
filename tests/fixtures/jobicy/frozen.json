@@ -1,0 +1,7 @@
+{
+  "fetched_at": "2026-11-26T00:00:00Z",
+  "substitutions": {
+    "base_url": "https://jobicy.com/api/v2/remote-jobs",
+    "count": "50"
+  }
+}

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+<item>
+  <title><![CDATA[Environmental Analyst]]></title>
+  <link>https://jobs.example.test/job/green-analyst/</link>
+  <description><![CDATA[Assess local sustainability programs.]]></description>
+  <pubDate>Mon, 02 Nov 2026 09:00:00 +0000</pubDate>
+</item>
+<item>
+  <title>Conservation Coordinator</title>
+  <link>https://jobs.example.test/job/habitat-work/</link>
+  <description>Coordinate habitat restoration work.</description>
+  <pubDate>Tue, 03 Nov 2026 09:00:00 +0000</pubDate>
+</item>
+</channel></rss>

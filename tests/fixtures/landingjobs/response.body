@@ -1,0 +1,24 @@
+[
+  {
+    "id": "7101",
+    "title": "Frontend Engineer",
+    "company": "Maple Labs",
+    "url": "https://landing.jobs/jobs/7101",
+    "city": "Lisbon",
+    "description": "Build accessible interfaces.",
+    "tags": [
+      "engineering"
+    ]
+  },
+  {
+    "id": "7102",
+    "title": "Backend Engineer",
+    "company": "Cedar Works",
+    "url": "https://landing.jobs/jobs/7102",
+    "city": "Remote",
+    "description": "Write HTTP services.",
+    "tags": [
+      "engineering"
+    ]
+  }
+]

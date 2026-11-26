@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://jobspresso.co/feed/?post_type=job_listing",
+  "headers": {
+    "accept": "application/rss+xml, application/xml"
+  }
+}

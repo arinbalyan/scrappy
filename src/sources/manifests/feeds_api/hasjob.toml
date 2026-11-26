@@ -1,0 +1,16 @@
+version = 1
+id = "hasjob"
+name = "Hasjob"
+family = "feeds_api"
+health = "working"
+request = "https://hasjob.co/feed"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 1
+robots = "allow"
+attribution = "Hasjob"
+fixtures = ["hasjob"]

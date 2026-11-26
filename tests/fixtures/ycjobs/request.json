@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.ycombinator.com/jobs",
+  "headers": {
+    "accept": "application/json"
+  }
+}

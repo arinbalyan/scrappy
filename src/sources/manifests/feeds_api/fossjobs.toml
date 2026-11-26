@@ -1,0 +1,16 @@
+version = 1
+id = "fossjobs"
+name = "Fossjobs"
+family = "feeds_api"
+health = "working"
+request = "https://www.fossjobs.net/rss/all/"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 1
+robots = "allow"
+attribution = "Fossjobs"
+fixtures = ["fossjobs"]

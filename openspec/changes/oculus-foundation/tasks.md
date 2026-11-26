@@ -41,7 +41,7 @@
 - [x] 3.6 Add list-sources --format json with health, failure, credential, fetcher, slug, and fixture fields, and verify empty and blocked states are distinguishable
 - [x] 3.7 Add registry parity checks for default selection, fixtures, contract tests, status uniqueness, and slug counts, and verify drift fails CI offline
 - [x] 3.8 Implement custom source manifests from a documented user config directory using built-in parser kinds, and verify a custom source runs without rebuilding or overriding a built-in ID
-- [ ] 3.9 Record one behavior document in documentation/scrapers/<source_id>.md for every ported source, covering endpoint family, parser, fetcher, quirks, and break/fix history
+- [x] 3.9 Record one behavior document in documentation/scrapers/<source_id>.md for every ported source, covering endpoint family, parser, fetcher, quirks, and break/fix history
 
 ## 4. Fetching and parsing foundation
 
@@ -75,9 +75,9 @@
 
 ## 6a. Canonical tree and consumer-ready output
 
-- [ ] 6a.1 Add a canonical-tree parity check for every path in design.md, including manifest family directories, numbered documentation files, scraper documents, and fixture files, and verify it fails on a removed path
-- [ ] 6a.2 Add request.template.json and frozen.json to the fixture contract and verify replay derives request.json from the template and timestamp
-- [ ] 6a.3 Verify CSV output has a stable header and standard escaping, and verify NDJSON stdout records use the same field names
+- [x] 6a.1 Add a canonical-tree parity check for every path in design.md, including manifest family directories, numbered documentation files, scraper documents, and fixture files, and verify it fails on a removed path
+- [x] 6a.2 Add request.template.json and frozen.json to the fixture contract and verify replay derives request.json from the template and timestamp
+- [x] 6a.3 Verify CSV output has a stable header and standard escaping, and verify NDJSON stdout records use the same field names
 
 ## 7. Security and privacy
 
@@ -92,20 +92,20 @@
 
 ## 8. Fixtures and offline tests
 
-- [ ] 8.1 Define fixture directory contract with request descriptor, response body, headers, frozen timestamp, and golden record, and verify a validator test passes
-- [ ] 8.2 Build fixture replay harness that injects saved responses into real parsers and verify a parser test passes with networking disabled
+- [x] 8.1 Define fixture directory contract with request descriptor, response body, headers, frozen timestamp, and golden record, and verify a validator test passes
+- [x] 8.2 Build fixture replay harness that injects saved responses into real parsers and verify a parser test passes with networking disabled
 - [ ] 8.3 Add CLI contract tests for precedence, scalar forms, explicit false, formats, config writes, doctor parity, doctor fix failure counting, init template, schema output, completion, version, and invalid exits, and verify the suite passes
 - [ ] 8.4 Add secret-leak CI check with synthetic secrets and verify the check fails on an injected leak
 - [ ] 8.5 Add bridge contract tests for stdin config, progress events, exit codes, flush behavior, and cancellation, and verify the suite passes offline
 
 ## 9. Source porting Tier 1
 
-- [ ] 9.0 Add manifest fields for a request template name, selector map, and parser options, then add source adapters that turn each manifest into a validated request and a parsed record set
-- [ ] 9.1 Port arbeitnow, remoteok, remotive, workingnomads, himalayas, and jobicy with fixtures and parser tests, and verify cargo test passes offline
-- [ ] 9.5 Write scraper behavior docs for every Tier 1 source and verify each source id has a matching document
-- [ ] 9.2 Port hackernews, cryptocurrencyjobs, fossjobs, pythonjobs, railsjobs, golangjobs, and devopsjobs with fixtures and parser tests, and verify cargo test passes offline
-- [ ] 9.3 Port crunchboard, jobspresso, hasjob, landingjobs, realworkfromanywhere, and weworkremotely with fixtures and parser tests, and verify cargo test passes offline
-- [ ] 9.4 Port huggingfacejobs, androidjobs, aijobs, gunio, ycjobs, 4dayweek, functionalworks, getonboard, and ecojobs with fixtures and parser tests, and verify cargo test passes offline
+- [x] 9.0 Add manifest fields for a request template name, selector map, and parser options, then add source adapters that turn each manifest into a validated request and a parsed record set
+- [x] 9.1 Port arbeitnow, remoteok, remotive, workingnomads, himalayas, and jobicy with fixtures and parser tests, and verify cargo test passes offline
+- [x] 9.5 Write scraper behavior docs for every Tier 1 source and verify each source id has a matching document
+- [x] 9.2 Port hackernews, cryptocurrencyjobs, fossjobs, pythonjobs, railsjobs, golangjobs, and devopsjobs with fixtures and parser tests, and verify cargo test passes offline
+- [x] 9.3 Port crunchboard, jobspresso, hasjob, landingjobs, realworkfromanywhere, and weworkremotely with fixtures and parser tests, and verify cargo test passes offline
+- [x] 9.4 Port huggingfacejobs, androidjobs, aijobs, gunio, ycjobs, 4dayweek, functionalworks, getonboard, and ecojobs with fixtures and parser tests, and verify cargo test passes offline
 
 ## 10. Source porting Tier 2
 

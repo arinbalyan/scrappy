@@ -1,0 +1,23 @@
+version = 1
+id = "gunio"
+name = "Gun.io Jobs"
+family = "html_static"
+health = "working"
+request = "https://www.gun.io/jobs"
+parser = "html"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Gun.io Jobs"
+fixtures = ["gunio"]
+
+[selectors]
+item = "li.job-row"
+title = "a.job-link"
+company = "span.company"
+url = "a.job-link"
+url_attribute = "href"

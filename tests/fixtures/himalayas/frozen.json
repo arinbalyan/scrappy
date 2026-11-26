@@ -1,0 +1,8 @@
+{
+  "fetched_at": "2026-11-26T00:00:00Z",
+  "substitutions": {
+    "base_url": "https://himalayas.app/jobs/api",
+    "limit": "20",
+    "offset": "0"
+  }
+}

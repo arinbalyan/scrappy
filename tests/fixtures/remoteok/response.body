@@ -1,11 +1,33 @@
 [
   {
-    "id": "1",
+    "id": 0,
+    "date": "2026-11-26T00:00:00Z",
+    "tags": [
+      "jobs"
+    ]
+  },
+  {
+    "id": 1,
     "date": "2026-11-26T00:00:00Z",
     "company": "Example Co",
-    "position": "Rust Engineer",
+    "position": "Backend Engineer",
     "location": "Remote",
-    "url": "https://remoteok.com/remote-jobs/1",
-    "tags": ["rust", "remote"]
+    "url": "https://jobs.example.test/7001",
+    "epoch": 1764067200,
+    "tags": [
+      "backend"
+    ]
+  },
+  {
+    "id": 2,
+    "date": "2026-11-26T00:00:00Z",
+    "company": "Sample Labs",
+    "position": "Data Engineer",
+    "location": "Remote",
+    "url": "https://jobs.example.test/7002",
+    "epoch": 1764067200,
+    "tags": [
+      "data"
+    ]
   }
 ]

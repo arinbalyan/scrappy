@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://remotive.com/api/remote-jobs?search=backend",
+  "headers": {
+    "accept": "application/json"
+  }
+}

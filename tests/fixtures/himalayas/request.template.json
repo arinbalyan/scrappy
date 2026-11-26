@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "{base_url}?limit={limit}&offset={offset}",
+  "headers": {
+    "accept": "application/json"
+  }
+}

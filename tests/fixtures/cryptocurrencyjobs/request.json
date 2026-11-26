@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://cryptocurrencyjobs.co/index.xml",
+  "headers": {
+    "accept": "application/rss+xml, application/xml"
+  }
+}

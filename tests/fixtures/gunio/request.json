@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.gun.io/jobs",
+  "headers": {
+    "accept": "application/json"
+  }
+}

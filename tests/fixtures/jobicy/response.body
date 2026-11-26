@@ -1,0 +1,26 @@
+{
+  "jobs": [
+    {
+      "id": 1101,
+      "jobTitle": "Rust Engineer",
+      "companyName": "Example Co",
+      "jobGeo": "Worldwide",
+      "annualSalaryMin": 90000,
+      "annualSalaryMax": 120000,
+      "salaryCurrency": "USD",
+      "url": "https://jobs.example.test/1101",
+      "jobDescription": "Build services"
+    },
+    {
+      "id": 1102,
+      "jobTitle": "Data Engineer",
+      "companyName": "Sample Labs",
+      "jobGeo": "Europe",
+      "annualSalaryMin": 80000,
+      "annualSalaryMax": 110000,
+      "salaryCurrency": "USD",
+      "url": "https://jobs.example.test/1102",
+      "jobDescription": "Build pipelines"
+    }
+  ]
+}

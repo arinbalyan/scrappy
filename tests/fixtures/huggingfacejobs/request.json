@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://huggingface.co/jobs",
+  "headers": {
+    "accept": "application/json"
+  }
+}

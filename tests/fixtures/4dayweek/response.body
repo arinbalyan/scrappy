@@ -1,0 +1,39 @@
+{
+  "jobs": [
+    {
+      "id": "401",
+      "title": "Platform Engineer",
+      "slug": "role-401",
+      "company_name": "Example Org",
+      "work_arrangement": "remote",
+      "posted": 1793592000,
+      "schedule_type": "4_day_week",
+      "salary": "100 - 120",
+    "location": "City One",
+      "company": {
+        "name": "Example Org",
+        "slug": "org-401"
+      },
+      "url": "https://jobs.example.test/roles/401"
+    },
+    {
+      "id": "402",
+      "title": "Product Engineer",
+      "slug": "role-402",
+      "company_name": "Sample Labs",
+      "work_arrangement": "remote",
+      "posted": 1793592000,
+      "schedule_type": "4_day_week",
+      "salary": "90 - 110",
+    "location": "City Two",
+      "company": {
+        "name": "Sample Labs",
+        "slug": "org-402"
+      },
+      "url": "https://jobs.example.test/roles/402"
+    }
+  ],
+  "total": 2,
+  "page": 1,
+  "has_more": false
+}

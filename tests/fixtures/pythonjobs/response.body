@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel>
+  <title>Generic job feed</title>
+  <item>
+    <title>Python Platform Engineer</title>
+    <link>https://www.python.org/jobs/7201/</link>
+    <description><![CDATA[<p>Work on internal Python tooling.</p>]]></description>
+    <pubDate>Thu, 26 Nov 2026 09:00:00 +0000</pubDate>
+  </item>
+  <item>
+    <title>Data Pipeline Developer</title>
+    <link>https://www.python.org/jobs/7202/</link>
+    <description><![CDATA[<p>Batch processing with scheduled tasks.</p>]]></description>
+    <pubDate>Thu, 26 Nov 2026 09:00:00 +0000</pubDate>
+  </item>
+</channel></rss>

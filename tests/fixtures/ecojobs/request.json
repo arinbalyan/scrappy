@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.ecojobs.com/rss.xml",
+  "headers": {
+    "accept": "application/rss+xml, application/xml"
+  }
+}
