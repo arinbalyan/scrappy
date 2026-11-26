@@ -199,9 +199,9 @@
 
 ## 12. CI and release
 
-- [ ] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes
-- [ ] 12.2 Add cargo audit and cargo deny checks and verify a known vulnerable fixture dependency fails the check
-- [ ] 12.3 Add musl static build with file and ldd verification and verify the binary runs in a minimal container
+- [x] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes
+- [x] 12.2 Add cargo audit and cargo deny checks and verify a known vulnerable fixture dependency fails the check
+- [x] 12.3 Add musl static build with file and ldd verification and verify the binary runs in a minimal container
 - [ ] 12.4 Document config migration from the old binary and verify every documented command works against the new CLI
 - [ ] 12.5 Build and upload every installation-documented artifact in the release workflow, verify checksums in installers, and smoke-test each artifact
 

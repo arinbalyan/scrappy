@@ -8,6 +8,13 @@ compliant Rust file. Run cargo fmt, cargo clippy --all-targets -- -D warnings,
 and cargo doc --no-deps as the baseline gate. The parity check in
 tests/docs_parity.rs verifies that documented paths exist.
 
+CI runs the baseline gate on Linux, macOS, and Windows. It also builds the
+`emulation` and `browser` features, runs `cargo audit` and `cargo deny check`
+from `deny.toml`, and builds the x86_64-unknown-linux-musl target. The static
+job checks `file`, `ldd`, an executable smoke test, and a scratch-container
+run. The audit check is verified against a controlled vulnerable fixture in
+`documentation/audits/`; the fixture is never added to the main lockfile.
+
 ## Fixture contract
 
 As of 2026-11-26, every fixture set in `tests/fixtures/<source_id>/` contains
