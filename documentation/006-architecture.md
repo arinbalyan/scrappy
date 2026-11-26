@@ -29,3 +29,11 @@ backoff plus jitter from a caller-supplied source. Throttled responses use a
 parsed Retry-After delay when present, capped at the same maximum. A cancel
 token interrupts any wait promptly, including an oversized Retry-After, and
 no further attempt is started after cancellation.
+
+Challenge detection is shared by the plain, emulated, and browser fetchers
+through src/engine/challenge.rs. It classifies Cloudflare, `DataDome`,
+captcha, and JavaScript-required pages, and records only a scrubbed evidence
+sample with no query strings or long tokens. src/engine/breaker.rs keeps one
+circuit breaker per source. Repeated challenge or failure responses open that
+source only, and a successful response clears its failures. A cooldown allows
+a stopped source to be tried again later.

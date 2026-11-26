@@ -192,21 +192,10 @@ fn is_disallowed_address(address: &std::net::IpAddr) -> bool {
     }
 }
 
-/// Known challenge markers detected in rendered content.
-pub const CHALLENGE_MARKERS: &[&str] = &[
-    "cf-browser-verification",
-    "challenge-running",
-    "verify you are human",
-    "captcha",
-];
-
 /// Detect a challenge without retaining cookies, tokens, or query strings.
 #[must_use]
 pub fn challenge_detected(text: &str) -> bool {
-    let lower = text.to_ascii_lowercase();
-    CHALLENGE_MARKERS
-        .iter()
-        .any(|marker| lower.contains(marker))
+    crate::engine::challenge::detect(200, &std::collections::BTreeMap::new(), text).is_some()
 }
 
 /// Download the pinned Chromium build into the scrappy cache.
