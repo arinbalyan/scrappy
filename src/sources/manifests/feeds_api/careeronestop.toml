@@ -1,0 +1,39 @@
+version = 1
+id = "careeronestop"
+name = "CareerOneStop"
+family = "feeds_api"
+health = "working"
+request = "https://api.careeronestop.org/v1/jobsearch/anonymous/{query:search_term}/{query:location}/50/relevance/asc/0/25/0"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public anonymous API use within published quotas"
+attribution = "CareerOneStop"
+fixtures = ["careeronestop"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["Title"]
+
+[field_aliases.company]
+names = ["Company"]
+
+[field_aliases.url]
+names = ["URL"]
+
+[field_aliases.location]
+names = ["Location"]
+
+[field_aliases.description]
+names = ["Description"]
+
+[parser_options]
+envelope = ["Jobs"]
+

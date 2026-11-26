@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://api.hh.ru/vacancies?text={query:search_term}&per_page=25&page=0",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

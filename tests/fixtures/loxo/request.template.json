@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://app.loxo.co/api/{slug}/jobs",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

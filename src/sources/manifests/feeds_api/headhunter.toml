@@ -1,0 +1,39 @@
+version = 1
+id = "headhunter"
+name = "HeadHunter"
+family = "feeds_api"
+health = "blocked"
+request = "https://api.hh.ru/vacancies?text={query:search_term}&per_page=25&page=0"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public API use within published quotas"
+attribution = "HeadHunter"
+fixtures = ["headhunter"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["name"]
+
+[field_aliases.company]
+names = ["employer.name", "company"]
+
+[field_aliases.url]
+names = ["alternate_url"]
+
+[field_aliases.location]
+names = ["area.name"]
+
+[field_aliases.description]
+names = ["snippet.requirement", "snippet.responsibility", "description"]
+
+[parser_options]
+envelope = ["items"]
+

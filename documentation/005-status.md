@@ -27,6 +27,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | builtin | Built In | working | ready | HtmlStatic | plain |
 | canadajobbank | Canada Job Bank | working | ready | FeedsApi | plain |
 | careerjet | Careerjet | keyed | missing_credentials | Keyed | plain |
+| careeronestop | CareerOneStop | working | ready | FeedsApi | plain |
 | comeet | Comeet | keyed | missing_credentials | Keyed | plain |
 | conservationjobs | Conservation Jobs | working | ready | FeedsApi | plain |
 | coroflot | Coroflot | working | ready | FeedsApi | plain |
@@ -53,6 +54,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | gunio | Gun.io Jobs | working | ready | HtmlStatic | plain |
 | hackernews | Hacker News | working | ready | FeedsApi | plain |
 | hasjob | Hasjob | working | ready | FeedsApi | plain |
+| headhunter | HeadHunter | blocked | blocked | FeedsApi | plain |
 | higheredjobs | HigherEdJobs | blocked | blocked | FeedsApi | plain |
 | himalayas | Himalayas | working | ready | FeedsApi | plain |
 | hiringcafe | Hiring Cafe | working | ready | HtmlStatic | plain |
@@ -73,6 +75,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | jobstreet | JobStreet | working | ready | FeedsApi | plain |
 | joinrise | Joinrise | working | ready | FeedsApi | plain |
 | landingjobs | Landingjobs | working | ready | FeedsApi | plain |
+| loxo | Loxo | blocked | blocked | Ats | plain |
 | manatal | Manatal | requires_slug | ready | Ats | plain |
 | mycareersfuture | MyCareersFuture | working | ready | FeedsApi | plain |
 | nofluffjobs | NoFluffJobs | working | ready | FeedsApi | plain |

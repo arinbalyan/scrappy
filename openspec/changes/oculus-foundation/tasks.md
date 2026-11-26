@@ -176,6 +176,13 @@
 - [x] 11h.3 Record live probe results and regenerate documentation/005-status.md
 - [x] 11h.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
 
+## 11i. Search and tenant API source ports
+
+- [x] 11i.1 Port careeronestop, headhunter, and loxo with manifests, behavior docs, and six-file fixtures
+- [x] 11i.2 Add offline golden replay coverage in tests/tier12_search_api_replay.rs
+- [x] 11i.3 Record live probe results, update health labels where needed, and regenerate documentation/005-status.md
+- [x] 11i.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
+
 ## 12. CI and release
 
 - [ ] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes

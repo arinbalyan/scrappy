@@ -1,0 +1,40 @@
+version = 1
+id = "loxo"
+name = "Loxo"
+family = "ats"
+health = "blocked"
+request = "https://app.loxo.co/api/{slug}/jobs"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public tenant job API use"
+attribution = "Loxo"
+fixtures = ["loxo"]
+slugs = ["example-company"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company_name", "company"]
+
+[field_aliases.url]
+names = ["url", "apply_url"]
+
+[field_aliases.location]
+names = ["location"]
+
+[field_aliases.description]
+names = ["description"]
+
+[parser_options]
+envelope = ["jobs"]
+

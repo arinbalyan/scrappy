@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://api.careeronestop.org/v1/jobsearch/anonymous/software-engineer/new-york/50/relevance/asc/0/25/0",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}
