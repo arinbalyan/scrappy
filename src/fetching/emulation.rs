@@ -75,9 +75,14 @@ impl Fetcher for EmulationFetcher {
             .emulation(profile_name(profile)?)
             .build()
             .map_err(|error| format!("cannot build emulation client: {error}"))?;
-        let mut builder = client.get(&request.url);
+        let method = wreq::Method::from_bytes(request.method.as_bytes())
+            .map_err(|error| format!("invalid HTTP method: {error}"))?;
+        let mut builder = client.request(method, &request.url);
         for (name, value) in &request.headers {
             builder = builder.header(name, value);
+        }
+        if !request.body.is_empty() {
+            builder = builder.body(request.body.clone());
         }
         let response = builder
             .send()

@@ -13,6 +13,9 @@ pub mod proxy;
 use std::collections::BTreeMap;
 use std::time::Duration;
 
+/// Maximum accepted request body size.
+pub const MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
+
 /// Maximum accepted response body size.
 pub const MAX_BODY_BYTES: usize = 8 * 1024 * 1024;
 
@@ -28,6 +31,8 @@ pub struct Request {
     pub method: String,
     /// Request headers, lower-case names only.
     pub headers: BTreeMap<String, String>,
+    /// Optional request body bytes.
+    pub body: Vec<u8>,
     /// Request timeout.
     pub timeout: Duration,
 }
@@ -51,8 +56,38 @@ impl Request {
             url,
             method: "GET".to_owned(),
             headers: BTreeMap::new(),
+            body: Vec::new(),
             timeout: DEFAULT_TIMEOUT,
         })
+    }
+
+    /// Build and validate a request with a chosen method.
+    ///
+    /// # Errors
+    /// Returns a diagnostic for an unsupported method, an unsupported scheme,
+    /// or an empty host.
+    pub fn with_method(url: impl Into<String>, method: &str) -> Result<Self, String> {
+        let method = method.trim().to_ascii_uppercase();
+        if !matches!(method.as_str(), "GET" | "POST") {
+            return Err(format!("unsupported HTTP method: {method}"));
+        }
+        let mut request = Self::get(url)?;
+        request.method = method;
+        Ok(request)
+    }
+
+    /// Set the request body after enforcing the body ceiling.
+    ///
+    /// # Errors
+    /// Returns a diagnostic when the body exceeds `MAX_REQUEST_BODY_BYTES`.
+    pub fn with_body(mut self, body: Vec<u8>) -> Result<Self, String> {
+        if body.len() > MAX_REQUEST_BODY_BYTES {
+            return Err(format!(
+                "request body exceeds {MAX_REQUEST_BODY_BYTES} bytes"
+            ));
+        }
+        self.body = body;
+        Ok(self)
     }
 
     /// Add a header after validating its name and value.
@@ -177,6 +212,29 @@ mod tests {
                 .with_header("x-test", "a\r\nb: c")
                 .unwrap_err()
                 .contains("invalid bytes")
+        );
+    }
+
+    #[test]
+    fn builds_post_request_with_body() {
+        let body = br#"{"query":"jobs"}"#.to_vec();
+        let request = Request::with_method("https://example.test/jobs", "post")
+            .expect("valid request")
+            .with_body(body.clone())
+            .expect("bounded body");
+        assert_eq!(request.method, "POST");
+        assert_eq!(request.body, body);
+        assert!(
+            Request::with_method("https://example.test", "DELETE")
+                .unwrap_err()
+                .contains("unsupported HTTP method")
+        );
+        assert!(
+            Request::get("https://example.test")
+                .expect("valid request")
+                .with_body(vec![b'a'; MAX_REQUEST_BODY_BYTES + 1])
+                .unwrap_err()
+                .contains("request body exceeds")
         );
     }
 }

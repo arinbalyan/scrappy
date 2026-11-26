@@ -93,6 +93,34 @@ pub struct Selectors {
     pub url_attribute: Option<String>,
 }
 
+/// Request settings that complete a manifest request template.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct RequestOptions {
+    /// HTTP method used for the request.
+    #[serde(default)]
+    pub method: Option<String>,
+    /// Header templates keyed by lower-case header name.
+    #[serde(default)]
+    pub headers: BTreeMap<String, String>,
+    /// Request body template with the same placeholders as `request`.
+    #[serde(default)]
+    pub body: Option<String>,
+}
+
+/// Embedded JSON extraction settings for HTML responses.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct EmbeddedOptions {
+    /// Element id whose script text contains JSON, such as `__NEXT_DATA__`.
+    #[serde(default)]
+    pub element_id: Option<String>,
+    /// Variable name assigned a JSON literal, such as `Stash`.
+    #[serde(default)]
+    pub variable: Option<String>,
+    /// Dot-separated path to the job array inside the JSON blob.
+    #[serde(default)]
+    pub envelope: Vec<String>,
+}
+
 /// Optional parser settings that stay opaque to the manifest schema.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ParserOptions {
@@ -108,6 +136,9 @@ pub struct ParserOptions {
     /// Named parser options such as `atom` or `nested`.
     #[serde(default)]
     pub enabled: Vec<String>,
+    /// Embedded JSON extraction settings.
+    #[serde(default)]
+    pub embedded: Option<EmbeddedOptions>,
 }
 
 /// Declarative description of one source.
@@ -129,6 +160,9 @@ pub struct Manifest {
     /// Named request template applied to `request`, if any.
     #[serde(default)]
     pub request_template: Option<String>,
+    /// Method, headers, and body template for the request.
+    #[serde(default)]
+    pub request_options: Option<RequestOptions>,
     /// Parser kind selected for responses.
     pub parser: String,
     /// Ordered aliases for normalized record fields.
@@ -177,6 +211,7 @@ impl Default for Manifest {
             health: Health::Working,
             request: String::new(),
             request_template: None,
+            request_options: None,
             parser: String::new(),
             field_aliases: None,
             selectors: None,
@@ -264,6 +299,26 @@ pub fn validate(manifest: &Manifest) -> Result<(), ManifestError> {
                 manifest.id
             ),
         });
+    }
+    if let Some(options) = &manifest.request_options {
+        if options
+            .method
+            .as_ref()
+            .is_some_and(|method| !matches!(method.to_ascii_uppercase().as_str(), "GET" | "POST"))
+        {
+            return Err(ManifestError {
+                message: format!("manifest {} has an unsupported request method", manifest.id),
+            });
+        }
+        if options
+            .headers
+            .keys()
+            .any(|name| name.is_empty() || name != &name.to_ascii_lowercase())
+        {
+            return Err(ManifestError {
+                message: format!("manifest {} has an invalid header name", manifest.id),
+            });
+        }
     }
     if manifest.health == Health::RequiresSlug && manifest.slugs.is_empty() {
         return Err(ManifestError {
@@ -358,6 +413,25 @@ fn validate_adapter_fields(manifest: &Manifest) -> Result<(), ManifestError> {
             return Err(ManifestError {
                 message: format!("manifest {} has an empty title separator", manifest.id),
             });
+        }
+        if let Some(embedded) = &options.embedded {
+            if embedded.element_id.is_none() && embedded.variable.is_none() {
+                return Err(ManifestError {
+                    message: format!("manifest {} has no embedded JSON source", manifest.id),
+                });
+            }
+            if embedded
+                .envelope
+                .iter()
+                .any(|segment| segment.trim().is_empty())
+            {
+                return Err(ManifestError {
+                    message: format!(
+                        "manifest {} has an empty embedded envelope segment",
+                        manifest.id
+                    ),
+                });
+            }
         }
     }
     Ok(())

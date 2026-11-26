@@ -135,6 +135,131 @@ fn envelope<'a>(value: &'a Value, path: &[String]) -> Option<&'a Value> {
 }
 
 /// Parser for a configured JSON envelope path with field aliases.
+/// Parser for a JSON blob embedded in an HTML response.
+#[derive(Debug, Clone, Default)]
+pub struct EmbeddedJsonParser {
+    element_id: Option<String>,
+    variable: Option<String>,
+    path: Vec<String>,
+    aliases: Option<BTreeMap<String, Vec<String>>>,
+}
+
+impl EmbeddedJsonParser {
+    /// Build a parser for an element id or variable assignment.
+    ///
+    /// # Errors
+    /// Returns a diagnostic when neither an element id nor a variable name
+    /// is supplied or when an alias name is empty.
+    pub fn new(
+        element_id: Option<String>,
+        variable: Option<String>,
+        path: Vec<String>,
+        aliases: Option<BTreeMap<String, Vec<String>>>,
+    ) -> Result<Self, String> {
+        if element_id.is_none() && variable.is_none() {
+            return Err("embedded parser needs an element id or variable".to_owned());
+        }
+        if let Some(map) = &aliases {
+            for (field, names) in map {
+                if field.trim().is_empty() || names.iter().any(|name| name.trim().is_empty()) {
+                    return Err("field aliases must have non-empty names".to_owned());
+                }
+            }
+        }
+        Ok(Self {
+            element_id,
+            variable,
+            path,
+            aliases,
+        })
+    }
+}
+
+impl Parser for EmbeddedJsonParser {
+    fn parse(&self, response: &Response) -> Result<Vec<Record>, String> {
+        let text = response.text()?;
+        let blob = self
+            .element_id
+            .as_deref()
+            .and_then(|id| element_json(text, id))
+            .or_else(|| {
+                self.variable
+                    .as_deref()
+                    .and_then(|name| variable_json(text, name))
+            })
+            .ok_or("embedded JSON source not found")?;
+        let value: Value = serde_json::from_str(&blob)
+            .map_err(|error| format!("invalid embedded JSON: {error}"))?;
+        let selected = if self.path.is_empty() {
+            &value
+        } else {
+            envelope(&value, &self.path).ok_or("embedded JSON envelope not found")?
+        };
+        let items = selected
+            .as_array()
+            .ok_or("embedded JSON envelope is not an array")?;
+        let mut records = Vec::with_capacity(items.len());
+        for item in items {
+            if let Some(record) = record_from_aliases(item, self.aliases.as_ref()) {
+                records.push(record);
+            }
+        }
+        if records.is_empty() && !items.is_empty() {
+            return Err("no records with title, company, and URL".to_owned());
+        }
+        Ok(records)
+    }
+}
+
+fn element_json(text: &str, id: &str) -> Option<String> {
+    let marker = format!("id=\"{id}\"");
+    let index = text.find(&marker)?;
+    let tail = &text[index + marker.len()..];
+    let start = tail.find('>')? + 1;
+    let content = &tail[start..];
+    let end = content.find("</script>").unwrap_or(content.len());
+    let chunk = content[..end].trim();
+    (chunk.starts_with('{') || chunk.starts_with('[')).then(|| chunk.to_owned())
+}
+
+fn variable_json(text: &str, name: &str) -> Option<String> {
+    let marker = format!("var {name} =");
+    let index = text
+        .find(&marker)
+        .or_else(|| text.find(&format!("let {name} =")))?;
+    let tail = &text[index..];
+    let start = tail.find(['{', '['])?;
+    let mut depth = 0usize;
+    let mut in_string = false;
+    let mut escaped = false;
+    for (offset, byte) in tail.as_bytes()[start..].iter().copied().enumerate() {
+        if in_string {
+            if escaped {
+                escaped = false;
+            } else if byte == b'\\' {
+                escaped = true;
+            } else if byte == b'"' {
+                in_string = false;
+            }
+            continue;
+        }
+        match byte {
+            b'"' => in_string = true,
+            b'{' | b'[' => depth += 1,
+            b'}' | b']' => {
+                depth = depth.checked_sub(1)?;
+                if depth == 0 {
+                    let end = start + offset + 1;
+                    return Some(tail[start..end].to_owned());
+                }
+            }
+            _ => {}
+        }
+    }
+    None
+}
+
+/// Parser for a configured JSON envelope path with field aliases.
 #[derive(Debug, Clone, Default)]
 pub struct ConfigurableJsonParser {
     path: Vec<String>,
@@ -251,5 +376,33 @@ mod tests {
         let records = parser.parse(&response(body)).expect("records parsed");
         assert_eq!(records[0].company, "Labs");
         assert_eq!(records[0].title, "Rust Engineer");
+    }
+
+    #[test]
+    fn parses_element_embedded_json() {
+        let body = r#"<html><script id="__NEXT_DATA__" type="application/json">{"props":{"jobs":[{"title":"Engineer","company":"Acme","url":"https://example.test/1"}]}}</script></html>"#;
+        let parser = EmbeddedJsonParser::new(
+            Some("__NEXT_DATA__".to_owned()),
+            None,
+            vec!["props".to_owned(), "jobs".to_owned()],
+            None,
+        )
+        .expect("parser built");
+        let records = parser.parse(&response(body)).expect("records parsed");
+        assert_eq!(records[0].company, "Acme");
+    }
+
+    #[test]
+    fn parses_variable_embedded_json() {
+        let body = r#"<html><script>var Stash = {"jobs":[{"title":"Engineer","company":"Acme","url":"https://example.test/2"}]};</script></html>"#;
+        let parser = EmbeddedJsonParser::new(
+            None,
+            Some("Stash".to_owned()),
+            vec!["jobs".to_owned()],
+            None,
+        )
+        .expect("parser built");
+        let records = parser.parse(&response(body)).expect("records parsed");
+        assert_eq!(records[0].title, "Engineer");
     }
 }

@@ -13,9 +13,11 @@ use std::collections::BTreeMap;
 use crate::fetching::{Request, Response};
 use crate::parsing::Parser;
 use crate::parsing::html::HtmlParser;
-use crate::parsing::json::{ConfigurableJsonParser, JsonParser, record_from_aliases};
+use crate::parsing::json::{
+    ConfigurableJsonParser, EmbeddedJsonParser, JsonParser, record_from_aliases,
+};
 use crate::parsing::rss::{PatternRssParser, RssParser};
-use crate::sources::manifest::{Family, Manifest};
+use crate::sources::manifest::Manifest;
 
 /// Runtime value used while expanding a manifest request template.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -69,19 +71,32 @@ pub fn build_request(
     manifest: &Manifest,
     values: &TemplateValues,
 ) -> Result<Request, AdapterError> {
-    if manifest.family != Family::FeedsApi {
-        return Err(error(format!(
-            "source {} has unsupported adapter family",
-            manifest.id
-        )));
-    }
     let url = render(&manifest.request, values)?;
-    let mut request = Request::get(url).map_err(|reason| {
+    let method = manifest
+        .request_options
+        .as_ref()
+        .and_then(|options| options.method.as_deref())
+        .unwrap_or("GET");
+    let mut request = Request::with_method(url, method).map_err(|reason| {
         error(format!(
             "source {} has invalid request URL: {reason}",
             manifest.id
         ))
     })?;
+    if let Some(options) = &manifest.request_options {
+        for (name, template) in &options.headers {
+            let value = render(template, values)?;
+            request = request
+                .with_header(name, &value)
+                .map_err(|reason| error(format!("cannot add {name} header: {reason}")))?;
+        }
+        if let Some(body) = &options.body {
+            let rendered = render(body, values)?;
+            request = request
+                .with_body(rendered.into_bytes())
+                .map_err(|reason| error(format!("cannot add request body: {reason}")))?;
+        }
+    }
     let accept = if manifest.parser == "rss" {
         "application/rss+xml, application/xml"
     } else {
@@ -90,6 +105,11 @@ pub fn build_request(
     request = request
         .with_header("accept", accept)
         .map_err(|reason| error(format!("cannot add accept header: {reason}")))?;
+    if !request.headers.contains_key("content-type") && !request.body.is_empty() {
+        request = request
+            .with_header("content-type", "application/json")
+            .map_err(|reason| error(format!("cannot add content-type header: {reason}")))?;
+    }
     Ok(request)
 }
 
@@ -134,6 +154,26 @@ pub fn parse_response(
 ) -> Result<Vec<crate::parsing::Record>, AdapterError> {
     let options = manifest.parser_options.as_ref();
     let result = match manifest.parser.as_str() {
+        "json" if options.is_some_and(|o| o.embedded.is_some()) => {
+            let opts = options.ok_or_else(|| error("missing parser options".to_owned()))?;
+            let embedded = opts
+                .embedded
+                .as_ref()
+                .ok_or_else(|| error("missing embedded options".to_owned()))?;
+            let aliases = manifest.field_aliases.as_ref().map(|map| {
+                map.iter()
+                    .map(|(field, alias)| (field.clone(), alias.names.clone()))
+                    .collect()
+            });
+            EmbeddedJsonParser::new(
+                embedded.element_id.clone(),
+                embedded.variable.clone(),
+                embedded.envelope.clone(),
+                aliases,
+            )
+            .map_err(error)?
+            .parse(response)
+        }
         "json" if options.is_some_and(|o| !o.envelope.is_empty()) => {
             let aliases = manifest.field_aliases.as_ref().map(|map| {
                 map.iter()
@@ -256,6 +296,7 @@ fn render(template: &str, values: &TemplateValues) -> Result<String, AdapterErro
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::sources::manifest::Family;
 
     #[test]
     fn substitutes_slug_and_key_without_leaking_value() {
@@ -289,5 +330,59 @@ attribution = "Example"
             request.url,
             "https://example.test/acme/jobs?key=secret-value"
         );
+    }
+
+    #[test]
+    fn builds_post_request_with_rendered_headers_and_body() {
+        let text = [
+            "version = 1",
+            "id = \"sample\"",
+            "name = \"Sample\"",
+            "family = \"feeds_api\"",
+            "health = \"working\"",
+            "request = \"https://example.test/{slug}/jobs\"",
+            "parser = \"json\"",
+            "fetcher = \"plain\"",
+            "pagination = \"none\"",
+            "profile = \"none\"",
+            "requires_js = false",
+            "requests_per_minute = 30",
+            "max_concurrency = 2",
+            "robots = \"allow\"",
+            "attribution = \"Example\"",
+            "",
+            "[request_options]",
+            "method = \"post\"",
+            "body = \"query={slug}\"",
+            "",
+            "[request_options.headers]",
+            "x-source = \"{slug}\"",
+            "x-key = \"{key:api_key}\"",
+        ]
+        .join("\n");
+        let manifest = crate::sources::manifest::parse(&text).expect("manifest parsed");
+        assert_eq!(manifest.family, Family::FeedsApi);
+        let values = TemplateValues {
+            slug: Some("acme".to_owned()),
+            credentials: BTreeMap::from([("api_key".to_owned(), "secret-value".to_owned())]),
+            query: BTreeMap::new(),
+        };
+        let request = build_request(&manifest, &values).expect("request built");
+        assert_eq!(request.method, "POST");
+        assert_eq!(request.body, b"query=acme");
+        assert_eq!(
+            request.headers.get("x-source").map(String::as_str),
+            Some("acme")
+        );
+        assert_eq!(
+            request.headers.get("content-type").map(String::as_str),
+            Some("application/json")
+        );
+        let missing = TemplateValues {
+            slug: Some("acme".to_owned()),
+            ..TemplateValues::default()
+        };
+        let error = build_request(&manifest, &missing).unwrap_err();
+        assert!(!error.message.contains("secret-value"));
     }
 }

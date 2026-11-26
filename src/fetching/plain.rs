@@ -39,7 +39,12 @@ impl Fetcher for PlainFetcher {
             .build()
             .map_err(|error| format!("cannot build HTTP client: {error}"))?;
         let response = client
-            .get(&request.url)
+            .request(
+                reqwest::Method::from_bytes(request.method.as_bytes())
+                    .map_err(|error| format!("invalid HTTP method: {error}"))?,
+                &request.url,
+            )
+            .body(request.body.clone())
             .send()
             .await
             .map_err(|error| format!("request failed: {error}"))?;
