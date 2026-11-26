@@ -162,10 +162,17 @@ fn proxies_check(files: &[PathBuf]) -> Check {
     }
 }
 fn browser_check() -> Check {
-    Check {
-        name: "browser".to_owned(),
-        status: Status::Skip,
-        reason: "browser feature is disabled in this build".to_owned(),
+    match crate::fetching::browser::resolve_executable() {
+        Ok(_) => Check {
+            name: "browser".to_owned(),
+            status: Status::Pass,
+            reason: "browser executable available".to_owned(),
+        },
+        Err(error) => Check {
+            name: "browser".to_owned(),
+            status: Status::Skip,
+            reason: error.reason().to_owned(),
+        },
     }
 }
 

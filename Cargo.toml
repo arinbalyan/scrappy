@@ -20,7 +20,7 @@ path = "tests/bridge_contract/mod.rs"
 [features]
 default = []
 emulation = ["dep:wreq", "dep:wreq-util"]
-browser = []
+browser = ["dep:chromiumoxide", "dep:futures"]
 test-util = []
 
 [dependencies]
@@ -35,6 +35,8 @@ quick-xml = { version = "0.42.0", features = ["serialize"] }
 tokio = { version = "1.54.1", features = ["rt", "macros", "sync", "time", "io-util"] }
 wreq = { version = "6.0.0-rc.31", optional = true, default-features = false, features = ["webpki-roots", "tokio-rt", "gzip"] }
 wreq-util = { version = "3.0.0-rc.14", optional = true, features = ["emulation", "tokio-rt"] }
+chromiumoxide = { package = "crawlberg-chromiumoxide", version = "0.10.0", optional = true, default-features = false, features = ["fetcher", "rustls", "zip8"] }
+futures = { version = "0.3", optional = true, default-features = false, features = ["std"] }
 
 [lints.rust]
 ambiguous_negative_literals = "warn"
