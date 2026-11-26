@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://www.seek.com.au/api/jobsearch/v5/search?keywords={query:keywords}&page={query:page}&pagesize={query:pagesize}&siteKey=SG-Main&where={query:where}",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "scrappy-fixture/1.0"
+  }
+}

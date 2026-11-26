@@ -14,8 +14,9 @@ As of 2026-11-26, every fixture set in `tests/fixtures/<source_id>/` contains
 six files: `request.json`, `request.template.json`, `response.body`,
 `headers.json`, `frozen.json`, and `golden.ndjson`.
 
-`request.template.json` holds `method`, a `url` template, and `headers`.
-Each `{name}` token in the URL is a placeholder. `frozen.json` holds
+`request.template.json` holds `method`, a `url` template, optional `headers`,
+and an optional `body`. Each `{name}` token in the URL, headers, or body is a
+placeholder; doubled braces carry literal JSON braces. `frozen.json` holds
 `fetched_at` and a `substitutions` object with string values that replace
 those tokens. `request.json` is the frozen request produced by that
 replacement. `headers.json` records the response headers and status,

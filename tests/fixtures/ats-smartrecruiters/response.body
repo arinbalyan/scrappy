@@ -1,0 +1,53 @@
+{
+  "totalFound": 2,
+  "content": [
+    {
+      "id": "job-7101",
+      "name": "Backend Engineer",
+      "releasedDate": "2026-11-20T09:00:00Z",
+      "ref": "https://boards.example.test/smartrecruiters/7101",
+      "location": {
+        "city": "Berlin",
+        "region": "BE",
+        "country": "DE",
+        "remote": false
+      },
+      "company": {
+        "name": "Example Co",
+        "identifier": "example-co"
+      },
+      "jobAd": {
+        "sections": {
+          "jobDescription": {
+            "title": "Job description",
+            "text": "<p>Build <strong>services</strong>.</p>"
+          },
+          "qualifications": {
+            "title": "Qualifications",
+            "text": "<p>Write tests.</p>"
+          }
+        }
+      }
+    },
+    {
+      "id": "job-7102",
+      "name": "Data Engineer",
+      "ref": "https://www.example.test/smartrecruiters/example-co/job-7102",
+      "location": {
+        "city": "Remote",
+        "country": "DE"
+      },
+      "company": {
+        "name": "example-co",
+        "identifier": "example-co"
+      },
+      "jobAd": {
+        "sections": {
+          "jobDescription": {
+            "text": "Build pipelines."
+          }
+        }
+      }
+    }
+  ]
+}

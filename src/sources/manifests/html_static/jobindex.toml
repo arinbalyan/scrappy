@@ -1,0 +1,38 @@
+version = 1
+id = "jobindex"
+name = "Jobindex"
+family = "html_static"
+health = "working"
+request = "https://www.jobindex.dk/jobsoegning?q={query:term}"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Jobindex"
+fixtures = ["jobindex"]
+
+[field_aliases.title]
+names = ["title", "headline"]
+
+[field_aliases.company]
+names = ["company", "companytext"]
+
+[field_aliases.url]
+names = ["url", "share_url"]
+
+[field_aliases.location]
+names = ["location", "area"]
+
+[field_aliases.description]
+names = ["description", "html"]
+
+[parser_options]
+envelope = ["jobsearch", "result_app", "storeData", "searchResponse", "results"]
+
+[parser_options.embedded]
+variable = "Stash"
+envelope = ["jobsearch", "result_app", "storeData", "searchResponse", "results"]

@@ -1,0 +1,36 @@
+{
+  "apiVersion": "2026-01-01",
+  "jobs": [
+    {
+      "id": "job-7101",
+      "title": "Backend Engineer",
+      "company": "example-co",
+      "departmentName": "Engineering",
+      "employmentType": "Full-Time",
+      "isRemote": true,
+      "isListed": true,
+      "location": "Berlin, Germany",
+      "address": {
+        "postalAddress": {
+          "addressLocality": "Berlin",
+          "addressRegion": "BE",
+          "addressCountry": "DE"
+        }
+      },
+      "jobUrl": "https://boards.example.test/ashby/7101",
+      "descriptionPlain": "Build services.",
+      "descriptionHtml": "<p>Build services.</p>",
+      "publishedDate": "2026-11-20"
+    },
+    {
+      "id": "job-7102",
+      "title": "Platform Engineer",
+      "company": "example-co",
+      "isListed": true,
+      "location": "Remote",
+      "applyUrl": "https://boards.example.test/ashby/apply/7102",
+      "descriptionHtml": "<p>Maintain <strong>platforms</strong>.</p>",
+      "publishedDate": "2026-11-21"
+    }
+  ]
+}

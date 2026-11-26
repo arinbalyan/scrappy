@@ -1,0 +1,37 @@
+version = 1
+id = "findwork"
+name = "FindWork"
+family = "keyed"
+health = "keyed"
+request = "https://findwork.dev/api/jobs/?search={query:search}&location={query:location}&sort_by=relevance"
+parser = "json"
+fetcher = "plain"
+pagination = "cursor:next"
+profile = "none"
+requires_js = false
+requests_per_minute = 170
+max_concurrency = 1
+robots = "allow credentialed API use within published quotas; skip without credentials"
+attribution = "FindWork"
+credentials = ["findwork_auth"]
+fixtures = ["findwork"]
+
+[request_options]
+
+[request_options.headers]
+authorization = "Token {key:findwork_auth}"
+
+[field_aliases.title]
+names = ["role"]
+[field_aliases.company]
+names = ["company_name"]
+[field_aliases.url]
+names = ["url"]
+[field_aliases.location]
+names = ["location"]
+[field_aliases.description]
+names = ["text"]
+
+[parser_options]
+envelope = ["results"]
+

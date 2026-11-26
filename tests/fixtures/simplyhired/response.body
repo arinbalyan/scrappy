@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="en"><body>
+<nav><a href="/about">About</a><a href="/signin">Sign in</a></nav>
+<main>
+<div data-testid="searchSerpJob"><h2><a data-testid="searchSerpJobTitle" href="https://www.simplyhired.com/job/401">Backend Engineer</a></h2><div data-testid="companyName">Example Co</div><div data-testid="searchSerpJobLocation">Example City</div></div>
+<div data-testid="searchSerpJob"><h2><a data-testid="searchSerpJobTitle" href="https://jobs.example.test/apply/402">Data Engineer</a></h2><div data-testid="companyName">Sample Labs</div><div data-testid="searchSerpJobSalaryEst">Salary example</div></div>
+</main></body></html>

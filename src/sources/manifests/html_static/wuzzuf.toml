@@ -1,0 +1,23 @@
+version = 1
+id = "wuzzuf"
+name = "Wuzzuf"
+family = "html_static"
+health = "working"
+request = "https://wuzzuf.net/search/jobs/?q={query:term}"
+parser = "html"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 10
+max_concurrency = 2
+robots = "allow"
+attribution = "Wuzzuf"
+fixtures = ["wuzzuf"]
+
+[selectors]
+item = "div.job-listing"
+title = "a.job-title"
+company = "span.company-name"
+url = "a.job-title"
+url_attribute = "href"

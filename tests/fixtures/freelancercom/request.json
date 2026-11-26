@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.freelancer.com/api/projects/0.1/projects/active?compact=true&limit=25&full_description=true&query=backend",
+  "headers": {
+    "accept": "application/json"
+  }
+}

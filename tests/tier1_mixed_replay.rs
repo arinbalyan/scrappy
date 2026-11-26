@@ -52,7 +52,7 @@ const SOURCES: [(&str, Family, Health, &str, &str); 10] = [
     (
         "functionalworks",
         Family::FeedsApi,
-        Health::Stale,
+        Health::Working,
         "feeds_api",
         "json",
     ),
@@ -113,18 +113,38 @@ fn manifest_for(id: &str, family: &str) -> Manifest {
 }
 
 fn render_template(template: &str, values: &serde_json::Map<String, serde_json::Value>) -> String {
-    let mut rendered = template.to_owned();
-    for (name, value) in values {
-        let value = value.as_str().expect("substitution is a string");
-        let token = format!("{{{name}}}");
-        assert!(rendered.contains(&token), "unused substitution {name}");
-        rendered = rendered.replace(&token, value);
+    let mut output = String::with_capacity(template.len());
+    let bytes = template.as_bytes();
+    let mut index = 0;
+    while index < bytes.len() {
+        if bytes[index] == b'{' && bytes.get(index + 1) == Some(&b'{') {
+            output.push('{');
+            index += 2;
+            continue;
+        }
+        if bytes[index] == b'}' && bytes.get(index + 1) == Some(&b'}') {
+            output.push('}');
+            index += 2;
+            continue;
+        }
+        if bytes[index] != b'{' {
+            let ch = template[index..]
+                .chars()
+                .next()
+                .expect("character at byte index");
+            output.push(ch);
+            index += ch.len_utf8();
+            continue;
+        }
+        let end = template[index + 1..].find('}').unwrap() + index + 1;
+        let name = &template[index + 1..end];
+        let value = values
+            .get(name)
+            .unwrap_or_else(|| panic!("missing substitution {name} in {template}"));
+        output.push_str(value.as_str().expect("substitution is a string"));
+        index = end + 1;
     }
-    assert!(
-        !rendered.contains('{') && !rendered.contains('}'),
-        "unresolved placeholder in {rendered}"
-    );
-    rendered
+    output
 }
 
 fn golden_records(path: &Path) -> Vec<serde_json::Value> {
@@ -211,6 +231,10 @@ fn tier1_fixtures_replay_through_adapter() {
             .expect("template has a url");
         let mut expected = template.clone();
         expected["url"] = serde_json::Value::String(render_template(template_url, substitutions));
+        if let Some(template_body) = template.get("body").and_then(serde_json::Value::as_str) {
+            expected["body"] =
+                serde_json::Value::String(render_template(template_body, substitutions));
+        }
         assert_eq!(
             request, expected,
             "{id} frozen request differs from template"
@@ -218,14 +242,32 @@ fn tier1_fixtures_replay_through_adapter() {
 
         let mut values = TemplateValues::default();
         for (name, value) in substitutions {
-            values.query.insert(
-                name.clone(),
-                value.as_str().expect("substitution is a string").to_owned(),
-            );
+            let rendered = value.as_str().expect("substitution is a string").to_owned();
+            if template_url.contains(&format!("{{{name}}}")) {
+                values.query.insert(name.clone(), rendered.clone());
+            }
+            if name == "slug" {
+                values.slug = Some(rendered);
+            }
         }
         if family == Family::FeedsApi {
-            let built = build_request(&manifest, &values).expect("manifest builds a GET request");
-            assert_eq!(built.method, "GET");
+            let built = build_request(&manifest, &values).expect("manifest builds a request");
+            let expected_method = request
+                .get("method")
+                .and_then(serde_json::Value::as_str)
+                .expect("request has a method");
+            assert_eq!(built.method, expected_method);
+            if let Some(options) = &manifest.request_options
+                && let Some(body_template) = &options.body
+            {
+                let rendered = render_template(body_template, substitutions);
+                assert_eq!(built.body, rendered.as_bytes());
+                let fixture_body = request
+                    .get("body")
+                    .and_then(serde_json::Value::as_str)
+                    .expect("request has a body");
+                assert_eq!(rendered, fixture_body);
+            }
         }
 
         let actual = normalized_records(&manifest, &fixture);

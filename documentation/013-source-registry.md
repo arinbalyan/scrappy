@@ -22,6 +22,10 @@ fetching::Request, then uses the selected parser to turn a fetched response
 into normalized records. The adapter never calls the network and redacts
 credentials from all diagnostics.
 
+Request templates support `{{` and `}}` for literal JSON braces in header or
+body templates. Substitution values reject whitespace so a manifest cannot
+inject a second header or parameter through a placeholder.
+
 `tests/source_registry_contract.rs` checks the built-in registry against its
 supporting files. Each manifest must have a behavior document in
 `documentation/scrapers/<source_id>.md`, a health state drawn from the declared

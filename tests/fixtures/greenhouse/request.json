@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://boards-api.greenhouse.io/v1/boards/example-co/jobs?content=true",
+  "headers": {
+    "accept": "application/json"
+  }
+}

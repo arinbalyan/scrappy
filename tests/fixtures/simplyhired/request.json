@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://www.simplyhired.com/search?q=example+role&l=example+city&pn=1",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

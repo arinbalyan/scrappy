@@ -1,0 +1,40 @@
+{
+  "jobs": [
+    {
+      "title": "Backend Engineer",
+      "company": "example-co",
+      "shortcode": "a1b2c3",
+      "employment_type": "fulltime",
+      "telecommuting": false,
+      "department": "Engineering",
+      "url": "https://boards.example.test/workable/7101",
+      "shortlink": "https://boards.example.test/workable/link/7101",
+      "published_on": "2026-11-20",
+      "city": "Berlin",
+      "state": "BE",
+      "country": "DE",
+      "locations": [
+        {
+          "city": "Hamburg",
+          "region": "HH",
+          "country": "DE"
+        }
+      ]
+    },
+    {
+      "title": "Data Engineer",
+      "company": "example-co",
+      "shortcode": "d4e5f6",
+      "telecommuting": true,
+      "shortlink": "https://boards.example.test/workable/7102",
+      "published_on": "2026-11-21",
+      "city": "Remote",
+      "locations": [
+        {
+          "city": "Remote",
+          "country": "DE"
+        }
+      ]
+    }
+  ]
+}

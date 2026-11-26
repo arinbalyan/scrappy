@@ -1,0 +1,23 @@
+[
+  {
+    "uuid": "mcf-601",
+    "title": "Software Engineer",
+    "company": {
+      "name": "Example Public Service"
+    },
+    "jobUrl": "https://www.mycareersfuture.gov.sg/job/mcf-601",
+    "location": "Tampines",
+    "description": "<p>Deliver public digital services.</p>",
+    "postedDate": "2026-11-19T00:00:00Z"
+  },
+  {
+    "uuid": "mcf-602",
+    "title": "Data Analyst",
+    "company": {
+      "name": "Sample Agency"
+    },
+    "jobUrl": "https://www.mycareersfuture.gov.sg/job/mcf-602",
+    "description": "Analyze programme data.",
+    "location": null
+  }
+]

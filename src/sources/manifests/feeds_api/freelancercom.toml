@@ -1,0 +1,34 @@
+version = 1
+id = "freelancercom"
+name = "Freelancer.com"
+family = "feeds_api"
+health = "working"
+request = "https://www.freelancer.com/api/projects/0.1/projects/active?compact=true&limit={query:limit}&full_description=true&query={query:term}"
+parser = "json"
+fetcher = "plain"
+pagination = "offset:0:50"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 1
+robots = "allow"
+attribution = "Freelancer.com"
+fixtures = ["freelancercom"]
+
+[parser_options]
+envelope = ["result", "projects"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["owner.display_name"]
+
+[field_aliases.url]
+names = ["seo_url"]
+
+[field_aliases.location]
+names = ["location.city"]
+
+[field_aliases.description]
+names = ["description"]

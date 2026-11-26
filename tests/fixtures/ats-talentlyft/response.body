@@ -1,0 +1,30 @@
+{
+  "Results": [
+    {
+      "Id": 9101,
+      "Title": "Frontend Engineer",
+      "CompanyName": "Example Co",
+      "Description": "<p>Build the <em>interface</em>.</p>",
+      "Department": "Product",
+      "Location": "Remote",
+      "CreatedAt": "2026-11-01T00:00:00Z",
+      "Url": "https://boards.example.test/9101"
+    },
+    {
+      "Id": 9102,
+      "Title": "Operations Lead",
+      "CompanyName": "Example Co",
+      "Description": "Coordinate delivery.",
+      "Department": "Operations",
+      "Location": "Berlin",
+      "CreatedAt": "2026-11-02T00:00:00Z",
+      "Url": "https://boards.example.test/9102"
+    },
+    {
+      "Id": 9103,
+      "Title": "",
+      "CompanyName": "Example Co",
+      "Url": "https://boards.example.test/9103"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://api.adzuna.com/v1/api/jobs/gb/search/1?app_id=sample-app-id&app_key=sample-app-key&results_per_page=2&sort_by=date",
+  "headers": {
+    "accept": "application/json"
+  }
+}

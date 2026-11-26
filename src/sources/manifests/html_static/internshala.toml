@@ -1,0 +1,24 @@
+version = 1
+id = "internshala"
+name = "Internshala"
+family = "html_static"
+health = "working"
+request = "https://internshala.com/jobs/{slug}/page-{query:page}"
+parser = "html"
+fetcher = "plain"
+pagination = "page:1:8"
+profile = "none"
+requires_js = false
+requests_per_minute = 10
+max_concurrency = 2
+robots = "allow"
+attribution = "Internshala"
+slugs = ["engineering"]
+fixtures = ["internshala"]
+
+[selectors]
+item = "div.individual_internship"
+title = "a.job-title-href"
+company = "span.company-name"
+url = "a.job-title-href"
+url_attribute = "href"

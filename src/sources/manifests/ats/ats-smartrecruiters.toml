@@ -1,0 +1,35 @@
+version = 1
+id = "ats-smartrecruiters"
+name = "SmartRecruiters ATS"
+family = "ats"
+health = "requires_slug"
+request = "https://api.smartrecruiters.com/v1/companies/{slug}/jobs?offset=0&limit={query:limit}"
+parser = "json"
+fetcher = "plain"
+pagination = "offset:100"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public board endpoints; skip challenged or access-controlled boards"
+attribution = "SmartRecruiters"
+slugs = ["example-co"]
+fixtures = ["ats-smartrecruiters"]
+
+[field_aliases.title]
+names = ["name"]
+
+[field_aliases.company]
+names = ["company.name", "company"]
+
+[field_aliases.url]
+names = ["ref", "url"]
+
+[field_aliases.location]
+names = ["location.city", "location.region", "location.country"]
+
+[field_aliases.description]
+names = ["jobAd.sections.jobDescription.text"]
+
+[parser_options]
+envelope = ["content"]

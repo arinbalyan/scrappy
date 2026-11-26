@@ -1,0 +1,4 @@
+<!doctype html>
+<html><head>
+<script id="__NEXT_DATA__" type="application/json">{"props":{"pageProps":{"searchResults":{"count":2,"jobs":[{"jobDetail":{"jobId":701,"jobTitle":"Rust Engineer","jobDescription":"<p>Work on backend services.</p>","displayLocationName":"London","ouName":"Example Technologies"},"url":"/jobs/rust-engineer-701","resolvedUrl":"https://www.reed.co.uk/jobs/rust-engineer-701","profileName":"Example Technologies"},{"jobDetail":{"jobId":702,"jobTitle":"Frontend Developer","jobDescription":"Build web applications.","displayLocationName":"Remote","ouName":""},"url":"/jobs/frontend-developer-702","resolvedUrl":"https://www.reed.co.uk/jobs/frontend-developer-702","profileName":"Sample Studio"}]}}}}</script>
+</head><body></body></html>

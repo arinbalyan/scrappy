@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://api.talentlyft.com/v2/public/example-co/jobs?page=1&perPage=20",
+  "headers": {
+    "accept": "application/json"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://api.ashbyhq.com/posting-api/job-board/example-co",
+  "headers": {
+    "accept": "application/json"
+  }
+}

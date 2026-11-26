@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://apply.workable.com/api/v1/widget/accounts/example-co",
+  "headers": {
+    "accept": "application/json"
+  }
+}

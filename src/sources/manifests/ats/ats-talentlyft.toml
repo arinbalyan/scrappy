@@ -1,0 +1,32 @@
+version = 1
+id = "ats-talentlyft"
+name = "TalentLyft ATS"
+family = "ats"
+health = "requires_slug"
+request = "https://api.talentlyft.com/v2/public/{slug}/jobs?page=1&perPage={query:per_page}"
+parser = "json"
+fetcher = "plain"
+pagination = "page:1"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public board endpoints; skip challenged or access-controlled boards"
+attribution = "TalentLyft"
+slugs = ["example-co"]
+fixtures = ["ats-talentlyft"]
+
+[field_aliases.title]
+names = ["Title"]
+[field_aliases.company]
+names = ["CompanyName"]
+[field_aliases.url]
+names = ["Url"]
+[field_aliases.location]
+names = ["Location"]
+[field_aliases.description]
+names = ["Description"]
+
+[parser_options]
+envelope = ["Results"]
+

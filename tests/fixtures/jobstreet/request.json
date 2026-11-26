@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://www.seek.com.au/api/jobsearch/v5/search?keywords=engineer&page=1&pagesize=15&siteKey=MY-Main&where=Singapore",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "scrappy-fixture/1.0"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://findwork.dev/api/jobs/?search=engineer&location=remote&sort_by=relevance",
+  "headers": {
+    "accept": "application/json",
+    "authorization": "Token sample-placeholder"
+  }
+}

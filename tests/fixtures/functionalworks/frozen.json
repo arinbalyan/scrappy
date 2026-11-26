@@ -1,6 +1,7 @@
 {
   "fetched_at": "2026-11-26T00:00:00Z",
   "substitutions": {
-    "base_url": "https://functional.works-hub.com/api/graphql"
+    "base_url": "https://functional.works-hub.com/api/graphql",
+    "slug": "functional"
   }
 }

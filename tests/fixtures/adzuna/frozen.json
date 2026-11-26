@@ -1,0 +1,10 @@
+{
+  "fetched_at": "2026-11-26T00:00:00Z",
+  "substitutions": {
+    "country": "gb",
+    "page": "1",
+    "results_per_page": "2",
+    "adzuna_app_id": "sample-app-id",
+    "adzuna_app_key": "sample-app-key"
+  }
+}

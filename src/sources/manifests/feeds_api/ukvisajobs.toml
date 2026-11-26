@@ -1,0 +1,33 @@
+version = 1
+id = "ukvisajobs"
+name = "UK Visa Jobs"
+family = "feeds_api"
+health = "working"
+request = "https://www.ukvisajobs.com/"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 12
+max_concurrency = 1
+robots = "allow"
+attribution = "UK Visa Jobs"
+fixtures = ["ukvisajobs"]
+
+[request_options]
+method = "GET"
+
+[request_options.headers]
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["title"]
+[field_aliases.company]
+names = ["company"]
+[field_aliases.url]
+names = ["url"]
+[field_aliases.location]
+names = ["location", "city"]
+[field_aliases.description]
+names = ["description", "text"]

@@ -1,0 +1,32 @@
+version = 1
+id = "careerjet"
+name = "Careerjet"
+family = "keyed"
+health = "keyed"
+request = "https://public.api.careerjet.net/search?affid={key:careerjet_affid}&locale_code={query:locale_code}&keywords={query:keywords}&sort=date&page={query:page}&pagesize={query:pagesize}"
+parser = "json"
+fetcher = "plain"
+pagination = "page:10"
+profile = "none"
+requires_js = false
+requests_per_minute = 170
+max_concurrency = 1
+robots = "allow credentialed API use within the affiliate quota; skip without credentials"
+attribution = "Careerjet"
+credentials = ["careerjet_affid"]
+fixtures = ["careerjet"]
+
+[field_aliases.title]
+names = ["title"]
+[field_aliases.company]
+names = ["company"]
+[field_aliases.url]
+names = ["url"]
+[field_aliases.location]
+names = ["locations"]
+[field_aliases.description]
+names = ["description"]
+
+[parser_options]
+envelope = ["jobs"]
+

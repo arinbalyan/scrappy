@@ -1,0 +1,22 @@
+[
+  {
+    "id": "jb-401",
+    "title": "Backend Engineer",
+    "advertiser": {
+      "description": "Example Systems"
+    },
+    "jobUrl": "https://www.jobsdb.com/job/jb-401",
+    "teaser": "<p>Build services in Rust.</p>",
+    "listingDate": "2026-11-20T09:00:00Z",
+    "salaryLabel": "SGD 6,000 - SGD 9,000 per month",
+    "location": "Singapore"
+  },
+  {
+    "id": "jb-402",
+    "title": "Platform Engineer",
+    "companyName": "Sample Cloud",
+    "jobUrl": "https://www.jobsdb.com/job/jb-402",
+    "teaser": "Maintain internal platforms.",
+    "location": "Remote"
+  }
+]

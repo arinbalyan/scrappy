@@ -1,0 +1,36 @@
+version = 1
+id = "ats-rippling"
+name = "Rippling ATS"
+family = "html_static"
+health = "requires_slug"
+request = "https://ats.rippling.com/{slug}/jobs"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public job board pages; skip board pages that present a challenge"
+attribution = "Rippling ATS"
+slugs = ["example-co"]
+fixtures = ["ats-rippling"]
+
+[request_options.headers]
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["title", "name"]
+[field_aliases.company]
+names = ["companyName"]
+[field_aliases.url]
+names = ["url"]
+[field_aliases.location]
+names = ["locationText"]
+[field_aliases.description]
+names = ["descriptionText"]
+
+[parser_options.embedded]
+element_id = "__NEXT_DATA__"
+envelope = ["props", "pageProps", "dehydratedState", "queries", "0", "state", "data", "items"]
+

@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://public.api.careerjet.net/search?affid={careerjet_affid}&locale_code={locale_code}&keywords={keywords}&sort=date&page={page}&pagesize={pagesize}",
+  "headers": {
+    "accept": "application/json"
+  }
+}

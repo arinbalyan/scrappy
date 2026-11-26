@@ -1,0 +1,31 @@
+{
+  "count": 2,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": 8201,
+      "role": "Backend Engineer",
+      "company_name": "Example Co",
+      "location": "Berlin",
+      "remote": true,
+      "url": "https://jobs.example.test/8201",
+      "text": "<p>Build <b>services</b>.</p>",
+      "date_posted": "2026-11-20",
+      "keywords": ["rust", "sql"],
+      "source": "example"
+    },
+    {
+      "id": 8202,
+      "role": "Data Engineer",
+      "company_name": "Sample Labs",
+      "location": null,
+      "remote": false,
+      "url": "https://jobs.example.test/8202",
+      "text": null,
+      "date_posted": "2026-11-21",
+      "keywords": [],
+      "source": "example"
+    }
+  ]
+}

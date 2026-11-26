@@ -1,0 +1,32 @@
+version = 1
+id = "adzuna"
+name = "Adzuna"
+family = "keyed"
+health = "keyed"
+request = "https://api.adzuna.com/v1/api/jobs/{query:country}/search/{query:page}?app_id={key:adzuna_app_id}&app_key={key:adzuna_app_key}&results_per_page={query:results_per_page}&sort_by=date"
+parser = "json"
+fetcher = "plain"
+pagination = "page:20"
+profile = "none"
+requires_js = false
+requests_per_minute = 60
+max_concurrency = 1
+robots = "allow credentialed API use within published quotas; skip without credentials"
+attribution = "Adzuna"
+credentials = ["adzuna_app_id", "adzuna_app_key"]
+fixtures = ["adzuna"]
+
+[field_aliases.title]
+names = ["title"]
+[field_aliases.company]
+names = ["company.display_name"]
+[field_aliases.url]
+names = ["redirect_url"]
+[field_aliases.location]
+names = ["location.display_name"]
+[field_aliases.description]
+names = ["description"]
+
+[parser_options]
+envelope = ["results"]
+

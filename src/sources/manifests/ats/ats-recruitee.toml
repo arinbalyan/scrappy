@@ -1,0 +1,35 @@
+version = 1
+id = "ats-recruitee"
+name = "Recruitee ATS"
+family = "ats"
+health = "requires_slug"
+request = "https://{slug}.recruitee.com/api/offers"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public board endpoints; skip challenged or access-controlled boards"
+attribution = "Recruitee"
+slugs = ["example-co"]
+fixtures = ["ats-recruitee"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company"]
+
+[field_aliases.url]
+names = ["careers_url", "url"]
+
+[field_aliases.location]
+names = ["city", "state", "country"]
+
+[field_aliases.description]
+names = ["description"]
+
+[parser_options]
+envelope = ["offers"]

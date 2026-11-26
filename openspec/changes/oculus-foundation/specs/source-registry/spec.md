@@ -72,6 +72,17 @@ Each manifest SHALL name a fixture set. Validation SHALL fail when the fixture s
 - **WHEN** a source selector is validated against its fixture
 - **THEN** the selector matches at least one node or record
 
+### Requirement: Request template rendering
+A manifest request, header value, and body template SHALL substitute named values from slug, credential, and query inputs. A doubled brace SHALL render as one literal brace so a body template can contain a JSON object. A substitution value containing whitespace or a brace SHALL be rejected without disclosing the value.
+
+#### Scenario: GraphQL body renders with literal braces
+- **WHEN** a manifest body template contains doubled braces around a GraphQL JSON object
+- **THEN** the built request body contains the exact JSON object and no doubled braces
+
+#### Scenario: Unsafe substitution is rejected
+- **WHEN** a substitution value contains whitespace or a brace
+- **THEN** request building fails, names the placeholder, and omits the value
+
 ### Requirement: Structured source metadata
 The source listing SHALL support a JSON format containing stable source identifiers, health states, failure kinds, last failure reasons, fetcher kind, emulation profile, credential requirements, robots policy, attribution, fixture set, and slug requirements where applicable. An empty result and a blocked result SHALL be distinguishable by status, not by record count.
 

@@ -1,0 +1,31 @@
+version = 1
+id = "mycareersfuture"
+name = "MyCareersFuture"
+family = "feeds_api"
+health = "working"
+request = "https://api.mycareersfuture.gov.sg/v2/jobs?limit={query:limit}&keyword={query:keyword}"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 1
+robots = "allow public job search"
+attribution = "MyCareersFuture"
+fixtures = ["mycareersfuture"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company.name"]
+
+[field_aliases.url]
+names = ["jobUrl"]
+
+[field_aliases.location]
+names = ["location"]
+
+[field_aliases.description]
+names = ["description"]

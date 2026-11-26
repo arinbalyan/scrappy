@@ -1,0 +1,32 @@
+version = 1
+id = "hiringcafe"
+name = "Hiring Cafe"
+family = "html_static"
+health = "working"
+request = "https://hiring.cafe/"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow public job listings"
+attribution = "Hiring Cafe"
+fixtures = ["hiringcafe"]
+
+[parser_options]
+envelope = []
+
+[parser_options.embedded]
+element_id = "__NEXT_DATA__"
+envelope = ["props", "pageProps", "ssrHits"]
+
+[field_aliases.title]
+names = ["job_information.title", "job_information.job_title_raw"]
+
+[field_aliases.company]
+names = ["enriched_company_data.name"]
+
+[field_aliases.url]
+names = ["apply_url"]

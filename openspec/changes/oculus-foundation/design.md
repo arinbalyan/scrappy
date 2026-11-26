@@ -177,6 +177,8 @@ Each source is a versioned TOML manifest with fields for source ID, display name
 
 Alternative considered: hard-coded Rust constructors per source. Rejected because it recreates the old drift where 141 declared sites had only 128 registered constructors.
 
+Request templates apply to the URL, header values, and body. Substitutions are named slug, credential, or query values. A doubled brace renders as one literal brace, allowing a declarative JSON body such as the functionalworks GraphQL POST. Substitution values reject whitespace and braces before a request is built, and diagnostics name the placeholder without printing its value.
+
 ### 3a. Custom sources
 
 Custom sources SHALL be added as local manifests under a documented user config directory, with a parser kind and fixture set drawn from the built-in parser library. Adding a source does not require rebuilding the binary or forking the repository. A custom manifest uses the same schema, validation, health states, rate limits, and secret handling as a built-in source, and it cannot override a built-in source identifier. External plugins compiled against Rust traits are out of scope for this change because they would break the small-binary and locked-build goals.

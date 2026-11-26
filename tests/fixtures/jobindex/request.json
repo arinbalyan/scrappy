@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.jobindex.dk/jobsoegning?q=backend",
+  "headers": {
+    "accept": "application/json"
+  }
+}

@@ -1,0 +1,35 @@
+version = 1
+id = "ats-ashby"
+name = "Ashby ATS"
+family = "ats"
+health = "requires_slug"
+request = "https://api.ashbyhq.com/posting-api/job-board/{slug}"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public board endpoints; skip challenged or access-controlled boards"
+attribution = "Ashby"
+slugs = ["example-co"]
+fixtures = ["ats-ashby"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company"]
+
+[field_aliases.url]
+names = ["jobUrl", "applyUrl", "url"]
+
+[field_aliases.location]
+names = ["address.postalAddress.addressLocality", "location"]
+
+[field_aliases.description]
+names = ["descriptionPlain", "descriptionHtml"]
+
+[parser_options]
+envelope = ["jobs"]

@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://wuzzuf.net/search/jobs/?q=software",
+  "headers": {
+    "accept": "application/json"
+  }
+}

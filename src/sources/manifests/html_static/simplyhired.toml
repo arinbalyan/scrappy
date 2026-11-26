@@ -1,0 +1,29 @@
+version = 1
+id = "simplyhired"
+name = "Simply Hired"
+family = "html_static"
+health = "working"
+request = "https://www.simplyhired.com/search?q={query:q}&l={query:l}&pn={query:pn}"
+parser = "html"
+fetcher = "plain"
+pagination = "page:3"
+profile = "none"
+requires_js = false
+requests_per_minute = 12
+max_concurrency = 1
+robots = "allow"
+attribution = "Simply Hired"
+fixtures = ["simplyhired"]
+
+[request_options]
+method = "GET"
+
+[request_options.headers]
+user-agent = "Mozilla/5.0"
+
+[selectors]
+item = "[data-testid=searchSerpJob]"
+title = "[data-testid=searchSerpJobTitle]"
+company = "[data-testid=companyName]"
+url = "a[href]"
+url_attribute = "href"

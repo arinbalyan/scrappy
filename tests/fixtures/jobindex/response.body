@@ -1,0 +1,4 @@
+<!doctype html>
+<html><body>
+<script>var Stash = {"jobsearch":{"result_app":{"storeData":{"searchResponse":{"results":[{"tid":1001,"headline":"Backend Engineer","companytext":"Example Co","share_url":"https://jobs.example.test/1001","area":"Copenhagen","html":"<p>Work on <b>services</b>.</p>"},{"tid":1002,"headline":"Data Engineer","companytext":"Sample Labs","share_url":"https://jobs.example.test/1002","area":"Remote","html":"Build pipelines."}]}}}}};</script>
+</body></html>

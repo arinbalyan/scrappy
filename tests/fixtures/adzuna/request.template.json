@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://api.adzuna.com/v1/api/jobs/{country}/search/{page}?app_id={adzuna_app_id}&app_key={adzuna_app_key}&results_per_page={results_per_page}&sort_by=date",
+  "headers": {
+    "accept": "application/json"
+  }
+}

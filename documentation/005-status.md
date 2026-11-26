@@ -8,32 +8,54 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | Source | Name | Health | Availability | Family | Fetcher |
 | --- | --- | --- | --- | --- | --- |
 | 4dayweek | 4 Day Week | working | ready | FeedsApi | plain |
+| adzuna | Adzuna | keyed | missing_credentials | Keyed | plain |
 | aijobs | AI Jobs | working | ready | HtmlStatic | plain |
 | androidjobs | Android Jobs | working | ready | FeedsApi | plain |
 | arbeitnow | Arbeitnow | working | ready | FeedsApi | plain |
+| ats-ashby | Ashby ATS | requires_slug | ready | Ats | plain |
+| ats-recruitee | Recruitee ATS | requires_slug | ready | Ats | plain |
+| ats-rippling | Rippling ATS | requires_slug | ready | HtmlStatic | plain |
+| ats-smartrecruiters | SmartRecruiters ATS | requires_slug | ready | Ats | plain |
+| ats-talentlyft | TalentLyft ATS | requires_slug | ready | Ats | plain |
+| ats-workable | Workable ATS | requires_slug | ready | Ats | plain |
+| builtin | Built In | working | ready | HtmlStatic | plain |
+| careerjet | Careerjet | keyed | missing_credentials | Keyed | plain |
 | crunchboard | Crunchboard | working | ready | FeedsApi | plain |
 | cryptocurrencyjobs | Cryptocurrency Jobs | working | ready | FeedsApi | plain |
 | devopsjobs | Devopsjobs | working | ready | FeedsApi | plain |
 | ecojobs | Eco Jobs | stale | ready | FeedsApi | plain |
+| findwork | FindWork | keyed | missing_credentials | Keyed | plain |
 | fossjobs | Fossjobs | working | ready | FeedsApi | plain |
-| functionalworks | Functional Works | stale | ready | FeedsApi | plain |
+| freelancercom | Freelancer.com | working | ready | FeedsApi | plain |
+| functionalworks | Functional Works | working | ready | FeedsApi | plain |
 | getonboard | GetOnBoard | working | ready | FeedsApi | plain |
 | golangjobs | Golang Jobs | working | ready | FeedsApi | plain |
+| greenhouse | Greenhouse | requires_slug | ready | Ats | plain |
 | gunio | Gun.io Jobs | working | ready | HtmlStatic | plain |
 | hackernews | Hacker News | working | ready | FeedsApi | plain |
 | hasjob | Hasjob | working | ready | FeedsApi | plain |
 | himalayas | Himalayas | working | ready | FeedsApi | plain |
+| hiringcafe | Hiring Cafe | working | ready | HtmlStatic | plain |
 | huggingfacejobs | Hugging Face Jobs | working | ready | HtmlStatic | plain |
+| internshala | Internshala | working | ready | HtmlStatic | plain |
 | jobicy | Jobicy | working | ready | FeedsApi | plain |
+| jobindex | Jobindex | working | ready | HtmlStatic | plain |
+| jobsdb | JobsDB | working | ready | FeedsApi | plain |
 | jobspresso | Jobspresso | working | ready | FeedsApi | plain |
+| jobstreet | JobStreet | working | ready | FeedsApi | plain |
 | landingjobs | Landingjobs | working | ready | FeedsApi | plain |
+| mycareersfuture | MyCareersFuture | working | ready | FeedsApi | plain |
 | pythonjobs | Python Jobs | working | ready | FeedsApi | plain |
 | railsjobs | Rails Jobs | working | ready | FeedsApi | plain |
 | realworkfromanywhere | Real Work From Anywhere | working | ready | FeedsApi | plain |
+| reed | Reed | working | ready | HtmlStatic | plain |
 | remoteok | RemoteOK | working | ready | FeedsApi | plain |
 | remotive | Remotive | working | ready | FeedsApi | plain |
+| simplyhired | Simply Hired | working | ready | HtmlStatic | plain |
+| ukvisajobs | UK Visa Jobs | working | ready | FeedsApi | plain |
 | weworkremotely | We Work Remotely | working | ready | FeedsApi | plain |
 | workingnomads | Working Nomads | working | ready | FeedsApi | plain |
+| wuzzuf | Wuzzuf | working | ready | HtmlStatic | plain |
 | ycjobs | YC Jobs | blocked | blocked | Keyed | plain |
 
 The source registry is described in `documentation/013-source-registry.md`.

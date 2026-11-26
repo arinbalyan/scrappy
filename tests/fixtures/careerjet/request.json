@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://public.api.careerjet.net/search?affid=sample-affiliate&locale_code=en_GB&keywords=engineer&sort=date&page=1&pagesize=2",
+  "headers": {
+    "accept": "application/json"
+  }
+}

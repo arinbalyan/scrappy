@@ -110,17 +110,17 @@
 ## 10. Source porting Tier 2
 
 - [x] 10.0 Extend the source adapter path to static HTML and rendered HTML families with selector-based extraction, POST method, header and body templates, and embedded JSON parsing
-- [ ] 10.1 Port builtin, internshala, wuzzuf, freelancercom, and jobindex with fixtures and parser tests, and verify cargo test passes offline
-- [ ] 10.2 Port jobsdb, jobstreet, mycareersfuture, reed, and hiringcafe with fixtures and parser tests, and verify cargo test passes offline
-- [ ] 10.3 Port simplyhired and ukvisajobs with fixtures and parser tests, and verify cargo test passes offline
-- [ ] 10.4 Write scraper behavior docs for every Tier 2 source and verify each source id has a matching document
+- [x] 10.1 Port builtin, internshala, wuzzuf, freelancercom, and jobindex with fixtures and parser tests, and verify cargo test passes offline
+- [x] 10.2 Port jobsdb, jobstreet, mycareersfuture, reed, and hiringcafe with fixtures and parser tests, and verify cargo test passes offline
+- [x] 10.3 Port simplyhired and ukvisajobs with fixtures and parser tests, and verify cargo test passes offline
+- [x] 10.4 Write scraper behavior docs for every Tier 2 source and verify each source id has a matching document
 
 ## 11. Source porting Tier 3
 
 - [x] 11.0 Extend the source adapter path to keyed and slug-dependent ATS families with credential and slug substitution
-- [ ] 11.1 Port greenhouse, ats-ashby, ats-smartrecruiters, ats-recruitee, ats-workable, ats-rippling, and ats-talentlyft with slug manifests and fixtures, and verify cargo test passes offline
-- [ ] 11.2 Port adzuna, careerjet, and findwork with credential declarations and fixtures, and verify missing keys skip without requests
-- [ ] 11.3 Write scraper behavior docs for every Tier 3 source and verify each source id has a matching document
+- [x] 11.1 Port greenhouse, ats-ashby, ats-smartrecruiters, ats-recruitee, ats-workable, ats-rippling, and ats-talentlyft with slug manifests and fixtures, and verify cargo test passes offline
+- [x] 11.2 Port adzuna, careerjet, and findwork with credential declarations and fixtures, and verify missing keys skip without requests
+- [x] 11.3 Write scraper behavior docs for every Tier 3 source and verify each source id has a matching document
 
 ## 12. CI and release
 

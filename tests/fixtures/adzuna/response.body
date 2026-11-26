@@ -1,0 +1,29 @@
+{
+  "count": 2,
+  "results": [
+    {
+      "id": "70101",
+      "title": "Backend Engineer",
+      "company": {"display_name": "Example Co"},
+      "redirect_url": "https://jobs.example.test/70101",
+      "location": {"display_name": "London"},
+      "description": "<p>Work on <strong>services</strong>.</p>",
+      "created": "2026-11-20T10:00:00Z",
+      "contract_time": "full_time",
+      "salary_min": 60000,
+      "salary_max": 75000,
+      "salary_is_predicted": "0"
+    },
+    {
+      "id": "70102",
+      "title": "Data Engineer",
+      "company": {"display_name": "Sample Labs"},
+      "redirect_url": "https://jobs.example.test/70102",
+      "location": {"display_name": "Remote"},
+      "description": "Build <i>pipelines</i>.",
+      "created": "2026-11-21T10:00:00Z",
+      "contract_time": "contract",
+      "salary_is_predicted": "1"
+    }
+  ]
+}

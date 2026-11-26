@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "{base_url}?q={q}&l={location}&pn={page}",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

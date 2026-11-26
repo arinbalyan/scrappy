@@ -1,0 +1,38 @@
+version = 1
+id = "reed"
+name = "Reed"
+family = "html_static"
+health = "working"
+request = "https://www.reed.co.uk/jobs?keywords={query:keywords}&location={query:location}&pageno={query:pageno}"
+parser = "json"
+fetcher = "plain"
+pagination = "numbered pages with 429 retry backoff"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow public job search"
+attribution = "Reed"
+fixtures = ["reed"]
+
+[parser_options]
+envelope = []
+
+[parser_options.embedded]
+element_id = "__NEXT_DATA__"
+envelope = ["props", "pageProps", "searchResults", "jobs"]
+
+[field_aliases.title]
+names = ["jobDetail.jobTitle"]
+
+[field_aliases.company]
+names = ["jobDetail.ouName", "profileName"]
+
+[field_aliases.url]
+names = ["resolvedUrl"]
+
+[field_aliases.location]
+names = ["jobDetail.displayLocationName"]
+
+[field_aliases.description]
+names = ["jobDetail.jobDescription"]

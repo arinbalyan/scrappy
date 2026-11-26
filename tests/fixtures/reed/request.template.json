@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.reed.co.uk/jobs?keywords={query:keywords}&location={query:location}&pageno={query:pageno}",
+  "headers": {
+    "accept": "text/html,application/xhtml+xml"
+  }
+}

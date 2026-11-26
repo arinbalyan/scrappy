@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://api.smartrecruiters.com/v1/companies/example-co/jobs?offset=0&limit=100",
+  "headers": {
+    "accept": "application/json"
+  }
+}

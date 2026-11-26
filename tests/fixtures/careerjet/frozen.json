@@ -1,0 +1,10 @@
+{
+  "fetched_at": "2026-11-26T00:00:00Z",
+  "substitutions": {
+    "careerjet_affid": "sample-affiliate",
+    "locale_code": "en_GB",
+    "keywords": "engineer",
+    "page": "1",
+    "pagesize": "2"
+  }
+}

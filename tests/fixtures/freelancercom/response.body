@@ -1,0 +1,40 @@
+{
+  "status": "success",
+  "result": {
+    "total_count": 2,
+    "projects": [
+      {
+        "id": 101,
+        "title": "Backend Engineer",
+        "description": "<p>Build <strong>services</strong>.</p>",
+        "seo_url": "backend-engineer-101",
+        "owner": {
+          "username": "example_co",
+          "display_name": "Example Co"
+        },
+        "location": {
+          "city": "Berlin",
+          "country": {
+            "name": "Germany"
+          }
+        }
+      },
+      {
+        "id": 102,
+        "title": "Data Engineer",
+        "description": "Build pipelines.",
+        "seo_url": "data-engineer-102",
+        "owner": {
+          "username": "sample_labs",
+          "display_name": "Sample Labs"
+        },
+        "location": {
+          "city": "Remote",
+          "country": {
+            "name": "Anywhere"
+          }
+        }
+      }
+    ]
+  }
+}

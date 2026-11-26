@@ -1,0 +1,31 @@
+version = 1
+id = "jobsdb"
+name = "JobsDB"
+family = "feeds_api"
+health = "working"
+request = "https://www.seek.com.au/api/jobsearch/v5/search?keywords={query:keywords}&page={query:page}&pagesize={query:pagesize}&siteKey=SG-Main&where={query:where}"
+parser = "json"
+fetcher = "plain"
+pagination = "numbered pages"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 1
+robots = "allow public job search"
+attribution = "JobsDB"
+fixtures = ["jobsdb"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["companyName", "advertiser.description"]
+
+[field_aliases.url]
+names = ["jobUrl"]
+
+[field_aliases.location]
+names = ["location"]
+
+[field_aliases.description]
+names = ["teaser"]

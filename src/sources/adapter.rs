@@ -249,15 +249,40 @@ fn error(message: String) -> AdapterError {
 }
 
 fn render(template: &str, values: &TemplateValues) -> Result<String, AdapterError> {
-    let mut url = String::with_capacity(template.len());
-    let mut rest = template;
-    while let Some(start) = rest.find('{') {
-        let tail = &rest[start + 1..];
-        let Some(end) = tail.find('}') else {
-            return Err(error("unterminated request placeholder".to_owned()));
-        };
-        url.push_str(&rest[..start]);
-        let name = &tail[..end];
+    let mut output = String::with_capacity(template.len());
+    let bytes = template.as_bytes();
+    let mut index = 0;
+    while index < bytes.len() {
+        if bytes[index] == b'{' && bytes.get(index + 1) == Some(&b'{') {
+            output.push('{');
+            index += 2;
+            continue;
+        }
+        if bytes[index] == b'}' && bytes.get(index + 1) == Some(&b'}') {
+            output.push('}');
+            index += 2;
+            continue;
+        }
+        if bytes[index] != b'{' && bytes[index] != b'}' {
+            let ch = template[index..]
+                .chars()
+                .next()
+                .expect("character at byte index");
+            output.push(ch);
+            index += ch.len_utf8();
+            continue;
+        }
+        if bytes[index] == b'}' {
+            return Err(error(
+                "unmatched closing brace in request template".to_owned(),
+            ));
+        }
+        let end = template[index + 1..]
+            .find('}')
+            .ok_or_else(|| error("unterminated request placeholder".to_owned()))?
+            + index
+            + 1;
+        let name = &template[index + 1..end];
         let value = if name == "slug" {
             values
                 .slug
@@ -286,11 +311,10 @@ fn render(template: &str, values: &TemplateValues) -> Result<String, AdapterErro
                 "unsafe value for request placeholder: {name}"
             )));
         }
-        url.push_str(value);
-        rest = &tail[end + 1..];
+        output.push_str(value);
+        index = end + 1;
     }
-    url.push_str(rest);
-    Ok(url)
+    Ok(output)
 }
 
 #[cfg(test)]
@@ -384,5 +408,72 @@ attribution = "Example"
         };
         let error = build_request(&manifest, &missing).unwrap_err();
         assert!(!error.message.contains("secret-value"));
+    }
+
+    #[test]
+    fn keeps_escaped_json_braces_in_request_bodies() {
+        let manifest = crate::sources::manifest::parse(
+            r#"
+version = 1
+id = "sample"
+name = "Sample"
+family = "feeds_api"
+health = "working"
+request = "https://example.test/graphql"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 2
+robots = "allow"
+attribution = "Example"
+
+[request_options]
+method = "POST"
+body = "{{\"query\":\"jobs(page:1)\"}},{slug}"
+"#,
+        )
+        .expect("manifest parsed");
+        let request = build_request(
+            &manifest,
+            &TemplateValues {
+                slug: Some("rust".to_owned()),
+                ..TemplateValues::default()
+            },
+        )
+        .expect("request built");
+        assert_eq!(request.body, br#"{"query":"jobs(page:1)"},rust"#);
+    }
+
+    #[test]
+    fn rejects_unmatched_closing_brace_in_request_template() {
+        let manifest = crate::sources::manifest::parse(
+            r#"
+version = 1
+id = "sample"
+name = "Sample"
+family = "feeds_api"
+health = "working"
+request = "https://example.test/graphql"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 2
+robots = "allow"
+attribution = "Example"
+
+[request_options]
+method = "POST"
+body = "bad}body"
+"#,
+        )
+        .expect("manifest parsed");
+        let error = build_request(&manifest, &TemplateValues::default()).unwrap_err();
+        assert!(error.message.contains("unmatched closing brace"));
     }
 }

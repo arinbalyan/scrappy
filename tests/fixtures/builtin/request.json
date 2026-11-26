@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://builtin.com/jobs?search=backend",
+  "headers": {
+    "accept": "application/json"
+  }
+}

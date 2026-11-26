@@ -1,0 +1,4 @@
+<!doctype html>
+<html><body>
+<script id="__NEXT_DATA__" type="application/json">{"props":{"pageProps":{"jobs":[{"id":701,"title":"Backend Engineer","url":"https://jobs.example.test/701","company_name":"Example Co","body_teaser":"Build <b>services</b>.","city_name":"Austin"},{"id":702,"title":"Data Engineer","url":"https://builtin.com/job/data-engineer-702","company_name":"Sample Labs","body_teaser":"Build pipelines.","city_name":"Remote"}]}}}</script>
+</body></html>

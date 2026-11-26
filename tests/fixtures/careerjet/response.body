@@ -1,0 +1,30 @@
+{
+  "type": "search",
+  "hits": 2,
+  "pages": 1,
+  "response_time": 12,
+  "jobs": [
+    {
+      "title": "Platform Engineer",
+      "company": "Example Co",
+      "date": "2026-11-20",
+      "description": "Own internal platforms.",
+      "locations": "London, England",
+      "url": "https://jobs.example.test/cj-8101",
+      "site": "example.test",
+      "salary_min": 70000,
+      "salary_max": 80000,
+      "salary_type": "Y",
+      "salary_currency_code": "GBP"
+    },
+    {
+      "title": "Support Engineer",
+      "company": "Sample Labs",
+      "date": "2026-11-21",
+      "description": "Help customers integrate.",
+      "locations": "Remote",
+      "url": "https://jobs.example.test/cj-8102",
+      "site": "example.test"
+    }
+  ]
+}

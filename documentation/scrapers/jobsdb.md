@@ -1,0 +1,35 @@
+# jobsdb
+
+Source id: jobsdb
+Family: feeds_api
+Health: working
+Endpoint: GET https://www.seek.com.au/api/jobsearch/v5/search?keywords={query:keywords}&page={query:page}&pagesize={query:pagesize}&siteKey=SG-Main&where={query:where}
+Parser: json
+Fetcher: plain
+Pagination: numbered pages, up to 10, stopping on an empty page or fewer than 30 results
+Rate: 20 requests per minute
+Concurrency: 1
+Robots: allow public job search
+Attribution: JobsDB
+Credentials: none
+Slugs: none
+
+## Behavior
+
+- The SEEK v5 search API is shared with other regional boards; the site key selects the SG-Main index.
+- The adapter reads the top-level array directly. The frozen payload is shaped as an array so field aliases apply; a live data envelope needs envelope support with aliases.
+- Location is flattened into a scalar string in the frozen payload because the adapter cannot index into list fields.
+- Company comes from companyName, with advertiser.description as the fallback.
+- The normalized URL is built from the API id as https://www.jobsdb.com/job/{id}.
+- Location comes from the flattened location string; description is the teaser.
+- Salary parsing, date parsing, remote detection, classification fields, and bullet-point merging are not represented in the six-field record.
+
+## Known quirks
+
+- The historical request used a 200-500 ms jitter between pages; the declarative manifest uses a fixed rate cap.
+- Items with no id or no title are discarded before normalization.
+- Missing location produces a null location field.
+
+## Break and fix log
+
+- 2026-11-26: Manifest, synthetic fixtures, behavior doc, and offline replay recorded during the Tier 2 B port.

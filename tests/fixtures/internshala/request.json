@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://internshala.com/jobs/engineering/page-1",
+  "headers": {
+    "accept": "application/json"
+  }
+}

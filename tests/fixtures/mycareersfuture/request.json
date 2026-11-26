@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://api.mycareersfuture.gov.sg/v2/jobs?limit=15&keyword=engineer",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "scrappy-fixture/1.0"
+  }
+}

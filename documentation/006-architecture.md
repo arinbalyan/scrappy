@@ -16,7 +16,10 @@ openspec/changes/oculus-foundation/design.md.
 For feeds_api sources, src/sources/adapter.rs joins manifest.rs with fetching
 and parsing. A caller supplies runtime substitutions (slug, named credential,
 or query value), and build_request expands placeholders in the manifest
-`request` URL into a validated fetching::Request. The caller fetches that
+`request` URL, header values, and body into a validated fetching::Request. A
+literal brace is written twice in a template, so `{{` becomes `{` and `}}`
+becomes `}` after substitution. This keeps JSON request bodies declarative.
+The caller fetches that
 request, then parse_response turns the bounded fetching::Response into
 parsing::Record values. The adapter performs no network I/O and never places
 credential values in error messages. Manifest fields request_template,

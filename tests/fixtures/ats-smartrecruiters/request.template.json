@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://api.smartrecruiters.com/v1/companies/{slug}/jobs?offset=0&limit={limit}",
+  "headers": {
+    "accept": "application/json"
+  }
+}
