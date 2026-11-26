@@ -2,7 +2,7 @@
 
 ## Context
 
-See proposal.md for motivation and specs/ for the behavior contract. The branch preserves main's history with all inherited files removed; there is no existing code to preserve. The old Go implementation on main and the sibling JobHunter, job-ops, and JobRadar projects are read-only evidence of behavior. Every file written here must be authored fresh. Toolchain available locally: rustc and cargo 1.100.0.
+See proposal.md for motivation and specs/ for the behavior contract. The branch preserves main's history with all inherited files removed; there is no existing code to preserve. The old Go implementation on main and other parent-workspace repositories are read-only evidence of behavior. Every file written here must be authored fresh. Toolchain available locally: rustc and cargo 1.100.0.
 
 ## Goals / Non-Goals
 
@@ -17,7 +17,7 @@ See proposal.md for motivation and specs/ for the behavior contract. The branch 
 
 **Non-Goals:**
 
-- Modifying JobHunter, job-ops, JobRadar, or the old scrappy main branch.
+- Modifying the other parent-workspace projects or the old scrappy main branch.
 - Copying old source, fixtures, docs, prompts, config text, or branding.
 - Solving CAPTCHAs, using credential-based access, or defeating access controls.
 - Implementing email sending, application automation, or LLM features in this change.
@@ -37,6 +37,11 @@ Use a single Cargo package with a binary and library boundary.
 - .github/workflows/ holds CI for tests, audits, static builds, and secret-leak checks.
 
 Alternative considered: a workspace with many crates. Rejected for a single contributor because it adds build overhead and indirection without a team boundary to enforce.
+### 1b. Scraper location and classification
+A scraper is not one file. It is the combination of a declarative manifest in src/sources/manifests/<family>/<source_id>.toml, a parser kind from src/parsing/, and a fetcher kind from src/fetching/. The manifest selects the request template, parser, fetcher, emulation profile, selector strategy, credential names, robots policy, and fixtures. Shared parsing code stays in src/parsing/; source-specific differences stay in manifests and fixtures. A custom source follows the same model from the documented user config directory.
+Sources are classified on two axes. The adapter family controls code placement and runtime behavior: feeds_api, ats, html_static, html_rendered, and keyed. The health state controls eligibility: working, keyed, blocked, stale, requires_slug, browser_only, and unregistered. A source carries both, so a feed can be stale and an HTML page can be working. Numbered tiers in tasks.md are port order only and do not replace this classification.
+The folder layout follows the family axis. Manifests live in src/sources/manifests/feeds_api/, ats/, html_static/, html_rendered/, and keyed/. Shared parsers live in src/parsing/ as json, rss, html, and jsonld modules. Fetchers live in src/fetching/ as plain, emulation, browser, and proxy modules. Fixtures live in tests/fixtures/<source_id>/. Behavior docs live in documentation/scrapers/<source_id>.md.
+Every scraper gets a behavior document in documentation/scrapers/<source_id>.md. It records the source id, adapter family, health state, endpoint shape, parser, fetcher, emulation profile, credential and slug needs, rate and concurrency limits, robots policy, known quirks, and a dated break/fix log. When a scraper breaks and is repaired, the fix and the observed behavior are appended to that document in the same change. Documentation parity checks require one document per registered source and reject a document whose source id has no manifest.
 
 ### 1a. Documentation and code style
 
@@ -62,9 +67,9 @@ Alternative considered: keeping the old flat flag set and patching merge logic. 
 
 ### 2a. Automation bridge
 
-JobRadar consumes the binary as a process, so the Rust binary itself implements the wire protocol instead of exposing a Go-style library. A run --stdin-config mode reads one JSON object from stdin, treats it as the highest-precedence run-config layer, and starts fetching at EOF. stdout carries only enriched NDJSON records. stderr carries either human text or NDJSON progress events with a discriminated event field, run identifier, source identifier, counters, and a terminal event. Exit codes are published constants: 0 success, 1 internal failure, 2 usage or validation, 3 partial success, 4 challenge-paused, 5 cancelled.
+A downstream automation consumer runs the binary as a process, so the Rust binary itself implements the wire protocol instead of exposing a Go-style library. A run --stdin-config mode reads one JSON object from stdin, treats it as the highest-precedence run-config layer, and starts fetching at EOF. stdout carries only enriched NDJSON records. stderr carries either human text or NDJSON progress events with a discriminated event field, run identifier, source identifier, counters, and a terminal event. Exit codes are published constants: 0 success, 1 internal failure, 2 usage or validation, 3 partial success, 4 challenge-paused, 5 cancelled.
 
-Each record is enriched before emission: email extraction with provenance, MX verification, deterministic quality scoring, canonical company domain from source identity or company_url, deduplication, and source attribution. A challenge emits a separate event with an opaque resume state bound to the configuration fingerprint and pauses only the affected source. This keeps JobRadar's autopilot and attention routing policy outside the scraper while giving it the signals to decide.
+Each record is enriched before emission: email extraction with provenance, MX verification, deterministic quality scoring, canonical company domain from source identity or company_url, deduplication, and source attribution. A challenge emits a separate event with an opaque resume state bound to the configuration fingerprint and pauses only the affected source. This keeps the consumer's routing policy outside the scraper while giving it the signals to decide.
 
 Alternative considered: a thin Go bridge wrapping a scrappy package. Rejected because the clean-room Rust binary has no Go library and the process boundary must own the contract.
 

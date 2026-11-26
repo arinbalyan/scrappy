@@ -117,3 +117,14 @@ A user SHALL be able to add a source through a local manifest in a documented us
 - **GIVEN** a custom manifest using a built-in source identifier
 - **WHEN** the registry loads the manifest
 - **THEN** validation fails and names the conflict
+
+### Requirement: Scraper behavior documentation
+Every registered source SHALL have one behavior document in documentation/scrapers/ keyed by its stable source identifier. Each document SHALL record the adapter family, health state, endpoint shape, parser kind, fetcher kind, emulation profile, credential and slug needs, rate and concurrency limits, robots policy, known quirks, and a dated break/fix log. When a scraper is repaired, its behavior document SHALL be updated in the same change with the observed failure and the fix.
+
+#### Scenario: Every source has a behavior document
+- **WHEN** registry parity checks run
+- **THEN** every registered source has exactly one matching document in documentation/scrapers/
+
+#### Scenario: Break and fix are recorded
+- **WHEN** a scraper is repaired after a break
+- **THEN** its behavior document contains a dated entry naming the failure and the fix

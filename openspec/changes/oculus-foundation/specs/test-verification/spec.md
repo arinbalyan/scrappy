@@ -88,7 +88,7 @@ The release workflow SHALL build and upload every artifact named by the installa
 - **THEN** the installer exits nonzero and installs nothing
 
 ### Requirement: Registry parity checks in CI
-Normal CI SHALL verify that default source selection contains only registered manifests, each registered source has a fixture set and a contract test, generated status documentation matches registry states, and generated ATS slug counts match loaded manifests. These checks SHALL run offline.
+Normal CI SHALL verify that default source selection contains only registered manifests, each registered source has a fixture set and a contract test, generated status documentation matches registry states, and generated ATS slug counts match loaded manifests. These checks SHALL run offline. Normal CI SHALL also verify that each registered source has exactly one behavior document in documentation/scrapers/ and that the document names a manifest that exists.
 
 #### Scenario: Drift fails CI
 - **WHEN** a manifest is registered without a fixture set or a status document is edited by hand

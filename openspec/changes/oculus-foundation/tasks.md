@@ -29,6 +29,7 @@
 - [ ] 2.14 Implement shell completion generation and verify supported shells produce scripts while an unsupported shell exits 2
 - [ ] 2.15 Implement config init as a non-destructive write that refuses to overwrite an existing file unless explicitly forced, and verify the original file is unchanged on a refused write
 - [ ] 2.16 Restrict doctor fix to documented safe repairs of config files and generated artifacts, and verify it never modifies source, fixture, or manifest files
+- [ ] 2.17 Add scraper behavior docs under documentation/scrapers/ and define the record format used when a scraper is fixed
 
 ## 3. Source registry and manifests
 
@@ -40,6 +41,7 @@
 - [ ] 3.6 Add list-sources --format json with health, failure, credential, fetcher, slug, and fixture fields, and verify empty and blocked states are distinguishable
 - [ ] 3.7 Add registry parity checks for default selection, fixtures, contract tests, status uniqueness, and slug counts, and verify drift fails CI offline
 - [ ] 3.8 Implement custom source manifests from a documented user config directory using built-in parser kinds, and verify a custom source runs without rebuilding or overriding a built-in ID
+- [ ] 3.9 Record one behavior document in documentation/scrapers/<source_id>.md for every ported source, covering endpoint family, parser, fetcher, quirks, and break/fix history
 
 ## 4. Fetching and parsing foundation
 
@@ -93,6 +95,7 @@
 ## 9. Source porting Tier 1
 
 - [ ] 9.1 Port arbeitnow, remoteok, remotive, workingnomads, himalayas, and jobicy with fixtures and parser tests, and verify cargo test passes offline
+- [ ] 9.5 Write scraper behavior docs for every Tier 1 source and verify each source id has a matching document
 - [ ] 9.2 Port hackernews, cryptocurrencyjobs, fossjobs, pythonjobs, railsjobs, golangjobs, and devopsjobs with fixtures and parser tests, and verify cargo test passes offline
 - [ ] 9.3 Port crunchboard, jobspresso, hasjob, landingjobs, realworkfromanywhere, and weworkremotely with fixtures and parser tests, and verify cargo test passes offline
 - [ ] 9.4 Port huggingfacejobs, androidjobs, aijobs, gunio, ycjobs, 4dayweek, functionalworks, getonboard, and ecojobs with fixtures and parser tests, and verify cargo test passes offline
@@ -102,11 +105,13 @@
 - [ ] 10.1 Port builtin, internshala, wuzzuf, freelancercom, and jobindex with fixtures and parser tests, and verify cargo test passes offline
 - [ ] 10.2 Port jobsdb, jobstreet, mycareersfuture, reed, and hiringcafe with fixtures and parser tests, and verify cargo test passes offline
 - [ ] 10.3 Port simplyhired and ukvisajobs with fixtures and parser tests, and verify cargo test passes offline
+- [ ] 10.4 Write scraper behavior docs for every Tier 2 source and verify each source id has a matching document
 
 ## 11. Source porting Tier 3
 
 - [ ] 11.1 Port greenhouse, ats-ashby, ats-smartrecruiters, ats-recruitee, ats-workable, ats-rippling, and ats-talentlyft with slug manifests and fixtures, and verify cargo test passes offline
 - [ ] 11.2 Port adzuna, careerjet, and findwork with credential declarations and fixtures, and verify missing keys skip without requests
+- [ ] 11.3 Write scraper behavior docs for every Tier 3 source and verify each source id has a matching document
 
 ## 12. CI and release
 
@@ -120,6 +125,7 @@
 
 - [ ] 13.1 Add a separate ignored live validation suite that reports working, keyed, blocked, stale, and unregistered sources, and verify normal cargo test does not execute it
 - [ ] 13.2 Run live validation once with configured rate limits and record the result in a non-committed report, and verify no source exceeds its configured request rate
+- [ ] 13.3 Update affected documentation/scrapers/<source_id>.md entries when live validation finds a broken source, and verify the break and fix are recorded
 
 ## Workflow follow-up
 
