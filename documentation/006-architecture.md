@@ -21,3 +21,11 @@ a zero rate or zero concurrency is rejected. The global kill switch stops all
 sources, including requests already waiting on a rate or concurrency slot.
 Kill-switch cancellation is checked before and after each wait, so no request
 starts after the switch is activated.
+
+Retries live in src/engine/retry.rs and apply only to idempotent requests.
+Each attempt is classified as retryable, permanent, or throttled. Permanent
+errors are never retried. Retryable errors wait with capped exponential
+backoff plus jitter from a caller-supplied source. Throttled responses use a
+parsed Retry-After delay when present, capped at the same maximum. A cancel
+token interrupts any wait promptly, including an oversized Retry-After, and
+no further attempt is started after cancellation.
