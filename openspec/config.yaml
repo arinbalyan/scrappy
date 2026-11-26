@@ -29,7 +29,9 @@ context: |
   challenge detection with backoff; checkpoint/resume; and locked, audited
   dependency builds.
 
-  Rust code must follow the project-local ms-rust skill installed at
+  Rust code must follow the ms-rust skill available in this workspace at
+  /home/nemesis/Projects/job-hunter-repos/.codex/skills/ms-rust/SKILL.md and
+  in the global Codex skills directory. The repository copy remains at
   .codex/skills/ms-rust/SKILL.md. Load that skill and only the applicable
   guideline files before writing, reviewing, or modifying any .rs file.
   Follow the Microsoft Pragmatic Rust Guidelines it contains, including the

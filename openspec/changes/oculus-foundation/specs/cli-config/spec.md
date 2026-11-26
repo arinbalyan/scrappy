@@ -122,6 +122,10 @@ The binary SHALL generate a commented config template with sane defaults through
 - **WHEN** a user runs `scrappy config init --path <path>`
 - **THEN** the file contains documented fields, defaults, and environment variable names and contains no secret values
 
+#### Scenario: Init refuses to overwrite
+- **WHEN** a user runs config init against an existing file without a force option
+- **THEN** the command exits 2 and the existing file remains unchanged
+
 #### Scenario: Edit honors the explicit path
 - **WHEN** a user runs a config editing action with an explicit path
 - **THEN** the editor opens exactly that file and no discovered config is modified
@@ -153,7 +157,8 @@ The doctor command SHALL use the same config schema as the runtime, report the e
 - **THEN** doctor reports key names or counts and never prints key values
 
 ### Requirement: Doctor check taxonomy
-Doctor SHALL report named checks for config discovery and parsing, schema and source validation, credential presence without values, proxy reachability, browser dependency availability, source manifest and fixture parity, output destination writability, and feature availability. Each check SHALL report pass, warn, fail, or skip with a reason. A missing optional credential SHALL NOT prevent unrelated checks from running. Doctor SHALL never print a secret, a raw cookie, or a query-string token.
+Doctor SHALL report named checks for config discovery and parsing, schema and source validation, credential presence without values, proxy reachability, browser dependency availability, source manifest and fixture parity, output destination writability, and feature availability.
+Each check SHALL report pass, warn, fail, or skip with a reason. A missing optional credential SHALL NOT prevent unrelated checks from running. Doctor SHALL never print a secret, a raw cookie, or a query-string token.
 
 #### Scenario: Doctor reports every named check
 - **WHEN** doctor runs with a complete config
@@ -169,6 +174,10 @@ Doctor SHALL support JSON output and an explicit fix action that applies only do
 #### Scenario: Doctor fix reports a failed repair
 - **WHEN** a safe fix is attempted and fails
 - **THEN** the check status is fail and doctor exits nonzero
+
+#### Scenario: Doctor fix stays in scope
+- **WHEN** doctor fix runs
+- **THEN** it modifies only documented config files or generated artifacts and never changes source, fixture, or manifest files
 
 #### Scenario: Doctor JSON is machine-readable
 - **WHEN** a caller requests doctor output as JSON
@@ -197,7 +206,8 @@ Rate options SHALL enforce token-bucket requests per interval and concurrency op
 - **THEN** no more than the configured number of requests run in parallel
 
 ### Requirement: Non-interactive run contract
-The binary SHALL support a non-interactive run mode that accepts a single JSON run-config document on stdin, starts the run at EOF, and emits one normalized job record per stdout line. Every run-config field SHALL map to a documented CLI or config key, and the tri-state boolean rules SHALL apply to run-config booleans. A malformed run-config SHALL exit with the usage/validation code before any fetch and SHALL NOT emit partial stdout records.
+The binary SHALL support a non-interactive run mode that accepts a single JSON run-config document on stdin, starts the run at EOF, and emits one normalized job record per stdout line.
+Every run-config field SHALL map to a documented CLI or config key, and the tri-state boolean rules SHALL apply to run-config booleans. A malformed run-config SHALL exit with the usage/validation code before any fetch and SHALL NOT emit partial stdout records.
 
 #### Scenario: JSON run-config drives a run
 - **WHEN** a caller writes one JSON run-config object to stdin and closes stdin

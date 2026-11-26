@@ -27,6 +27,8 @@
 - [ ] 2.12 Implement config init with a commented template documenting field types, defaults, and environment variables, and verify no secret values appear in the template
 - [ ] 2.13 Implement config schema and enum-value printing from the runtime schema, and verify every runtime field is documented
 - [ ] 2.14 Implement shell completion generation and verify supported shells produce scripts while an unsupported shell exits 2
+- [ ] 2.15 Implement config init as a non-destructive write that refuses to overwrite an existing file unless explicitly forced, and verify the original file is unchanged on a refused write
+- [ ] 2.16 Restrict doctor fix to documented safe repairs of config files and generated artifacts, and verify it never modifies source, fixture, or manifest files
 
 ## 3. Source registry and manifests
 
@@ -37,6 +39,7 @@
 - [ ] 3.5 Generate status documentation from the registry and verify generated counts match list-sources output
 - [ ] 3.6 Add list-sources --format json with health, failure, credential, fetcher, slug, and fixture fields, and verify empty and blocked states are distinguishable
 - [ ] 3.7 Add registry parity checks for default selection, fixtures, contract tests, status uniqueness, and slug counts, and verify drift fails CI offline
+- [ ] 3.8 Implement custom source manifests from a documented user config directory using built-in parser kinds, and verify a custom source runs without rebuilding or overriding a built-in ID
 
 ## 4. Fetching and parsing foundation
 

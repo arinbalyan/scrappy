@@ -14,6 +14,7 @@ This is a clean-room rebuild on the `oculus` branch, which preserves the history
 - Introduce a typed layered configuration contract with real precedence, tri-state booleans, scalar-or-list values, source-aware validation, a generated config template, inspectable resolved values, and lossless writes.
 - Provide `doctor` as a first-class diagnostic command with named checks, safe automatic fixes, proxy verification, JSON reporting, and an explicit fix mode.
 - Define source manifests with stable IDs, selectors, rate and concurrency limits, API-key requirements, robots policy, attribution, and fixture references.
+- Allow users to add custom sources through local manifests without rebuilding the binary or forking the repository.
 - Separate fetching from parsing behind a fetcher abstraction with plain HTTP, browser-emulation HTTP, and opt-in browser paths.
 - Emit machine-readable NDJSON on stdout and keep all diagnostics on stderr.
 - Add content-hash deduplication, canonical URL normalization, checkpoint/resume, and deterministic fixture-driven tests.

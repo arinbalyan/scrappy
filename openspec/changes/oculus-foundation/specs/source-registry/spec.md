@@ -104,3 +104,16 @@ Slug data and credential declarations SHALL live in source manifests. Explicit o
 #### Scenario: Empty slug set is deterministic
 - **WHEN** a slug-dependent source has no valid seeds
 - **THEN** the source is skipped with a missing-slug status and no request is sent
+
+### Requirement: Custom source manifests
+A user SHALL be able to add a source through a local manifest in a documented user config directory without rebuilding the binary or forking the repository. A custom manifest SHALL use the built-in parser kinds, pass the same validation as a built-in source, and SHALL NOT override a built-in source identifier.
+
+#### Scenario: Custom source runs without rebuild
+- **GIVEN** a valid custom manifest in the documented user config directory
+- **WHEN** the user runs a scrape that selects the custom source
+- **THEN** the source is listed and runs with the current binary
+
+#### Scenario: Custom source cannot shadow a built-in
+- **GIVEN** a custom manifest using a built-in source identifier
+- **WHEN** the registry loads the manifest
+- **THEN** validation fails and names the conflict
