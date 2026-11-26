@@ -5,4 +5,5 @@
 // Rust guideline compliant 2026-10-09
 
 pub mod record;
+pub mod stream;
 pub mod writer;

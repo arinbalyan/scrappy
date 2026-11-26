@@ -24,3 +24,8 @@ Saved artifacts use a private temporary file, mode 0600, and a rename, so a
 failed write leaves the final path unchanged. Each artifact gets a manifest
 with its size and hash. Reading the manifest and comparing the hash detects a
 result file changed after writing.
+
+src/output/stream.rs writes one complete NDJSON line and flushes it for each
+job. A cancellation after earlier emits leaves every emitted line parseable.
+Title-and-company deduplication lives there as a separate opt-in function, so
+URL dedup alone keeps records with different canonical URLs.

@@ -70,8 +70,8 @@
 - [x] 6.3 Implement atomic file writes and hash manifests and verify no partial file remains after a simulated failure
 - [x] 6.4 Implement schema version reader rejection and verify an unknown version produces a clear error
 - [x] 6.5 Add enriched record fields and email provenance to the normalized schema, and verify an adversarial company-domain fixture cannot inflate quality_score
-- [ ] 6.6 Implement immediate stdout line flush with no partial lines on cancellation and verify emitted records survive an interrupted run
-- [ ] 6.7 Separate URL dedup from title-company dedup and verify disabling dedup preserves records sharing title and company
+- [x] 6.6 Implement immediate stdout line flush with no partial lines on cancellation and verify emitted records survive an interrupted run
+- [x] 6.7 Separate URL dedup from title-company dedup and verify disabling dedup preserves records sharing title and company
 
 ## 7. Security and privacy
 
