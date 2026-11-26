@@ -4,6 +4,7 @@
 
 // Rust guideline compliant 2026-10-09
 
+pub mod adapter;
 pub mod custom;
 pub mod manifest;
 pub mod manifests;

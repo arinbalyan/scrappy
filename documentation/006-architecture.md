@@ -13,6 +13,24 @@ behavior docs in documentation/scrapers/<source_id>.md. Empty directories keep
 a short README. The canonical tree is recorded in
 openspec/changes/oculus-foundation/design.md.
 
+For feeds_api sources, src/sources/adapter.rs joins manifest.rs with fetching
+and parsing. A caller supplies runtime substitutions (slug, named credential,
+or query value), and build_request expands placeholders in the manifest
+`request` URL into a validated fetching::Request. The caller fetches that
+request, then parse_response turns the bounded fetching::Response into
+parsing::Record values. The adapter performs no network I/O and never places
+credential values in error messages. Manifest fields request_template,
+field_aliases, selectors, and parser_options are optional; older manifests
+without them continue to load. tests/source_adapters.rs covers this path
+offline.
+
+tests/docs_parity.rs checks the canonical tree from design.md: crate metadata,
+the skill file, all 15 numbered documents, subsystem modules, five manifest
+families, directory test targets, and each registered source's fixture set and
+behavior document. A fixture set includes request.json, request.template.json,
+response.body, headers.json, frozen.json, and golden.ndjson. A missing
+manifest family directory fails the parity check.
+
 The engine reserves each request through src/engine/governor.rs. Every source
 gets its own governor token bucket and tokio semaphore, so one source never
 consumes another source's rate or concurrency budget. Rates come from manifest

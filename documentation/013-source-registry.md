@@ -12,3 +12,12 @@ documentation/005-status.md is generated from the registry by
 in documentation/scrapers/<source_id>.md. Manifest validation and parity rules
 are specified in
 openspec/changes/oculus-foundation/specs/source-registry/spec.md.
+
+Manifests may optionally declare request_template, field_aliases, selectors,
+and parser_options. These fields are unset in the bundled
+src/sources/manifests/feeds_api/remoteok.toml and in older custom manifests,
+which keep loading. src/sources/adapter.rs uses the manifest plus runtime
+slug, credential, and query substitutions to build a validated
+fetching::Request, then uses the selected parser to turn a fetched response
+into normalized records. The adapter never calls the network and redacts
+credentials from all diagnostics.

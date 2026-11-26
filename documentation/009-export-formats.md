@@ -20,6 +20,15 @@ jobs. CSV uses a fixed column order and quotes fields containing commas,
 quotes, or newlines. write_line emits one complete NDJSON line and flushes it
 so a downstream consumer can read records while the run is still active.
 
+CSV_COLUMNS fixes the header order as schema_version, source_id, external_id,
+canonical_url, title, company, location, description, fetched_at, content_hash,
+is_remote, date_posted, compensation, apply_method, job_url_direct, company_url,
+company_domain, company_description, industry, quality_score, source_ids, and
+emails. The CSV integration test in tests/csv_output.rs checks that order and
+the escaping of commas, double quotes, and newlines. NDJSON keeps field
+consistency with those CSV columns: each line is one complete normalized record
+with the same field names, and neither format adds format-specific fields.
+
 Saved artifacts use a private temporary file, mode 0600, and a rename, so a
 failed write leaves the final path unchanged. Each artifact gets a manifest
 with its size and hash. Reading the manifest and comparing the hash detects a
