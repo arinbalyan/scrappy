@@ -12,8 +12,9 @@ use std::collections::BTreeMap;
 
 use crate::fetching::{Request, Response};
 use crate::parsing::Parser;
-use crate::parsing::json::JsonParser;
-use crate::parsing::rss::RssParser;
+use crate::parsing::html::HtmlParser;
+use crate::parsing::json::{ConfigurableJsonParser, JsonParser, record_from_aliases};
+use crate::parsing::rss::{PatternRssParser, RssParser};
 use crate::sources::manifest::{Family, Manifest};
 
 /// Runtime value used while expanding a manifest request template.
@@ -131,18 +132,72 @@ pub fn parse_response(
     manifest: &Manifest,
     response: &Response,
 ) -> Result<Vec<crate::parsing::Record>, AdapterError> {
-    match manifest.parser.as_str() {
-        "json" => JsonParser
+    let options = manifest.parser_options.as_ref();
+    let result = match manifest.parser.as_str() {
+        "json" if options.is_some_and(|o| !o.envelope.is_empty()) => {
+            let aliases = manifest.field_aliases.as_ref().map(|map| {
+                map.iter()
+                    .map(|(field, alias)| (field.clone(), alias.names.clone()))
+                    .collect()
+            });
+            let envelope = &options
+                .ok_or_else(|| error("missing parser options".to_owned()))?
+                .envelope;
+            ConfigurableJsonParser::new(envelope, aliases)
+                .map_err(error)?
+                .parse(response)
+        }
+        "json" if manifest.field_aliases.is_some() => {
+            let value: serde_json::Value =
+                serde_json::from_str(response.text().unwrap_or_default())
+                    .map_err(|reason| error(format!("invalid JSON payload: {reason}")))?;
+            let items = value
+                .as_array()
+                .ok_or_else(|| error("JSON payload is not an array".to_owned()))?;
+            let names: std::collections::BTreeMap<String, Vec<String>> = manifest
+                .field_aliases
+                .as_ref()
+                .ok_or_else(|| error("missing field aliases".to_owned()))?
+                .iter()
+                .map(|(field, alias)| (field.clone(), alias.names.clone()))
+                .collect();
+            Ok(items
+                .iter()
+                .filter_map(|item| record_from_aliases(item, Some(&names)))
+                .collect())
+        }
+        "json" => JsonParser.parse(response),
+        "rss" if options.is_some_and(|o| o.title_separator.is_some()) => {
+            let opts = options.ok_or_else(|| error("missing parser options".to_owned()))?;
+            let separator = opts.title_separator.as_deref().unwrap_or_default();
+            PatternRssParser::new(separator, opts.company_first)
+                .map_err(error)?
+                .parse(response)
+        }
+        "rss" => RssParser.parse(response),
+        "html" if manifest.selectors.is_some() => {
+            let selectors = manifest
+                .selectors
+                .as_ref()
+                .ok_or_else(|| error("missing selectors".to_owned()))?;
+            HtmlParser::new(
+                selectors.item.clone().unwrap_or_default(),
+                selectors.title.clone().unwrap_or_default(),
+                selectors.company.clone().unwrap_or_default(),
+                selectors.url.clone().unwrap_or_default(),
+                selectors.url_attribute.clone().unwrap_or_default(),
+            )
+            .map_err(error)?
             .parse(response)
-            .map_err(|reason| adapter_error(&reason)),
-        "rss" => RssParser
-            .parse(response)
-            .map_err(|reason| adapter_error(&reason)),
-        other => Err(error(format!(
-            "source {} has unsupported parser kind: {other}",
-            manifest.id
-        ))),
-    }
+        }
+        other => {
+            return Err(error(format!(
+                "source {} has unsupported parser kind: {other}",
+                manifest.id
+            )));
+        }
+    };
+    result.map_err(|reason| adapter_error(&reason))
 }
 
 fn adapter_error(reason: &str) -> AdapterError {

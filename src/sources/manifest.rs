@@ -96,7 +96,16 @@ pub struct Selectors {
 /// Optional parser settings that stay opaque to the manifest schema.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ParserOptions {
-    /// Names of parser-specific options preserved for future adapters.
+    /// Dot-separated path to an array inside a JSON envelope.
+    #[serde(default)]
+    pub envelope: Vec<String>,
+    /// Separator used to split title text into fields.
+    #[serde(default)]
+    pub title_separator: Option<String>,
+    /// Whether the company precedes the title in a title pattern.
+    #[serde(default)]
+    pub company_first: bool,
+    /// Named parser options such as `atom` or `nested`.
     #[serde(default)]
     pub enabled: Vec<String>,
 }
@@ -324,13 +333,32 @@ fn validate_adapter_fields(manifest: &Manifest) -> Result<(), ManifestError> {
             }
         }
     }
-    if let Some(options) = &manifest.parser_options
-        && (options.enabled.len() > MAX_MAPPING_ENTRIES
-            || options.enabled.iter().any(|name| name.trim().is_empty()))
-    {
-        return Err(ManifestError {
-            message: format!("manifest {} has invalid parser options", manifest.id),
-        });
+    if let Some(options) = &manifest.parser_options {
+        if options.enabled.len() > MAX_MAPPING_ENTRIES
+            || options.enabled.iter().any(|name| name.trim().is_empty())
+        {
+            return Err(ManifestError {
+                message: format!("manifest {} has invalid parser options", manifest.id),
+            });
+        }
+        if options
+            .envelope
+            .iter()
+            .any(|segment| segment.trim().is_empty())
+        {
+            return Err(ManifestError {
+                message: format!("manifest {} has an empty envelope segment", manifest.id),
+            });
+        }
+        if options
+            .title_separator
+            .as_ref()
+            .is_some_and(|separator| separator.trim().is_empty())
+        {
+            return Err(ManifestError {
+                message: format!("manifest {} has an empty title separator", manifest.id),
+            });
+        }
     }
     Ok(())
 }
