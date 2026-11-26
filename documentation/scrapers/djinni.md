@@ -21,3 +21,7 @@ Attribution: Djinni
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 
+
+## Live validation
+
+- 2026-11-26: GET returned HTTP 200 with an empty body from the test network; offline replay is synthetic.

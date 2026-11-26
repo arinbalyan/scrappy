@@ -54,7 +54,14 @@ fn nested<'a>(object: &'a serde_json::Map<String, Value>, path: &str) -> Option<
     let mut segments = path.split('.');
     let mut current: &Value = object.get(segments.next()?)?;
     for segment in segments {
-        current = current.get(segment)?;
+        current = match current {
+            Value::Object(map) => map.get(segment)?,
+            Value::Array(items) => {
+                let index = segment.parse::<usize>().ok()?;
+                items.get(index)?
+            }
+            _ => return None,
+        };
     }
     Some(current)
 }

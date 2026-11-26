@@ -21,3 +21,7 @@ Attribution: The Muse
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 
+
+## Live validation
+
+- 2026-11-26: GET returned HTTP 403 with a challenge page from the test network; manifest stays `working` from historical evidence and offline replay.

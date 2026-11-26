@@ -21,3 +21,7 @@ Attribution: WordPress Jobs
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 
+
+## Live validation
+
+- 2026-11-26: GET returned HTTP 200 with a valid RSS feed containing current WordPress job items; parser shape matched the baseline RSS parser.

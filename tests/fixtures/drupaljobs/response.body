@@ -1,4 +1,4 @@
-+<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0"><channel><title>Jobs</title><link>https://example.test</link><description>Jobs</description>
 <item><title><![CDATA[Drupal Developer]]></title><link>https://jobs.drupal.org/job/501</link><description><![CDATA[Build modules]]></description><pubDate>Mon, 26 Nov 2026 00:00:00 GMT</pubDate></item>
 <item><title><![CDATA[Site Builder]]></title><link>https://jobs.drupal.org/job/502</link><description><![CDATA[Build sites]]></description><pubDate>Mon, 26 Nov 2026 00:00:00 GMT</pubDate></item>
