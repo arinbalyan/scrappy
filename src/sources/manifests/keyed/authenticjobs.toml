@@ -1,0 +1,41 @@
+version = 1
+id = "authenticjobs"
+name = "AuthenticJobs"
+family = "keyed"
+health = "blocked"
+request = "https://authenticjobs.com/api/?api_key={key:AUTHENTICJOBS_API_KEY}&page=1"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "AuthenticJobs"
+fixtures = ["authenticjobs"]
+
+credentials = ["AUTHENTICJOBS_API_KEY"]
+
+[request_options]
+
+[request_options.headers]
+accept = "application/json"
+
+[parser_options]
+envelope = ["listings"]
+
+[field_aliases.url]
+names = ["id"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company.name"]
+
+[field_aliases.location]
+names = ["location.name"]
+
+[field_aliases.description]
+names = ["description"]

@@ -1,0 +1,39 @@
+{
+  "currentPage": 1,
+  "pageSize": 25,
+  "totalPages": 1,
+  "items": [
+    {
+      "id": "a1",
+      "title": "Backend Engineer",
+      "province": {
+        "id": 1,
+        "value": "Berlin"
+      },
+      "city": "Berlin",
+      "company": {
+        "id": 1,
+        "name": "Northstar Labs"
+      },
+      "link": "https://example.com/jobs/backend-1",
+      "description": "Build services.",
+      "published": "2026-11-01"
+    },
+    {
+      "id": "a2",
+      "title": "Data Engineer",
+      "province": {
+        "id": 2,
+        "value": "Warsaw"
+      },
+      "city": "Warsaw",
+      "company": {
+        "id": 2,
+        "name": "Maple Systems"
+      },
+      "link": "https://example.com/jobs/data-2",
+      "description": "Build pipelines.",
+      "published": "2026-11-02"
+    }
+  ]
+}

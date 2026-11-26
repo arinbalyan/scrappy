@@ -1,0 +1,52 @@
+{
+  "count": 2,
+  "next": null,
+  "results": [
+    {
+      "id": 1,
+      "title": "Backend Engineer",
+      "slug": "backend-1",
+      "company": {
+        "name": "Northstar Labs"
+      },
+      "location": {
+        "city": "Berlin",
+        "country": "Germany"
+      },
+      "description": "Build services.",
+      "application_url": "https://example.com/jobs/backend-1",
+      "has_remote": false,
+      "tags": [
+        "rust"
+      ],
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "",
+      "date_posted": "2026-11-01",
+      "job_type": "full-time"
+    },
+    {
+      "id": 2,
+      "title": "Data Engineer",
+      "slug": "data-2",
+      "company": {
+        "name": "Maple Systems"
+      },
+      "location": {
+        "city": "Warsaw",
+        "country": "Poland"
+      },
+      "description": "Build pipelines.",
+      "application_url": "https://example.com/jobs/data-2",
+      "has_remote": true,
+      "tags": [
+        "python"
+      ],
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": "",
+      "date_posted": "2026-11-02",
+      "job_type": "full-time"
+    }
+  ]
+}

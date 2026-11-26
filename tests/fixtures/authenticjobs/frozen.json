@@ -1,0 +1,7 @@
+{
+  "captured_at": "2026-11-26T00:00:00Z",
+  "source": "https://authenticjobs.com/api/?api_key=test-authenticjobs_api_key&page=1",
+  "substitutions": {
+    "authenticjobs_api_key": "test-authenticjobs_api_key"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "method": "POST",
+  "url": "https://api.exa.ai/search",
+  "headers": {
+    "x-api-key": "test-exa_api_key",
+    "content-type": "application/json",
+    "accept": "application/json",
+    "user-agent": "EverJobs/1.0"
+  },
+  "body": {
+    "query": "software engineer job posting",
+    "numResults": 25,
+    "type": "auto",
+    "text": true,
+    "summary": true
+  }
+}

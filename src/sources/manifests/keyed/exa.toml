@@ -1,0 +1,46 @@
+version = 1
+id = "exa"
+name = "Exa"
+family = "keyed"
+health = "keyed"
+request = "https://api.exa.ai/search"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Exa"
+fixtures = ["exa"]
+
+credentials = ["EXA_API_KEY"]
+
+[request_options]
+method = "POST"
+body = "{{\"query\":\"software engineer job posting\",\"numResults\":25,\"type\":\"auto\",\"text\":true,\"summary\":true}}"
+
+[request_options.headers]
+x-api-key = "{key:EXA_API_KEY}"
+content-type = "application/json"
+accept = "application/json"
+user-agent = "EverJobs/1.0"
+
+[parser_options]
+envelope = ["results"]
+
+[field_aliases.url]
+names = ["url"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["author"]
+
+[field_aliases.location]
+names = ["none"]
+
+[field_aliases.description]
+names = ["text", "summary"]

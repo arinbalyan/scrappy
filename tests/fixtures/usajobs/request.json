@@ -1,0 +1,10 @@
+{
+  "method": "GET",
+  "url": "https://data.usajobs.gov/api/Search?results_per_page=25&page=1",
+  "headers": {
+    "host": "data.usajobs.gov",
+    "user-agent": "test-usajobs_email",
+    "authorization-key": "test-usajobs_api_key",
+    "accept": "application/json"
+  }
+}

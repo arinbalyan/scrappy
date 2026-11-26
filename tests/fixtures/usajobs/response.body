@@ -1,0 +1,57 @@
+{
+  "SearchResult": {
+    "SearchResultCount": 2,
+    "SearchResultItems": [
+      {
+        "MatchedObjectId": "1",
+        "MatchedObjectDescriptor": {
+          "PositionTitle": "Backend Engineer",
+          "PositionURI": "https://example.com/jobs/backend-1",
+          "OrganizationName": "Northstar Labs",
+          "PositionLocation": [
+            {
+              "CityName": "Berlin",
+              "CountrySubDivisionCode": "BE",
+              "CountryCode": "DE"
+            }
+          ],
+          "PublicationStartDate": "2026-11-01T00:00:00",
+          "QualificationSummary": "Experience.",
+          "UserArea": {
+            "Details": {
+              "JobSummary": "Build services.",
+              "MajorDuties": [
+                "Design systems."
+              ]
+            }
+          }
+        }
+      },
+      {
+        "MatchedObjectId": "2",
+        "MatchedObjectDescriptor": {
+          "PositionTitle": "Data Engineer",
+          "PositionURI": "https://example.com/jobs/data-2",
+          "OrganizationName": "Maple Systems",
+          "PositionLocation": [
+            {
+              "CityName": "Warsaw",
+              "CountrySubDivisionCode": "MA",
+              "CountryCode": "PL"
+            }
+          ],
+          "PublicationStartDate": "2026-11-02T00:00:00",
+          "QualificationSummary": "Experience.",
+          "UserArea": {
+            "Details": {
+              "JobSummary": "Build pipelines.",
+              "MajorDuties": [
+                "Tune pipelines."
+              ]
+            }
+          }
+        }
+      }
+    ]
+  }
+}

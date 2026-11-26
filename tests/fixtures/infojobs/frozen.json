@@ -1,0 +1,9 @@
+{
+  "captured_at": "2026-11-26T00:00:00Z",
+  "source": "https://api.infojobs.net/api/7/offer?page=1",
+  "substitutions": {
+    "infojobs_client_id": "test-infojobs_client_id",
+    "infojobs_client_secret": "test-infojobs_client_secret",
+    "infojobs_basic_token": "test-infojobs_basic_token"
+  }
+}

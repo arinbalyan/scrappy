@@ -1,0 +1,8 @@
+{
+  "captured_at": "2026-11-26T00:00:00Z",
+  "source": "https://data.usajobs.gov/api/Search?results_per_page=25&page=1",
+  "substitutions": {
+    "usajobs_api_key": "test-usajobs_api_key",
+    "usajobs_email": "test-usajobs_email"
+  }
+}

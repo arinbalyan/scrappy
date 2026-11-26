@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://jobdataapi.com/api/jobs/?page=1&page_size=25",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

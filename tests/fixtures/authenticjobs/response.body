@@ -1,0 +1,32 @@
+{
+  "listings": [
+    {
+      "id": "101",
+      "title": "Backend Engineer",
+      "company": {
+        "name": "Northstar Labs",
+        "url": "https://northstar.example"
+      },
+      "description": "Build services.",
+      "location": {
+        "name": "Berlin"
+      },
+      "telecommuting": "no",
+      "post_date": "2026-11-01"
+    },
+    {
+      "id": "102",
+      "title": "Data Engineer",
+      "company": {
+        "name": "Maple Systems",
+        "url": "https://maple.example"
+      },
+      "description": "Build pipelines.",
+      "location": {
+        "name": "Warsaw"
+      },
+      "telecommuting": "yes",
+      "post_date": "2026-11-02"
+    }
+  ]
+}

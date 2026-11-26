@@ -1,0 +1,40 @@
+version = 1
+id = "jobdataapi"
+name = "JobDataAPI"
+family = "feeds_api"
+health = "working"
+request = "https://jobdataapi.com/api/jobs/?page=1&page_size=25"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "JobDataAPI"
+fixtures = ["jobdataapi"]
+
+[request_options]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[parser_options]
+envelope = ["results"]
+
+[field_aliases.url]
+names = ["application_url", "slug"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company.name"]
+
+[field_aliases.location]
+names = ["location.city", "location.country"]
+
+[field_aliases.description]
+names = ["description"]

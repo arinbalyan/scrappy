@@ -1,0 +1,42 @@
+version = 1
+id = "infojobs"
+name = "InfoJobs"
+family = "keyed"
+health = "keyed"
+request = "https://api.infojobs.net/api/7/offer?page=1"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "InfoJobs"
+fixtures = ["infojobs"]
+
+credentials = ["INFOJOBS_CLIENT_ID", "INFOJOBS_CLIENT_SECRET", "INFOJOBS_BASIC_TOKEN"]
+
+[request_options]
+
+[request_options.headers]
+authorization = "Basic {key:INFOJOBS_BASIC_TOKEN}"
+accept = "application/json"
+
+[parser_options]
+envelope = ["items"]
+
+[field_aliases.url]
+names = ["link"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company.name"]
+
+[field_aliases.location]
+names = ["city", "province.value"]
+
+[field_aliases.description]
+names = ["description"]

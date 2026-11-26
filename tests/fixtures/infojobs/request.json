@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://api.infojobs.net/api/7/offer?page=1",
+  "headers": {
+    "authorization": "Basic test-infojobs_basic_token",
+    "accept": "application/json"
+  }
+}

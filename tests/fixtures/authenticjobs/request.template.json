@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://authenticjobs.com/api/?api_key=test-authenticjobs_api_key&page=1",
+  "headers": {
+    "accept": "application/json"
+  }
+}

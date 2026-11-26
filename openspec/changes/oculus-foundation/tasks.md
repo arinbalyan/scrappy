@@ -148,6 +148,13 @@
 - [x] 11d.3 Record live probe results, mark challenge-blocked snagajob, and regenerate documentation/005-status.md
 - [x] 11d.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
 
+## 11e. Credentialed API source ports
+
+- [x] 11e.1 Port authenticjobs, jobdataapi, usajobs, infojobs, and exa with manifests, behavior docs, and six-file fixtures
+- [x] 11e.2 Add offline golden replay coverage in tests/tier8_credentialed_replay.rs with rendered credentialed requests and golden records
+- [x] 11e.3 Record live probe results, mark challenge-blocked authenticjobs and usajobs, and regenerate documentation/005-status.md
+- [x] 11e.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
+
 ## 12. CI and release
 
 - [ ] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes

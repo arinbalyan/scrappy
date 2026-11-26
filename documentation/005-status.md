@@ -19,6 +19,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | ats-smartrecruiters | SmartRecruiters ATS | requires_slug | ready | Ats | plain |
 | ats-talentlyft | TalentLyft ATS | requires_slug | ready | Ats | plain |
 | ats-workable | Workable ATS | requires_slug | ready | Ats | plain |
+| authenticjobs | AuthenticJobs | blocked | blocked | Keyed | plain |
 | berlinstartupjobs | Berlin Startup Jobs | working | ready | FeedsApi | plain |
 | builtin | Built In | working | ready | HtmlStatic | plain |
 | canadajobbank | Canada Job Bank | working | ready | FeedsApi | plain |
@@ -36,6 +37,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | echojobs | EchoJobs | working | ready | FeedsApi | plain |
 | ecojobs | Eco Jobs | stale | ready | FeedsApi | plain |
 | eurojobs | Euro Jobs | working | ready | FeedsApi | plain |
+| exa | Exa | keyed | missing_credentials | Keyed | plain |
 | findwork | FindWork | keyed | missing_credentials | Keyed | plain |
 | fossjobs | Fossjobs | working | ready | FeedsApi | plain |
 | fountain | Fountain | keyed | missing_credentials | FeedsApi | plain |
@@ -52,7 +54,9 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | hiringcafe | Hiring Cafe | working | ready | HtmlStatic | plain |
 | huggingfacejobs | Hugging Face Jobs | working | ready | HtmlStatic | plain |
 | icrunchdata | iCrunchData | blocked | blocked | FeedsApi | plain |
+| infojobs | InfoJobs | keyed | missing_credentials | Keyed | plain |
 | internshala | Internshala | working | ready | HtmlStatic | plain |
+| jobdataapi | JobDataAPI | working | ready | FeedsApi | plain |
 | jobicy | Jobicy | working | ready | FeedsApi | plain |
 | jobindex | Jobindex | working | ready | HtmlStatic | plain |
 | jobsch | jobs.ch | working | ready | FeedsApi | plain |
@@ -77,6 +81,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | talroo | Talroo | keyed | missing_credentials | FeedsApi | plain |
 | themuse | The Muse | working | ready | FeedsApi | plain |
 | ukvisajobs | UK Visa Jobs | working | ready | FeedsApi | plain |
+| usajobs | USAJobs | blocked | blocked | Keyed | plain |
 | web3career | Web3 Career | working | missing_credentials | FeedsApi | plain |
 | weworkremotely | We Work Remotely | working | ready | FeedsApi | plain |
 | wordpressjobs | WordPress Jobs | working | ready | FeedsApi | plain |

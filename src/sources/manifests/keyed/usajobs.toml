@@ -1,0 +1,44 @@
+version = 1
+id = "usajobs"
+name = "USAJobs"
+family = "keyed"
+health = "blocked"
+request = "https://data.usajobs.gov/api/Search?results_per_page=25&page=1"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "USAJobs"
+fixtures = ["usajobs"]
+
+credentials = ["USAJOBS_API_KEY", "USAJOBS_EMAIL"]
+
+[request_options]
+
+[request_options.headers]
+host = "data.usajobs.gov"
+user-agent = "{key:USAJOBS_EMAIL}"
+authorization-key = "{key:USAJOBS_API_KEY}"
+accept = "application/json"
+
+[parser_options]
+envelope = ["SearchResult", "SearchResultItems"]
+
+[field_aliases.url]
+names = ["MatchedObjectDescriptor.PositionURI"]
+
+[field_aliases.title]
+names = ["MatchedObjectDescriptor.PositionTitle"]
+
+[field_aliases.company]
+names = ["MatchedObjectDescriptor.OrganizationName"]
+
+[field_aliases.location]
+names = ["MatchedObjectDescriptor.PositionLocation.0.CityName"]
+
+[field_aliases.description]
+names = ["MatchedObjectDescriptor.UserArea.Details.JobSummary"]
