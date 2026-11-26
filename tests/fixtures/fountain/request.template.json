@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://api.fountain.com/v2/openings?limit=25",
+  "headers": {
+    "accept": "application/json"
+  }
+}

@@ -1,0 +1,41 @@
+version = 1
+id = "dice"
+name = "Dice"
+family = "feeds_api"
+health = "keyed"
+request = "https://job-search-api.svc.dhigroupinc.com/v1/dice/jobs/search?limit=25"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Dice"
+fixtures = ["dice"]
+
+credentials = ["SCRAPPY_DICE_API_KEY"]
+
+[request_options.headers]
+accept = "application/json"
+x-api-key = "{key:SCRAPPY_DICE_API_KEY}"
+
+[parser_options]
+envelope = ["data"]
+
+[field_aliases.url]
+names = ["detailsPageUrl"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["companyName"]
+
+[field_aliases.location]
+names = ["formattedLocation"]
+
+[field_aliases.description]
+names = ["summary"]
+

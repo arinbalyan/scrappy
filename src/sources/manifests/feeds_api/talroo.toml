@@ -1,0 +1,37 @@
+version = 1
+id = "talroo"
+name = "Talroo"
+family = "feeds_api"
+health = "keyed"
+request = "https://api.jobs2careers.com/api/search.php?limit=25"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Talroo"
+fixtures = ["talroo"]
+
+credentials = ["TALROO_PUBLISHER_ID", "TALROO_PUBLISHER_PASS"]
+
+[parser_options]
+envelope = ["jobs"]
+
+[field_aliases.url]
+names = ["url"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company"]
+
+[field_aliases.location]
+names = ["city.0"]
+
+[field_aliases.description]
+names = ["description"]
+

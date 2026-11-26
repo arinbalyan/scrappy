@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://api.jobs2careers.com/api/search.php?limit=25",
+  "headers": {
+    "accept": "application/json"
+  }
+}

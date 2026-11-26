@@ -1,0 +1,37 @@
+version = 1
+id = "fountain"
+name = "Fountain"
+family = "feeds_api"
+health = "keyed"
+request = "https://api.fountain.com/v2/openings?limit=25"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Fountain"
+fixtures = ["fountain"]
+
+credentials = ["FOUNTAIN_API_KEY"]
+
+[parser_options]
+envelope = ["openings"]
+
+[field_aliases.url]
+names = ["url", "apply_url"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["department"]
+
+[field_aliases.location]
+names = ["location_string", "location.city", "location.country"]
+
+[field_aliases.description]
+names = ["description"]
+

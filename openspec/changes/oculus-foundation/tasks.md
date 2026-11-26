@@ -141,6 +141,13 @@
 - [x] 11c.2 Add offline golden replay coverage in tests/tier6_public_replay.rs and verify the suite passes without networking
 - [x] 11c.3 Record live probe results, mark challenge-blocked sources, and regenerate documentation/005-status.md
 
+## 11d. Keyed API source ports
+
+- [x] 11d.1 Port deel, fountain, dice, snagajob, and talroo with manifests, behavior docs, and six-file fixtures
+- [x] 11d.2 Add offline golden replay coverage in tests/tier7_keyed_replay.rs with synthetic credentials and verify the suite passes without networking
+- [x] 11d.3 Record live probe results, mark challenge-blocked snagajob, and regenerate documentation/005-status.md
+- [x] 11d.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
+
 ## 12. CI and release
 
 - [ ] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes

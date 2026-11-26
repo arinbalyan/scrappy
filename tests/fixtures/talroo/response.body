@@ -1,0 +1,22 @@
+{
+  "jobs": [
+    {
+      "url": "https://example.com/jobs/backend-1",
+      "title": "Backend Engineer",
+      "company": "Northstar Labs",
+      "city": [
+        "Berlin"
+      ],
+      "description": "Build services."
+    },
+    {
+      "url": "https://example.com/jobs/data-2",
+      "title": "Data Engineer",
+      "company": "Maple Systems",
+      "city": [
+        "Warsaw"
+      ],
+      "description": "Build pipelines."
+    }
+  ]
+}

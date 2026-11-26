@@ -1,0 +1,35 @@
+version = 1
+id = "snagajob"
+name = "Snagajob"
+family = "feeds_api"
+health = "blocked"
+request = "https://www.snagajob.com/api/search?limit=25"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Snagajob"
+fixtures = ["snagajob"]
+
+[parser_options]
+envelope = ["jobs"]
+
+[field_aliases.url]
+names = ["url", "detailUrl", "applyUrl"]
+
+[field_aliases.title]
+names = ["title", "jobTitle"]
+
+[field_aliases.company]
+names = ["company"]
+
+[field_aliases.location]
+names = ["location", "city", "state"]
+
+[field_aliases.description]
+names = ["description"]
+

@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://job-search-api.svc.dhigroupinc.com/v1/dice/jobs/search?limit=25",
+  "headers": {
+    "accept": "application/json"
+  }
+}

@@ -28,7 +28,9 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | crunchboard | Crunchboard | working | ready | FeedsApi | plain |
 | cryptocurrencyjobs | Cryptocurrency Jobs | working | ready | FeedsApi | plain |
 | cryptojobslist | Crypto Jobs List | working | ready | FeedsApi | plain |
+| deel | Deel | keyed | missing_credentials | FeedsApi | plain |
 | devopsjobs | Devopsjobs | working | ready | FeedsApi | plain |
+| dice | Dice | keyed | missing_credentials | FeedsApi | plain |
 | djinni | Djinni | working | ready | FeedsApi | plain |
 | drupaljobs | Drupal Jobs | working | ready | FeedsApi | plain |
 | echojobs | EchoJobs | working | ready | FeedsApi | plain |
@@ -36,6 +38,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | eurojobs | Euro Jobs | working | ready | FeedsApi | plain |
 | findwork | FindWork | keyed | missing_credentials | Keyed | plain |
 | fossjobs | Fossjobs | working | ready | FeedsApi | plain |
+| fountain | Fountain | keyed | missing_credentials | FeedsApi | plain |
 | freelancercom | Freelancer.com | working | ready | FeedsApi | plain |
 | functionalworks | Functional Works | working | ready | FeedsApi | plain |
 | getonboard | GetOnBoard | working | ready | FeedsApi | plain |
@@ -69,7 +72,9 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | remoteok | RemoteOK | working | ready | FeedsApi | plain |
 | remotive | Remotive | working | ready | FeedsApi | plain |
 | simplyhired | Simply Hired | working | ready | HtmlStatic | plain |
+| snagajob | Snagajob | blocked | blocked | FeedsApi | plain |
 | startupjobs | Startup Jobs | blocked | blocked | FeedsApi | plain |
+| talroo | Talroo | keyed | missing_credentials | FeedsApi | plain |
 | themuse | The Muse | working | ready | FeedsApi | plain |
 | ukvisajobs | UK Visa Jobs | working | ready | FeedsApi | plain |
 | web3career | Web3 Career | working | missing_credentials | FeedsApi | plain |

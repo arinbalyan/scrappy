@@ -1,0 +1,18 @@
+{
+  "openings": [
+    {
+      "url": "https://example.com/jobs/backend-1",
+      "title": "Backend Engineer",
+      "department": "Northstar Labs",
+      "location_string": "Berlin",
+      "description": "Build services."
+    },
+    {
+      "url": "https://example.com/jobs/data-2",
+      "title": "Data Engineer",
+      "department": "Maple Systems",
+      "location_string": "Warsaw",
+      "description": "Build pipelines."
+    }
+  ]
+}

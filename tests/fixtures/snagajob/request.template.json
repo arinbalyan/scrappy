@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.snagajob.com/api/search?limit=25",
+  "headers": {
+    "accept": "application/json"
+  }
+}
