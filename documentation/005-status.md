@@ -8,6 +8,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | Source | Name | Health | Availability | Family | Fetcher |
 | --- | --- | --- | --- | --- | --- |
 | 4dayweek | 4 Day Week | working | ready | FeedsApi | plain |
+| academiccareers | Academic Careers | blocked | blocked | FeedsApi | plain |
 | adzuna | Adzuna | keyed | missing_credentials | Keyed | plain |
 | aijobs | AI Jobs | working | ready | HtmlStatic | plain |
 | androidjobs | Android Jobs | working | ready | FeedsApi | plain |
@@ -24,6 +25,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | conservationjobs | Conservation Jobs | working | ready | FeedsApi | plain |
 | crunchboard | Crunchboard | working | ready | FeedsApi | plain |
 | cryptocurrencyjobs | Cryptocurrency Jobs | working | ready | FeedsApi | plain |
+| cryptojobslist | Crypto Jobs List | working | ready | FeedsApi | plain |
 | devopsjobs | Devopsjobs | working | ready | FeedsApi | plain |
 | djinni | Djinni | working | ready | FeedsApi | plain |
 | drupaljobs | Drupal Jobs | working | ready | FeedsApi | plain |
@@ -40,13 +42,17 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | gunio | Gun.io Jobs | working | ready | HtmlStatic | plain |
 | hackernews | Hacker News | working | ready | FeedsApi | plain |
 | hasjob | Hasjob | working | ready | FeedsApi | plain |
+| higheredjobs | HigherEdJobs | blocked | blocked | FeedsApi | plain |
 | himalayas | Himalayas | working | ready | FeedsApi | plain |
 | hiringcafe | Hiring Cafe | working | ready | HtmlStatic | plain |
 | huggingfacejobs | Hugging Face Jobs | working | ready | HtmlStatic | plain |
+| icrunchdata | iCrunchData | blocked | blocked | FeedsApi | plain |
 | internshala | Internshala | working | ready | HtmlStatic | plain |
 | jobicy | Jobicy | working | ready | FeedsApi | plain |
 | jobindex | Jobindex | working | ready | HtmlStatic | plain |
+| jobsch | jobs.ch | working | ready | FeedsApi | plain |
 | jobsdb | JobsDB | working | ready | FeedsApi | plain |
+| jobsinjapan | Jobs in Japan | working | ready | FeedsApi | plain |
 | jobspresso | Jobspresso | working | ready | FeedsApi | plain |
 | jobstreet | JobStreet | working | ready | FeedsApi | plain |
 | landingjobs | Landingjobs | working | ready | FeedsApi | plain |

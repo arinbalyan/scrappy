@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.jobs.ch/api/v1/public/search?rows=25",
+  "headers": {
+    "accept": "application/json"
+  }
+}

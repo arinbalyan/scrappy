@@ -1,0 +1,20 @@
+version = 1
+id = "jobsinjapan"
+name = "Jobs in Japan"
+family = "feeds_api"
+health = "working"
+request = "https://jobsinjapan.com/feed/"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Jobs in Japan"
+fixtures = ["jobsinjapan"]
+
+[parser_options]
+title_separator = " at "
+company_first = false

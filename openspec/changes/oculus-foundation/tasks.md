@@ -128,6 +128,13 @@
 - [x] 11a.2 Add offline golden replay coverage for each niche source and verify the suite passes without networking
 - [x] 11a.3 Align the nofluffjobs manifest and fixtures with the historical posting API and verify replay passes
 
+## 11b. Search feed and API source ports
+
+- [x] 11b.1 Port jobsinjapan, academiccareers, icrunchdata, higheredjobs, cryptojobslist, and jobsch with manifests, behavior docs, and six-file fixtures
+- [x] 11b.2 Add offline golden replay coverage in tests/tier5_search_replay.rs and verify the suite passes without networking
+- [x] 11b.3 Record live probe results, mark challenge-blocked sources, and regenerate documentation/005-status.md
+- [x] 11b.4 Verify the offline suite with cargo test and strict OpenSpec validation
+
 ## 12. CI and release
 
 - [ ] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes

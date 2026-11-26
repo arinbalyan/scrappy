@@ -1,0 +1,29 @@
+{
+  "documents": [
+    {
+      "job_id": "job-1",
+      "title": "Backend Engineer",
+      "company_name": "Northstar Labs",
+      "preview": "Build services.",
+      "publication_date": "2026-11-20",
+      "_links": {
+        "detail_en": {
+          "href": "https://www.jobs.ch/en/vacancies/detail/job-1/"
+        }
+      }
+    },
+    {
+      "job_id": "job-2",
+      "title": "Data Engineer",
+      "company_name": "Maple Systems",
+      "preview": "Build pipelines.",
+      "publication_date": "2026-11-21",
+      "_links": {
+        "detail_en": {
+          "href": "https://www.jobs.ch/en/vacancies/detail/job-2/"
+        }
+      }
+    }
+  ],
+  "num_pages": 1
+}

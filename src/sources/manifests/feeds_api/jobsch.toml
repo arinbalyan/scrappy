@@ -1,0 +1,31 @@
+version = 1
+id = "jobsch"
+name = "jobs.ch"
+family = "feeds_api"
+health = "working"
+request = "https://www.jobs.ch/api/v1/public/search?rows=25"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "jobs.ch"
+fixtures = ["jobsch"]
+
+[parser_options]
+envelope = ["documents"]
+
+[field_aliases.url]
+names = ["_links.detail_en.href"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company_name"]
+
+[field_aliases.description]
+names = ["preview"]

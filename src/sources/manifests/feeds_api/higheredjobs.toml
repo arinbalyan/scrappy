@@ -1,0 +1,20 @@
+version = 1
+id = "higheredjobs"
+name = "HigherEdJobs"
+family = "feeds_api"
+health = "blocked"
+request = "https://www.higheredjobs.com/search/rss.cfm"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "HigherEdJobs"
+fixtures = ["higheredjobs"]
+
+[parser_options]
+title_separator = " at "
+company_first = false

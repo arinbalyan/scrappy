@@ -1,0 +1,20 @@
+version = 1
+id = "cryptojobslist"
+name = "Crypto Jobs List"
+family = "feeds_api"
+health = "working"
+request = "https://api.cryptojobslist.com/jobs.rss"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Crypto Jobs List"
+fixtures = ["cryptojobslist"]
+
+[parser_options]
+title_separator = " at "
+company_first = false

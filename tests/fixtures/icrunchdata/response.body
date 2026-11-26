@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title>icrunchdata.com jobs</title><link>https://icrunchdata.com/</link><description>Recent jobs</description>
+    <item><title><![CDATA[Backend Engineer at Northstar Labs]]></title><link>https://icrunchdata.com/jobs/backend-1</link><guid>https://icrunchdata.com/jobs/backend-1</guid><description><![CDATA[Build backend services.]]></description><dc:creator>Northstar Labs</dc:creator></item>
+    <item><title><![CDATA[ML Engineer at Maple Systems]]></title><link>https://icrunchdata.com/jobs/ml-2</link><guid>https://icrunchdata.com/jobs/ml-2</guid><description><![CDATA[Build models.]]></description><dc:creator>Maple Systems</dc:creator></item>
+</channel></rss>

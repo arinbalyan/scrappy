@@ -1,0 +1,20 @@
+version = 1
+id = "icrunchdata"
+name = "iCrunchData"
+family = "feeds_api"
+health = "blocked"
+request = "https://icrunchdata.com/rss/"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "iCrunchData"
+fixtures = ["icrunchdata"]
+
+[parser_options]
+title_separator = " at "
+company_first = false

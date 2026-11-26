@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://www.higheredjobs.com/search/rss.cfm",
+  "headers": {
+    "accept": "application/rss+xml, application/xml"
+  }
+}
