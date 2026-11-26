@@ -1,0 +1,21 @@
+{
+  "jobs": [
+    {
+      "id": 801,
+      "title": "Backend Engineer",
+      "company_name": "Example Co",
+      "url": "https://jobs.example.test/801",
+      "location": "Remote",
+      "description": "<p>Build services.</p>"
+    },
+    {
+      "id": 802,
+      "title": "Data Engineer",
+      "company_name": "Example Co",
+      "url": "",
+      "apply_url": "https://apply.example.test/802",
+      "location": "Berlin",
+      "description": "Build pipelines."
+    }
+  ]
+}

@@ -56,6 +56,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | higheredjobs | HigherEdJobs | blocked | blocked | FeedsApi | plain |
 | himalayas | Himalayas | working | ready | FeedsApi | plain |
 | hiringcafe | Hiring Cafe | working | ready | HtmlStatic | plain |
+| hiringthing | HiringThing | keyed | missing_credentials | Keyed | plain |
 | huggingfacejobs | Hugging Face Jobs | working | ready | HtmlStatic | plain |
 | icrunchdata | iCrunchData | blocked | blocked | FeedsApi | plain |
 | infojobs | InfoJobs | keyed | missing_credentials | Keyed | plain |

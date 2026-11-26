@@ -1,0 +1,9 @@
+{
+  "method": "GET",
+  "url": "https://api.hiringthing.com/api/v1/jobs",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0",
+    "authorization": "Bearer sample-token"
+  }
+}

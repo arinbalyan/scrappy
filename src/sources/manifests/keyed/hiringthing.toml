@@ -1,0 +1,41 @@
+version = 1
+id = "hiringthing"
+name = "HiringThing"
+family = "keyed"
+health = "keyed"
+request = "https://api.hiringthing.com/api/v1/jobs"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public job feed endpoints"
+attribution = "HiringThing"
+credentials = ["HIRINGTHING_API_TOKEN"]
+fixtures = ["hiringthing"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+authorization = "Bearer {key:HIRINGTHING_API_TOKEN}"
+
+[parser_options]
+envelope = ["jobs"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company_name", "company"]
+
+[field_aliases.url]
+names = ["url", "apply_url"]
+
+[field_aliases.location]
+names = ["location", "city"]
+
+[field_aliases.description]
+names = ["description"]
+

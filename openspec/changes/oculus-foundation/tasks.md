@@ -169,6 +169,13 @@
 - [x] 11g.3 Record live probe results, update health labels where needed, and regenerate documentation/005-status.md
 - [x] 11g.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
 
+## 11h. Public job feed API source port
+
+- [x] 11h.1 Port hiringthing with a manifest, behavior doc, and six-file fixtures
+- [x] 11h.2 Add offline golden replay coverage in tests/tier11_feed_replay.rs
+- [x] 11h.3 Record live probe results and regenerate documentation/005-status.md
+- [x] 11h.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
+
 ## 12. CI and release
 
 - [ ] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes
