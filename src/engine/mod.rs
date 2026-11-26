@@ -4,6 +4,7 @@
 
 // Rust guideline compliant 2026-10-09
 
+pub mod attention;
 pub mod breaker;
 pub mod challenge;
 pub mod contract;

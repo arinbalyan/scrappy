@@ -61,7 +61,7 @@
 - [x] 5.5 Implement versioned checkpoint and resume bound to a config fingerprint and verify a matching checkpoint skips completed work
 - [x] 5.6 Implement global and per-source result caps and fail-open policy and verify the run summary records skipped failures
 - [ ] 5.7 Implement enrichment before emission with contact provenance, deterministic scoring, authoritative company_domain, dedup, and source attribution, and verify every stdout record is final
-- [ ] 5.8 Implement challenge attention events with opaque resume state bound to the config fingerprint and verify only the challenged source pauses
+- [x] 5.8 Implement challenge attention events with opaque resume state bound to the config fingerprint and verify only the challenged source pauses
 
 ## 6. Output contract
 

@@ -22,7 +22,7 @@ pub const CHALLENGE_MARKERS: &[&str] = &[
 ];
 
 /// Kind of challenge observed for a source.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 pub enum ChallengeKind {
     /// Captcha or human-verification page.
     Captcha,
