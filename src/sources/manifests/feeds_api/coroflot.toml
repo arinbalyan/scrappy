@@ -1,0 +1,20 @@
+version = 1
+id = "coroflot"
+name = "Coroflot"
+family = "feeds_api"
+health = "working"
+request = "http://feeds.feedburner.com/Coroflot/AllJobs"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Coroflot"
+fixtures = ["coroflot"]
+
+[parser_options]
+title_separator = " at "
+company_first = false

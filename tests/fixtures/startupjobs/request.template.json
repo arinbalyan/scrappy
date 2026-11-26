@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://startup.jobs/api/jobs",
+  "headers": {
+    "accept": "application/json"
+  }
+}

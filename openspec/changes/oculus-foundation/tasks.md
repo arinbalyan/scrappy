@@ -135,6 +135,12 @@
 - [x] 11b.3 Record live probe results, mark challenge-blocked sources, and regenerate documentation/005-status.md
 - [x] 11b.4 Verify the offline suite with cargo test and strict OpenSpec validation
 
+## 11c. Public API source ports
+
+- [x] 11c.1 Port canadajobbank, coroflot, joinrise, startupjobs, and web3career with manifests, behavior docs, and six-file fixtures
+- [x] 11c.2 Add offline golden replay coverage in tests/tier6_public_replay.rs and verify the suite passes without networking
+- [x] 11c.3 Record live probe results, mark challenge-blocked sources, and regenerate documentation/005-status.md
+
 ## 12. CI and release
 
 - [ ] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes

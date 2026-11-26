@@ -1,0 +1,35 @@
+version = 1
+id = "canadajobbank"
+name = "Canada Job Bank"
+family = "feeds_api"
+health = "working"
+request = "https://jobbank.api.canada.ca/api/job?resource_id=ra-gj-bd&limit=25"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Canada Job Bank"
+fixtures = ["canadajobbank"]
+
+[parser_options]
+envelope = ["result", "records"]
+
+[field_aliases.url]
+names = ["url", "id"]
+
+[field_aliases.title]
+names = ["Job Title"]
+
+[field_aliases.company]
+names = ["Company"]
+
+[field_aliases.location]
+names = ["City", "Province/Territory"]
+
+[field_aliases.description]
+names = ["NOC21 Code Name"]
+

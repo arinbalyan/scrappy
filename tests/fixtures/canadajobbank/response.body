@@ -1,0 +1,22 @@
+{
+  "result": {
+    "records": [
+      {
+        "url": "https://jobbank.gc.ca/job/backend-1",
+        "Job Title": "Backend Engineer",
+        "Company": "Northstar Labs",
+        "City": "Berlin",
+        "Province/Territory": "Ontario",
+        "NOC21 Code Name": "Build services."
+      },
+      {
+        "url": "https://jobbank.gc.ca/job/data-2",
+        "Job Title": "Data Engineer",
+        "Company": "Maple Systems",
+        "City": "Warsaw",
+        "Province/Territory": "Ontario",
+        "NOC21 Code Name": "Build pipelines."
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "data": [
+    {
+      "url": "https://web3.career/job/backend-1",
+      "title": "Backend Engineer",
+      "company": "Northstar Labs",
+      "location": "Berlin",
+      "description": "Build services."
+    },
+    {
+      "url": "https://web3.career/job/data-2",
+      "title": "Data Engineer",
+      "company": "Maple Systems",
+      "location": "Warsaw",
+      "description": "Build pipelines."
+    }
+  ]
+}

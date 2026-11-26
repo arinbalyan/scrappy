@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://api.joinrise.ai/api/job/search?limit=25",
+  "headers": {
+    "accept": "application/json"
+  }
+}

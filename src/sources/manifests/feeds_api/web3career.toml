@@ -1,0 +1,37 @@
+version = 1
+id = "web3career"
+name = "Web3 Career"
+family = "feeds_api"
+health = "working"
+request = "https://web3.career/api/v1/jobs?limit=25"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Web3 Career"
+fixtures = ["web3career"]
+
+credentials = ["WEB3CAREER_API_TOKEN"]
+
+[parser_options]
+envelope = ["data"]
+
+[field_aliases.url]
+names = ["url", "link"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company"]
+
+[field_aliases.location]
+names = ["location"]
+
+[field_aliases.description]
+names = ["description"]
+

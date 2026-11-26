@@ -1,0 +1,28 @@
+{
+  "result": {
+    "jobs": [
+      {
+        "url": "https://joinrise.ai/jobs/backend-1",
+        "title": "Backend Engineer",
+        "owner": {
+          "companyName": "Northstar Labs"
+        },
+        "locationAddress": "Berlin",
+        "descriptionBreakdown": {
+          "oneSentenceJobSummary": "Build services."
+        }
+      },
+      {
+        "url": "https://joinrise.ai/jobs/data-2",
+        "title": "Data Engineer",
+        "owner": {
+          "companyName": "Maple Systems"
+        },
+        "locationAddress": "Warsaw",
+        "descriptionBreakdown": {
+          "oneSentenceJobSummary": "Build pipelines."
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+version = 1
+id = "joinrise"
+name = "Joinrise"
+family = "feeds_api"
+health = "working"
+request = "https://api.joinrise.ai/api/job/search?limit=25"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Joinrise"
+fixtures = ["joinrise"]
+
+[parser_options]
+envelope = ["result", "jobs"]
+
+[field_aliases.url]
+names = ["url"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["owner.companyName"]
+
+[field_aliases.location]
+names = ["locationAddress"]
+
+[field_aliases.description]
+names = ["descriptionBreakdown.oneSentenceJobSummary"]
+

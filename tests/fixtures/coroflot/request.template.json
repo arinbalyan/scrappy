@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "http://feeds.feedburner.com/Coroflot/AllJobs",
+  "headers": {
+    "accept": "application/rss+xml, application/xml"
+  }
+}

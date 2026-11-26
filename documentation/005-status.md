@@ -21,8 +21,10 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | ats-workable | Workable ATS | requires_slug | ready | Ats | plain |
 | berlinstartupjobs | Berlin Startup Jobs | working | ready | FeedsApi | plain |
 | builtin | Built In | working | ready | HtmlStatic | plain |
+| canadajobbank | Canada Job Bank | working | ready | FeedsApi | plain |
 | careerjet | Careerjet | keyed | missing_credentials | Keyed | plain |
 | conservationjobs | Conservation Jobs | working | ready | FeedsApi | plain |
+| coroflot | Coroflot | working | ready | FeedsApi | plain |
 | crunchboard | Crunchboard | working | ready | FeedsApi | plain |
 | cryptocurrencyjobs | Cryptocurrency Jobs | working | ready | FeedsApi | plain |
 | cryptojobslist | Crypto Jobs List | working | ready | FeedsApi | plain |
@@ -55,6 +57,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | jobsinjapan | Jobs in Japan | working | ready | FeedsApi | plain |
 | jobspresso | Jobspresso | working | ready | FeedsApi | plain |
 | jobstreet | JobStreet | working | ready | FeedsApi | plain |
+| joinrise | Joinrise | working | ready | FeedsApi | plain |
 | landingjobs | Landingjobs | working | ready | FeedsApi | plain |
 | mycareersfuture | MyCareersFuture | working | ready | FeedsApi | plain |
 | nofluffjobs | NoFluffJobs | working | ready | FeedsApi | plain |
@@ -66,8 +69,10 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | remoteok | RemoteOK | working | ready | FeedsApi | plain |
 | remotive | Remotive | working | ready | FeedsApi | plain |
 | simplyhired | Simply Hired | working | ready | HtmlStatic | plain |
+| startupjobs | Startup Jobs | blocked | blocked | FeedsApi | plain |
 | themuse | The Muse | working | ready | FeedsApi | plain |
 | ukvisajobs | UK Visa Jobs | working | ready | FeedsApi | plain |
+| web3career | Web3 Career | working | missing_credentials | FeedsApi | plain |
 | weworkremotely | We Work Remotely | working | ready | FeedsApi | plain |
 | wordpressjobs | WordPress Jobs | working | ready | FeedsApi | plain |
 | workingnomads | Working Nomads | working | ready | FeedsApi | plain |
