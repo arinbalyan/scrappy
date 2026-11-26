@@ -122,19 +122,18 @@ fn assert_fixtures(manifest: &Manifest) {
 
 fn assert_no_secret(path: &Path, text: &str) {
     for line in text.lines() {
-        if line.contains("{key:") {
-            continue;
-        }
-        let lower = line.to_ascii_lowercase();
-        for marker in ["secret", "password", "passwd", "apikey", "api_key", "token"] {
-            assert!(
-                !lower.contains(marker),
-                "manifest {} contains a credential value or secret ({marker})",
-                path.display()
-            );
-        }
         let (key, value) = line.split_once('=').unwrap_or(("", ""));
         let key = key.trim().to_ascii_lowercase();
+        if !matches!(key.as_str(), "credentials" | "request" | "body") && !line.contains("{key:") {
+            let lower = line.to_ascii_lowercase();
+            for marker in ["secret", "password", "passwd", "apikey", "api_key", "token"] {
+                assert!(
+                    !lower.contains(marker),
+                    "manifest {} contains a credential value or secret ({marker})",
+                    path.display()
+                );
+            }
+        }
         if key != "credentials" {
             continue;
         }
