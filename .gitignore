@@ -1,0 +1,13 @@
+/target/
+/config.toml
+/.env
+/.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.local.toml
+*.secret
+*.secrets
+*.log
+.DS_Store

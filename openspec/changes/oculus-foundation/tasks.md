@@ -2,14 +2,14 @@
 
 ## 1. Repository scaffolding and licensing
 
-- [ ] 1.1 Create a minimal Cargo package with src/main.rs and src/lib.rs and verify that cargo build --locked succeeds
-- [ ] 1.2 Create .gitignore covering target, local config, and secret files and verify no generated artifacts appear in git status
-- [ ] 1.3 Write LICENSE in MIT form and NOTICE documenting clean-room provenance, the read-only references, and third-party license obligations, and verify both files are present
-- [ ] 1.4 Add Cargo.toml with explicit feature flags for emulation and browser and verify that cargo tree shows no native-tls or openssl in the default build
-- [ ] 1.5 Verify that .codex/skills/ms-rust/SKILL.md and its generated guideline files are present, and record the ms-rust workflow in documentation/014-testing.md
-- [ ] 1.6 Create documentation/ with the file layout from design.md and verify that every document uses paths relative to the scrappy repository root
-- [ ] 1.7 Add a documentation parity check that fails when a document references a missing source path or a public module lacks a documentation entry, and verify it runs offline
-- [ ] 1.8 Add cargo fmt, cargo clippy --all-targets -- -D warnings, and cargo doc --no-deps to CI and verify a clean run on the scaffolding
+- [x] 1.1 Create a minimal Cargo package with src/main.rs and src/lib.rs and verify that cargo build --locked succeeds
+- [x] 1.2 Create .gitignore covering target, local config, and secret files and verify no generated artifacts appear in git status
+- [x] 1.3 Write LICENSE in MIT form and NOTICE documenting clean-room provenance, the read-only references, and third-party license obligations, and verify both files are present
+- [x] 1.4 Add Cargo.toml with explicit feature flags for emulation and browser and verify that cargo tree shows no native-tls or openssl in the default build
+- [x] 1.5 Verify that .codex/skills/ms-rust/SKILL.md and its generated guideline files are present, and record the ms-rust workflow in documentation/014-testing.md
+- [x] 1.6 Create documentation/ with the file layout from design.md and verify that every document uses paths relative to the scrappy repository root
+- [x] 1.7 Add a documentation parity check that fails when a document references a missing source path or a public module lacks a documentation entry, and verify it runs offline
+- [x] 1.8 Add cargo fmt, cargo clippy --all-targets -- -D warnings, and cargo doc --no-deps to CI and verify a clean run on the scaffolding
 
 ## 2. CLI and configuration foundation
 
