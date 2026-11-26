@@ -1,0 +1,5 @@
+{
+  "method": "GET",
+  "url": "https://nofluffjobs.com/api/rss",
+  "headers": {"accept": "application/json"}
+}

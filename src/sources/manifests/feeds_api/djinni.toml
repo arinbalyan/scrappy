@@ -1,0 +1,17 @@
+version = 1
+id = "djinni"
+name = "Djinni"
+family = "feeds_api"
+health = "working"
+request = "https://djinni.co/jobs/rss/"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Djinni"
+fixtures = ["djinni"]
+

@@ -1,0 +1,5 @@
+{
+  "method": "GET",
+  "url": "https://echojobs.io/api/jobs",
+  "headers": {"accept": "application/json"}
+}

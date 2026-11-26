@@ -1,0 +1,31 @@
+version = 1
+id = "themuse"
+name = "The Muse"
+family = "feeds_api"
+health = "working"
+request = "https://www.themuse.com/api/public/jobs?page=0&descending=true"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "The Muse"
+fixtures = ["themuse"]
+
+[field_aliases.title]
+names = ["title"]
+[field_aliases.company]
+names = ["company.name", "company", "company_name"]
+[field_aliases.url]
+names = ["url", "link"]
+[field_aliases.location]
+names = ["locations.0.name", "location", "city"]
+[field_aliases.description]
+names = ["description", "text"]
+
+[parser_options]
+envelope = ["results"]
+

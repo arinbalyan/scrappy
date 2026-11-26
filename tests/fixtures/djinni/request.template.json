@@ -1,0 +1,5 @@
+{
+  "method": "GET",
+  "url": "https://djinni.co/jobs/rss/",
+  "headers": {"accept": "application/rss+xml, application/xml"}
+}

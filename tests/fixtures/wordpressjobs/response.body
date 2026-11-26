@@ -1,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Jobs</title><link>https://example.test</link><description>Jobs</description>
+<item><title><![CDATA[Plugin Engineer]]></title><link>https://jobs.wordpress.net/job/701</link><description><![CDATA[Build plugins]]></description><pubDate>Mon, 26 Nov 2026 00:00:00 GMT</pubDate></item>
+<item><title><![CDATA[Community Manager]]></title><link>https://jobs.wordpress.net/job/702</link><description><![CDATA[Community role]]></description><pubDate>Mon, 26 Nov 2026 00:00:00 GMT</pubDate></item>
+</channel></rss>
+

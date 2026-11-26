@@ -1,0 +1,17 @@
+version = 1
+id = "eurojobs"
+name = "Euro Jobs"
+family = "feeds_api"
+health = "working"
+request = "https://www.eurojobs.com/rss"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Euro Jobs"
+fixtures = ["eurojobs"]
+

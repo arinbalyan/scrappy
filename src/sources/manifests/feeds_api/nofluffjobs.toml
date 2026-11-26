@@ -1,0 +1,28 @@
+version = 1
+id = "nofluffjobs"
+name = "NoFluffJobs"
+family = "feeds_api"
+health = "working"
+request = "https://nofluffjobs.com/api/rss"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "NoFluffJobs"
+fixtures = ["nofluffjobs"]
+
+[field_aliases.title]
+names = ["title"]
+[field_aliases.company]
+names = ["company", "company_name"]
+[field_aliases.url]
+names = ["url", "link"]
+[field_aliases.location]
+names = ["location", "city"]
+[field_aliases.description]
+names = ["description", "text"]
+

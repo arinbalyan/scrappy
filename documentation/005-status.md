@@ -18,12 +18,18 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | ats-smartrecruiters | SmartRecruiters ATS | requires_slug | ready | Ats | plain |
 | ats-talentlyft | TalentLyft ATS | requires_slug | ready | Ats | plain |
 | ats-workable | Workable ATS | requires_slug | ready | Ats | plain |
+| berlinstartupjobs | Berlin Startup Jobs | working | ready | FeedsApi | plain |
 | builtin | Built In | working | ready | HtmlStatic | plain |
 | careerjet | Careerjet | keyed | missing_credentials | Keyed | plain |
+| conservationjobs | Conservation Jobs | working | ready | FeedsApi | plain |
 | crunchboard | Crunchboard | working | ready | FeedsApi | plain |
 | cryptocurrencyjobs | Cryptocurrency Jobs | working | ready | FeedsApi | plain |
 | devopsjobs | Devopsjobs | working | ready | FeedsApi | plain |
+| djinni | Djinni | working | ready | FeedsApi | plain |
+| drupaljobs | Drupal Jobs | working | ready | FeedsApi | plain |
+| echojobs | EchoJobs | working | ready | FeedsApi | plain |
 | ecojobs | Eco Jobs | stale | ready | FeedsApi | plain |
+| eurojobs | Euro Jobs | working | ready | FeedsApi | plain |
 | findwork | FindWork | keyed | missing_credentials | Keyed | plain |
 | fossjobs | Fossjobs | working | ready | FeedsApi | plain |
 | freelancercom | Freelancer.com | working | ready | FeedsApi | plain |
@@ -45,15 +51,19 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | jobstreet | JobStreet | working | ready | FeedsApi | plain |
 | landingjobs | Landingjobs | working | ready | FeedsApi | plain |
 | mycareersfuture | MyCareersFuture | working | ready | FeedsApi | plain |
+| nofluffjobs | NoFluffJobs | working | ready | FeedsApi | plain |
 | pythonjobs | Python Jobs | working | ready | FeedsApi | plain |
 | railsjobs | Rails Jobs | working | ready | FeedsApi | plain |
 | realworkfromanywhere | Real Work From Anywhere | working | ready | FeedsApi | plain |
 | reed | Reed | working | ready | HtmlStatic | plain |
+| remotefirstjobs | Remote First Jobs | working | ready | FeedsApi | plain |
 | remoteok | RemoteOK | working | ready | FeedsApi | plain |
 | remotive | Remotive | working | ready | FeedsApi | plain |
 | simplyhired | Simply Hired | working | ready | HtmlStatic | plain |
+| themuse | The Muse | working | ready | FeedsApi | plain |
 | ukvisajobs | UK Visa Jobs | working | ready | FeedsApi | plain |
 | weworkremotely | We Work Remotely | working | ready | FeedsApi | plain |
+| wordpressjobs | WordPress Jobs | working | ready | FeedsApi | plain |
 | workingnomads | Working Nomads | working | ready | FeedsApi | plain |
 | wuzzuf | Wuzzuf | working | ready | HtmlStatic | plain |
 | ycjobs | YC Jobs | blocked | blocked | Keyed | plain |

@@ -1,0 +1,21 @@
+version = 1
+id = "berlinstartupjobs"
+name = "Berlin Startup Jobs"
+family = "feeds_api"
+health = "working"
+request = "https://berlinstartupjobs.com/feed/"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Berlin Startup Jobs"
+fixtures = ["berlinstartupjobs"]
+
+[parser_options]
+title_separator = " // "
+company_first = false
+

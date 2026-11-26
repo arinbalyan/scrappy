@@ -30,9 +30,9 @@ context: |
   dependency builds.
 
   Rust code must follow the ms-rust skill available in this workspace at
- .codex/skills/ms-rust/SKILL.md and in the global Codex skills directory.
- Load that skill and only the applicable guideline files before writing,
- reviewing, or modifying any .rs file.
+  .codex/skills/ms-rust/SKILL.md and in the global Codex skills directory.
+  Load that skill and only the applicable guideline files before writing,
+  reviewing, or modifying any .rs file.
   Follow the Microsoft Pragmatic Rust Guidelines it contains, including the
   canonical documentation format and the compliance marker where required.
 

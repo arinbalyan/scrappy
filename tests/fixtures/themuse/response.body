@@ -1,0 +1,30 @@
++{
+  "results": [
+    {
+      "title": "Product Manager",
+      "company": {
+        "name": "Acme"
+      },
+      "url": "https://www.themuse.com/jobs/1",
+      "locations": [
+        {
+          "name": "Remote"
+        }
+      ],
+      "description": "Own the roadmap."
+    },
+    {
+      "title": "Designer",
+      "company": {
+        "name": "Studio"
+      },
+      "url": "https://www.themuse.com/jobs/2",
+      "locations": [
+        {
+          "name": "Berlin"
+        }
+      ],
+      "description": "Design systems."
+    }
+  ]
+}

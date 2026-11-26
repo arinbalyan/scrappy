@@ -1,0 +1,5 @@
+{
+  "method": "GET",
+  "url": "https://jobs.drupal.org/all-jobs/feed",
+  "headers": {"accept": "application/rss+xml, application/xml"}
+}

@@ -1,0 +1,6 @@
++<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"><channel><title>Jobs</title><link>https://example.test</link><description>Jobs</description>
+<item><title><![CDATA[Senior Backend Engineer]]></title><link>https://www.eurojobs.com/jobs/601</link><description><![CDATA[Backend role in Berlin]]></description><pubDate>Mon, 26 Nov 2026 00:00:00 GMT</pubDate></item>
+<item><title><![CDATA[Frontend Engineer]]></title><link>https://www.eurojobs.com/jobs/602</link><description><![CDATA[Frontend role]]></description><pubDate>Mon, 26 Nov 2026 00:00:00 GMT</pubDate></item>
+</channel></rss>
+

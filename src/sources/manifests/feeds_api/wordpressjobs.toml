@@ -1,0 +1,17 @@
+version = 1
+id = "wordpressjobs"
+name = "WordPress Jobs"
+family = "feeds_api"
+health = "working"
+request = "https://jobs.wordpress.net/feed/"
+parser = "rss"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "WordPress Jobs"
+fixtures = ["wordpressjobs"]
+

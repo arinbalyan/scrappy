@@ -1,0 +1,5 @@
+{
+  "method": "GET",
+  "url": "https://www.themuse.com/api/public/jobs?page=0&descending=true",
+  "headers": {"accept": "application/json"}
+}
