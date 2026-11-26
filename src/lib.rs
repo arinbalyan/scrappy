@@ -4,3 +4,5 @@
 //! and output are added in later sections. See documentation/006-architecture.md.
 
 // Rust guideline compliant 2026-10-09
+
+pub mod cli;

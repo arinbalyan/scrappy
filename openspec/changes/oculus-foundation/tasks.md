@@ -13,7 +13,7 @@
 
 ## 2. CLI and configuration foundation
 
-- [ ] 2.1 Implement clap subcommands for run, validate, config init/show/set/unset/edit/explain/schema, list-sources, doctor with fix, completion, and version with global --help and --version, and verify that help lists every subcommand, flag, and one example per subcommand
+- [x] 2.1 Implement clap subcommands for run, validate, config init/show/set/unset/edit/explain/schema, list-sources, doctor with fix, completion, and version with global --help and --version, and verify that help lists every subcommand, flag, and one example per subcommand
 - [ ] 2.2 Implement typed Config with Option fields and layered resolution in CLI, environment, project config, user config, default order, and verify precedence with a table-driven test
 - [ ] 2.3 Add OneOrMany deserialization for scalar and array config values and verify both forms load in tests
 - [ ] 2.4 Add tri-state boolean flags with negative counterparts and verify that explicit false overrides config true
