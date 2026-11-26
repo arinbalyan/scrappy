@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://remoteok.com/api",
+  "headers": {
+    "accept": "application/json"
+  }
+}

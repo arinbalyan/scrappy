@@ -33,13 +33,13 @@
 
 ## 3. Source registry and manifests
 
-- [ ] 3.1 Define the versioned source manifest schema and registry loader and verify duplicate IDs and unknown fields fail validation
-- [ ] 3.2 Add credential requirement declarations and verify that a missing key produces a missing-credentials status with no request
-- [ ] 3.3 Add robots policy, attribution, and fixture set fields and verify validation rejects missing or empty values
-- [ ] 3.4 Implement list-sources health states and verify counts match registered manifests
+- [x] 3.1 Define the versioned source manifest schema and registry loader and verify duplicate IDs and unknown fields fail validation
+- [x] 3.2 Add credential requirement declarations and verify that a missing key produces a missing-credentials status with no request
+- [x] 3.3 Add robots policy, attribution, and fixture set fields and verify validation rejects missing or empty values
+- [x] 3.4 Implement list-sources health states and verify counts match registered manifests
 - [ ] 3.5 Generate status documentation from the registry and verify generated counts match list-sources output
-- [ ] 3.6 Add list-sources --format json with health, failure, credential, fetcher, slug, and fixture fields, and verify empty and blocked states are distinguishable
-- [ ] 3.7 Add registry parity checks for default selection, fixtures, contract tests, status uniqueness, and slug counts, and verify drift fails CI offline
+- [x] 3.6 Add list-sources --format json with health, failure, credential, fetcher, slug, and fixture fields, and verify empty and blocked states are distinguishable
+- [x] 3.7 Add registry parity checks for default selection, fixtures, contract tests, status uniqueness, and slug counts, and verify drift fails CI offline
 - [ ] 3.8 Implement custom source manifests from a documented user config directory using built-in parser kinds, and verify a custom source runs without rebuilding or overriding a built-in ID
 - [ ] 3.9 Record one behavior document in documentation/scrapers/<source_id>.md for every ported source, covering endpoint family, parser, fetcher, quirks, and break/fix history
 

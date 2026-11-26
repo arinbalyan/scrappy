@@ -128,3 +128,39 @@ fn canonical_tree_is_present() {
         .collect();
     assert!(missing.is_empty(), "missing canonical paths: {missing:?}");
 }
+
+#[test]
+fn registered_sources_have_fixtures_and_docs() {
+    let root = repo_root();
+    let manifests = root.join("src/sources/manifests");
+    let mut found = 0;
+    for family in ["feeds_api", "ats", "html_static", "html_rendered", "keyed"] {
+        let dir = manifests.join(family);
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().is_some_and(|ext| ext == "toml") {
+                let text = std::fs::read_to_string(&path).expect("manifest readable");
+                let id = text
+                    .lines()
+                    .find_map(|line| line.strip_prefix("id = "))
+                    .map(|line| line.trim().trim_matches('"'))
+                    .expect("manifest has an id");
+                found += 1;
+                assert!(
+                    root.join("tests/fixtures").join(id).is_dir(),
+                    "missing fixture set for {id}"
+                );
+                assert!(
+                    root.join("documentation/scrapers")
+                        .join(format!("{id}.md"))
+                        .is_file(),
+                    "missing behavior doc for {id}"
+                );
+            }
+        }
+    }
+    let _ = found;
+}

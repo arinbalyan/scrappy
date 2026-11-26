@@ -7,6 +7,8 @@ use scrappy::cli::{self, Cli, CommandKind, ConfigAction};
 use scrappy::config::file as config_file;
 use scrappy::config::{self, Config, validate};
 use scrappy::engine::contract::{self, EXIT_USAGE};
+use scrappy::sources::registry;
+use scrappy::sources::status;
 
 fn main() {
     let cli = cli::parse();
@@ -31,7 +33,8 @@ fn dispatch(cli: Cli) -> Result<(), String> {
             eprintln!("scrappy: source selection is unavailable in this build");
         }
         CommandKind::Validate(args) => dispatch_validate(args)?,
-        CommandKind::Run(_) | CommandKind::ListSources(_) => {
+        CommandKind::ListSources(args) => dispatch_list(&args)?,
+        CommandKind::Run(_) => {
             cli::print_help();
         }
         CommandKind::Doctor(args) => {
@@ -62,6 +65,29 @@ fn dispatch_validate(args: cli::GlobalArgs) -> Result<(), String> {
     let resolved = config::resolve(&sources).map_err(|error| error.message)?;
     validate(&resolved).map_err(|error| error.message)?;
     println!("ok");
+    Ok(())
+}
+
+fn dispatch_list(args: &cli::ListArgs) -> Result<(), String> {
+    let root = std::path::Path::new("src/sources/manifests");
+    let registry = registry::load(root).map_err(|error| error.message)?;
+    let fixture_root = std::path::Path::new("tests/fixtures");
+    let rows = status::list(&registry, fixture_root);
+    match args.format {
+        cli::OutputFormat::Json => println!(
+            "{}",
+            serde_json::to_string_pretty(&rows)
+                .map_err(|error| format!("cannot encode source list: {error}"))?
+        ),
+        _ => {
+            for row in &rows {
+                println!(
+                    "{} {} {:?} {:?}",
+                    row.id, row.name, row.health, row.availability
+                );
+            }
+        }
+    }
     Ok(())
 }
 

@@ -7,3 +7,4 @@
 pub mod manifest;
 pub mod manifests;
 pub mod registry;
+pub mod status;

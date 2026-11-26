@@ -1,0 +1,16 @@
+version = 1
+id = "remoteok"
+name = "RemoteOK"
+family = "feeds_api"
+health = "working"
+request = "https://remoteok.com/api"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 1
+robots = "allow"
+attribution = "RemoteOK"
+fixtures = ["remoteok"]

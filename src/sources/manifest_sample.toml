@@ -1,0 +1,16 @@
+version = 1
+id = "sample"
+name = "Sample"
+family = "feeds_api"
+health = "working"
+request = "https://example.test/jobs"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 2
+robots = "allow"
+attribution = "Example"
+fixtures = ["sample"]

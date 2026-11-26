@@ -84,3 +84,16 @@ fn invalid_enum_lists_accepted_values() {
     let output = run(&["validate", "--config", "/nonexistent/scrappy.toml"]);
     assert_eq!(output.status.code(), Some(2));
 }
+
+#[test]
+fn list_sources_json_is_parseable() {
+    let output = run(&["list-sources", "--format", "json"]);
+    assert!(
+        output.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let text = stdout(&output);
+    let parsed: serde_json::Value = serde_json::from_str(&text).expect("source list is valid json");
+    assert!(parsed.is_array());
+}
