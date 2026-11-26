@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "title": "Rust Engineer",
+    "slug": "rust-engineer",
+    "description": "Write Rust services.",
+    "company": {
+      "name": "Aurora Labs"
+    },
+    "locations": [
+      {
+        "city": "Tallinn",
+        "country": "Estonia"
+      }
+    ],
+    "urls": {
+      "ad": "https://jobs.jobylon.com/jobs/rust-engineer/"
+    }
+  },
+  {
+    "id": 2,
+    "title": "AI Engineer",
+    "slug": "ai-engineer",
+    "description": "Ship models.",
+    "company": {
+      "name": "Boreal Systems"
+    },
+    "locations": [
+      {
+        "city": "Helsinki",
+        "country": "Finland"
+      }
+    ],
+    "urls": {
+      "ad": "https://jobs.jobylon.com/jobs/ai-engineer/"
+    }
+  }
+]

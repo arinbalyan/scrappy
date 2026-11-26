@@ -1,0 +1,38 @@
+version = 1
+id = "jobtechdev"
+name = "JobTechDev"
+family = "keyed"
+health = "keyed"
+request = "https://jobsearch.api.jobtechdev.se/search?offset=0&limit=2"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow credentialed public API use; skip without credentials"
+attribution = "JobTechDev / Arbetsförmedlingen"
+credentials = ["JOBTECHDEV_API_KEY"]
+fixtures = ["jobtechdev"]
+
+[request_options.headers]
+api-key = "{key:JOBTECHDEV_API_KEY}"
+
+[parser_options]
+envelope = ["hits"]
+
+[field_aliases.title]
+names = ["headline"]
+
+[field_aliases.company]
+names = ["employer.name", "employer.workplace"]
+
+[field_aliases.url]
+names = ["webpage_url", "application_details.url"]
+
+[field_aliases.location]
+names = ["workplace_address.municipality", "workplace_address.city"]
+
+[field_aliases.description]
+names = ["description.text"]

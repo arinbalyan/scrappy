@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://jobsearch.api.jobtechdev.se/search?offset=0&limit=2",
+  "headers": {
+    "accept": "application/json",
+    "api-key": "test-JOBTECHDEV_API_KEY"
+  }
+}

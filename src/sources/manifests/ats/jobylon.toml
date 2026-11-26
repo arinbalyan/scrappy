@@ -1,0 +1,32 @@
+version = 1
+id = "jobylon"
+name = "Jobylon"
+family = "ats"
+health = "requires_slug"
+request = "https://feed.jobylon.com/feeds/{slug}/?format=json"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public company feeds; skip challenged or missing feeds"
+attribution = "Jobylon"
+slugs = ["example-co"]
+fixtures = ["jobylon"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company.name"]
+
+[field_aliases.url]
+names = ["urls.ad"]
+
+[field_aliases.location]
+names = ["locations.0.city", "locations.0.country"]
+
+[field_aliases.description]
+names = ["description"]

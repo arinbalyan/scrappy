@@ -1,0 +1,38 @@
+version = 1
+id = "wellfound"
+name = "Wellfound"
+family = "html_static"
+health = "working"
+request = "https://wellfound.com/jobs"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 15
+max_concurrency = 1
+robots = "allow public job pages; skip challenged pages"
+attribution = "Wellfound"
+fixtures = ["wellfound"]
+
+[request_options.headers]
+user-agent = "Mozilla/5.0"
+
+[parser_options.embedded]
+element_id = "__NEXT_DATA__"
+envelope = ["props", "pageProps", "listings"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company.name"]
+
+[field_aliases.url]
+names = ["url"]
+
+[field_aliases.location]
+names = ["locations.0"]
+
+[field_aliases.description]
+names = ["description"]

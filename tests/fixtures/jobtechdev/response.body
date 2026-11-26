@@ -1,0 +1,43 @@
+{
+  "total": {
+    "value": 2
+  },
+  "hits": [
+    {
+      "id": "31724044",
+      "headline": "Senior Rust Embedded Platform Engineer",
+      "description": {
+        "text": "Own memory-safe embedded platforms."
+      },
+      "employer": {
+        "name": "Nordic Investin Group"
+      },
+      "workplace_address": {
+        "municipality": "Goteborg",
+        "city": "Goteborg"
+      },
+      "application_details": {
+        "url": "https://jobs.example.com/31724044/apply"
+      },
+      "webpage_url": "https://jobs.example.com/31724044"
+    },
+    {
+      "id": "31724045",
+      "headline": "AI Engineer",
+      "description": {
+        "text": "Build inference pipelines."
+      },
+      "employer": {
+        "name": "Maple Systems AB"
+      },
+      "workplace_address": {
+        "municipality": "Stockholm",
+        "city": "Stockholm"
+      },
+      "application_details": {
+        "url": "https://jobs.example.com/31724045/apply"
+      },
+      "webpage_url": "https://jobs.example.com/31724045"
+    }
+  ]
+}

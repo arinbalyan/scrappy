@@ -1,0 +1,7 @@
+{
+  "captured_at": "2026-11-26T00:00:00Z",
+  "source": "https://jobsearch.api.jobtechdev.se/search?offset=0&limit=2",
+  "substitutions": {
+    "JOBTECHDEV_API_KEY": "test-JOBTECHDEV_API_KEY"
+  }
+}
