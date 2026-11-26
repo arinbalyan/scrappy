@@ -79,6 +79,8 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | jobsinjapan | Jobs in Japan | working | ready | FeedsApi | plain |
 | jobspresso | Jobspresso | working | ready | FeedsApi | plain |
 | jobstreet | JobStreet | working | ready | FeedsApi | plain |
+| jobtechdev | JobTechDev | keyed | missing_credentials | Keyed | plain |
+| jobylon | Jobylon | requires_slug | ready | Ats | plain |
 | joinrise | Joinrise | working | ready | FeedsApi | plain |
 | landingjobs | Landingjobs | working | ready | FeedsApi | plain |
 | loxo | Loxo | blocked | blocked | Ats | plain |
@@ -100,6 +102,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | ukvisajobs | UK Visa Jobs | working | ready | FeedsApi | plain |
 | usajobs | USAJobs | blocked | blocked | Keyed | plain |
 | web3career | Web3 Career | working | missing_credentials | FeedsApi | plain |
+| wellfound | Wellfound | working | ready | HtmlStatic | plain |
 | weworkremotely | We Work Remotely | working | ready | FeedsApi | plain |
 | wordpressjobs | WordPress Jobs | working | ready | FeedsApi | plain |
 | workingnomads | Working Nomads | working | ready | FeedsApi | plain |

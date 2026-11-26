@@ -190,6 +190,13 @@
 - [x] 11j.3 Record live probe results, update health labels where needed, and regenerate documentation/005-status.md
 - [x] 11j.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
 
+## 11k. Remaining public and seed-based source ports
+
+- [x] 11k.1 Port jobtechdev, wellfound, and jobylon with manifests, behavior docs, and six-file fixtures
+- [x] 11k.2 Add offline golden replay coverage in tests/tier14_remaining_replay.rs and verify the suite passes without networking
+- [x] 11k.3 Record live probe results, update health labels where needed, and regenerate documentation/005-status.md
+- [x] 11k.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
+
 ## 12. CI and release
 
 - [ ] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes
