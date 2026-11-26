@@ -20,6 +20,66 @@ pub const PROJECT_CONFIG_PATH: &str = "config.toml";
 /// Prefix for environment variables that overlay config values.
 pub const ENV_PREFIX: &str = "SCRAPPY_";
 
+/// One documented config field.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FieldInfo {
+    /// Config key.
+    pub name: &'static str,
+    /// Value type.
+    pub kind: &'static str,
+    /// Default value.
+    pub default: &'static str,
+}
+
+/// Metadata for every config field accepted by the runtime.
+pub const CONFIG_SCHEMA: &[FieldInfo] = &[
+    FieldInfo {
+        name: "search",
+        kind: "string or array",
+        default: "none",
+    },
+    FieldInfo {
+        name: "sources",
+        kind: "string or array",
+        default: "none",
+    },
+    FieldInfo {
+        name: "format",
+        kind: "enum",
+        default: "ndjson",
+    },
+    FieldInfo {
+        name: "rates",
+        kind: "map of string to integer",
+        default: "none",
+    },
+    FieldInfo {
+        name: "concurrency",
+        kind: "integer",
+        default: "4",
+    },
+    FieldInfo {
+        name: "timeout",
+        kind: "integer seconds",
+        default: "30",
+    },
+    FieldInfo {
+        name: "memory_mb",
+        kind: "integer megabytes",
+        default: "512",
+    },
+    FieldInfo {
+        name: "log_level",
+        kind: "enum",
+        default: "info",
+    },
+    FieldInfo {
+        name: "is_remote",
+        kind: "boolean",
+        default: "unset",
+    },
+];
+
 /// Error produced when config discovery or validation fails.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ConfigError {

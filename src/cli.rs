@@ -215,3 +215,9 @@ pub fn completion(shell: Shell, out: &mut impl io::Write) {
     command = command.bin_name("scrappy");
     generate(shell, &mut command, "scrappy", out);
 }
+
+/// Print the root help text.
+pub fn print_help() {
+    let _ = Cli::command().print_help();
+    println!();
+}
