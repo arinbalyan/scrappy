@@ -67,8 +67,10 @@ scrappy/
   tests/
     fixtures/<source_id>/
       request.json
+      request.template.json
       response.body
       headers.json
+      frozen.json
       golden.ndjson
     cli_contract/
       mod.rs
@@ -84,6 +86,14 @@ scrappy/
 Empty directories keep a short README so the layout is visible in version
 control. Source manifests and fixtures use the paths shown above, and
 documentation uses repository-relative paths only.
+
+This tree is the required shape of the repository, not an illustration. A
+parity check fails when any named path is missing or when a module is placed
+outside its named directory. New files belong under an existing subsystem and
+are recorded in design.md when they establish a new contract. Adding a source
+means adding a manifest under its adapter-family directory, a fixture set under
+tests/fixtures/<source_id>/, and a behavior document under documentation/scrapers/;
+it does not create a new top-level directory.
 
 **Goals:**
 
@@ -112,7 +122,7 @@ Use a single Cargo package with a binary and library boundary.
 - src/lib.rs exposes modules: cli, config, sources, fetching, parsing, engine, output, security, checkpoint, metrics.
 - tests/ holds CLI contract tests and fixture replay tests.
 - src/sources/manifests/ holds versioned TOML manifests, one per source.
-- tests/fixtures/<source_id>/ holds sanitized request descriptors, response bodies, headers, and golden records.
+- tests/fixtures/<source_id>/ holds a reusable request.template.json, a frozen request.json, response bodies, headers.json, frozen.json, and golden.ndjson records.
 - .github/workflows/ holds CI for tests, audits, static builds, and secret-leak checks.
 
 Alternative considered: a workspace with many crates. Rejected for a single contributor because it adds build overhead and indirection without a team boundary to enforce.
@@ -121,6 +131,15 @@ A scraper is not one file. It is the combination of a declarative manifest in sr
 Sources are classified on two axes. The adapter family controls code placement and runtime behavior: feeds_api, ats, html_static, html_rendered, and keyed. The health state controls eligibility: working, keyed, blocked, stale, requires_slug, browser_only, and unregistered. A source carries both, so a feed can be stale and an HTML page can be working. Numbered tiers in tasks.md are port order only and do not replace this classification.
 The folder layout follows the family axis. Manifests live in src/sources/manifests/feeds_api/, ats/, html_static/, html_rendered/, and keyed/. Shared parsers live in src/parsing/ as json, rss, html, and jsonld modules. Fetchers live in src/fetching/ as plain, emulation, browser, and proxy modules. Fixtures live in tests/fixtures/<source_id>/. Behavior docs live in documentation/scrapers/<source_id>.md.
 Every scraper gets a behavior document in documentation/scrapers/<source_id>.md. It records the source id, adapter family, health state, endpoint shape, parser, fetcher, emulation profile, credential and slug needs, rate and concurrency limits, robots policy, known quirks, and a dated break/fix log. When a scraper breaks and is repaired, the fix and the observed behavior are appended to that document in the same change. Documentation parity checks require one document per registered source and reject a document whose source id has no manifest.
+
+### 1c. Downstream consumer compatibility
+scrappy is a standalone scraper and is never named after its consumers. Its
+contracts are shaped so a process consumer can use the binary without a
+shared library or source changes. NDJSON on stdout, CSV and JSON writers,
+versioned records, canonical URLs, deterministic hashes, provenance, and
+structured progress events give a consumer stable fields to filter jobs and
+route them into automated or human-attention lanes. An operator may invoke any
+source, but the consumer owns its own selection, email, and application policy.
 
 ### 1a. Documentation and code style
 

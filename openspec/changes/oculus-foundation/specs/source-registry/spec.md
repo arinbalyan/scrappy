@@ -128,3 +128,18 @@ Every registered source SHALL have one behavior document in documentation/scrape
 #### Scenario: Break and fix are recorded
 - **WHEN** a scraper is repaired after a break
 - **THEN** its behavior document contains a dated entry naming the failure and the fix
+
+### Requirement: Adapter family placement
+Each source SHALL be placed in exactly one adapter family directory:
+src/sources/manifests/feeds_api/, ats/, html_static/, html_rendered/, or
+keyed/. The family SHALL correspond to the fetch and parse behavior declared
+in its manifest. Custom sources SHALL use one of these families and SHALL NOT
+introduce a new top-level source directory.
+
+#### Scenario: Manifest lives in its family directory
+- **WHEN** a manifest declares a source family
+- **THEN** the manifest file is located under the matching family directory
+
+#### Scenario: Unknown family is rejected
+- **WHEN** a manifest declares a family outside the five defined families
+- **THEN** registry validation fails and names the invalid family

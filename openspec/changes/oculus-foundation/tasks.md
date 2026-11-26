@@ -73,6 +73,12 @@
 - [x] 6.6 Implement immediate stdout line flush with no partial lines on cancellation and verify emitted records survive an interrupted run
 - [x] 6.7 Separate URL dedup from title-company dedup and verify disabling dedup preserves records sharing title and company
 
+## 6a. Canonical tree and consumer-ready output
+
+- [ ] 6a.1 Add a canonical-tree parity check for every path in design.md, including manifest family directories, numbered documentation files, scraper documents, and fixture files, and verify it fails on a removed path
+- [ ] 6a.2 Add request.template.json and frozen.json to the fixture contract and verify replay derives request.json from the template and timestamp
+- [ ] 6a.3 Verify CSV output has a stable header and standard escaping, and verify NDJSON stdout records use the same field names
+
 ## 7. Security and privacy
 
 - [ ] 7.1 Wrap credentials in redacting types and verify debug output contains only a redaction marker

@@ -104,3 +104,19 @@ URL and content-hash deduplication SHALL be an explicit option with a documented
 #### Scenario: Company dedup is opt-in
 - **WHEN** URL dedup is enabled and company dedup is not requested
 - **THEN** records with different canonical URLs are retained
+
+### Requirement: Consumer-ready lightweight formats
+NDJSON SHALL remain the default stdout format. JSON and CSV SHALL be selectable
+for file artifacts through explicit output flags. CSV SHALL use a header row
+with the same field names as the normalized record and SHALL be readable by
+standard spreadsheet and CSV tools. The binary SHALL expose no product-specific
+output mode, so a downstream consumer can adopt new fields without a scraper
+change.
+
+#### Scenario: CSV has a stable header
+- **WHEN** a user writes CSV output
+- **THEN** the first line names every exported field in a documented order
+
+#### Scenario: Records remain process-consumable
+- **WHEN** a consumer reads NDJSON from stdout while the run is active
+- **THEN** each line is a complete normalized record with stable field names
