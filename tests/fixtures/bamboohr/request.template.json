@@ -1,0 +1,9 @@
+{
+  "method": "GET",
+  "url": "https://{slug}.bamboohr.com/careers/list",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}
+

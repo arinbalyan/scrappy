@@ -1,0 +1,40 @@
+version = 1
+id = "manatal"
+name = "Manatal"
+family = "ats"
+health = "requires_slug"
+request = "https://api.manatal.com/open/v1/career-page/{slug}/jobs/"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public career page API endpoints"
+attribution = "Manatal"
+slugs = ["example-co"]
+fixtures = ["manatal"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[parser_options]
+envelope = ["results"]
+
+[field_aliases.title]
+names = ["position_name"]
+
+[field_aliases.company]
+names = ["company_name", "company"]
+
+[field_aliases.url]
+names = ["apply_url", "career_page_url", "url"]
+
+[field_aliases.location]
+names = ["location.city", "location.state", "location.country"]
+
+[field_aliases.description]
+names = ["description"]
+

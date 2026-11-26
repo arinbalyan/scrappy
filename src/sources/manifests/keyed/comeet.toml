@@ -1,0 +1,38 @@
+version = 1
+id = "comeet"
+name = "Comeet"
+family = "keyed"
+health = "keyed"
+request = "https://www.comeet.co/careers-api/2.0/company/{slug}/positions?token={key:COMEET_API_TOKEN}&details=true"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public careers API endpoints"
+attribution = "Comeet"
+credentials = ["COMEET_API_TOKEN"]
+slugs = ["example-co"]
+fixtures = ["comeet"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["name"]
+
+[field_aliases.company]
+names = ["company_name", "company"]
+
+[field_aliases.url]
+names = ["url_active_page", "url"]
+
+[field_aliases.location]
+names = ["location.name"]
+
+[field_aliases.description]
+names = ["description", "details.0.value"]
+

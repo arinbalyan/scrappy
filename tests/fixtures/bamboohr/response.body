@@ -1,0 +1,34 @@
+{
+  "result": [
+    {
+      "id": "101",
+      "company": "example-co",
+      "url": "https://example-co.bamboohr.com/careers/101",
+      "jobOpeningName": "Backend Engineer",
+      "departmentLabel": "Engineering",
+      "location": {
+        "city": "Berlin",
+        "state": "BE",
+        "country": "DE"
+      },
+      "description": "<p>Build services.</p>",
+      "employmentStatusLabel": "Full-Time",
+      "minimumExperience": "3 years",
+      "compensation": "EUR 70000"
+    },
+    {
+      "id": "102",
+      "company": "example-co",
+      "url": "https://example-co.bamboohr.com/careers/102",
+      "jobOpeningName": "Platform Engineer",
+      "departmentLabel": "Infrastructure",
+      "location": {
+        "city": "Remote",
+        "state": "",
+        "country": "US"
+      },
+      "description": "Maintain platforms.",
+      "employmentStatusLabel": "Full-Time"
+    }
+  ]
+}

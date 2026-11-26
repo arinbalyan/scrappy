@@ -1,0 +1,40 @@
+[
+  {
+    "id": "201",
+    "company": "example-co",
+    "friendly_id": "be-eng",
+    "name": "Backend Engineer",
+    "title": "Backend Engineer",
+    "description": "<p>Build APIs.</p>",
+    "url": "https://example-co.breezy.hr/p/be-eng",
+    "location": {
+      "city": "Austin",
+      "state": "TX",
+      "country": "US",
+      "is_remote": false
+    },
+    "department": "Engineering",
+    "published_date": "2026-11-20",
+    "creation_date": "2026-11-18"
+  },
+  {
+    "id": "202",
+    "company": "example-co",
+    "friendly_id": "plat-eng",
+    "name": "Platform Engineer",
+    "title": "Platform Engineer",
+    "description": "Operate clusters.",
+    "url": "https://example-co.breezy.hr/p/plat-eng",
+    "location": {
+      "city": "Remote",
+      "state": "",
+      "country": "US",
+      "is_remote": true
+    },
+    "category": {
+      "name": "Infrastructure"
+    },
+    "published_date": "",
+    "creation_date": "2026-11-19"
+  }
+]

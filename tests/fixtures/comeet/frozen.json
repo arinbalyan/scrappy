@@ -1,0 +1,8 @@
+{
+  "fetched_at": "2026-11-26T00:00:00Z",
+  "substitutions": {
+    "slug": "example-co",
+    "COMEET_API_TOKEN": "sample-token"
+  },
+  "note": "The historical empty token query is omitted. The slug company fallback is resolved in fixtures."
+}

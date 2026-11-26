@@ -1,0 +1,40 @@
+version = 1
+id = "bamboohr"
+name = "BambooHR"
+family = "ats"
+health = "requires_slug"
+request = "https://{slug}.bamboohr.com/careers/list"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public career list endpoints"
+attribution = "BambooHR"
+slugs = ["example-co"]
+fixtures = ["bamboohr"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[parser_options]
+envelope = ["result"]
+
+[field_aliases.title]
+names = ["jobOpeningName"]
+
+[field_aliases.company]
+names = ["company"]
+
+[field_aliases.url]
+names = ["url", "jobUrl", "applyUrl"]
+
+[field_aliases.location]
+names = ["location.city", "location.state", "location.country"]
+
+[field_aliases.description]
+names = ["description"]
+

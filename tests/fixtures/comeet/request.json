@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://www.comeet.co/careers-api/2.0/company/example-co/positions?token=sample-token&details=true",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

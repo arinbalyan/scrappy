@@ -1,0 +1,9 @@
+{
+  "method": "GET",
+  "url": "https://careers.jobscore.com/jobs/{slug}/feed.json?sort=date&limit=25",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}
+

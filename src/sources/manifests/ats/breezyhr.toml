@@ -1,0 +1,37 @@
+version = 1
+id = "breezyhr"
+name = "BreezyHR"
+family = "ats"
+health = "requires_slug"
+request = "https://{slug}.breezy.hr/json"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public career board endpoints"
+attribution = "BreezyHR"
+slugs = ["example-co"]
+fixtures = ["breezyhr"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["name", "title"]
+
+[field_aliases.company]
+names = ["company_name", "company"]
+
+[field_aliases.url]
+names = ["url", "apply_url"]
+
+[field_aliases.location]
+names = ["location.city", "location.state", "location.country"]
+
+[field_aliases.description]
+names = ["description"]
+

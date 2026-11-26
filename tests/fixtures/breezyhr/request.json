@@ -1,0 +1,9 @@
+{
+  "method": "GET",
+  "url": "https://example-co.breezy.hr/json",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}
+

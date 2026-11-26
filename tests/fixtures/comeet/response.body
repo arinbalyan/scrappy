@@ -1,0 +1,39 @@
+[
+  {
+    "uid": "c-301",
+    "id": "301",
+    "name": "Backend Engineer",
+    "company_name": "Example Co",
+    "url": "https://www.comeet.co/careers/example-co/301",
+    "url_active_page": "https://www.comeet.co/careers/example-co/301",
+    "location": {
+      "name": "Remote - US"
+    },
+    "details": [
+      {
+        "value": "<p>Build services.</p>"
+      }
+    ],
+    "department": "Engineering",
+    "time_updated": "2026-11-21"
+  },
+  {
+    "uid": "c-302",
+    "company": "example-co",
+    "id": "302",
+    "name": "Data Engineer",
+    "company_name": "",
+    "url": "https://www.comeet.co/jobs/302",
+    "url_active_page": "",
+    "location": {
+      "name": "London"
+    },
+    "details": [
+      {
+        "value": "Build pipelines."
+      }
+    ],
+    "department": "Data",
+    "time_updated": "2026-11-22"
+  }
+]
