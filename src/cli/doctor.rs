@@ -113,10 +113,23 @@ fn schema_check() -> Check {
 }
 
 fn sources_check() -> Check {
-    Check {
-        name: "sources".to_owned(),
-        status: Status::Skip,
-        reason: "source registry not yet implemented".to_owned(),
+    let root = std::path::Path::new("src/sources/manifests");
+    match crate::sources::custom::load(root, &crate::sources::custom::directory()) {
+        Ok(registry) if registry.is_empty() => Check {
+            name: "sources".to_owned(),
+            status: Status::Warn,
+            reason: "no source manifests registered".to_owned(),
+        },
+        Ok(registry) => Check {
+            name: "sources".to_owned(),
+            status: Status::Pass,
+            reason: format!("{} source manifests registered", registry.len()),
+        },
+        Err(error) => Check {
+            name: "sources".to_owned(),
+            status: Status::Fail,
+            reason: error.message,
+        },
     }
 }
 
@@ -157,10 +170,35 @@ fn browser_check() -> Check {
 }
 
 fn fixtures_check() -> Check {
-    Check {
-        name: "fixtures".to_owned(),
-        status: Status::Skip,
-        reason: "no sources registered yet".to_owned(),
+    let root = std::path::Path::new("src/sources/manifests");
+    match crate::sources::custom::load(root, &crate::sources::custom::directory()) {
+        Ok(registry) => {
+            let fixture_root = std::path::Path::new("tests/fixtures");
+            let statuses = crate::sources::status::list(&registry, fixture_root);
+            let missing: Vec<String> = statuses
+                .iter()
+                .filter(|row| row.availability == crate::sources::status::Availability::Blocked)
+                .map(|row| row.id.clone())
+                .collect();
+            if missing.is_empty() {
+                Check {
+                    name: "fixtures".to_owned(),
+                    status: Status::Pass,
+                    reason: format!("{} source fixture sets present", registry.len()),
+                }
+            } else {
+                Check {
+                    name: "fixtures".to_owned(),
+                    status: Status::Fail,
+                    reason: format!("missing or blocked fixtures: {}", missing.join(", ")),
+                }
+            }
+        }
+        Err(error) => Check {
+            name: "fixtures".to_owned(),
+            status: Status::Fail,
+            reason: error.message,
+        },
     }
 }
 

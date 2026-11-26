@@ -45,7 +45,9 @@ pub enum CommandKind {
         action: ConfigAction,
     },
     /// List registered sources and their health.
-    #[command(after_help = "Example: scrappy list-sources --format json")]
+    #[command(
+        after_help = "Example: scrappy list-sources --format json\nExample: scrappy list-sources --generate-status"
+    )]
     ListSources(ListArgs),
     /// Check local setup and dependencies.
     #[command(after_help = "Example: scrappy doctor --format json")]
@@ -95,6 +97,9 @@ pub struct ListArgs {
     /// Shared config options.
     #[command(flatten)]
     pub global: GlobalArgs,
+    /// Regenerate the status document from the registry.
+    #[arg(long)]
+    pub generate_status: bool,
     /// Output format.
     #[arg(long, value_enum, default_value_t = OutputFormat::Table)]
     pub format: OutputFormat,

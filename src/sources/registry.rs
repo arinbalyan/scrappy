@@ -5,7 +5,7 @@
 // Rust guideline compliant 2026-10-09
 
 use std::collections::BTreeMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use crate::sources::manifest::{Manifest, ManifestError, parse};
 
@@ -59,6 +59,11 @@ impl Registry {
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
+
+    /// Insert a manifest into the registry.
+    pub fn insert(&mut self, manifest: Manifest) {
+        self.entries.insert(manifest.id.clone(), manifest);
+    }
 }
 
 /// Load manifests from a directory tree.
@@ -68,17 +73,42 @@ impl Registry {
 /// duplicate identifiers across the tree.
 pub fn load(root: &Path) -> Result<Registry, RegistryError> {
     let mut registry = Registry::new();
-    let mut files: Vec<_> = std::fs::read_dir(root)
-        .map_err(|error| RegistryError {
-            message: format!("cannot read {}: {error}", root.display()),
-        })?
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
-        .filter(|path| path.extension().is_some_and(|ext| ext == "toml"))
-        .collect();
+    let files = manifest_files(root)?;
+    load_into(&mut registry, &files)?;
+    Ok(registry)
+}
+
+/// Collect TOML manifest files from a directory tree.
+///
+/// # Errors
+/// Returns `RegistryError` when a directory cannot be read.
+pub fn manifest_files(root: &Path) -> Result<Vec<PathBuf>, RegistryError> {
+    let mut pending = vec![root.to_path_buf()];
+    let mut files = Vec::new();
+    while let Some(dir) = pending.pop() {
+        let entries = std::fs::read_dir(&dir).map_err(|error| RegistryError {
+            message: format!("cannot read {}: {error}", dir.display()),
+        })?;
+        for entry in entries.filter_map(Result::ok) {
+            let path = entry.path();
+            if path.is_dir() {
+                pending.push(path);
+            } else if path.extension().is_some_and(|ext| ext == "toml") {
+                files.push(path);
+            }
+        }
+    }
     files.sort();
+    Ok(files)
+}
+
+/// Load manifest files into an existing registry, rejecting duplicate IDs.
+///
+/// # Errors
+/// Returns `RegistryError` for unreadable files, invalid manifests, or duplicates.
+pub fn load_into(registry: &mut Registry, files: &[PathBuf]) -> Result<(), RegistryError> {
     for path in files {
-        let text = std::fs::read_to_string(&path).map_err(|error| RegistryError {
+        let text = std::fs::read_to_string(path).map_err(|error| RegistryError {
             message: format!("cannot read {}: {error}", path.display()),
         })?;
         let manifest = parse(&text).map_err(|error: ManifestError| RegistryError {
@@ -91,7 +121,7 @@ pub fn load(root: &Path) -> Result<Registry, RegistryError> {
         }
         registry.entries.insert(manifest.id.clone(), manifest);
     }
-    Ok(registry)
+    Ok(())
 }
 
 #[cfg(test)]
@@ -141,5 +171,24 @@ fixtures = ["sample"]
         let error = load(&root).unwrap_err();
         assert_ne!(error.message, "");
         std::fs::remove_dir_all(root).expect("dir removed");
+    }
+
+    #[test]
+    fn loads_manifests_from_family_directories() {
+        let root = dir("families");
+        let family = root.join("feeds_api");
+        std::fs::create_dir_all(&family).expect("family created");
+        std::fs::write(family.join("sample.toml"), VALID).expect("manifest written");
+        let registry = load(&root).expect("registry loaded");
+        assert_eq!(registry.len(), 1);
+        assert!(registry.get("sample").is_some());
+        std::fs::remove_dir_all(root).expect("dir removed");
+    }
+
+    #[test]
+    fn loads_bundled_manifest_tree() {
+        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/sources/manifests");
+        let registry = load(&root).expect("bundled manifests load");
+        assert!(registry.get("remoteok").is_some());
     }
 }

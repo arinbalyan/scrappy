@@ -164,3 +164,34 @@ fn registered_sources_have_fixtures_and_docs() {
     }
     let _ = found;
 }
+
+#[test]
+fn generated_status_matches_registry() {
+    let root = repo_root();
+    let manifest_root = root.join("src/sources/manifests");
+    let mut registry = scrappy::sources::registry::Registry::new();
+    let mut files = Vec::new();
+    for family in ["feeds_api", "ats", "html_static", "html_rendered", "keyed"] {
+        for entry in fs::read_dir(manifest_root.join(family))
+            .expect("family folder exists")
+            .flatten()
+        {
+            if entry.path().extension().is_some_and(|ext| ext == "toml") {
+                files.push(entry.path());
+            }
+        }
+    }
+    files.sort();
+    for path in files {
+        let text = fs::read_to_string(path).expect("manifest readable");
+        let manifest = scrappy::sources::manifest::parse(&text).expect("manifest parses");
+        registry.insert(manifest);
+    }
+    let expected = scrappy::sources::status_doc::render(&registry, &root.join("tests/fixtures"));
+    let actual =
+        fs::read_to_string(root.join("documentation/005-status.md")).expect("status doc exists");
+    assert_eq!(
+        actual, expected,
+        "status doc is stale; run list-sources --generate-status"
+    );
+}

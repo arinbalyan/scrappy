@@ -7,7 +7,7 @@ use scrappy::cli::{self, Cli, CommandKind, ConfigAction};
 use scrappy::config::file as config_file;
 use scrappy::config::{self, Config, validate};
 use scrappy::engine::contract::{self, EXIT_USAGE};
-use scrappy::sources::registry;
+use scrappy::sources::custom;
 use scrappy::sources::status;
 
 fn main() {
@@ -33,6 +33,7 @@ fn dispatch(cli: Cli) -> Result<(), String> {
             eprintln!("scrappy: source selection is unavailable in this build");
         }
         CommandKind::Validate(args) => dispatch_validate(args)?,
+        CommandKind::ListSources(args) if args.generate_status => dispatch_generate_status(&args)?,
         CommandKind::ListSources(args) => dispatch_list(&args)?,
         CommandKind::Run(_) => {
             cli::print_help();
@@ -70,7 +71,7 @@ fn dispatch_validate(args: cli::GlobalArgs) -> Result<(), String> {
 
 fn dispatch_list(args: &cli::ListArgs) -> Result<(), String> {
     let root = std::path::Path::new("src/sources/manifests");
-    let registry = registry::load(root).map_err(|error| error.message)?;
+    let registry = custom::load(root, &custom::directory()).map_err(|error| error.message)?;
     let fixture_root = std::path::Path::new("tests/fixtures");
     let rows = status::list(&registry, fixture_root);
     match args.format {
@@ -88,6 +89,18 @@ fn dispatch_list(args: &cli::ListArgs) -> Result<(), String> {
             }
         }
     }
+    Ok(())
+}
+
+fn dispatch_generate_status(_args: &cli::ListArgs) -> Result<(), String> {
+    let root = std::path::Path::new("src/sources/manifests");
+    let registry = custom::load(root, &custom::directory()).map_err(|error| error.message)?;
+    let text =
+        scrappy::sources::status_doc::render(&registry, std::path::Path::new("tests/fixtures"));
+    let path = std::path::Path::new("documentation/005-status.md");
+    std::fs::write(path, text)
+        .map_err(|error| format!("cannot write {}: {error}", path.display()))?;
+    println!("wrote {}", path.display());
     Ok(())
 }
 
