@@ -7,6 +7,9 @@ use scrappy::cli::{self, Cli, CommandKind, ConfigAction};
 use scrappy::config::file as config_file;
 use scrappy::config::{self, Config, validate};
 use scrappy::engine::contract::{self, EXIT_USAGE};
+use scrappy::engine::pipeline;
+use scrappy::fetching::plain::PlainFetcher;
+use scrappy::output::writer::{self, Format};
 use scrappy::sources::custom;
 use scrappy::sources::status;
 
@@ -35,9 +38,7 @@ fn dispatch(cli: Cli) -> Result<(), String> {
         CommandKind::Validate(args) => dispatch_validate(args)?,
         CommandKind::ListSources(args) if args.generate_status => dispatch_generate_status(&args)?,
         CommandKind::ListSources(args) => dispatch_list(&args)?,
-        CommandKind::Run(_) => {
-            cli::print_help();
-        }
+        CommandKind::Run(args) => dispatch_run(&args)?,
         CommandKind::Doctor(args) => {
             let report = if args.fix {
                 cli::doctor::report_with_fix(&args.global.config)
@@ -66,6 +67,31 @@ fn dispatch_validate(args: cli::GlobalArgs) -> Result<(), String> {
     let resolved = config::resolve(&sources).map_err(|error| error.message)?;
     validate(&resolved).map_err(|error| error.message)?;
     println!("ok");
+    Ok(())
+}
+
+fn dispatch_run(args: &cli::RunArgs) -> Result<(), String> {
+    let root = std::path::Path::new("src/sources/manifests");
+    let registry = custom::load(root, &custom::directory()).map_err(|error| error.message)?;
+    let input = pipeline::RunInput {
+        sources: args.source.clone(),
+        fetched_at: pipeline::now_utc(),
+        ..pipeline::RunInput::default()
+    };
+    let (jobs, summary) = pipeline::run(&registry, &input, &PlainFetcher::new())?;
+    let format = match args.format {
+        cli::OutputFormat::Ndjson => Format::Ndjson,
+        cli::OutputFormat::Json => Format::Json,
+        cli::OutputFormat::Csv => Format::Csv,
+        cli::OutputFormat::Table => {
+            return Err("table format is not supported for run output".to_owned());
+        }
+    };
+    let text = writer::encode(&jobs, format)?;
+    print!("{text}");
+    for failure in &summary.failures {
+        eprintln!("scrappy: {failure}");
+    }
     Ok(())
 }
 
