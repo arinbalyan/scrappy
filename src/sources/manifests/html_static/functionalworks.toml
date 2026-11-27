@@ -1,0 +1,26 @@
+version = 1
+id = "functionalworks"
+name = "Functional Works"
+family = "html_static"
+health = "working"
+request = "https://works-hub.com/jobs"
+parser = "html"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 2
+robots = "allow"
+attribution = "Functional Works"
+fixtures = ["functionalworks"]
+
+[selectors]
+item = 'a[href^="/jobs/"]'
+title = "h3"
+company = ".text-coral"
+url = 'a[href^="/jobs/"]'
+url_attribute = "href"
+
+[request_options.headers]
+user-agent = "Mozilla/5.0"

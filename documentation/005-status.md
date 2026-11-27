@@ -59,7 +59,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | fountain | Fountain | keyed | missing_credentials | FeedsApi | plain |
 | freelancercom | Freelancer.com | working | ready | FeedsApi | plain |
 | freshteam | Freshteam | keyed | missing_credentials | Keyed | plain |
-| functionalworks | Functional Works | working | ready | FeedsApi | plain |
+| functionalworks | Functional Works | working | ready | HtmlStatic | plain |
 | getonboard | GetOnBoard | working | ready | FeedsApi | plain |
 | golangjobs | Golang Jobs | working | ready | FeedsApi | plain |
 | greenhouse | Greenhouse | requires_slug | ready | Ats | plain |

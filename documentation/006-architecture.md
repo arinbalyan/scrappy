@@ -19,7 +19,9 @@ or query value), and build_request expands placeholders in the manifest
 `request` URL, header values, and body into a validated fetching::Request. A
 literal brace is written twice in a template, so `{{` becomes `{` and `}}`
 becomes `}` after substitution. This keeps JSON request bodies declarative.
-The caller fetches that
+The adapter defaults `accept` to JSON for JSON sources, RSS media types for
+RSS sources, and HTML media types for HTML sources. A manifest header with
+the same name overrides the default. The caller fetches that
 request, then parse_response turns the bounded fetching::Response into
 parsing::Record values. The adapter performs no network I/O and never places
 credential values in error messages. Manifest fields request_template,

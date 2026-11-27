@@ -1,60 +1,23 @@
-{
-  "data": {
-    "jobs": [
-      {
-        "title": "Functional Engineer",
-        "company": {
-          "name": "Example Org"
-        },
-        "location": {
-          "city": "City One",
-          "country": "Exampleland"
-        },
-        "remote": true,
-        "remuneration": {
-          "timePeriod": "year",
-          "competitive": false,
-          "currency": "USD",
-          "min": 90000,
-          "max": 110000
-        },
-        "slug": "role-501",
-        "firstPublished": "2026-11-02T09:00:00Z",
-        "descriptionHtml": "<p>Generic role description.</p>",
-        "tags": [
-          {
-            "label": "haskell"
-          }
-        ],
-        "url": "https://jobs.example.test/roles/501"
-      },
-      {
-        "title": "Runtime Engineer",
-        "company": {
-          "name": "Sample Labs"
-        },
-        "location": {
-          "city": "City Two",
-          "country": "Exampleland"
-        },
-        "remote": true,
-        "remuneration": {
-          "timePeriod": "year",
-          "competitive": false,
-          "currency": "USD",
-          "min": 90000,
-          "max": 110000
-        },
-        "slug": "role-502",
-        "firstPublished": "2026-11-02T09:00:00Z",
-        "descriptionHtml": "<p>Generic role description.</p>",
-        "tags": [
-          {
-            "label": "scala"
-          }
-        ],
-        "url": "https://jobs.example.test/roles/502"
-      }
-    ]
-  }
-}
+<!doctype html>
+<html lang="en"><body>
+<section class="container-page pb-16">
+  <div class="grid gap-4 md:grid-cols-2">
+    <a class="group relative flex flex-col border bg-[#fcf8f2] p-6" href="/jobs/senior-engineer-example-701">
+      <div class="flex items-center gap-3">
+        <span class="mono-label text-ink-soft">#001</span>
+        <span class="mono-label text-coral">Example Org</span>
+      </div>
+      <h3 class="font-serif text-2xl leading-tight text-ink font-semibold group-hover:italic transition-all">Senior Engineer</h3>
+      <p class="mt-3 line-clamp-2 text-sm text-ink-soft">Generic role summary.</p>
+    </a>
+    <a class="group relative flex flex-col border bg-[#fcf8f2] p-6" href="/jobs/runtime-engineer-702">
+      <div class="flex items-center gap-3">
+        <span class="mono-label text-ink-soft">#002</span>
+        <span class="mono-label text-coral">Sample Labs</span>
+      </div>
+      <h3 class="font-serif text-2xl leading-tight text-ink font-semibold group-hover:italic transition-all">Runtime Engineer</h3>
+      <p class="mt-3 line-clamp-2 text-sm text-ink-soft">Generic role summary.</p>
+    </a>
+  </div>
+</section>
+</body></html>

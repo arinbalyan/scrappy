@@ -2,6 +2,6 @@
   "method": "GET",
   "url": "https://aijobs.ai/remote",
   "headers": {
-    "accept": "application/json"
+    "accept": "text/html,application/xhtml+xml"
   }
 }

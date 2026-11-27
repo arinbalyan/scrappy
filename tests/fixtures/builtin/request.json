@@ -2,7 +2,7 @@
   "method": "GET",
   "url": "https://builtin.com/jobs?search=backend",
   "headers": {
-    "accept": "application/json",
+    "accept": "text/html,application/xhtml+xml",
     "user-agent": "Mozilla/5.0"
   }
 }

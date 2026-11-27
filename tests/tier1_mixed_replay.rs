@@ -13,7 +13,7 @@ use scrappy::fetching::Response;
 use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
 use scrappy::sources::manifest::{Family, Health, Manifest, parse};
 
-const SOURCES: [(&str, Family, Health, &str, &str); 10] = [
+const SOURCES: [(&str, Family, Health, &str, &str); 9] = [
     (
         "weworkremotely",
         Family::FeedsApi,
@@ -44,13 +44,6 @@ const SOURCES: [(&str, Family, Health, &str, &str); 10] = [
     ),
     (
         "4dayweek",
-        Family::FeedsApi,
-        Health::Working,
-        "feeds_api",
-        "json",
-    ),
-    (
-        "functionalworks",
         Family::FeedsApi,
         Health::Working,
         "feeds_api",

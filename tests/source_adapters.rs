@@ -48,6 +48,31 @@ robots = "allow"
 attribution = "Example"
 "#;
 
+const HTML_SOURCE: &str = r#"
+version = 1
+id = "html-source"
+name = "HTML Source"
+family = "html_static"
+health = "working"
+request = "https://example.test/jobs"
+parser = "html"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 2
+robots = "allow"
+attribution = "Example"
+
+[selectors]
+item = ".job"
+title = "h3"
+company = "span"
+url = "a"
+url_attribute = "href"
+"#;
+
 #[test]
 fn builds_request_with_slug_key_and_query_substitutions() {
     let manifest = parse(TEMPLATED).expect("manifest parsed");
@@ -105,6 +130,16 @@ fn parses_records_through_adapter() {
     assert_eq!(records.len(), 1);
     assert_eq!(records[0].title, "Engineer");
     assert_eq!(records[0].company, "Acme");
+}
+
+#[test]
+fn html_sources_request_html_documents() {
+    let manifest = parse(HTML_SOURCE).expect("manifest parsed");
+    let request = build_request(&manifest, &TemplateValues::default()).expect("request built");
+    assert_eq!(
+        request.headers.get("accept").map(String::as_str),
+        Some("text/html,application/xhtml+xml")
+    );
 }
 
 #[test]

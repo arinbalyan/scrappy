@@ -98,10 +98,10 @@ pub fn build_request(
                 .map_err(|reason| error(format!("cannot add request body: {reason}")))?;
         }
     }
-    let accept = if manifest.parser == "rss" {
-        "application/rss+xml, application/xml"
-    } else {
-        "application/json"
+    let accept = match manifest.parser.as_str() {
+        "rss" => "application/rss+xml, application/xml",
+        "html" => "text/html,application/xhtml+xml",
+        _ => "application/json",
     };
     request = request
         .with_header("accept", accept)

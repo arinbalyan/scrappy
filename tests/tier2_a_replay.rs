@@ -13,7 +13,14 @@ use scrappy::fetching::Response;
 use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
 use scrappy::sources::manifest::{Family, Health, Manifest, parse};
 
-const SOURCES: [(&str, Family, Health, &str, &str); 5] = [
+const SOURCES: [(&str, Family, Health, &str, &str); 6] = [
+    (
+        "functionalworks",
+        Family::HtmlStatic,
+        Health::Working,
+        "html_static",
+        "html",
+    ),
     (
         "builtin",
         Family::HtmlStatic,

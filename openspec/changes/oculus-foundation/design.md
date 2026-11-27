@@ -177,7 +177,7 @@ Each source is a versioned TOML manifest with fields for source ID, display name
 
 Alternative considered: hard-coded Rust constructors per source. Rejected because it recreates the old drift where 141 declared sites had only 128 registered constructors.
 
-Request templates apply to the URL, header values, and body. Substitutions are named slug, credential, or query values. A doubled brace renders as one literal brace, allowing a declarative JSON body such as the functionalworks GraphQL POST. Substitution values reject whitespace and braces before a request is built, and diagnostics name the placeholder without printing its value.
+Request templates apply to the URL, header values, and body. Substitutions are named slug, credential, or query values. A doubled brace renders as one literal brace, allowing declarative request bodies such as JSON payloads. Substitution values reject whitespace and braces before a request is built, and diagnostics name the placeholder without printing its value.
 
 ### 3a. Custom sources
 
@@ -233,7 +233,7 @@ Alternative considered: the old global seen map that reset when results-wanted w
 
 ### 10. Port order
 
-Port sources in tiers derived from the audit. Tier 1 is public JSON and RSS with contract evidence: arbeitnow, remoteok, remotive, workingnomads, himalayas, jobicy, hackernews, cryptocurrencyjobs, fossjobs, pythonjobs, railsjobs, golangjobs, devopsjobs, crunchboard, jobspresso, hasjob, landingjobs, realworkfromanywhere, weworkremotely, huggingfacejobs, androidjobs, aijobs, gunio, ycjobs, 4dayweek, functionalworks, getonboard, ecojobs. Tier 2 is HTML or embedded JSON: builtin, internshala, wuzzuf, freelancercom, jobindex, jobsdb, jobstreet, mycareersfuture, reed, hiringcafe, simplyhired, ukvisajobs. Tier 3 is keyed or slug-dependent: greenhouse, ats-ashby, ats-smartrecruiters, ats-recruitee, ats-workable, ats-rippling, ats-talentlyft, adzuna, careerjet, findwork. Hold linkedin, indeed, and the 13 declared-but-unregistered sites until the core is stable.
+Port sources in tiers derived from the audit. Tier 1 is public JSON and RSS with contract evidence: arbeitnow, remoteok, remotive, workingnomads, himalayas, jobicy, hackernews, cryptocurrencyjobs, fossjobs, pythonjobs, railsjobs, golangjobs, devopsjobs, crunchboard, jobspresso, hasjob, landingjobs, realworkfromanywhere, weworkremotely, huggingfacejobs, androidjobs, aijobs, gunio, ycjobs, 4dayweek, getonboard, ecojobs. Tier 2 is HTML or embedded JSON: builtin, functionalworks, internshala, wuzzuf, freelancercom, jobindex, jobsdb, jobstreet, mycareersfuture, reed, hiringcafe, simplyhired, ukvisajobs. Tier 3 is keyed or slug-dependent: greenhouse, ats-ashby, ats-smartrecruiters, ats-recruitee, ats-workable, ats-rippling, ats-talentlyft, adzuna, careerjet, findwork. Hold linkedin, indeed, and the 13 declared-but-unregistered sites until the core is stable.
 
 Alternative considered: porting all 141 sites to match old marketing. Rejected because 20 historical IDs have no registered implementation and many have known keys, WAFs, or stale endpoints.
 
