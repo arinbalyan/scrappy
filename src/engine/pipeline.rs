@@ -7,7 +7,9 @@ use std::collections::{BTreeMap, HashSet};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::fetching::Fetcher;
-use crate::output::record::{Job, JobInput, SCHEMA_VERSION, from_record};
+use crate::output::record::{
+    Email, EmailSource, Job, JobInput, Provenance, SCHEMA_VERSION, from_record,
+};
 use crate::sources::adapter::{TemplateValues, build_request, parse_response};
 use crate::sources::manifest::Manifest;
 use crate::sources::registry::Registry;
@@ -32,6 +34,61 @@ pub struct RunInput {
     pub fetched_at: String,
     /// Runtime substitutions keyed by source identifier.
     pub values: BTreeMap<String, TemplateValues>,
+}
+
+/// Maximum length retained when scanning a description for an address.
+const MAX_EMAIL_SCAN_CHARS: usize = 32_000;
+
+/// Extract addresses observed directly in a job description.
+///
+/// Addresses are deduplicated in first-seen order and tagged as observed.
+/// No inferred or harvested address is produced by this function.
+#[must_use]
+pub fn observed_emails(description: Option<&str>) -> Vec<Email> {
+    let Some(description) = description else {
+        return Vec::new();
+    };
+    let mut emails = Vec::new();
+    let mut seen = HashSet::new();
+    let bytes = description.as_bytes();
+    let mut start = 0;
+    while start < bytes.len().min(MAX_EMAIL_SCAN_CHARS) {
+        while start < bytes.len() && !is_local_part(bytes[start]) {
+            start += 1;
+        }
+        let mut end = start;
+        while end < bytes.len() && is_local_part(bytes[end]) {
+            end += 1;
+        }
+        if end < bytes.len() && bytes[end] == b'@' {
+            let mut domain_end = end + 1;
+            while domain_end < bytes.len() && is_domain_part(bytes[domain_end]) {
+                domain_end += 1;
+            }
+            let domain = &description[end + 1..domain_end];
+            if domain.contains('.') && seen.insert(&description[start..domain_end]) {
+                emails.push(Email {
+                    addr: description[start..domain_end].to_owned(),
+                    verified: false,
+                    source: EmailSource::Description,
+                    role: None,
+                    provenance: Provenance::Observed,
+                });
+            }
+            start = domain_end;
+        } else {
+            start = end.saturating_add(1);
+        }
+    }
+    emails
+}
+
+fn is_local_part(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'_' | b'+' | b'-')
+}
+
+fn is_domain_part(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'-')
 }
 
 /// Build an ISO 8601 UTC timestamp for the current instant.
@@ -132,6 +189,7 @@ fn run_source(
         let job_input = JobInput {
             source_id: manifest.id.clone(),
             fetched_at: input.fetched_at.clone(),
+            emails: observed_emails(record.description.as_deref()),
             ..JobInput::default()
         };
         match from_record(&record, &job_input, SCHEMA_VERSION) {
@@ -209,5 +267,72 @@ attribution = "Example"
         assert_eq!(jobs.len(), 1);
         assert_eq!(summary.emitted, 1);
         assert_eq!(jobs[0].source_id, "sample");
+    }
+
+    #[test]
+    fn observed_emails_are_tagged_and_deduplicated() {
+        let emails = observed_emails(Some(
+            r"Apply to jobs@example.test or jobs@example.test; visit https://example.test",
+        ));
+        assert_eq!(emails.len(), 1);
+        assert_eq!(emails[0].addr, "jobs@example.test");
+        assert_eq!(emails[0].source, EmailSource::Description);
+        assert_eq!(emails[0].provenance, Provenance::Observed);
+        assert_eq!(observed_emails(None), [] as [Email; 0]);
+        assert_eq!(observed_emails(Some("no address here")), [] as [Email; 0]);
+    }
+
+    struct EmailingFetcher;
+
+    impl Fetcher for EmailingFetcher {
+        fn fetch(
+            &self,
+            _request: &Request,
+        ) -> impl std::future::Future<Output = Result<Response, String>> + Send {
+            let body = br#"[{"title":"Engineer","company":"Acme","url":"https://example.test/1","description":"Mail jobs@example.test"}]"#;
+            std::future::ready(Response::new(
+                "https://example.test/jobs",
+                200,
+                BTreeMap::new(),
+                body.to_vec(),
+            ))
+        }
+    }
+
+    #[test]
+    fn emitted_jobs_carry_observed_contact_provenance() {
+        let manifest = crate::sources::manifest::parse(
+            r#"version = 1
+id = "sample"
+name = "Sample"
+family = "feeds_api"
+health = "working"
+request = "https://example.test/jobs"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 2
+robots = "allow"
+attribution = "Example"
+"#,
+        )
+        .expect("manifest parsed");
+        let mut registry = Registry::new();
+        registry.insert(manifest);
+        let input = RunInput {
+            sources: vec!["sample".to_owned()],
+            fetched_at: "2026-11-27T00:00:00Z".to_owned(),
+            ..RunInput::default()
+        };
+        let (jobs, summary) = run(&registry, &input, &EmailingFetcher).expect("pipeline completed");
+        assert_eq!(summary.emitted, 1);
+        assert_eq!(jobs[0].emails.len(), 1);
+        assert_eq!(jobs[0].emails[0].addr, "jobs@example.test");
+        assert_eq!(jobs[0].emails[0].provenance, Provenance::Observed);
+        assert_eq!(jobs[0].source_ids, vec!["sample".to_owned()]);
+        assert_eq!(jobs[0].company_domain, None);
     }
 }

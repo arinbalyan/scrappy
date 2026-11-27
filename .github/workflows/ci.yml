@@ -21,6 +21,11 @@ jobs:
       - run: cargo clippy --locked --all-targets -- -D warnings
       - run: cargo doc --no-deps
       - run: cargo test --locked
+      - name: Secret leak check
+        run: |
+          cargo build --locked
+          sh scripts/check-secret-leaks.sh --self-test
+          sh scripts/check-secret-leaks.sh target/debug/scrappy
       - run: cargo check --locked --features emulation
       - run: cargo check --locked --features browser
   audit:
