@@ -65,6 +65,17 @@ The project SHALL commit Cargo.lock, build with locked dependencies, run depende
 - **WHEN** the musl release binary is inspected
 - **THEN** it has no dynamic executable dependencies and runs in a minimal container
 
+### Requirement: Live harvest reporting
+An opt-in live harvest SHALL fetch each selected source through the real manifest adapter and report record counts, skipped records, observed address counts, unique address counts, unique domain counts, and per-source outcomes. The report SHALL contain counts and domain frequency only and SHALL NOT contain addresses, descriptions, or other personal data. It SHALL support source selection and environment-based seeds without writing credentials into the report.
+
+#### Scenario: Harvest measures working sources
+- **WHEN** the live harvest runs against a working source
+- **THEN** the report records how many normalized records and observed addresses that source produced
+
+#### Scenario: Harvest report stays non-identifying
+- **WHEN** a live record contains an email address
+- **THEN** the report includes only its count and domain frequency
+
 ### Requirement: Bridge contract tests
 CLI contract tests SHALL cover the stdin run-config protocol, structured stderr progress events, the published exit-code taxonomy, streaming flush behavior, and cancellation record preservation. Golden fixtures SHALL cover email provenance, source attribution, and an authoritative company_domain that cannot be self-inflated by an extracted address.
 

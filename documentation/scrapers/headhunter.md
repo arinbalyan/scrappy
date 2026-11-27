@@ -20,6 +20,9 @@ Rate: 30 requests per minute
 - The historical scraper jittered requests; pacing is handled by engine rate limits in the rewrite.
 
 ## Break and fix log
+- 2026-11-27: The latest live sweep placed headhunter in the blocked section
+  with HTTP 403. The declared health stays blocked; re-probe from an
+  unrestricted network before treating the denial as a source-side change.
 - 2026-11-27: Live validation returned HTTP 403, consistent with the blocked health. The run environment may restrict outbound hosts.
 
 - 2026-11-26: Ported from historical behavior with a manifest and synthetic fixture.

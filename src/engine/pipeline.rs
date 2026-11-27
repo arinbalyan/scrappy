@@ -4,12 +4,18 @@
 // Rust guideline compliant 2026-10-09
 
 use std::collections::{BTreeMap, HashSet};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::io;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::config::Config;
 use crate::engine::attention::{AttentionEvent, attention_event};
+use crate::engine::breaker::CircuitBreaker;
 use crate::engine::challenge::detect;
+use crate::engine::contract::{ProgressEvent, write_event};
+use crate::engine::governor::{Governor, SourceBudget};
+use crate::engine::limits::ResultPolicy;
 use crate::engine::memory::MemoryCeiling;
+use crate::engine::retry::{CancelToken, Failure, RetryOutcome, RetryPolicy, retry_async};
 use crate::fetching::Fetcher;
 use crate::output::record::{
     Email, EmailSource, Job, JobInput, Provenance, SCHEMA_VERSION, from_record,
@@ -37,10 +43,16 @@ pub struct RunSummary {
     pub failures: Vec<String>,
     /// Machine-readable challenges that need human attention.
     pub attention: Vec<AttentionEvent>,
+    /// Per-source progress events for machine-readable stderr output.
+    pub events: Vec<ProgressEvent>,
+    /// Identifier shared by all events in one run.
+    pub run_id: String,
+    /// True when the run was stopped by cancellation.
+    pub cancelled: bool,
 }
 
 /// Inputs for one scrape run.
-#[derive(Debug, Clone, Default, PartialEq, Eq)]
+#[derive(Debug, Default)]
 pub struct RunInput {
     /// Source identifiers selected by the caller.
     pub sources: Vec<String>,
@@ -50,10 +62,31 @@ pub struct RunInput {
     pub values: BTreeMap<String, TemplateValues>,
     /// Active configuration used to bind attention resume state.
     pub config: Config,
+    /// Cap and fail-open policy for the run.
+    pub policy: ResultPolicy,
+    /// Cancellation token for retry waits and the run loop.
+    pub cancel: CancelToken,
+    /// Stream that receives structured progress events.
+    pub progress: Option<io::Stderr>,
 }
 
 /// Maximum length retained when scanning a description for an address.
 const MAX_EMAIL_SCAN_CHARS: usize = 32_000;
+
+fn run_identifier(fetched_at: &str) -> String {
+    let stamp: u64 = fetched_at
+        .bytes()
+        .filter(u8::is_ascii_digit)
+        .fold(0, |value, byte| {
+            value.wrapping_mul(31).wrapping_add(u64::from(byte))
+        });
+    format!("run-{stamp:016x}")
+}
+
+fn robots_allows(policy: &str) -> bool {
+    let value = policy.trim().to_ascii_lowercase();
+    value == "allow" || value == "allowed" || value == "permit"
+}
 
 /// Extract addresses observed directly in a job description.
 ///
@@ -142,7 +175,7 @@ fn civil_date(days: u64) -> (u64, u64, u64) {
 ///
 /// # Errors
 /// Returns a diagnostic when a selected source is unknown or the registry is empty.
-pub fn run(
+pub async fn run(
     registry: &Registry,
     input: &RunInput,
     fetcher: &impl Fetcher,
@@ -155,8 +188,18 @@ pub fn run(
         skipped: 0,
         failures: Vec::new(),
         attention: Vec::new(),
+        events: Vec::new(),
+        run_id: run_identifier(&input.fetched_at),
+        cancelled: false,
     };
+    let mut governor = Governor::new();
+    let breaker = CircuitBreaker::default();
+    let cancel_receiver = input.cancel.receiver();
     for manifest in selected {
+        if *cancel_receiver.borrow() {
+            summary.cancelled = true;
+            break;
+        }
         if let Some(megabytes) = input.config.memory_mb
             && !MemoryCeiling::from_mb(megabytes).allows_start()
         {
@@ -165,16 +208,114 @@ pub fn run(
                 manifest.id
             ));
         }
-        match run_source(manifest, input, fetcher, &mut seen)? {
-            SourceOutcome::Jobs(source_jobs, skipped) => {
+        if !robots_allows(&manifest.robots) {
+            push_event(
+                &mut summary,
+                input,
+                Some(&manifest.id),
+                "policy_skip",
+                &seen,
+            );
+            continue;
+        }
+        let budget = overrides(manifest, &input.config, &mut governor)?;
+        let _permit = match governor.acquire(&manifest.id).await {
+            Ok(permit) => permit,
+            Err(error) => {
+                summary.failures.push(format!("{}: {error}", manifest.id));
+                continue;
+            }
+        };
+        if breaker.is_open(&manifest.id) {
+            summary.failures.push(format!(
+                "{}: circuit open after repeated challenges",
+                manifest.id
+            ));
+            continue;
+        }
+        match run_source(manifest, input, fetcher, &mut seen, &breaker, &budget).await {
+            Ok(SourceOutcome::Jobs(source_jobs, skipped)) => {
                 summary.skipped += skipped;
                 summary.emitted += source_jobs.len();
                 jobs.extend(source_jobs);
+                push_event(&mut summary, input, Some(&manifest.id), "success", &seen);
             }
-            SourceOutcome::Challenge(event) => summary.attention.push(event),
+            Ok(SourceOutcome::Challenge(event)) => {
+                breaker.record_failure(&manifest.id, event.kind);
+                summary.attention.push(event);
+                push_event(&mut summary, input, Some(&manifest.id), "attention", &seen);
+            }
+            Err((RetryOutcome::Cancelled, error)) => {
+                summary.cancelled = true;
+                summary.failures.push(error);
+                break;
+            }
+            Err((_, error)) => {
+                if input.policy.fail_open {
+                    summary.failures.push(error);
+                } else {
+                    return Err(error);
+                }
+            }
         }
     }
+    push_event(&mut summary, input, None, "completed", &seen);
     Ok((jobs, summary))
+}
+
+fn overrides(
+    manifest: &Manifest,
+    config: &Config,
+    governor: &mut Governor,
+) -> Result<RetryPolicy, String> {
+    if governor
+        .add_source(
+            manifest.id.as_str(),
+            SourceBudget::new(
+                config
+                    .rates
+                    .as_ref()
+                    .and_then(|rates| rates.get(&manifest.id))
+                    .copied()
+                    .unwrap_or(manifest.requests_per_minute),
+                config.concurrency.unwrap_or(manifest.max_concurrency),
+            )
+            .map_err(|error| format!("{}: {error}", manifest.id))?,
+        )
+        .is_err()
+    {
+        return Err(format!("{}: source registered twice", manifest.id));
+    }
+    let mut policy = RetryPolicy::default();
+    if let Some(seconds) = config.timeout {
+        policy.max_delay = Duration::from_secs(seconds).min(policy.max_delay);
+    }
+    Ok(policy)
+}
+
+fn push_event(
+    summary: &mut RunSummary,
+    input: &RunInput,
+    source_id: Option<&str>,
+    status: &str,
+    seen: &HashSet<String>,
+) {
+    let event = ProgressEvent {
+        event: if status == "completed" {
+            "run.completed".to_owned()
+        } else {
+            "source.progress".to_owned()
+        },
+        run_id: summary.run_id.clone(),
+        source_id: source_id.map(str::to_owned),
+        emitted: seen.len().min(summary.emitted),
+        skipped: summary.skipped,
+        status: status.to_owned(),
+    };
+    summary.events.push(event.clone());
+    if let Some(stderr) = &input.progress {
+        let _ = write_event(&mut stderr.lock(), &event);
+    }
 }
 
 fn select<'a>(registry: &'a Registry, ids: &[String]) -> Result<Vec<&'a Manifest>, String> {
@@ -190,37 +331,76 @@ fn select<'a>(registry: &'a Registry, ids: &[String]) -> Result<Vec<&'a Manifest
         .collect()
 }
 
-fn run_source(
+async fn run_source(
     manifest: &Manifest,
     input: &RunInput,
     fetcher: &impl Fetcher,
     seen: &mut HashSet<String>,
-) -> Result<SourceOutcome, String> {
+    breaker: &CircuitBreaker,
+    retry_policy: &RetryPolicy,
+) -> Result<SourceOutcome, (RetryOutcome, String)> {
     let values = input.values.get(&manifest.id).cloned().unwrap_or_default();
-    let request = build_request(manifest, &values)
-        .map_err(|error| format!("{}: {}", manifest.id, error.message))?;
-    let response = tokio_runtime()?.block_on(fetcher.fetch(&request))?;
+    let request = build_request(manifest, &values).map_err(|error| {
+        (
+            RetryOutcome::Failed,
+            format!("{}: {}", manifest.id, error.message),
+        )
+    })?;
+    let mut cancelled = input.cancel.receiver();
+    let outcome = retry_async(
+        *retry_policy,
+        &mut cancelled,
+        || fetcher.fetch(&request),
+        |error: &String| {
+            if error.contains("429") || error.contains("throttled") {
+                Failure::Throttled(None)
+            } else {
+                Failure::Retryable
+            }
+        },
+    )
+    .await;
+    if *cancelled.borrow() {
+        return Err((
+            RetryOutcome::Cancelled,
+            format!("{}: cancelled", manifest.id),
+        ));
+    }
+    let response =
+        outcome.map_err(|(outcome, error)| (outcome, format!("{}: {error}", manifest.id)))?;
     if let Ok(text) = response.text()
         && let Some(challenge) = detect(response.status, &response.headers, text)
     {
+        breaker.record_failure(&manifest.id, challenge.kind);
         return Ok(SourceOutcome::Challenge(attention_event(
             &manifest.id,
             &challenge,
             &input.config,
         )));
     }
+    breaker.record_success(&manifest.id);
     if !(200..300).contains(&response.status) {
-        return Err(format!(
-            "{}: unexpected HTTP status {}",
-            manifest.id, response.status
+        return Err((
+            RetryOutcome::Failed,
+            format!(
+                "{}: unexpected HTTP status {}",
+                manifest.id, response.status
+            ),
         ));
     }
-    let records = parse_response(manifest, &response)
-        .map_err(|error| format!("{}: {}", manifest.id, error.message))?;
+    let records = parse_response(manifest, &response).map_err(|error| {
+        (
+            RetryOutcome::Failed,
+            format!("{}: {}", manifest.id, error.message),
+        )
+    })?;
     let mut jobs = Vec::with_capacity(records.len());
     let mut skipped = 0;
     let discovery = input.config.email_discovery.unwrap_or(false);
     for record in records {
+        if !input.policy.allows(&manifest.id, jobs.len()) {
+            break;
+        }
         let emails = observed_emails(record.description.as_deref())
             .into_iter()
             .filter(|email| discovery || email.provenance == Provenance::Observed)
@@ -245,13 +425,6 @@ fn run_source(
     Ok(SourceOutcome::Jobs(jobs, skipped))
 }
 
-fn tokio_runtime() -> Result<tokio::runtime::Runtime, String> {
-    tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-        .map_err(|error| format!("cannot create async runtime: {error}"))
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -273,8 +446,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn emits_jobs_from_selected_source() {
+    #[tokio::test]
+    async fn emits_jobs_from_selected_source() {
         let manifest = crate::sources::manifest::parse(
             r#"
 version = 1
@@ -302,7 +475,9 @@ attribution = "Example"
             fetched_at: "2026-11-26T00:00:00Z".to_owned(),
             ..RunInput::default()
         };
-        let (jobs, summary) = run(&registry, &input, &MockFetcher).expect("pipeline completed");
+        let (jobs, summary) = run(&registry, &input, &MockFetcher)
+            .await
+            .expect("pipeline completed");
         assert_eq!(jobs.len(), 1);
         assert_eq!(summary.emitted, 1);
         assert_eq!(jobs[0].source_id, "sample");
@@ -355,8 +530,8 @@ attribution = "Example"
         }
     }
 
-    #[test]
-    fn emitted_jobs_carry_observed_contact_provenance() {
+    #[tokio::test]
+    async fn emitted_jobs_carry_observed_contact_provenance() {
         let manifest = crate::sources::manifest::parse(
             r#"version = 1
 id = "sample"
@@ -383,7 +558,9 @@ attribution = "Example"
             fetched_at: "2026-11-27T00:00:00Z".to_owned(),
             ..RunInput::default()
         };
-        let (jobs, summary) = run(&registry, &input, &EmailingFetcher).expect("pipeline completed");
+        let (jobs, summary) = run(&registry, &input, &EmailingFetcher)
+            .await
+            .expect("pipeline completed");
         assert_eq!(summary.emitted, 1);
         assert_eq!(jobs[0].emails.len(), 1);
         assert_eq!(jobs[0].emails[0].addr, "jobs@example.test");
@@ -392,8 +569,8 @@ attribution = "Example"
         assert_eq!(jobs[0].company_domain, None);
     }
 
-    #[test]
-    fn challenge_response_is_classified_as_attention_not_failure() {
+    #[tokio::test]
+    async fn challenge_response_is_classified_as_attention_not_failure() {
         let manifest = crate::sources::manifest::parse(
             r#"version = 1
 id = "sample"
@@ -420,8 +597,9 @@ attribution = "Example"
             fetched_at: "2026-11-27T00:00:00Z".to_owned(),
             ..RunInput::default()
         };
-        let (jobs, summary) =
-            run(&registry, &input, &ChallengeFetcher).expect("pipeline completed");
+        let (jobs, summary) = run(&registry, &input, &ChallengeFetcher)
+            .await
+            .expect("pipeline completed");
         assert_eq!(jobs, [] as [Job; 0]);
         assert_eq!(summary.failures, [] as [String; 0]);
         assert_eq!(summary.attention.len(), 1);

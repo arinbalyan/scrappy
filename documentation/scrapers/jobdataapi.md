@@ -18,6 +18,9 @@ Attribution: JobDataAPI
 - Salary, dates, skills, and remote flags are outside the adapter.
 
 ## Break and fix log
+- 2026-11-27: The latest live sweep recorded jobdataapi in the working section
+  with 20 records from the anonymous bare endpoint. Keep pagination out of the
+  request template.
 - 2026-11-27: Live validation returned HTTP 403 because anonymous requests cannot paginate. Switched to the bare endpoint, which returned 20 records.
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.

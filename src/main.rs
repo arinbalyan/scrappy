@@ -1,12 +1,15 @@
 // Rust guideline compliant 2026-10-09
 
+use std::collections::BTreeMap;
 use std::io;
 use std::path::Path;
 
 use scrappy::cli::{self, Cli, CommandKind, ConfigAction};
 use scrappy::config::file as config_file;
 use scrappy::config::{self, Config, OneOrMany, validate};
-use scrappy::engine::contract::{self, EXIT_USAGE};
+use scrappy::engine::contract::{
+    self, EXIT_CANCELLED, EXIT_CHALLENGE, EXIT_OK, EXIT_PARTIAL, EXIT_USAGE,
+};
 use scrappy::engine::pipeline;
 use scrappy::fetching::plain::PlainFetcher;
 use scrappy::output::writer::{self, Format};
@@ -15,24 +18,34 @@ use scrappy::sources::status;
 
 fn main() {
     let cli = cli::parse();
-    if let Err(message) = dispatch(cli) {
-        eprintln!("{}", cli::diagnostic::safe_text(&message));
-        std::process::exit(EXIT_USAGE);
+    let code = match dispatch(cli) {
+        Ok(code) => code,
+        Err(message) => {
+            eprintln!("{}", cli::diagnostic::safe_text(&message));
+            EXIT_USAGE
+        }
+    };
+    if code != EXIT_OK {
+        std::process::exit(code);
     }
 }
 
-fn dispatch(cli: Cli) -> Result<(), String> {
+fn dispatch(cli: Cli) -> Result<i32, String> {
     match cli.command {
-        CommandKind::Version => println!("scrappy {}", env!("CARGO_PKG_VERSION")),
+        CommandKind::Version => {
+            println!("scrappy {}", env!("CARGO_PKG_VERSION"));
+        }
         CommandKind::Completion { shell } => {
             cli::completion(shell, &mut io::stdout().lock());
         }
         CommandKind::Config { action } => dispatch_config(action)?,
-        CommandKind::Run(args) if args.stdin_config => dispatch_stdin_run(&args)?,
+        CommandKind::Run(args) if args.stdin_config => return dispatch_stdin_run(&args),
         CommandKind::Validate(args) => dispatch_validate(args)?,
-        CommandKind::ListSources(args) if args.generate_status => dispatch_generate_status(&args)?,
+        CommandKind::ListSources(args) if args.generate_status => {
+            dispatch_generate_status(&args)?;
+        }
         CommandKind::ListSources(args) => dispatch_list(&args)?,
-        CommandKind::Run(args) => dispatch_run(&args)?,
+        CommandKind::Run(args) => return dispatch_run(&args),
         CommandKind::Doctor(args) => {
             let report = if args.fix {
                 cli::doctor::report_with_fix(&args.global.config)
@@ -49,7 +62,7 @@ fn dispatch(cli: Cli) -> Result<(), String> {
             }
         }
     }
-    Ok(())
+    Ok(EXIT_OK)
 }
 
 fn dispatch_validate(args: cli::GlobalArgs) -> Result<(), String> {
@@ -64,7 +77,7 @@ fn dispatch_validate(args: cli::GlobalArgs) -> Result<(), String> {
     Ok(())
 }
 
-fn dispatch_run(args: &cli::RunArgs) -> Result<(), String> {
+fn dispatch_run(args: &cli::RunArgs) -> Result<i32, String> {
     let root = std::path::Path::new("src/sources/manifests");
     let registry = custom::load(root, &custom::directory()).map_err(|error| error.message)?;
     let sources = config::Sources {
@@ -78,26 +91,45 @@ fn dispatch_run(args: &cli::RunArgs) -> Result<(), String> {
         sources: args.source.clone(),
         fetched_at: pipeline::now_utc(),
         config,
+        values: config_values(config_format.as_ref()),
         ..pipeline::RunInput::default()
     };
-    let (jobs, summary) = pipeline::run(&registry, &input, &PlainFetcher::new())?;
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .map_err(|error| format!("cannot create async runtime: {error}"))?;
+    let (jobs, summary) =
+        runtime.block_on(pipeline::run(&registry, &input, &PlainFetcher::new()))?;
     write_run_output(args, config_format.as_deref(), &jobs, &summary, false)
+}
+
+fn config_values(
+    _format: Option<&String>,
+) -> BTreeMap<String, scrappy::sources::adapter::TemplateValues> {
+    BTreeMap::new()
+}
+
+fn run_exit_code(summary: &pipeline::RunSummary) -> i32 {
+    if summary.cancelled {
+        EXIT_CANCELLED
+    } else if !summary.attention.is_empty() {
+        EXIT_CHALLENGE
+    } else if !summary.failures.is_empty() {
+        EXIT_PARTIAL
+    } else {
+        EXIT_OK
+    }
 }
 
 fn write_run_output(
     args: &cli::RunArgs,
-    config_format: Option<&str>,
+    _config_format: Option<&str>,
     jobs: &[scrappy::output::record::Job],
     summary: &pipeline::RunSummary,
     stdin_config: bool,
-) -> Result<(), String> {
-    let use_config = !stdin_config
-        && config_format.is_some()
-        && matches!(args.format, cli::OutputFormat::Ndjson);
-    let format = if use_config {
-        Format::parse(config_format.unwrap_or_default())?
-    } else if let Some(name) = config_format {
-        Format::parse(name)?
+) -> Result<i32, String> {
+    let format = if stdin_config {
+        Format::Ndjson
     } else {
         match args.format {
             cli::OutputFormat::Ndjson => Format::Ndjson,
@@ -118,10 +150,10 @@ fn write_run_output(
             .map_err(|error| format!("cannot encode attention event: {error}"))?;
         eprintln!("{}", cli::diagnostic::safe_text(&encoded));
     }
-    Ok(())
+    Ok(run_exit_code(summary))
 }
 
-fn dispatch_stdin_run(args: &cli::RunArgs) -> Result<(), String> {
+fn dispatch_stdin_run(args: &cli::RunArgs) -> Result<i32, String> {
     let mut input = io::stdin().lock();
     let config: Config = contract::stdin_config(&mut input).map_err(|error| error.message)?;
     validate(&config).map_err(|error| error.message)?;
@@ -130,7 +162,7 @@ fn dispatch_stdin_run(args: &cli::RunArgs) -> Result<(), String> {
         .clone()
         .map_or_else(Vec::new, OneOrMany::into_vec);
     if sources.is_empty() {
-        return Ok(());
+        return Ok(EXIT_OK);
     }
     run_with_config(args, config, sources)
 }
@@ -139,7 +171,7 @@ fn run_with_config(
     args: &cli::RunArgs,
     config: Config,
     sources: Vec<String>,
-) -> Result<(), String> {
+) -> Result<i32, String> {
     let root = std::path::Path::new("src/sources/manifests");
     let registry = custom::load(root, &custom::directory()).map_err(|error| error.message)?;
     let config_format = config.format.clone();
@@ -147,9 +179,15 @@ fn run_with_config(
         sources,
         fetched_at: pipeline::now_utc(),
         config,
+        values: config_values(config_format.as_ref()),
         ..pipeline::RunInput::default()
     };
-    let (jobs, summary) = pipeline::run(&registry, &input, &PlainFetcher::new())?;
+    let runtime = tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+        .map_err(|error| format!("cannot create async runtime: {error}"))?;
+    let (jobs, summary) =
+        runtime.block_on(pipeline::run(&registry, &input, &PlainFetcher::new()))?;
     write_run_output(args, config_format.as_deref(), &jobs, &summary, true)
 }
 

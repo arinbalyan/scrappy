@@ -25,6 +25,9 @@ Attribution: YC Jobs
 - Relative URLs stay relative in normalized records.
 
 ## Break and fix log
+- 2026-11-27: The latest live sweep kept ycjobs in the blocked section. The
+  GET fallback does not change that label because the working derived-key POST
+  flow is still unported.
 - 2026-11-27, live probe: The GET jobs page returned HTTP 404, so the public listing URL failed the live probe. No replacement endpoint was verified in that pass.
 - 2026-11-27, follow-up check: The GET jobs page still resolves as a public listing URL and the fixture replays through it. The earlier 404 did not yield a verified replacement endpoint. Health stays blocked because the derived-key POST flow is not ported; the working GET fallback cannot change that label on its own.
 

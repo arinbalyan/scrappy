@@ -11,13 +11,13 @@ binary.
 | Old invocation | New invocation | Notes |
 | --- | --- | --- |
 | `scrappy --search 'rust' --sites remoteok --format jsonl` | `scrappy run --source remoteok --format ndjson` with `search = "rust"` in config | `jsonl` is now `ndjson`. Search belongs in config or `SCRAPPY_SEARCH`. |
-| `scrappy --results-wanted 100` | `scrappy run` with `sources` config and the source registry caps | A global result cap is planned; the current registry enforces per-source limits. |
+| `scrappy --results-wanted 100` | `scrappy run --source <id>` with `rates` and `concurrency` config | There is no global result cap; manifests define per-source rate and concurrency budgets. |
 | `scrappy --location 'Berlin'` | `scrappy config set --key search --value '"rust Berlin"'` | Location is part of the search string for sources that support it. |
 | `scrappy --out jobs.json` | Shell redirection, for example `scrappy run --format json > jobs.json` | Output stays on stdout and warnings stay on stderr so redirection is safe. |
 | `scrappy --format csv` | `scrappy run --format csv` | CSV uses a stable header and the same field names as NDJSON. |
 | `scrappy --proxy ...` | `SCRAPPY_PROXIES=... scrappy run` | Proxy health and selection run inside the fetchers. |
-| `scrappy --config config.toml ...` | `scrappy run --config config.toml` | Repeat `--config` to layer multiple files. |
-| `scrappy --version-json` | `scrappy version` | See `scrappy version --help`. |
+| `scrappy --config config.toml ...` | `scrappy run --config config.toml` | Repeat `--config` to layer multiple files; later files win. |
+| `scrappy --version-json` | `scrappy version` | Prints a plain `scrappy 0.1.0` line, not JSON. See `scrappy version --help`. |
 | `scrappy doctor --fix` | `scrappy doctor --fix` | Repairs are limited to config files and generated artifacts. |
 | `scrappy --log-level DEBUG ...` | `SCRAPPY_LOG_LEVEL=debug scrappy run` | Levels are `error`, `warn`, `info`, `debug`, and `trace`. |
 | Interactive wizard | `scrappy config init --path config.toml` | The template is commented and never overwrites without `--force`. |
@@ -37,6 +37,7 @@ binary.
 | `--hours-old` | `hours_old` | integer hours, default unset |
 | `--since` | `date` | `YYYY-MM-DD`, default unset |
 | `--timeout` | `timeout` | integer seconds, default 30 |
+| `--concurrency` | `concurrency` | integer, default 4 |
 | `--memory-cap` | `memory_mb` | integer megabytes, default 512 |
 | `log_level` or `--log-level` | `log_level` | enum, default info |
 
@@ -54,8 +55,9 @@ Run this sequence after moving an old config:
 1. `scrappy config init --path config.toml` writes a commented template.
 2. `scrappy config show --path config.toml` prints the resolved values with
    secrets redacted.
-3. `scrappy config explain --config config.toml --key search` identifies the
-   layer that supplied a value.
+3. `scrappy config explain --key search` reports the field and a redacted
+   value. It takes no `--config` or `--path` flag and reports the default
+   layer, so use `scrappy config show --path config.toml` to check file values.
 4. `scrappy validate --config config.toml` checks the configuration without
    fetching.
 5. `scrappy doctor --format json` reports local setup as machine-readable

@@ -29,5 +29,8 @@ Slugs: none
 - The existing hackernews source uses a two-stage fan-out and reports zero records in single-request live validation; this source covers the same jobs in one request.
 
 ## Break and fix log
+- 2026-11-27: The latest live sweep recorded hnalgolia in the working section
+  with 50 records from the fixed `hitsPerPage=50` page. No new substitution or
+  credential was needed.
 - 2026-11-27: Added the Algolia jobs endpoint after live validation showed the Firebase jobstories endpoint needs a second-stage fan-out that the single-request live validator does not perform.
 

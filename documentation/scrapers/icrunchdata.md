@@ -19,6 +19,9 @@ Attribution: iCrunchData
 - The plain fetcher received a Cloudflare challenge page during live validation; browser emulation is needed before this source can serve records.
 
 ## Break and fix log
+- 2026-11-27: The latest live sweep kept icrunchdata in the blocked section
+  with HTTP 403. The recorded Cloudflare challenge still applies; browser
+  emulation has not been added, so health stays blocked.
 - 2026-11-27: Live validation returned HTTP 403, consistent with the blocked health. The run environment may restrict outbound hosts.
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.

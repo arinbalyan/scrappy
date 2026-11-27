@@ -38,7 +38,7 @@ default_company_path aliases through field aliases. Configurable selectors may
 match the item node itself, which keeps a linked card and its URL on the same
 element.
 
-JSON records no longer need a company field to be kept. When no configured
+JSON records do not need a company field to be kept. When no configured
 alias or default_company_path value resolves, the parser uses "unknown" as the
 company instead of rejecting the record. Embedded JSON records follow the
 same rule.

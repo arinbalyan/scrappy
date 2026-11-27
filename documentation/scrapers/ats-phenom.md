@@ -25,6 +25,9 @@ Slugs: example-co (seed placeholder)
 - Boards without a configured seed cannot build a tenant host and are skipped.
 
 ## Break and fix log
+- 2026-11-27: The latest live sweep kept ats-phenom in the stale section. The
+  example tenant host is a placeholder, so the host failure does not confirm a
+  source-side change.
 - 2026-11-27: Endpoint research found no verified replacement for the jobs tenant API route. The failure came from the placeholder tenant host, so the slug template and stale health stay unchanged. Confirm the route with an active tenant before changing the URL.
 - 2026-11-27: Live validation could not reach the example tenant host. The source remains stale and needs an active tenant seed for a meaningful probe.
 

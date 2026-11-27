@@ -307,3 +307,41 @@ where
         }
     }
 }
+
+/// Run an asynchronous operation with bounded, cancellation-aware retries.
+///
+/// # Errors
+/// Returns the last operation error with `RetryOutcome::Failed` when attempts
+/// are exhausted, and with `RetryOutcome::Cancelled` when cancellation occurs.
+pub async fn retry_async<F, Fut, T, E, C>(
+    policy: RetryPolicy,
+    cancelled: &mut watch::Receiver<bool>,
+    mut operation: F,
+    classify: C,
+) -> Result<T, (RetryOutcome, E)>
+where
+    F: FnMut() -> Fut,
+    Fut: std::future::Future<Output = Result<T, E>>,
+    C: Fn(&E) -> Failure,
+{
+    let mut attempt = 0;
+    loop {
+        match operation().await {
+            Ok(value) => return Ok(value),
+            Err(error) => {
+                let failure = classify(&error);
+                if failure == Failure::Permanent || attempt >= policy.max_retries {
+                    return Err((RetryOutcome::Failed, error));
+                }
+                let delay = match failure {
+                    Failure::Throttled(Some(retry_after)) => bounded(retry_after, policy.max_delay),
+                    _ => backoff(policy, attempt, attempt as u64),
+                };
+                if wait(delay, cancelled).await == RetryOutcome::Cancelled {
+                    return Err((RetryOutcome::Cancelled, error));
+                }
+                attempt += 1;
+            }
+        }
+    }
+}

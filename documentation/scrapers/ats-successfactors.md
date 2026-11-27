@@ -26,6 +26,9 @@ Slugs: example-co (seed placeholder)
 - A different tenant is selected through the slug seed; no manifest edit is needed for a new instance.
 
 ## Break and fix log
+- 2026-11-27: The latest live sweep kept ats-successfactors in the stale
+  section. The frozen `example-co` tenant is a placeholder; a verified active
+  instance is still needed for a meaningful probe.
 - 2026-11-27: Replaced the hard-coded example-co instance with the declared slug substitution in the manifest and fixture template. Replay still renders the same URL and records. A live check with an active tenant instance is still pending.
 - 2026-11-27: Live validation could not reach the fixed example tenant instance. Health stays stale until an active tenant and OData path are confirmed.
 

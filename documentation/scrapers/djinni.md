@@ -19,6 +19,8 @@ Attribution: Djinni
 - The RSS endpoint remains `https://djinni.co/jobs/rss/`, but live probes return an empty body.
 
 ## Break and fix log
+- 2026-11-27: The latest live sweep kept djinni in the stale section. The
+  zero-byte RSS capture is the reason; no replacement feed was verified.
 - 2026-11-27: Both live captures were zero bytes and validation reported `invalid RSS feed: unexpected Event::Eof`. Marked the source stale; the full feed is unavailable from this network.
 - 2026-11-27: Live validation returned HTTP 200 but the RSS feed was truncated. The endpoint or feed parser needs review.
 

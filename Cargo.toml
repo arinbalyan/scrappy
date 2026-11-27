@@ -21,6 +21,10 @@ path = "tests/bridge_contract/mod.rs"
 name = "live_validate"
 path = "tests/live/validate.rs"
 
+[[test]]
+name = "live_harvest"
+path = "tests/live/harvest.rs"
+
 [features]
 default = []
 emulation = ["dep:wreq", "dep:wreq-util", "dep:futures"]

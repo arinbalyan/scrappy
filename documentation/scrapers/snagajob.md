@@ -17,6 +17,10 @@ Attribution: Snagajob
 - Historical source read jobs from one of jobs, results, or data; this fixture uses jobs. Server-side query parameters and deduplication are outside this adapter.
 
 ## Break and fix log
+- 2026-11-27: The latest live sweep kept snagajob in the blocked section with
+  HTTP 403. The earlier Cloudflare challenge remains the relevant evidence;
+  re-probe with browser emulation from an unrestricted network before
+  changing the manifest health.
 - 2026-11-27: Live validation returned HTTP 403, consistent with the blocked health. The run environment may restrict outbound hosts.
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.

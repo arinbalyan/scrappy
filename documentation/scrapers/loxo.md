@@ -19,6 +19,9 @@ Rate: 30 requests per minute
 - Structured location objects, compensation, and remote flags are outside the normalized record contract.
 
 ## Break and fix log
+- 2026-11-27: The latest live sweep kept loxo in the blocked section. The
+  tenant slug placeholder cannot produce a keyed probe; an active board slug
+  is required before the path can be rechecked.
 - 2026-11-27: Live validation returned HTTP 403, consistent with the blocked health. The run environment may restrict outbound hosts.
 
 - 2026-11-26: Ported from historical behavior with a manifest and synthetic fixture.
