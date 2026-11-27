@@ -20,6 +20,9 @@ probe host rather than a source. A restricted network can put every reachable
 source there, so do not change health labels from that section alone.
 
 Set `SCRAPPY_LIVE_LIMIT` to probe a prefix of the registry during triage.
+Set `SCRAPPY_LIVE_ONLY` to a comma-separated list of source ids to probe only
+those sources. For a slug-dependent source, set `SCRAPPY_LIVE_SEED_<SOURCE_ID>`
+to a verified active slug, such as `SCRAPPY_LIVE_SEED_GREENHOUSE=gitlab`.
 Buckets follow the observed request outcome. Returned records are working,
 missing credentials or query values are keyed, 401, 403, 429, and 5xx are
 blocked, and 404, empty responses, and parse failures are stale. Slug

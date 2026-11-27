@@ -20,7 +20,7 @@ fixtures = ["greenhouse"]
 names = ["title"]
 
 [field_aliases.company]
-names = ["company"]
+names = ["company_name", "company"]
 
 [field_aliases.url]
 names = ["absolute_url", "url"]

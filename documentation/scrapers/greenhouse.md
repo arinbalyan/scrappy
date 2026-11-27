@@ -12,11 +12,11 @@ Concurrency: 1
 Robots: allow public board endpoints; challenged or access-controlled boards are skipped
 Attribution: Greenhouse
 Credentials: none
-Slugs: example-co (seed placeholder)
+Slugs: example-co (seed placeholder); gitlab and stripe are verified live seeds
 
 ## Behavior
 
-- The board slug completes the URL and also supplies the company name in normalized records.
+- The board slug completes the URL. Live payloads carry `company_name`, which is the first company alias; a missing value falls back to `company` in the record.
 - `content=true` requests full job descriptions; the envelope is the jobs array.
 - URLs come from absolute_url, with the board job path as the former fallback.
 - Location text comes from the nested location name; a missing location stays null.
@@ -29,6 +29,7 @@ Slugs: example-co (seed placeholder)
 - Description HTML is carried through in the fixture to preserve the prior content=true intent.
 
 ## Break and fix log
+- 2026-11-27: Live validation with the `gitlab` seed returned 243 records after adding `company_name` to the company aliases. The fixture keeps its synthetic `company` field, so offline golden records stay stable.
 - 2026-11-27: Live validation returned HTTP 404 with the example slug. The source remains requires_slug and needs an active board slug for a meaningful probe.
 
 - 2026-11-26: Ported the board JSON response with a slug manifest and synthetic fixture. The source stays requires_slug because a board slug must be supplied before a request can be built.

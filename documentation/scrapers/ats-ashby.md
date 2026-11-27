@@ -12,11 +12,11 @@ Concurrency: 1
 Robots: allow public board endpoints; challenged or access-controlled boards are skipped
 Attribution: Ashby
 Credentials: none
-Slugs: example-co (seed placeholder)
+Slugs: example-co (seed placeholder); notion is a verified live seed
 
 ## Behavior
 
-- The job-board URL is completed by a seed slug; the slug supplies the company name in normalized records.
+- The job-board URL is completed by a seed slug. The payload supplies the company name when present; otherwise the parser falls back to the `company` field on the envelope.
 - The jobs envelope contains postings. Records use jobUrl, then applyUrl, with the Ashby job path as the former fallback.
 - Location text prefers the postal address locality, with the flat location string as the second choice.
 - Descriptions prefer plain text, then HTML; HTML is retained as provided in the fixture.
@@ -29,6 +29,7 @@ Slugs: example-co (seed placeholder)
 - A board with no parseable postings is treated as empty rather than an error.
 
 ## Break and fix log
+- 2026-11-27: Live validation with the `notion` seed returned 174 records after adding an envelope company fallback. Live jobs omit per-item company fields, and the fixture keeps its synthetic per-item company so golden replay stays stable.
 - 2026-11-27: Live validation returned HTTP 404 with the example slug. The source remains requires_slug and needs an active board slug for a meaningful probe.
 
 - 2026-11-26: Ported the posting-board JSON response with a slug manifest and synthetic fixture. The source stays requires_slug because a board slug must be supplied before a request can be built.

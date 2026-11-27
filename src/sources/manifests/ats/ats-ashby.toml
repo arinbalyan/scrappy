@@ -33,3 +33,4 @@ names = ["descriptionPlain", "descriptionHtml"]
 
 [parser_options]
 envelope = ["jobs"]
+default_company_path = ["company"]

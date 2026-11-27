@@ -118,6 +118,46 @@ fn is_environment_error(message: &str) -> bool {
     .any(|marker| message.contains(marker))
 }
 
+/// Read a source-specific live seed from the environment.
+fn live_seed_slug(id: &str) -> Option<String> {
+    let name = format!(
+        "SCRAPPY_LIVE_SEED_{}",
+        id.to_ascii_uppercase().replace('-', "_")
+    );
+    let value = std::env::var(name).ok()?;
+    let value = value.trim();
+    (!value.is_empty()).then(|| value.to_owned())
+}
+
+/// Read the optional source id filter for a targeted live run.
+fn live_only_sources() -> Option<BTreeSet<String>> {
+    let value = std::env::var("SCRAPPY_LIVE_ONLY").ok()?;
+    let ids = value
+        .split(',')
+        .map(str::trim)
+        .filter(|id| !id.is_empty())
+        .map(str::to_owned)
+        .collect::<BTreeSet<_>>();
+    (!ids.is_empty()).then_some(ids)
+}
+
+/// Select manifests and register their budgets for one live run.
+fn live_manifests() -> Vec<Manifest> {
+    let all = manifests();
+    let only = live_only_sources();
+    if let Some(ids) = &only {
+        let unknown: Vec<String> = ids
+            .iter()
+            .filter(|id| !all.iter().any(|manifest| &manifest.id == *id))
+            .cloned()
+            .collect();
+        assert!(unknown.is_empty(), "unknown live source ids: {unknown:?}");
+    }
+    all.into_iter()
+        .filter(|manifest| only.as_ref().is_none_or(|ids| ids.contains(&manifest.id)))
+        .collect()
+}
+
 fn classify(status: u16, count: usize, parse_error: Option<&str>) -> Outcome {
     if status == 401 || status == 403 || status == 429 || status >= 500 {
         Outcome::Blocked(format!("http {status}"))
@@ -147,13 +187,14 @@ fn classify_build_error(message: &str) -> Option<&'static str> {
 #[tokio::test]
 #[ignore = "requires live network access and egress"]
 async fn report_live_source_health() {
+    let selected = live_manifests();
     let runtime_governor = {
         let mut governor = Governor::new();
-        for manifest in manifests() {
+        for manifest in &selected {
             let budget = SourceBudget::new(manifest.requests_per_minute, manifest.max_concurrency)
                 .expect("manifest budget is valid");
             governor
-                .add_source(&manifest.id, budget)
+                .add_source(manifest.id.as_str(), budget)
                 .expect("source registered once");
         }
         governor
@@ -167,7 +208,7 @@ async fn report_live_source_health() {
     let mut skipped = Vec::new();
     let mut unregistered = Vec::new();
 
-    let all = manifests();
+    let all = selected;
     let limit = std::env::var("SCRAPPY_LIVE_LIMIT")
         .ok()
         .and_then(|value| value.parse::<usize>().ok())
@@ -177,6 +218,9 @@ async fn report_live_source_health() {
         let dir = root().join("tests/fixtures").join(&manifest.id);
         let mut values = substitutions(&dir);
         if let Some(slug) = probe_slug(&dir, &manifest) {
+            values.slug = Some(slug);
+        }
+        if let Some(slug) = live_seed_slug(&manifest.id) {
             values.slug = Some(slug);
         }
         let request = match build_request(&manifest, &values) {
