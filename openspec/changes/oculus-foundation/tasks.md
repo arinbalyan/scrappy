@@ -214,7 +214,7 @@
 
 ## 13. Live validation, opt-in
 
-- [ ] 13.1 Add a separate ignored live validation suite that reports working, keyed, blocked, stale, and unregistered sources, and verify normal cargo test does not execute it
+- [x] 13.1 Add a separate ignored live validation suite that reports working, keyed, blocked, stale, and unregistered sources, and verify normal cargo test does not execute it
 - [ ] 13.2 Run live validation once with configured rate limits and record the result in a non-committed report, and verify no source exceeds its configured request rate
 - [ ] 13.3 Update affected documentation/scrapers/<source_id>.md entries when live validation finds a broken source, and verify the break and fix are recorded
 

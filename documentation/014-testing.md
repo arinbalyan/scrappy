@@ -8,6 +8,13 @@ compliant Rust file. Run cargo fmt, cargo clippy --all-targets -- -D warnings,
 and cargo doc --no-deps as the baseline gate. The parity check in
 tests/docs_parity.rs verifies that documented paths exist.
 
+The ignored suite in `tests/live/validate.rs` runs with
+`cargo test --test live_validate -- --ignored --nocapture`. It fetches each
+registered source through the real plain fetcher, applies the source's
+configured rate through `src/engine/governor.rs`, and prints a report with
+working, keyed, blocked, stale, and unregistered sections. Redirect stdout
+to a local file to keep the report out of version control.
+
 CI runs the baseline gate on Linux, macOS, and Windows. It also builds the
 `emulation` and `browser` features, runs `cargo audit` and `cargo deny check`
 from `deny.toml`, and builds the x86_64-unknown-linux-musl target. The static

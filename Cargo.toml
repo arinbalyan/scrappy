@@ -17,6 +17,10 @@ path = "tests/cli_contract/mod.rs"
 name = "bridge_contract"
 path = "tests/bridge_contract/mod.rs"
 
+[[test]]
+name = "live_validate"
+path = "tests/live/validate.rs"
+
 [features]
 default = []
 emulation = ["dep:wreq", "dep:wreq-util"]
