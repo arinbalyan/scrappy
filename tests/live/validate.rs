@@ -105,6 +105,18 @@ enum Outcome {
     Stale(String),
 }
 
+/// Fetch errors that describe the local environment rather than the source.
+fn is_environment_error(message: &str) -> bool {
+    [
+        "target host resolution failed",
+        "dns error",
+        "error sending request",
+        "connect timeout",
+    ]
+    .iter()
+    .any(|marker| message.contains(marker))
+}
+
 fn classify(status: u16, count: usize, parse_error: Option<&str>) -> Outcome {
     if status == 401 || status == 403 || status == 429 || status >= 500 {
         Outcome::Blocked(format!("http {status}"))
@@ -149,6 +161,7 @@ async fn report_live_source_health() {
     let mut working = Vec::new();
     let mut keyed = Vec::new();
     let mut blocked = Vec::new();
+    let mut environment = Vec::new();
     let mut stale = Vec::new();
     let mut skipped = Vec::new();
     let mut unregistered = Vec::new();
@@ -184,7 +197,12 @@ async fn report_live_source_health() {
         let response = match fetcher.fetch(&request).await {
             Ok(response) => response,
             Err(error) => {
-                blocked.push(format!("{}: fetch failed: {error}", manifest.id));
+                let line = format!("{}: {error}", manifest.id);
+                if is_environment_error(&error) {
+                    environment.push(line);
+                } else {
+                    blocked.push(line);
+                }
                 continue;
             }
         };
@@ -222,6 +240,7 @@ async fn report_live_source_health() {
     print_bucket("working", &working);
     print_bucket("keyed", &keyed);
     print_bucket("blocked", &blocked);
+    print_bucket("environment", &environment);
     print_bucket("stale", &stale);
     print_bucket("skipped", &skipped);
     print_bucket("unregistered", &unregistered);

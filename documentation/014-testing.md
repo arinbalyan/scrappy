@@ -15,6 +15,10 @@ configured rate through `src/engine/governor.rs`, and prints a report with
 working, keyed, blocked, stale, and unregistered sections. Redirect stdout
 to a local file to keep the report out of version control.
 
+The `environment` section holds DNS and connection failures that describe the
+probe host rather than a source. A restricted network can put every reachable
+source there, so do not change health labels from that section alone.
+
 Set `SCRAPPY_LIVE_LIMIT` to probe a prefix of the registry during triage.
 Buckets follow the observed request outcome. Returned records are working,
 missing credentials or query values are keyed, 401, 403, 429, and 5xx are
