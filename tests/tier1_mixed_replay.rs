@@ -31,7 +31,7 @@ const SOURCES: [(&str, Family, Health, &str, &str); 10] = [
     (
         "ecojobs",
         Family::FeedsApi,
-        Health::Stale,
+        Health::Working,
         "feeds_api",
         "rss",
     ),

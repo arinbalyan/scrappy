@@ -51,7 +51,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | djinni | Djinni | stale | ready | FeedsApi | plain |
 | drupaljobs | Drupal Jobs | stale | ready | FeedsApi | plain |
 | echojobs | EchoJobs | working | ready | FeedsApi | plain |
-| ecojobs | Eco Jobs | stale | ready | FeedsApi | plain |
+| ecojobs | Eco Jobs | working | ready | FeedsApi | plain |
 | eurojobs | Euro Jobs | working | ready | FeedsApi | plain |
 | exa | Exa | keyed | missing_credentials | Keyed | plain |
 | findwork | FindWork | keyed | missing_credentials | Keyed | plain |
