@@ -71,6 +71,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | himalayas | Himalayas | working | ready | FeedsApi | plain |
 | hiringcafe | Hiring Cafe | working | ready | HtmlStatic | plain |
 | hiringthing | HiringThing | keyed | missing_credentials | Keyed | plain |
+| hnalgolia | Hacker News Algolia Jobs | working | ready | FeedsApi | plain |
 | huggingfacejobs | Hugging Face Jobs | working | ready | HtmlStatic | plain |
 | icims | iCIMS | requires_slug | ready | Ats | plain |
 | icrunchdata | iCrunchData | blocked | blocked | FeedsApi | plain |

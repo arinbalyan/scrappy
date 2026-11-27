@@ -1,0 +1,20 @@
+{
+  "hits": [
+    {
+      "objectID": "501",
+      "title": "Example Labs Is Hiring Engineers",
+      "url": "https://jobs.example.test/501",
+      "author": "examplelabs",
+      "job_text": "<p>Generic role description.</p>"
+    },
+    {
+      "objectID": "502",
+      "title": "Sample Org Is Hiring a Designer",
+      "url": "https://jobs.example.test/502",
+      "author": "sampleorg",
+      "job_text": "<p>Generic role description.</p>"
+    }
+  ],
+  "nbHits": 2,
+  "page": 0
+}

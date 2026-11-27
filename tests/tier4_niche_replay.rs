@@ -14,7 +14,7 @@ use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
 use scrappy::sources::manifest::{Family, Health, Manifest, parse};
 use serde_json::Value;
 
-const SOURCES: [(&str, Family, Health, &str); 10] = [
+const SOURCES: [(&str, Family, Health, &str); 11] = [
     (
         "berlinstartupjobs",
         Family::FeedsApi,
@@ -50,6 +50,7 @@ const SOURCES: [(&str, Family, Health, &str); 10] = [
         Health::Working,
         "feeds_api",
     ),
+    ("hnalgolia", Family::FeedsApi, Health::Working, "feeds_api"),
 ];
 
 const FIXTURE_FILES: [&str; 6] = [
