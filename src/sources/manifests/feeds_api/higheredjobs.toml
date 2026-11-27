@@ -2,7 +2,7 @@ version = 1
 id = "higheredjobs"
 name = "HigherEdJobs"
 family = "feeds_api"
-health = "blocked"
+health = "working"
 request = "https://www.higheredjobs.com/rss/categoryFeed.cfm?catID=68"
 parser = "rss"
 fetcher = "plain"

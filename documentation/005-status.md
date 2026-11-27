@@ -8,7 +8,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | Source | Name | Health | Availability | Family | Fetcher |
 | --- | --- | --- | --- | --- | --- |
 | 4dayweek | 4 Day Week | working | ready | FeedsApi | plain |
-| academiccareers | Academic Careers | blocked | blocked | FeedsApi | plain |
+| academiccareers | Academic Careers | working | ready | FeedsApi | plain |
 | adp | ADP Workforce Now | blocked | blocked | Ats | plain |
 | adzuna | Adzuna | keyed | missing_credentials | Keyed | plain |
 | aijobs | AI Jobs | working | ready | HtmlStatic | plain |
@@ -67,7 +67,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | hackernews | Hacker News | working | ready | FeedsApi | plain |
 | hasjob | Hasjob | working | ready | FeedsApi | plain |
 | headhunter | HeadHunter | blocked | blocked | FeedsApi | plain |
-| higheredjobs | HigherEdJobs | blocked | blocked | FeedsApi | plain |
+| higheredjobs | HigherEdJobs | working | ready | FeedsApi | plain |
 | himalayas | Himalayas | working | ready | FeedsApi | plain |
 | hiringcafe | Hiring Cafe | working | ready | HtmlStatic | plain |
 | hiringthing | HiringThing | keyed | missing_credentials | Keyed | plain |

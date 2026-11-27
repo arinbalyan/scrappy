@@ -18,7 +18,7 @@ const SOURCES: [(&str, Family, Health, &str); 6] = [
     (
         "academiccareers",
         Family::FeedsApi,
-        Health::Blocked,
+        Health::Working,
         "feeds_api",
     ),
     (
@@ -30,7 +30,7 @@ const SOURCES: [(&str, Family, Health, &str); 6] = [
     (
         "higheredjobs",
         Family::FeedsApi,
-        Health::Blocked,
+        Health::Working,
         "feeds_api",
     ),
     (
