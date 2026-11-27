@@ -1,4 +1,4 @@
-[
-  {"id":"ukv-501","title":"Visa Sponsor Engineer","company":"Example Co","location":"London","url":"https://jobs.example.test/501","description":"<p>Example description.</p>","posted_at":"2026-11-20T00:00:00Z"},
-  {"id":"ukv-502","title":"Graduate Analyst","company":"Sample Labs","location":"Manchester","url":"https://jobs.example.test/502","description":"<p>Sample description.</p>","posted_at":"2026-11-21T00:00:00Z"}
-]
+<!DOCTYPE html><html><head><script id="__NEXT_DATA__" type="application/json">{"props":{"pageProps":{"result":{"experienced_jobs":[
+  {"id":"ukv-501","title":"Visa Sponsor Engineer","company_name":"Example Co","city":"London","job_link":"https://jobs.example.test/501","description":"<p>Example description.</p>"},
+  {"id":"ukv-502","title":"Graduate Analyst","company_name":"Sample Labs","city":"Manchester","job_link":"https://jobs.example.test/502","description":"<p>Sample description.</p>"}
+]}}}}</script></head><body></body></html>

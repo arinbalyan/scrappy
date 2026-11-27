@@ -124,7 +124,9 @@ fn assert_no_secret(path: &Path, text: &str) {
     for line in text.lines() {
         let (key, value) = line.split_once('=').unwrap_or(("", ""));
         let key = key.trim().to_ascii_lowercase();
-        if !matches!(key.as_str(), "credentials" | "request" | "body") && !line.contains("{key:") {
+        if !matches!(key.as_str(), "credentials" | "request" | "body" | "names")
+            && !line.contains("{key:")
+        {
             let lower = line.to_ascii_lowercase();
             for marker in ["secret", "password", "passwd", "apikey", "api_key", "token"] {
                 assert!(

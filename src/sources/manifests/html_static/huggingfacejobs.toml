@@ -17,6 +17,7 @@ fixtures = ["huggingfacejobs"]
 
 [parser_options]
 envelope = ["jobs"]
+default_company_path = ["name"]
 
 [field_aliases.title]
 names = ["title"]

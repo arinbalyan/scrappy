@@ -6,16 +6,24 @@ the same change that fixes the scraper.
 
 ## Record format
 
+The canonical labels below are recommended for new and updated records. Existing
+records use prose and heading variants and are accepted as they stand: for
+example, a health state may be a sentence rather than a `Health:` line, a
+family may be described in prose, `## Quirks` and other quirks headings stand in
+for `## Known quirks`, and behavior details may appear under a different
+heading or in the break and fix log. A missing canonical label is not an error
+when the same fact is stated elsewhere in the file.
+
 - Source id and display name
 - Adapter family: feeds_api, ats, html_static, html_rendered, keyed
-- Health state: working, keyed, blocked, stale, requires_slug, browser_only, unregistered
+- Health state: working, keyed, blocked, stale, requires_slug, browser_only. Unregistered is a live-report and audit category for historical IDs without a manifest, not a health state.
 - Endpoint shape and request template
 - Parser kind and fetcher kind
 - Emulation profile or browser requirement
 - Credential and slug needs, by name only
 - Rate limit and concurrency cap
 - Robots policy and attribution
-- Known quirks
+- Known quirks, under `## Known quirks` or a variant such as `## Quirks`
 - Break and fix log with dates
 
 ## Example

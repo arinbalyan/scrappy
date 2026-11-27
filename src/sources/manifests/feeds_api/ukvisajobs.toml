@@ -15,19 +15,23 @@ robots = "allow"
 attribution = "UK Visa Jobs"
 fixtures = ["ukvisajobs"]
 
-[request_options]
-method = "GET"
-
 [request_options.headers]
 user-agent = "Mozilla/5.0"
 
+[parser_options]
+embedded = { element_id = "__NEXT_DATA__", envelope = ["props", "pageProps", "result", "experienced_jobs"] }
+
 [field_aliases.title]
 names = ["title"]
+
 [field_aliases.company]
-names = ["company"]
+names = ["company_name"]
+
 [field_aliases.url]
-names = ["url"]
+names = ["job_link"]
+
 [field_aliases.location]
-names = ["location", "city"]
+names = ["city"]
+
 [field_aliases.description]
-names = ["description", "text"]
+names = ["description"]

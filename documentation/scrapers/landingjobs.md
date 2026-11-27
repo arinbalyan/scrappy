@@ -15,7 +15,7 @@ Rate: 20 requests per minute
 Concurrency: 1
 Robots: allow
 Attribution: Landingjobs
-Company: Upstream-derived `company` field, required by the JSON parser
+Company: Upstream-derived `company.name` field; missing values normalize to "unknown"
 
 ## Quirks
 
@@ -26,6 +26,8 @@ Company: Upstream-derived `company` field, required by the JSON parser
 
 ## Break and fix log
 - 2026-11-27: Live validation returned HTTP 200 but no records with title, company, and URL. The v1 API still returns a bare array with `title`, `role_description`, `city`, and `company_id`; it omits company names and returns numeric ids. Added description and location aliases and updated the fixture and golden to the public `/at/<company>/<job>` URL form.
+
+- 2026-11-27: Replay showed the feed's company objects were not being read. Changed the company alias to `company.name` and added `locations.0.city` ahead of `city` for location.
 
 - 2026-11-26: Tier 1 manifest, synthetic six-file fixture, and offline replay test added.
 

@@ -1,40 +1,41 @@
 {
   "name": "Hugging Face",
-  "description": "Here at Hugging Face, we're on a journey to advance and democratize machine learning for everyone.",
+  "description": "Example account.",
   "jobs": [
     {
-      "title": "Low-level Senior Software Engineer, Xet Storage - EMEA Remote",
-      "shortcode": "F4C096B22E",
-      "company": "Hugging Face",
-      "employment_type": "Full-time",
-      "telecommuting": true,
-      "department": "Product",
-      "url": "https://apply.workable.com/j/F4C096B22E",
-      "shortlink": "https://apply.workable.com/j/F4C096B22E",
-      "published_on": "2026-11-20",
-      "city": "Paris",
-      "state": "Île-de-France",
-      "country": "FR",
-      "locations": [
-        {
-          "city": "Paris",
-          "state": "Île-de-France",
-          "country": "FR"
-        }
-      ]
+      "title": "Open-Source Machine Learning Engineer - EMEA Remote",
+      "shortcode": "LIVE00001",
+      "url": "https://example.test/jobs/hf-1",
+      "country": "France",
+      "city": "Paris"
     },
     {
-      "title": "Machine Learning Engineer, Inference",
-      "shortcode": "A1B2C3D4E5",
-      "company": "Hugging Face",
-      "employment_type": "Full-time",
-      "telecommuting": false,
-      "department": "Engineering",
-      "shortlink": "https://apply.workable.com/j/A1B2C3D4E5",
-      "published_on": "2026-11-21",
-      "city": "Remote",
-      "country": "US",
-      "locations": []
+      "title": "Open-Source Machine Learning Engineer - US Remote",
+      "shortcode": "LIVE00002",
+      "url": "https://example.test/jobs/hf-2",
+      "country": "United States",
+      "city": "New York"
+    },
+    {
+      "title": "Senior Open-Source Python Engineer, ML Developer Tools - EMEA Remote",
+      "shortcode": "LIVE00003",
+      "url": "https://example.test/jobs/hf-3",
+      "country": "France",
+      "city": ""
+    },
+    {
+      "title": "Senior Open-Source Python Engineer, ML Developer Tools - US Remote",
+      "shortcode": "LIVE00004",
+      "url": "https://example.test/jobs/hf-4",
+      "country": "United States",
+      "city": ""
+    },
+    {
+      "title": "Senior Software Engineer, Bot Detection (Client-Side & Signals) - EMEA Remote",
+      "shortcode": "LIVE00005",
+      "url": "https://example.test/jobs/hf-5",
+      "country": "France",
+      "city": ""
     }
   ]
 }

@@ -27,8 +27,22 @@ field_aliases, selectors, and parser_options are optional; older manifests
 without them continue to load. tests/source_adapters.rs covers this path
 offline.
 
+Two parser options cover common feed shapes. default_company_path reads a
+company name from the envelope when job objects omit it, as in public Workable
+widget JSON. creator reads dc:creator from each RSS item as a company fallback;
+a company prefix in the title wins. CDATA values and names ending at an HTML
+entity, such as `AT&T`, are supported. Bare JSON arrays use the same
+default_company_path aliases through field aliases. Configurable selectors may
+match the item node itself, which keeps a linked card and its URL on the same
+element.
+
+JSON records no longer need a company field to be kept. When no configured
+alias or default_company_path value resolves, the parser uses "unknown" as the
+company instead of rejecting the record. Embedded JSON records follow the
+same rule.
+
 tests/docs_parity.rs checks the canonical tree from design.md: crate metadata,
-the skill file, all 15 numbered documents, subsystem modules, five manifest
+the skill file, all 16 numbered documents, subsystem modules, five manifest
 families, directory test targets, and each registered source's fixture set and
 behavior document. A fixture set includes request.json, request.template.json,
 response.body, headers.json, frozen.json, and golden.ndjson. A missing

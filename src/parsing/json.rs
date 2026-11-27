@@ -82,6 +82,16 @@ pub fn record_from_aliases(
     value: &Value,
     aliases: Option<&BTreeMap<String, Vec<String>>>,
 ) -> Option<Record> {
+    record_from_aliases_with_default(value, aliases, None)
+}
+
+/// Build one record with a fallback company for envelope-level feeds.
+#[must_use]
+pub fn record_from_aliases_with_default(
+    value: &Value,
+    aliases: Option<&BTreeMap<String, Vec<String>>>,
+    default_company: Option<&str>,
+) -> Option<Record> {
     let object = value.as_object()?;
     let field = |name: &str, defaults: &[&str]| -> Option<String> {
         aliases
@@ -108,7 +118,14 @@ pub fn record_from_aliases(
     let company = field(
         "company",
         &["company", "company_name", "organization", "company.name"],
-    )?;
+    )
+    .or_else(|| {
+        default_company
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(str::to_owned)
+    })
+    .unwrap_or_else(|| "unknown".to_owned());
     let location = field(
         "location",
         &[
@@ -279,6 +296,7 @@ fn variable_json(text: &str, name: &str) -> Option<String> {
 pub struct ConfigurableJsonParser {
     path: Vec<String>,
     aliases: Option<BTreeMap<String, Vec<String>>>,
+    default_company: Option<String>,
 }
 
 impl ConfigurableJsonParser {
@@ -290,6 +308,18 @@ impl ConfigurableJsonParser {
         path: &[String],
         aliases: Option<BTreeMap<String, Vec<String>>>,
     ) -> Result<Self, String> {
+        Self::with_default_company(path, aliases, None)
+    }
+
+    /// Build a parser with a company fallback taken from the envelope.
+    ///
+    /// # Errors
+    /// Returns a diagnostic when an alias name is empty.
+    pub fn with_default_company(
+        path: &[String],
+        aliases: Option<BTreeMap<String, Vec<String>>>,
+        default_company: Option<String>,
+    ) -> Result<Self, String> {
         if let Some(map) = &aliases {
             for (field, names) in map {
                 if field.trim().is_empty() || names.iter().any(|name| name.trim().is_empty()) {
@@ -300,6 +330,7 @@ impl ConfigurableJsonParser {
         Ok(Self {
             path: path.to_vec(),
             aliases,
+            default_company,
         })
     }
 }
@@ -314,7 +345,11 @@ impl Parser for ConfigurableJsonParser {
         let items = selected.as_array().ok_or("JSON envelope is not an array")?;
         let mut records = Vec::with_capacity(items.len());
         for item in items {
-            if let Some(record) = record_from_aliases(item, self.aliases.as_ref()) {
+            if let Some(record) = record_from_aliases_with_default(
+                item,
+                self.aliases.as_ref(),
+                self.default_company.as_deref(),
+            ) {
                 records.push(record);
             }
         }

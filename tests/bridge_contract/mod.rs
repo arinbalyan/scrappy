@@ -145,18 +145,17 @@ fn unknown_enum_field_exits_two() {
 }
 
 #[test]
-fn valid_stdin_config_produces_no_stdout_and_no_fetch() {
-    let output = run_with_stdin(&["run", "--stdin-config"], r#"{"format":"csv"}"#);
+fn valid_stdin_config_without_sources_is_a_no_op() {
+    let output = run_with_stdin(&["run", "--stdin-config"], r#"{"format":"json"}"#);
     assert!(output.status.success(), "stderr: {}", stderr(&output));
     assert_eq!(output.stdout, [] as [u8; 0]);
-    assert!(stderr(&output).contains("source selection is unavailable"));
+    assert_eq!(stderr(&output), "");
 }
 
 #[test]
 fn full_stdin_config_is_accepted() {
     let input = r#"{
         "search": ["rust", "go"],
-        "sources": "remoteok",
         "format": "ndjson",
         "rates": {"remoteok": 5},
         "concurrency": 2,
@@ -166,8 +165,7 @@ fn full_stdin_config_is_accepted() {
         "is_remote": false,
         "job_type": "fulltime",
         "min_score": 20,
-        "hours_old": 48,
-        "date": "2026-11-27"
+        "hours_old": 48
     }"#;
     let output = run_with_stdin(&["run", "--stdin-config"], input);
     assert!(output.status.success(), "stderr: {}", stderr(&output));

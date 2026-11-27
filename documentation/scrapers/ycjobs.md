@@ -25,7 +25,7 @@ Attribution: YC Jobs
 - Relative URLs stay relative in normalized records.
 
 ## Break and fix log
-- 2026-11-27: The GET jobs page still resolves as a public listing URL and the fixture replays through it. Endpoint research returned no verified replacement. Health stays blocked because the derived-key POST flow is not ported; the GET fallback cannot change that label on its own.
-- 2026-11-27: Live validation returned HTTP 404. The feed URL needs correction before this source can be used.
+- 2026-11-27, live probe: The GET jobs page returned HTTP 404, so the public listing URL failed the live probe. No replacement endpoint was verified in that pass.
+- 2026-11-27, follow-up check: The GET jobs page still resolves as a public listing URL and the fixture replays through it. The earlier 404 did not yield a verified replacement endpoint. Health stays blocked because the derived-key POST flow is not ported; the working GET fallback cannot change that label on its own.
 
 - 2026-11-26: GET/HTML fallback representation, generic fixtures, and offline replay recorded during the Tier 1 port; POST and derived-key flow remain unported.

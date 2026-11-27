@@ -5,7 +5,7 @@ use std::path::Path;
 
 use scrappy::cli::{self, Cli, CommandKind, ConfigAction};
 use scrappy::config::file as config_file;
-use scrappy::config::{self, Config, validate};
+use scrappy::config::{self, Config, OneOrMany, validate};
 use scrappy::engine::contract::{self, EXIT_USAGE};
 use scrappy::engine::pipeline;
 use scrappy::fetching::plain::PlainFetcher;
@@ -28,13 +28,7 @@ fn dispatch(cli: Cli) -> Result<(), String> {
             cli::completion(shell, &mut io::stdout().lock());
         }
         CommandKind::Config { action } => dispatch_config(action)?,
-        CommandKind::Run(args) if args.stdin_config => {
-            let mut input = io::stdin().lock();
-            let config: Config =
-                contract::stdin_config(&mut input).map_err(|error| error.message)?;
-            validate(&config).map_err(|error| error.message)?;
-            eprintln!("scrappy: source selection is unavailable in this build");
-        }
+        CommandKind::Run(args) if args.stdin_config => dispatch_stdin_run(&args)?,
         CommandKind::Validate(args) => dispatch_validate(args)?,
         CommandKind::ListSources(args) if args.generate_status => dispatch_generate_status(&args)?,
         CommandKind::ListSources(args) => dispatch_list(&args)?,
@@ -79,6 +73,7 @@ fn dispatch_run(args: &cli::RunArgs) -> Result<(), String> {
         ..config::Sources::default()
     };
     let config = config::resolve(&sources).map_err(|error| error.message)?;
+    let config_format = config.format.clone();
     let input = pipeline::RunInput {
         sources: args.source.clone(),
         fetched_at: pipeline::now_utc(),
@@ -86,15 +81,34 @@ fn dispatch_run(args: &cli::RunArgs) -> Result<(), String> {
         ..pipeline::RunInput::default()
     };
     let (jobs, summary) = pipeline::run(&registry, &input, &PlainFetcher::new())?;
-    let format = match args.format {
-        cli::OutputFormat::Ndjson => Format::Ndjson,
-        cli::OutputFormat::Json => Format::Json,
-        cli::OutputFormat::Csv => Format::Csv,
-        cli::OutputFormat::Table => {
-            return Err("table format is not supported for run output".to_owned());
+    write_run_output(args, config_format.as_deref(), &jobs, &summary, false)
+}
+
+fn write_run_output(
+    args: &cli::RunArgs,
+    config_format: Option<&str>,
+    jobs: &[scrappy::output::record::Job],
+    summary: &pipeline::RunSummary,
+    stdin_config: bool,
+) -> Result<(), String> {
+    let use_config = !stdin_config
+        && config_format.is_some()
+        && matches!(args.format, cli::OutputFormat::Ndjson);
+    let format = if use_config {
+        Format::parse(config_format.unwrap_or_default())?
+    } else if let Some(name) = config_format {
+        Format::parse(name)?
+    } else {
+        match args.format {
+            cli::OutputFormat::Ndjson => Format::Ndjson,
+            cli::OutputFormat::Json => Format::Json,
+            cli::OutputFormat::Csv => Format::Csv,
+            cli::OutputFormat::Table => {
+                return Err("table format is not supported for run output".to_owned());
+            }
         }
     };
-    let text = writer::encode(&jobs, format)?;
+    let text = writer::encode(jobs, format)?;
     print!("{text}");
     for failure in &summary.failures {
         eprintln!("scrappy: {}", cli::diagnostic::safe_text(failure));
@@ -105,6 +119,38 @@ fn dispatch_run(args: &cli::RunArgs) -> Result<(), String> {
         eprintln!("{}", cli::diagnostic::safe_text(&encoded));
     }
     Ok(())
+}
+
+fn dispatch_stdin_run(args: &cli::RunArgs) -> Result<(), String> {
+    let mut input = io::stdin().lock();
+    let config: Config = contract::stdin_config(&mut input).map_err(|error| error.message)?;
+    validate(&config).map_err(|error| error.message)?;
+    let sources = config
+        .sources
+        .clone()
+        .map_or_else(Vec::new, OneOrMany::into_vec);
+    if sources.is_empty() {
+        return Ok(());
+    }
+    run_with_config(args, config, sources)
+}
+
+fn run_with_config(
+    args: &cli::RunArgs,
+    config: Config,
+    sources: Vec<String>,
+) -> Result<(), String> {
+    let root = std::path::Path::new("src/sources/manifests");
+    let registry = custom::load(root, &custom::directory()).map_err(|error| error.message)?;
+    let config_format = config.format.clone();
+    let input = pipeline::RunInput {
+        sources,
+        fetched_at: pipeline::now_utc(),
+        config,
+        ..pipeline::RunInput::default()
+    };
+    let (jobs, summary) = pipeline::run(&registry, &input, &PlainFetcher::new())?;
+    write_run_output(args, config_format.as_deref(), &jobs, &summary, true)
 }
 
 fn dispatch_list(args: &cli::ListArgs) -> Result<(), String> {

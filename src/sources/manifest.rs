@@ -127,12 +127,18 @@ pub struct ParserOptions {
     /// Dot-separated path to an array inside a JSON envelope.
     #[serde(default)]
     pub envelope: Vec<String>,
+    /// Company fallback when an item has no company field.
+    #[serde(default)]
+    pub default_company_path: Vec<String>,
     /// Separator used to split title text into fields.
     #[serde(default)]
     pub title_separator: Option<String>,
     /// Whether the company precedes the title in a title pattern.
     #[serde(default)]
     pub company_first: bool,
+    /// Whether the RSS dc creator field supplies the company.
+    #[serde(default)]
+    pub creator: bool,
     /// Named parser options such as `atom` or `nested`.
     #[serde(default)]
     pub enabled: Vec<String>,
@@ -343,35 +349,7 @@ pub fn validate(manifest: &Manifest) -> Result<(), ManifestError> {
 
 fn validate_adapter_fields(manifest: &Manifest) -> Result<(), ManifestError> {
     if let Some(aliases) = &manifest.field_aliases {
-        if aliases.len() > MAX_MAPPING_ENTRIES {
-            return Err(ManifestError {
-                message: format!("manifest {} has too many field alias entries", manifest.id),
-            });
-        }
-        for (field, alias) in aliases {
-            if field.trim().is_empty()
-                || !field
-                    .bytes()
-                    .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
-            {
-                return Err(ManifestError {
-                    message: format!("manifest {} has an invalid alias field", manifest.id),
-                });
-            }
-            if alias.names.is_empty() || alias.names.len() > MAX_MAPPING_ENTRIES {
-                return Err(ManifestError {
-                    message: format!(
-                        "manifest {} has an invalid alias count for {field}",
-                        manifest.id
-                    ),
-                });
-            }
-            if alias.names.iter().any(|name| name.trim().is_empty()) {
-                return Err(ManifestError {
-                    message: format!("manifest {} has an empty alias for {field}", manifest.id),
-                });
-            }
-        }
+        validate_aliases(manifest, aliases)?;
     }
     if let Some(selectors) = &manifest.selectors {
         for (name, value) in [
@@ -389,50 +367,94 @@ fn validate_adapter_fields(manifest: &Manifest) -> Result<(), ManifestError> {
         }
     }
     if let Some(options) = &manifest.parser_options {
-        if options.enabled.len() > MAX_MAPPING_ENTRIES
-            || options.enabled.iter().any(|name| name.trim().is_empty())
-        {
+        validate_parser_options(manifest, options)?;
+    }
+    Ok(())
+}
+
+fn validate_aliases(
+    manifest: &Manifest,
+    aliases: &BTreeMap<String, FieldAliases>,
+) -> Result<(), ManifestError> {
+    if aliases.len() > MAX_MAPPING_ENTRIES {
+        return Err(ManifestError {
+            message: format!("manifest {} has too many field alias entries", manifest.id),
+        });
+    }
+    for (field, alias) in aliases {
+        let valid_field = field
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_');
+        if field.trim().is_empty() || !valid_field {
             return Err(ManifestError {
-                message: format!("manifest {} has invalid parser options", manifest.id),
+                message: format!("manifest {} has an invalid alias field", manifest.id),
             });
         }
-        if options
-            .envelope
-            .iter()
-            .any(|segment| segment.trim().is_empty())
-        {
+        if alias.names.is_empty() || alias.names.len() > MAX_MAPPING_ENTRIES {
             return Err(ManifestError {
-                message: format!("manifest {} has an empty envelope segment", manifest.id),
+                message: format!(
+                    "manifest {} has an invalid alias count for {field}",
+                    manifest.id
+                ),
             });
         }
-        if options
-            .title_separator
-            .as_ref()
-            .is_some_and(|separator| separator.trim().is_empty())
-        {
+        if alias.names.iter().any(|name| name.trim().is_empty()) {
             return Err(ManifestError {
-                message: format!("manifest {} has an empty title separator", manifest.id),
+                message: format!("manifest {} has an empty alias for {field}", manifest.id),
             });
         }
-        if let Some(embedded) = &options.embedded {
-            if embedded.element_id.is_none() && embedded.variable.is_none() {
-                return Err(ManifestError {
-                    message: format!("manifest {} has no embedded JSON source", manifest.id),
-                });
-            }
-            if embedded
+    }
+    Ok(())
+}
+
+fn validate_parser_options(
+    manifest: &Manifest,
+    options: &ParserOptions,
+) -> Result<(), ManifestError> {
+    if options.enabled.len() > MAX_MAPPING_ENTRIES
+        || options.enabled.iter().any(|name| name.trim().is_empty())
+    {
+        return Err(ManifestError {
+            message: format!("manifest {} has invalid parser options", manifest.id),
+        });
+    }
+    if options
+        .envelope
+        .iter()
+        .chain(options.default_company_path.iter())
+        .any(|segment| segment.trim().is_empty())
+    {
+        return Err(ManifestError {
+            message: format!("manifest {} has an empty path segment", manifest.id),
+        });
+    }
+    if options.creator && options.title_separator.is_none() {
+        return Err(ManifestError {
+            message: format!(
+                "manifest {} uses creator without a title separator",
+                manifest.id
+            ),
+        });
+    }
+    if options
+        .title_separator
+        .as_ref()
+        .is_some_and(|separator| separator.trim().is_empty())
+    {
+        return Err(ManifestError {
+            message: format!("manifest {} has an empty title separator", manifest.id),
+        });
+    }
+    if let Some(embedded) = &options.embedded
+        && (embedded.element_id.is_none() && embedded.variable.is_none()
+            || embedded
                 .envelope
                 .iter()
-                .any(|segment| segment.trim().is_empty())
-            {
-                return Err(ManifestError {
-                    message: format!(
-                        "manifest {} has an empty embedded envelope segment",
-                        manifest.id
-                    ),
-                });
-            }
-        }
+                .any(|segment| segment.trim().is_empty()))
+    {
+        return Err(ManifestError {
+            message: format!("manifest {} has invalid embedded JSON options", manifest.id),
+        });
     }
     Ok(())
 }

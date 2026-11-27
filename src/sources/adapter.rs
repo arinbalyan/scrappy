@@ -15,7 +15,7 @@ use crate::fetching::{Request, Response};
 use crate::parsing::Parser;
 use crate::parsing::html::HtmlParser;
 use crate::parsing::json::{
-    ConfigurableJsonParser, EmbeddedJsonParser, JsonParser, record_from_aliases,
+    ConfigurableJsonParser, EmbeddedJsonParser, JsonParser, record_from_aliases_with_default,
 };
 use crate::parsing::rss::{PatternRssParser, RssParser};
 use crate::sources::manifest::Manifest;
@@ -184,7 +184,12 @@ pub fn parse_response(
             let envelope = &options
                 .ok_or_else(|| error("missing parser options".to_owned()))?
                 .envelope;
-            ConfigurableJsonParser::new(envelope, aliases)
+            let value: serde_json::Value =
+                serde_json::from_str(response.text().unwrap_or_default())
+                    .map_err(|reason| error(format!("invalid JSON payload: {reason}")))?;
+            let company =
+                options.and_then(|options| default_company(&value, &options.default_company_path));
+            ConfigurableJsonParser::with_default_company(envelope, aliases, company)
                 .map_err(error)?
                 .parse(response)
         }
@@ -192,6 +197,8 @@ pub fn parse_response(
             let value: serde_json::Value =
                 serde_json::from_str(response.text().unwrap_or_default())
                     .map_err(|reason| error(format!("invalid JSON payload: {reason}")))?;
+            let company =
+                options.and_then(|options| default_company(&value, &options.default_company_path));
             let items = value
                 .as_array()
                 .ok_or_else(|| error("JSON payload is not an array".to_owned()))?;
@@ -204,14 +211,16 @@ pub fn parse_response(
                 .collect();
             Ok(items
                 .iter()
-                .filter_map(|item| record_from_aliases(item, Some(&names)))
+                .filter_map(|item| {
+                    record_from_aliases_with_default(item, Some(&names), company.as_deref())
+                })
                 .collect())
         }
         "json" => JsonParser.parse(response),
         "rss" if options.is_some_and(|o| o.title_separator.is_some()) => {
             let opts = options.ok_or_else(|| error("missing parser options".to_owned()))?;
             let separator = opts.title_separator.as_deref().unwrap_or_default();
-            PatternRssParser::new(separator, opts.company_first)
+            PatternRssParser::with_creator(separator, opts.company_first, opts.creator)
                 .map_err(error)?
                 .parse(response)
         }
@@ -247,6 +256,19 @@ fn adapter_error(reason: &str) -> AdapterError {
 
 fn error(message: String) -> AdapterError {
     AdapterError { message }
+}
+
+/// Read a lowercase envelope key as a fallback company name.
+fn default_company(value: &serde_json::Value, path: &[String]) -> Option<String> {
+    let mut current = value;
+    for segment in path {
+        current = current.get(segment)?;
+    }
+    current
+        .as_str()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
 }
 
 fn render(template: &str, values: &TemplateValues) -> Result<String, AdapterError> {

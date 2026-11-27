@@ -28,7 +28,7 @@ names = ["companyName", "advertiser.description"]
 names = ["jobUrl"]
 
 [field_aliases.location]
-names = ["location"]
+names = ["locations.0.label", "location"]
 
 [field_aliases.description]
 names = ["teaser"]

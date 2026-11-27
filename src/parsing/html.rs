@@ -83,20 +83,30 @@ impl Parser for HtmlParser {
 }
 
 fn text_of(root: scraper::ElementRef<'_>, selector: &Selector) -> String {
-    root.select(selector)
-        .next()
+    selected(root, selector)
         .map_or_else(String::new, |node| node.text().collect::<String>())
         .trim()
         .to_owned()
 }
 
 fn attribute_of(root: scraper::ElementRef<'_>, selector: &Selector, name: &str) -> String {
-    root.select(selector)
-        .next()
+    selected(root, selector)
         .and_then(|node| node.value().attr(name))
         .unwrap_or_default()
         .trim()
         .to_owned()
+}
+
+/// Prefer the item itself when the field selector matches it, then descendants.
+fn selected<'a>(
+    root: scraper::ElementRef<'a>,
+    selector: &Selector,
+) -> Option<scraper::ElementRef<'a>> {
+    if selector.matches(&root) {
+        Some(root)
+    } else {
+        root.select(selector).next()
+    }
 }
 
 #[cfg(test)]
@@ -118,6 +128,22 @@ mod tests {
         let records = parser.parse(&response).expect("records parsed");
         assert_eq!(records[0].title, "Engineer");
         assert_eq!(records[0].company, "Acme");
+    }
+
+    #[test]
+    fn parses_item_that_is_also_the_link() {
+        let body = "<a class='job' href='/jobs/1'><span>Engineer</span><b>Acme</b></a>";
+        let response = Response::new(
+            "https://example.test/jobs",
+            200,
+            BTreeMap::new(),
+            body.as_bytes().to_vec(),
+        )
+        .expect("bounded response");
+        let parser =
+            HtmlParser::new(".job", "span", "b", "a.job", "href").expect("valid selectors");
+        let records = parser.parse(&response).expect("records parsed");
+        assert_eq!(records[0].url, "/jobs/1");
     }
 
     #[test]

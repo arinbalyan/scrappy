@@ -20,7 +20,7 @@ This is a clean-room rebuild on the `oculus` branch, which preserves the history
 - Emit machine-readable NDJSON on stdout and keep all diagnostics on stderr.
 - Add content-hash deduplication, canonical URL normalization, checkpoint/resume, and deterministic fixture-driven tests.
 - Add structural secret redaction, DNS-resolving SSRF protection, challenge detection, bounded retries, and per-source rate limits.
-- Add source-health reporting that distinguishes working, keyed, blocked, stale, and unregistered sources.
+- Add source-health reporting that distinguishes working, keyed, blocked, and stale sources, and report historical IDs without manifests under unregistered in the live validation audit.
 - Support a non-interactive stdin run-config protocol with NDJSON records on stdout, structured progress events on stderr, and a published exit-code taxonomy so downstream automation can consume the binary directly.
 - Emit enriched records with contact provenance, source attribution, quality score, and authoritative company domain before streaming, so a downstream send policy can route work between automated and attention lanes.
 - Publish and verify installable release artifacts for every platform named in the installation documentation.

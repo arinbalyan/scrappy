@@ -29,10 +29,10 @@ envelope = ["results"]
 names = ["title"]
 
 [field_aliases.company]
-names = ["company.name"]
+names = ["postedCompany.name", "company.name"]
 
 [field_aliases.url]
-names = ["jobUrl"]
+names = ["metadata.jobDetailsUrl", "jobUrl"]
 
 [field_aliases.location]
 names = ["location"]

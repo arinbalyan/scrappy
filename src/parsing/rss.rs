@@ -33,6 +33,14 @@ struct Item {
     title: Option<String>,
     link: Option<String>,
     description: Option<String>,
+    #[serde(default)]
+    creator: Vec<Namespaced>,
+}
+
+#[derive(Debug, Deserialize)]
+struct Namespaced {
+    #[serde(rename = "$text", default)]
+    text: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -71,6 +79,7 @@ struct Link {
 pub struct PatternRssParser {
     separator: String,
     company_first: bool,
+    creator: bool,
 }
 
 impl PatternRssParser {
@@ -79,12 +88,25 @@ impl PatternRssParser {
     /// # Errors
     /// Returns a diagnostic when the separator is empty.
     pub fn new(separator: &str, company_first: bool) -> Result<Self, String> {
+        Self::with_creator(separator, company_first, false)
+    }
+
+    /// Build a parser that reads the company from dc creator when present.
+    ///
+    /// # Errors
+    /// Returns a diagnostic when the separator is empty.
+    pub fn with_creator(
+        separator: &str,
+        company_first: bool,
+        creator: bool,
+    ) -> Result<Self, String> {
         if separator.trim().is_empty() {
             return Err("title separator must not be empty".to_owned());
         }
         Ok(Self {
             separator: separator.to_owned(),
             company_first,
+            creator,
         })
     }
 }
@@ -97,16 +119,27 @@ impl Parser for PatternRssParser {
         for item in feed.channel.item {
             let raw = item.title.unwrap_or_default();
             let parts = split_title(&raw, &self.separator);
+            let separator = self.separator.as_str();
+            let prefix = raw
+                .split_once(separator)
+                .map(|(head, _)| head.trim().to_owned());
+            let creator = if self.creator {
+                item.creator
+                    .first()
+                    .and_then(|entry| clean_creator(entry.text.as_deref()))
+            } else {
+                None
+            };
             let (title, company, location) = if self.company_first {
                 (
-                    parts.get(1).cloned().unwrap_or_default(),
-                    parts.first().cloned().unwrap_or_default(),
+                    parts.get(1).cloned().unwrap_or(raw.clone()),
+                    prefix.or(creator).unwrap_or_default(),
                     parts.get(2).cloned(),
                 )
             } else {
                 (
-                    parts.first().cloned().unwrap_or_default(),
-                    parts.get(1).cloned().unwrap_or_else(|| {
+                    parts.first().cloned().unwrap_or(raw.clone()),
+                    parts.get(1).cloned().or(creator).unwrap_or_else(|| {
                         page_host(&item.link.clone().unwrap_or_default())
                             .unwrap_or_else(|| "unknown".to_owned())
                     }),
@@ -168,6 +201,16 @@ fn split_title(raw: &str, separator: &str) -> Vec<String> {
         .collect()
 }
 
+/// Decode a creator tag body into one company name.
+fn clean_creator(raw: Option<&str>) -> Option<String> {
+    let value = raw?.trim();
+    let name = value.split('<').next()?.trim();
+    let name = name.split("⚲").next()?.trim();
+    let name = name.replace("&amp;", "&").replace("&nbsp;", " ");
+    let name = name.trim().to_owned();
+    (!name.is_empty()).then_some(name)
+}
+
 fn page_host(url: &str) -> Option<String> {
     let rest = url.split_once("://")?.1;
     let host = rest.split('/').next().unwrap_or_default();
@@ -215,5 +258,30 @@ mod tests {
         let records = parser.parse(&response(body)).expect("records parsed");
         assert_eq!(records[0].company, "Acme");
         assert_eq!(records[0].location.as_deref(), Some("Berlin"));
+    }
+
+    #[test]
+    fn dc_creator_supplies_company_when_title_has_no_prefix() {
+        let body = r#"<rss xmlns:dc="http://purl.org/dc/elements/1.1/" version="2.0"><channel>
+<item><title>Demand Generation Coordinator</title>
+<link>https://example.test/job/1</link>
+<dc:creator><![CDATA[Tailscale<br>⚲&nbsp;United States]]></dc:creator></item>
+</channel></rss>"#;
+        let parser = PatternRssParser::with_creator(": ", true, true).expect("parser built");
+        let records = parser.parse(&response(body)).expect("records parsed");
+        assert_eq!(records[0].title, "Demand Generation Coordinator");
+        assert_eq!(records[0].company, "Tailscale");
+    }
+
+    #[test]
+    fn dc_creator_keeps_ampersands_and_title_prefixes() {
+        let body = r#"<rss xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><item>
+<title>Tailscale: Platform Engineer</title>
+<link>https://example.test/job/2</link>
+<dc:creator>AT&amp;T ⚲ Berlin</dc:creator></item></channel></rss>"#;
+        let parser = PatternRssParser::with_creator(": ", true, true).expect("parser built");
+        let records = parser.parse(&response(body)).expect("records parsed");
+        assert_eq!(records[0].company, "Tailscale");
+        assert_eq!(records[0].title, "Platform Engineer");
     }
 }

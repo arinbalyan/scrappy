@@ -12,3 +12,8 @@ addresses from job descriptions are always emitted with observed provenance.
 The environment form is `SCRAPPY_EMAIL_DISCOVERY`. See
 documentation/007-email-extraction.md and
 openspec/changes/oculus-foundation/specs/security-privacy/spec.md.
+
+For `run`, a config format is used when set, even if `--format` is also
+given; the CLI format applies only when config has no format. With
+`run --stdin-config`, the stdin document is the highest-precedence run-config
+layer, so its format wins and explicit `--config` flags are ignored.

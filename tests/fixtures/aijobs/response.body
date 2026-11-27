@@ -1,8 +1,25 @@
 <!doctype html>
-<html lang="en"><body>
-<nav><a href="/about">About</a><a href="/login">Sign in</a><a href="/pricing">Pricing</a></nav>
-<h1>Remote AI Jobs</h1><h2>Featured Jobs</h2>
-<div class="job-listing"><a class="job-title-href" href="/index.php/job/research-engineer-google-deepmind">Research Engineer 1W Full Time Salary: $164,000 - $252,000</a><span class="company-name">Google DeepMind</span></div>
-<h2>Latest Jobs</h2>
-<div class="job-listing"><a class="job-title-href" href="/index.php/job/software-engineer-opentrain-ai">Software Engineer 2W Full Time Remote</a><span class="company-name">OpenTrain AI</span></div>
+<html><body>
+<h1>Remote AI Jobs</h1>
+<a href="https://example.test/jobs/engineer-1" class="tw-h-full card tw-card tw-block jobcardStyle1 gradient-bg">
+  <div class="tw-p-6">
+    <div class="tw-mb-5">
+      <div class="tw-mb-1.5 d-flex justify-content-between">
+        <div class="tw-text-[#18191C] tw-text-lg tw-font-medium">Machine Learning Engineer</div>
+        <div class="tw-text-sm">2W</div>
+      </div>
+      <span class="tw-text-\[12px\]">Full Time</span>
+      <span class="tw-text-\[12px\]">Remote</span>
+    </div>
+    <div class="rt-single-icon-box">
+      <span class="tw-text-base tw-font-medium tw-text-[#18191C] tw-card-title">Northstar Labs</span>
+    </div>
+  </div>
+</a>
+<a href="https://example.test/jobs/engineer-2" class="tw-h-full card tw-card tw-block jobcardStyle1">
+  <div class="tw-p-6">
+    <div class="tw-text-[#18191C] tw-text-lg tw-font-medium">Senior Backend Engineer</div>
+    <span class="tw-text-base tw-font-medium tw-text-[#18191C] tw-card-title">Maple Systems</span>
+  </div>
+</a>
 </body></html>

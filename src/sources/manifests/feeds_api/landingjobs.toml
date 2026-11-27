@@ -19,13 +19,13 @@ fixtures = ["landingjobs"]
 names = ["title"]
 
 [field_aliases.company]
-names = ["company"]
+names = ["company.name"]
 
 [field_aliases.url]
 names = ["url"]
 
 [field_aliases.location]
-names = ["city", "location"]
+names = ["locations.0.city", "city", "location"]
 
 [field_aliases.description]
 names = ["role_description", "description", "text"]

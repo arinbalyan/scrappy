@@ -28,17 +28,23 @@ are written to stdout before the report marker so stdout alone is a clean
 log. Each source acquires one governor permit, so one request per source
 stays within its manifest `requests_per_minute` and `max_concurrency`.
 
-On 2026-11-27 the full suite ran in 151.26 seconds. The accepted report is
-kept outside version control at `/tmp/scrappy-live-report-accepted.txt`.
-It found 24 working sources, 16 keyed sources, 23 blocked sources, 46 stale
-sources, and 20 unregistered historical sources. The run environment
-restricted some outbound hosts, so a 403, 429, or fetch failure in this
-report may reflect network policy rather than the source. Re-run from an
-unrestricted network before changing health for a challenge-only failure.
-The working set includes `academiccareers`, which its manifest still marks
-blocked because its golden replay contract expects that label. Updating its
-health requires changing the manifest and `tests/tier6_public_replay.rs`
-together.
+The current registry health counts are 57 working sources, 19 keyed sources,
+9 blocked sources, 3 stale sources, and 22 requires_slug sources. These are
+manifest-declared health states, as listed in documentation/005-status.md,
+rather than live probe outcomes.
+
+A pre-repair historical run on 2026-11-27 took 151.26 seconds and found 24
+working sources, 16 keyed sources, 23 blocked sources, 46 stale sources, and
+20 unregistered historical sources. Its accepted report is kept outside
+version control at `/tmp/scrappy-live-report-accepted.txt`. Because that run
+was made before the later repairs, its counts do not describe the current
+registry. The run environment also restricted some outbound hosts, so a 403,
+429, or fetch failure in it may reflect network policy rather than the source.
+Re-run from an unrestricted network before changing health for a challenge-only
+failure. That historical working set included `academiccareers`, which its
+manifest still marks blocked because its golden replay contract expects that
+label. Updating its health requires changing the manifest and
+`tests/tier6_public_replay.rs` together.
 
 CI runs the baseline gate on Linux, macOS, and Windows. It also builds the
 `emulation` and `browser` features, runs `cargo audit` and `cargo deny check`

@@ -23,7 +23,7 @@ scrappy/
   openspec/
   .codex/skills/ms-rust/
   documentation/
-    001-quickstart.md ... 015-security.md
+    001-quickstart.md ... 016-config-migration.md
     scrapers/
   src/
     main.rs
@@ -128,7 +128,7 @@ Use a single Cargo package with a binary and library boundary.
 Alternative considered: a workspace with many crates. Rejected for a single contributor because it adds build overhead and indirection without a team boundary to enforce.
 ### 1b. Scraper location and classification
 A scraper is not one file. It is the combination of a declarative manifest in src/sources/manifests/<family>/<source_id>.toml, a parser kind from src/parsing/, and a fetcher kind from src/fetching/. The manifest selects the request template, parser, fetcher, emulation profile, selector strategy, credential names, robots policy, and fixtures. Shared parsing code stays in src/parsing/; source-specific differences stay in manifests and fixtures. A custom source follows the same model from the documented user config directory.
-Sources are classified on two axes. The adapter family controls code placement and runtime behavior: feeds_api, ats, html_static, html_rendered, and keyed. The health state controls eligibility: working, keyed, blocked, stale, requires_slug, browser_only, and unregistered. A source carries both, so a feed can be stale and an HTML page can be working. Numbered tiers in tasks.md are port order only and do not replace this classification.
+Sources are classified on two axes. The adapter family controls code placement and runtime behavior: feeds_api, ats, html_static, html_rendered, and keyed. The health state controls eligibility: working, keyed, blocked, stale, requires_slug, and browser_only. Unregistered is a live-report and audit category for historical source IDs that have no manifest; it is not a health state. A registered source carries both axes, so a feed can be stale and an HTML page can be working. Numbered tiers in tasks.md are port order only and do not replace this classification.
 The folder layout follows the family axis. Manifests live in src/sources/manifests/feeds_api/, ats/, html_static/, html_rendered/, and keyed/. Shared parsers live in src/parsing/ as json, rss, html, and jsonld modules. Fetchers live in src/fetching/ as plain, emulation, browser, and proxy modules. Fixtures live in tests/fixtures/<source_id>/. Behavior docs live in documentation/scrapers/<source_id>.md.
 Every scraper gets a behavior document in documentation/scrapers/<source_id>.md. It records the source id, adapter family, health state, endpoint shape, parser, fetcher, emulation profile, credential and slug needs, rate and concurrency limits, robots policy, known quirks, and a dated break/fix log. When a scraper breaks and is repaired, the fix and the observed behavior are appended to that document in the same change. Documentation parity checks require one document per registered source and reject a document whose source id has no manifest.
 
@@ -145,7 +145,7 @@ source, but the consumer owns its own selection, email, and application policy.
 
 Keep source comments short and factual. A comment or doc comment states what an item does or why a choice exists, then points to the relevant document in `documentation/` when more detail is needed. Long explanations, design notes, command references, config field tables, and operational runbooks live in `documentation/`. Document paths are written relative to the scrappy repository root.
 
-The `documentation/` folder holds `001-quickstart.md`, `002-installation.md`, `003-cli-reference.md`, `004-configuration.md`, `005-status.md`, `006-architecture.md`, `007-email-extraction.md`, `008-quality-scoring.md`, `009-export-formats.md`, `010-proxy.md`, `011-dedup.md`, `012-browser-automation.md`, `013-source-registry.md`, `014-testing.md`, and `015-security.md`. Each document names the source modules it explains. A documentation parity check in CI fails when a document references a missing path or a public module has no documentation entry.
+The `documentation/` folder holds `001-quickstart.md`, `002-installation.md`, `003-cli-reference.md`, `004-configuration.md`, `005-status.md`, `006-architecture.md`, `007-email-extraction.md`, `008-quality-scoring.md`, `009-export-formats.md`, `010-proxy.md`, `011-dedup.md`, `012-browser-automation.md`, `013-source-registry.md`, `014-testing.md`, `015-security.md`, and `016-config-migration.md`. Each document names the source modules it explains. A documentation parity check in CI fails when a document references a missing path or a public module has no documentation entry.
 
 The project-local ms-rust skill lives at `.codex/skills/ms-rust/SKILL.md`. It contains the Microsoft Pragmatic Rust Guidelines and the compliance marker rule. Before writing or reviewing any `.rs` file, load that skill and only the guideline files relevant to the task. Apply `cargo fmt`, `cargo clippy --all-targets -- -D warnings`, and `cargo doc --no-deps` as the baseline quality gate. Keep public items documented in canonical form and keep implementation detail out of public docs.
 

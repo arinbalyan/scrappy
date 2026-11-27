@@ -112,6 +112,7 @@ fn is_environment_error(message: &str) -> bool {
         "dns error",
         "error sending request",
         "connect timeout",
+        "connect timed out",
     ]
     .iter()
     .any(|marker| message.contains(marker))
@@ -144,7 +145,7 @@ fn classify_build_error(message: &str) -> Option<&'static str> {
 }
 
 #[tokio::test]
-#[ignore = "requires live network access"]
+#[ignore = "requires live network access and egress"]
 async fn report_live_source_health() {
     let runtime_governor = {
         let mut governor = Governor::new();

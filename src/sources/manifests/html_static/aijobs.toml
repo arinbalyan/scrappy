@@ -16,8 +16,8 @@ attribution = "AI Jobs"
 fixtures = ["aijobs"]
 
 [selectors]
-item = "div.job-listing"
-title = "a.job-title-href"
-company = "span.company-name"
-url = "a.job-title-href"
+item = "a.jobcardStyle1"
+title = "div.tw-text-lg"
+company = "span.tw-card-title"
+url = "a.jobcardStyle1"
 url_attribute = "href"

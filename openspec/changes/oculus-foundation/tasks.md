@@ -38,8 +38,8 @@
 - [x] 3.3 Add robots policy, attribution, and fixture set fields and verify validation rejects missing or empty values
 - [x] 3.4 Implement list-sources health states and verify counts match registered manifests
 - [x] 3.5 Generate status documentation from the registry and verify generated counts match list-sources output
-- [x] 3.6 Add list-sources --format json with health, failure, credential, fetcher, slug, and fixture fields, and verify empty and blocked states are distinguishable
-- [x] 3.7 Add registry parity checks for default selection, fixtures, contract tests, status uniqueness, and slug counts, and verify drift fails CI offline
+- [x] 3.6 Add list-sources --format json with id, name, health, availability, family, fetcher, profile, credentials, fixtures, robots, and attribution fields, and verify empty and blocked states are distinguishable
+- [x] 3.7 Add registry parity checks for default selection, fixtures, behavior documents, and status uniqueness, and verify drift fails CI offline
 - [x] 3.8 Implement custom source manifests from a documented user config directory using built-in parser kinds, and verify a custom source runs without rebuilding or overriding a built-in ID
 - [x] 3.9 Record one behavior document in documentation/scrapers/<source_id>.md for every ported source, covering endpoint family, parser, fetcher, quirks, and break/fix history
 
