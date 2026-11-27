@@ -16,8 +16,8 @@ attribution = "Gun.io Jobs"
 fixtures = ["gunio"]
 
 [selectors]
-item = "li.job-row"
-title = "a.job-link"
-company = "span.company"
-url = "a.job-link"
+item = "div.job-tile"
+title = "h2 a"
+company = ".job-tile__company"
+url = "h2 a"
 url_attribute = "href"

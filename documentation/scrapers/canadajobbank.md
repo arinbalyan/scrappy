@@ -17,6 +17,7 @@ Attribution: Canada Job Bank
 - Historical source checked the success flag and read records from result.records; this port reads that envelope. Search term, salary, and date fields are outside this adapter.
 
 ## Break and fix log
+- 2026-11-27: Endpoint research returned no verified replacement for the Job Bank API URL. The probe failure was a host resolution error, so the manifest URL and working health stay unchanged. Re-probe from an unrestricted network before changing the endpoint.
 - 2026-11-27: Live validation could not reach the public job bank endpoint. Re-probe from an unrestricted network before changing health.
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.

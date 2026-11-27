@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://internshala.com/jobs/{slug}/page-{page}",
+  "url": "https://internshala.com/jobs/{slug}-jobs/page-{page}",
   "headers": {
     "accept": "application/json"
   }

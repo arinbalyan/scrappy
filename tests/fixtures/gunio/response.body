@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="en"><body>
-<ul class="jobs">
-<li class="job-row"><a class="job-link" href="/jobs/701"><span class="title">Backend Engineer</span></a><span class="company">Example Org</span></li>
-<li class="job-row"><a class="job-link" href="/jobs/702"><span class="title">Frontend Engineer</span></a><span class="company">Sample Labs</span></li>
-<li class="job-row"><a class="job-link" href="/jobs/701"><span class="title">Backend Engineer (repeat)</span></a><span class="company">Example Org</span></li>
-</ul></body></html>
+<h1>High-stakes engineering roles, matched to the top 1%</h1>
+<div class="job-tile"><h2><a href="https://app.gun.io/jobs/ai-ml-backend-engineer">AI/ML backend engineer</a></h2><p>A Series B SaaS company is building production-grade AI infrastructure.</p><span class="job-tile__company">Gun.io</span></div>
+<div class="job-tile"><h2><a href="https://app.gun.io/jobs/senior-react-typescript-engineer">Senior React / TypeScript engineer</a></h2><p>A B2B SaaS platform is scaling its engineering org.</p><span class="job-tile__company">Gun.io</span></div>
+</body></html>

@@ -3,7 +3,7 @@ id = "mycareersfuture"
 name = "MyCareersFuture"
 family = "feeds_api"
 health = "working"
-request = "https://api.mycareersfuture.gov.sg/v2/jobs?limit={query:limit}&keyword={query:keyword}"
+request = "https://api.mycareersfuture.gov.sg/v2/search"
 parser = "json"
 fetcher = "plain"
 pagination = "none"
@@ -14,6 +14,16 @@ max_concurrency = 1
 robots = "allow public job search"
 attribution = "MyCareersFuture"
 fixtures = ["mycareersfuture"]
+
+[request_options]
+method = "POST"
+body = '{{"limit":{query:limit},"keyword":"{query:keyword}"}}'
+
+[request_options.headers]
+content-type = "application/json"
+
+[parser_options]
+envelope = ["results"]
 
 [field_aliases.title]
 names = ["title"]

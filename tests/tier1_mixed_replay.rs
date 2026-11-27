@@ -61,7 +61,7 @@ const SOURCES: [(&str, Family, Health, &str, &str); 10] = [
         Family::HtmlStatic,
         Health::Working,
         "html_static",
-        "html",
+        "json",
     ),
     (
         "gunio",

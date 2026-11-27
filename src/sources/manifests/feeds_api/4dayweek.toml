@@ -3,7 +3,7 @@ id = "4dayweek"
 name = "4 Day Week"
 family = "feeds_api"
 health = "working"
-request = "https://4dayweek.io/api/jobs"
+request = "https://4dayweek.io/api/v1?page=1&limit=25"
 parser = "json"
 fetcher = "plain"
 pagination = "none"
@@ -28,7 +28,7 @@ names = ["title"]
 names = ["company.name", "company_name"]
 
 [field_aliases.location]
-names = ["location"]
+names = ["location_original", "location_city", "location"]
 
 [field_aliases.description]
 names = ["description"]

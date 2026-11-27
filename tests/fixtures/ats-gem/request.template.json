@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "https://api.gem.com/job_board/v0/{slug}/job_posts/",
+  "headers": {
+    "accept": "application/json"
+  }
+}

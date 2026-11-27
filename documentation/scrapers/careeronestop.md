@@ -20,6 +20,7 @@ Rate: 30 requests per minute
 - City and state are split from a flat location string in the historical scraper; the normalized record keeps the flat value.
 
 ## Break and fix log
+- 2026-11-27: Endpoint research returned no verified replacement for the anonymous job search route. The probe failure was a host resolution error, so the manifest URL and working health stay unchanged. Re-probe from an unrestricted network before changing the endpoint.
 - 2026-11-27: Live validation could not reach the public API endpoint. Re-probe from an unrestricted network before changing health.
 
 - 2026-11-26: Ported from historical behavior with a manifest and synthetic fixture.

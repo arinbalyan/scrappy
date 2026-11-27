@@ -15,6 +15,9 @@ robots = "allow public job search"
 attribution = "JobsDB"
 fixtures = ["jobsdb"]
 
+[parser_options]
+envelope = ["data"]
+
 [field_aliases.title]
 names = ["title"]
 

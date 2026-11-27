@@ -23,3 +23,4 @@ Attribution: Academic Careers
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 - 2026-11-26: Live probe returned HTTP 403; health changed to blocked.
 - 2026-11-27: Live validation returned 50 records from the RSS endpoint. The earlier 403 is retained as a known transient failure. Fix pending: update the manifest health and the golden replay contract together before marking this source working.
+- 2026-11-27: Endpoint research found no replacement path, and the recorded /rss URL still returned records. The health label stays blocked because the replay contract fixes it; changing it requires a coordinated manifest and replay update that this scope excludes.

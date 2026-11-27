@@ -18,6 +18,7 @@ Attribution: The Muse
 - Client-side category filtering from the historical source is outside this adapter.
 
 ## Break and fix log
+- 2026-11-27: Endpoint research returned no verified replacement for the public jobs API path. The 403 is treated as a challenge, so the manifest URL and health stay as recorded. Re-probe from an unrestricted network before changing the endpoint.
 - 2026-11-27: Live validation returned HTTP 403. The run environment may restrict outbound hosts; re-probe from an unrestricted network before changing health.
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.

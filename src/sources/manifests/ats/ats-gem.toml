@@ -1,0 +1,35 @@
+version = 1
+id = "ats-gem"
+name = "Gem Job Board"
+family = "ats"
+health = "requires_slug"
+request = "https://api.gem.com/job_board/v0/{slug}/job_posts/"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public job board endpoints; boards without a published slug are skipped"
+attribution = "Gem"
+slugs = ["example-board"]
+fixtures = ["ats-gem"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company", "team_display_name", "organization", "job.company_name"]
+
+[field_aliases.url]
+names = ["absolute_url"]
+
+[field_aliases.location]
+names = ["location.name", "location_name"]
+
+[field_aliases.description]
+names = ["plain_text_description", "description"]
+
+[request_options.headers]
+accept = "application/json"

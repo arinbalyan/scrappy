@@ -3,7 +3,7 @@
 Source id: internshala
 Family: html_static
 Health: working
-Endpoint: GET https://internshala.com/jobs/{slug}/page-{query:page}
+Endpoint: GET https://internshala.com/jobs/{slug}-jobs/page-{query:page}
 Parser: html with selectors
 Fetcher: plain
 Pagination: page one through eight
@@ -16,7 +16,7 @@ Slugs: engineering
 
 ## Behavior
 
-- Search terms are hyphenated into a slug path; the frozen fixture uses engineering.
+- Search terms are hyphenated into a slug path with a `-jobs` suffix; the frozen fixture uses engineering.
 - Cards are matched by the individual_internship container. The old flow also recognized individual_job and listing variants, which this manifest does not combine in one item selector.
 - Title and URL come from the job-title-href anchor; company comes from the company-name span.
 - The internships path shares the card shape; the fixture covers the jobs variant.
@@ -29,6 +29,7 @@ Slugs: engineering
 
 ## Break and fix log
 - 2026-11-27: Live validation returned HTTP 200 but no records matched the configured selectors. The static HTML selectors need updating.
+- 2026-11-27: Fixed the listing URL template to match the current `/jobs/<category>-jobs/page-N` path; refreshed the frozen request and synthetic fixture. Verified via tier 2 replay.
 
 - 2026-11-26: Manifest, static HTML fixture, behavior doc, and offline replay recorded during the Tier 2 port.
 

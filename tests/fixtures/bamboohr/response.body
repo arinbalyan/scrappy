@@ -3,7 +3,7 @@
     {
       "id": "101",
       "company": "example-co",
-      "url": "https://example-co.bamboohr.com/careers/101",
+      "url": "https://example-co.bamboohr.com/careers/101/detail",
       "jobOpeningName": "Backend Engineer",
       "departmentLabel": "Engineering",
       "location": {
@@ -19,7 +19,7 @@
     {
       "id": "102",
       "company": "example-co",
-      "url": "https://example-co.bamboohr.com/careers/102",
+      "url": "https://example-co.bamboohr.com/careers/102/detail",
       "jobOpeningName": "Platform Engineer",
       "departmentLabel": "Infrastructure",
       "location": {

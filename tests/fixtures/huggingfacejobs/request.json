@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://huggingface.co/jobs",
+  "url": "https://apply.workable.com/api/v1/widget/accounts/huggingface",
   "headers": {
     "accept": "application/json"
   }

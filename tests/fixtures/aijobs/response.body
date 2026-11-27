@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="en"><body>
 <nav><a href="/about">About</a><a href="/login">Sign in</a><a href="/pricing">Pricing</a></nav>
-<ul>
-<li class="job-item"><a class="job-link" href="/roles/801"><span class="title">Research Engineer</span></a><span class="company">Example Org</span></li>
-<li class="job-item"><a class="job-link" href="/roles/802"><span class="title">Applied Scientist</span></a><span class="company">Sample Labs</span></li>
-</ul></body></html>
+<h1>Remote AI Jobs</h1><h2>Featured Jobs</h2>
+<div class="job-listing"><a class="job-title-href" href="/index.php/job/research-engineer-google-deepmind">Research Engineer 1W Full Time Salary: $164,000 - $252,000</a><span class="company-name">Google DeepMind</span></div>
+<h2>Latest Jobs</h2>
+<div class="job-listing"><a class="job-title-href" href="/index.php/job/software-engineer-opentrain-ai">Software Engineer 2W Full Time Remote</a><span class="company-name">OpenTrain AI</span></div>
+</body></html>

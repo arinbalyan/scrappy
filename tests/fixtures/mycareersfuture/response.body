@@ -1,4 +1,4 @@
-[
+{"total":2,"results":[
   {
     "uuid": "mcf-601",
     "title": "Software Engineer",
@@ -20,4 +20,4 @@
     "description": "Analyze programme data.",
     "location": null
   }
-]
+]}

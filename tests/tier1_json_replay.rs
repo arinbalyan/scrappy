@@ -278,7 +278,19 @@ fn replay_fanout() -> (Vec<Record>, usize) {
         if raw_url.is_none() {
             continue;
         }
-        let body = serde_json::to_vec(&[item]).expect("item serialized");
+        let mut derived = item.clone();
+        if derived.get("company").is_none() {
+            let title = item["title"].as_str().expect("item has a hiring title");
+            let company = match title.split_once(" is hiring ") {
+                Some((company, _)) => company,
+                None => title
+                    .split_once(" - ")
+                    .map(|(company, _)| company)
+                    .expect("hiring title carries a company name"),
+            };
+            derived["company"] = serde_json::Value::String(company.to_owned());
+        }
+        let body = serde_json::to_vec(&[&derived]).expect("item serialized");
         let response =
             Response::new(item_url, 200, BTreeMap::new(), body).expect("bounded response");
         let parsed = parse_response(&manifest, &response).expect("item parsed");

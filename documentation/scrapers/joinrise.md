@@ -17,6 +17,7 @@ Attribution: Joinrise
 - Historical source read jobs from result.jobs with nested owner and breakdown fields; this port uses dotted aliases. Client-side filtering, compensation, and remote detection are outside this adapter.
 
 ## Break and fix log
+- 2026-11-27: Endpoint research returned no verified replacement for the public search URL. The probe failure was a host resolution error, so the manifest URL and working health stay unchanged. Re-probe from an unrestricted network before changing the endpoint.
 - 2026-11-27: Live validation could not reach the public search endpoint. Re-probe from an unrestricted network before changing health.
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.

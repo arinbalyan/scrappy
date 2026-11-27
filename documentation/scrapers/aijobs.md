@@ -15,15 +15,16 @@ Attribution: AI Jobs
 ## Behavior
 
 - Single GET returns a static HTML page; no browser or emulation profile is used.
-- The item selector requires a job-link anchor inside a job-item list entry, so navigation anchors do not match.
-- Title and URL come from the anchor; company comes from a sibling span.
+- Each listing lives in a job container, so navigation anchors outside a container do not match.
+- Title and URL come from the anchor inside a container; company comes from a sibling span.
 
 ## Known quirks
 
-- Selector precision depends on the page keeping the job-item and job-link classes.
+- Selector precision depends on the page keeping the job-listing container and job-link classes.
 - Relative URLs stay relative in normalized records.
 
 ## Break and fix log
 - 2026-11-27: Live validation returned HTTP 200 but no records matched the configured selectors. The static HTML selectors need updating.
+- 2026-11-27: Fixed by selecting each job container and matching the title, company, and URL within it; refreshed the synthetic fixture and golden records. Verified via tier 1 replay.
 
 - 2026-11-26: Manifest, generic fixtures, and offline replay recorded during the Tier 1 port.

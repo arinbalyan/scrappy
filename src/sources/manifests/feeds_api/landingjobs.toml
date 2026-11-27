@@ -14,3 +14,18 @@ max_concurrency = 1
 robots = "allow"
 attribution = "Landingjobs"
 fixtures = ["landingjobs"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company"]
+
+[field_aliases.url]
+names = ["url"]
+
+[field_aliases.location]
+names = ["city", "location"]
+
+[field_aliases.description]
+names = ["role_description", "description", "text"]

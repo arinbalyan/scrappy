@@ -25,7 +25,7 @@ Attribution: Wellfound
 - Compensation, remote flags, posting dates, and skill lists remain outside the normalized record contract.
 
 ## Break and fix log
-- 2026-11-27: Live validation returned HTTP 200 but the embedded JSON envelope was missing. The page markup or envelope needs review.
+- 2026-11-27: Live validation returned HTTP 200 but the embedded JSON envelope was missing. Current pages expose normalized Apollo cache entries under __NEXT_DATA__ -> props.pageProps.apolloState.data, while the manifest and fixture use the older direct props.pageProps.listings path. The declarative embedded parser cannot follow __ref links or select an object as an array, so switching the envelope would break replay.
 
 - 2026-11-26: Ported the embedded Next.js JSON path with a synthetic HTML fixture and offline replay.
 

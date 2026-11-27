@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://example-co.successfactors.com/odata/v2/JobRequisitionPosting?$select=jobReqId,jobTitle,jobDescription,locationObj,department,postingStartDate,employmentType,companyName,externalJobUrl&$top=20&$skip=0&$format=json",
+  "url": "https://{slug}.successfactors.com/odata/v2/JobRequisitionPosting?$select=jobReqId,jobTitle,jobDescription,locationObj,department,postingStartDate,employmentType,companyName,externalJobUrl&$top=20&$skip=0&$format=json",
   "headers": {
     "accept": "application/json",
     "user-agent": "Mozilla/5.0"

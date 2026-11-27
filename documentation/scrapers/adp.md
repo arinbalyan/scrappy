@@ -25,6 +25,7 @@ Slugs: example-co (seed placeholder)
 - Boards without a configured seed cannot build a cid and are skipped.
 
 ## Break and fix log
+- 2026-11-27: Endpoint research found no verified replacement for the ADP career center requisition path. The 404 came from the example-co placeholder tenant, so the manifest keeps the slug placeholder and the blocked health. Confirm the path against an active tenant before changing the URL.
 - 2026-11-27: Live validation returned HTTP 404 for the seeded tenant path. Keep the tenant seed requirement and re-check the endpoint before enabling this source.
 
 - 2026-11-26: Ported the tenant requisition feed with a slug manifest and synthetic fixture.

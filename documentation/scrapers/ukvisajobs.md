@@ -27,6 +27,6 @@ Slugs: none
 - Salary and degree details from the HTML fallback are outside the normalized record fields.
 
 ## Break and fix log
-- 2026-11-27: Live validation returned HTTP 200 but invalid JSON. The endpoint or parser needs review.
+- 2026-11-27: Live validation returned HTTP 200 but invalid JSON. Public job data now appears behind `https://my.ukvisajobs.com/ukvisa-api/api/fetch-jobs-data` with a token and cookies and a `job_link` field. The root URL serves HTML, which explains the parse failure. The exact request shape is not public, so the manifest and fixture are unchanged.
 
 - 2026-11-26: Manifest, synthetic JSON fixture, behavior doc, and offline replay recorded during the Tier 2 C port.

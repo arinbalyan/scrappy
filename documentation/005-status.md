@@ -15,6 +15,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | androidjobs | Android Jobs | working | ready | FeedsApi | plain |
 | arbeitnow | Arbeitnow | working | ready | FeedsApi | plain |
 | ats-ashby | Ashby ATS | requires_slug | ready | Ats | plain |
+| ats-gem | Gem Job Board | requires_slug | ready | Ats | plain |
 | ats-oracle | Oracle | requires_slug | ready | Ats | plain |
 | ats-phenom | Phenom | stale | ready | Ats | plain |
 | ats-pinpoint | Pinpoint | requires_slug | ready | Ats | plain |

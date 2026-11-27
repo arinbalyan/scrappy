@@ -16,7 +16,7 @@ Slugs: none
 
 ## Behavior
 
-- The adapter reads the top-level array directly. The frozen payload is shaped as an array so field aliases apply; a live results envelope needs envelope support with aliases.
+- The adapter posts a JSON search body to `/v2/search` and reads the `results` array from the response alongside `total`.
 - Company is a nested object, reached by a dotted alias name; location is flattened to a string in the frozen payload because the adapter cannot index into list fields.
 - The normalized URL is built from the API uuid as https://www.mycareersfuture.gov.sg/job/{uuid}.
 - Description comes from the job description field; salary, posting date, and remote flags are not represented in the six-field record.
@@ -28,6 +28,6 @@ Slugs: none
 - Missing location produces a null location field.
 
 ## Break and fix log
-- 2026-11-27: Live validation returned HTTP 200 but the JSON payload was not an array. The response envelope needs review.
+- 2026-11-27: Live validation returned HTTP 200 but the JSON payload was not an array. Public search now uses zero-auth `POST /v2/search`, which returns `total` and `results`. Switched the manifest and fixture to that request with a `keyword`/`limit` JSON body and added the `results` envelope; golden records are unchanged.
 
 - 2026-11-26: Manifest, synthetic fixtures, behavior doc, and offline replay recorded during the Tier 2 B port.

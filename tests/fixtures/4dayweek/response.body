@@ -1,39 +1,32 @@
 {
+  "usage": {"credits": 120, "remaining": 880},
+  "page": 1,
+  "total": 2,
+  "has_more": false,
   "jobs": [
     {
-      "id": "401",
+      "id_str": "401",
       "title": "Platform Engineer",
-      "slug": "role-401",
+      "slug": "platform-engineer-401",
+      "url": "https://4dayweek.io/jobs/platform-engineer-401",
+      "description": "<p>Build internal platforms with a four-day week.</p>",
+      "location_city": "Berlin",
+      "location_country": "DE",
+      "location_original": "Berlin, Germany",
       "company_name": "Example Org",
-      "work_arrangement": "remote",
-      "posted": 1793592000,
-      "schedule_type": "4_day_week",
-      "salary": "100 - 120",
-    "location": "City One",
-      "company": {
-        "name": "Example Org",
-        "slug": "org-401"
-      },
-      "url": "https://jobs.example.test/roles/401"
+      "company": {"name": "Example Org", "slug": "example-org"}
     },
     {
-      "id": "402",
+      "id_str": "402",
       "title": "Product Engineer",
-      "slug": "role-402",
+      "slug": "product-engineer-402",
+      "url": "https://4dayweek.io/jobs/product-engineer-402",
+      "description": "<p>Ship customer-facing product with a four-day week.</p>",
+      "location_city": "Remote",
+      "location_country": "US",
+      "location_original": "Remote (US)",
       "company_name": "Sample Labs",
-      "work_arrangement": "remote",
-      "posted": 1793592000,
-      "schedule_type": "4_day_week",
-      "salary": "90 - 110",
-    "location": "City Two",
-      "company": {
-        "name": "Sample Labs",
-        "slug": "org-402"
-      },
-      "url": "https://jobs.example.test/roles/402"
+      "company": {"name": "Sample Labs", "slug": "sample-labs"}
     }
-  ],
-  "total": 2,
-  "page": 1,
-  "has_more": false
+  ]
 }

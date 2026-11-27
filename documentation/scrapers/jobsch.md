@@ -18,7 +18,7 @@ Attribution: jobs.ch
 - Search term, row count, pagination, publication date, and client-side filtering are outside this adapter.
 
 ## Break and fix log
-- 2026-11-27: Live validation returned HTTP 422 with no `documents` envelope. The search endpoint needs a corrected request shape.
+- 2026-11-27: Live validation returned HTTP 422 with no `documents` envelope. Public search is rendered server-side and honors filters while the JSON endpoint reportedly ignores them; a corrected JSON parameter set is not public. The manifest and fixture are unchanged.
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 - 2026-11-26: Live probe returned 200 with a valid documents envelope.

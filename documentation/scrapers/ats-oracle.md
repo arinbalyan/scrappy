@@ -21,6 +21,8 @@ Concurrency: 1
 - Offset pagination, remote inference, and posting dates stay outside the adapter.
 
 ## Break and fix log
+- 2026-11-27: Endpoint research found no verified replacement for the HCM recruiting requisitions route. The failure came from the example-co placeholder subdomain, so the slug placeholder and requires_slug stay unchanged. Re-probe with an active tenant subdomain before changing the URL.
+- 2026-11-27: Live validation could not reach the example tenant host; the source stays requires_slug.
 
 - 2026-11-26: Ported the recruiting requisitions feed with a slug manifest and synthetic fixture.
 - 2026-11-26: Live probe of a historical tenant subdomain timed out; health left at requires_slug because no active public tenant was confirmed.

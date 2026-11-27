@@ -27,4 +27,5 @@ Attribution: Eco Jobs
 
 ## Break and fix log
 
+- 2026-11-27: Live validation returned 50 RSS records, so the https://www.ecojobs.com/rss.xml path is still serving records. Endpoint research found no replacement. Health stays stale to reflect the narrow niche match rate rather than a feed outage.
 - 2026-11-26: Manifest, generic fixtures, and offline replay recorded during the Tier 1 port.

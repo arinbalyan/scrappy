@@ -3,7 +3,7 @@ id = "ats-successfactors"
 name = "SAP SuccessFactors"
 family = "ats"
 health = "stale"
-request = 'https://example-co.successfactors.com/odata/v2/JobRequisitionPosting?$select=jobReqId,jobTitle,jobDescription,locationObj,department,postingStartDate,employmentType,companyName,externalJobUrl&$top=20&$skip=0&$format=json'
+request = 'https://{slug}.successfactors.com/odata/v2/JobRequisitionPosting?$select=jobReqId,jobTitle,jobDescription,locationObj,department,postingStartDate,employmentType,companyName,externalJobUrl&$top=20&$skip=0&$format=json'
 parser = "json"
 fetcher = "plain"
 pagination = "none"

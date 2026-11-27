@@ -27,6 +27,7 @@ Slugs: none
 - No browser or emulation profile is declared for the static search page.
 
 ## Break and fix log
+- 2026-11-27: Selector and endpoint research returned no verified replacement for the static search markup. The 403 is treated as a challenge, so the manifest URL, selectors, and health stay as recorded. Re-probe from an unrestricted network before changing the search path.
 - 2026-11-27: Live validation returned HTTP 403. The run environment may restrict outbound hosts; re-probe from an unrestricted network before changing health.
 
 - 2026-11-26: Manifest, static search fixture, behavior doc, and offline replay recorded during the Tier 2 port.

@@ -88,11 +88,10 @@ fn render_template(template: &str, values: &serde_json::Map<String, serde_json::
     for (name, value) in values {
         let value = value.as_str().expect("substitution is a string");
         let token = format!("{{query:{name}}}");
-        assert!(rendered.contains(&token), "unused substitution {name}");
         rendered = rendered.replace(&token, value);
     }
     assert!(
-        !rendered.contains('{') && !rendered.contains('}'),
+        !rendered.contains("{query:"),
         "unresolved placeholder in {rendered}"
     );
     rendered
@@ -180,8 +179,21 @@ fn tier2_b_fixtures_replay_through_adapter() {
             .get("url")
             .and_then(serde_json::Value::as_str)
             .expect("template has a url");
+        let template_body = template.get("body").and_then(serde_json::Value::as_str);
+        for name in substitutions.keys() {
+            let token = format!("{{query:{name}}}");
+            assert!(
+                template_url.contains(&token)
+                    || template_body.is_some_and(|body| body.contains(&token)),
+                "{id} template does not use substitution {name}"
+            );
+        }
         let mut expected = template.clone();
         expected["url"] = serde_json::Value::String(render_template(template_url, substitutions));
+        if let Some(body_template) = template.get("body").and_then(serde_json::Value::as_str) {
+            expected["body"] =
+                serde_json::Value::String(render_template(body_template, substitutions));
+        }
         assert_eq!(
             request, expected,
             "{id} frozen request differs from template"
@@ -196,7 +208,24 @@ fn tier2_b_fixtures_replay_through_adapter() {
         }
         let built =
             build_request(&manifest, &values).unwrap_or_else(|error| panic!("{id}: {error}"));
-        assert_eq!(built.method, "GET");
+        let expected_method = request
+            .get("method")
+            .and_then(serde_json::Value::as_str)
+            .expect("request has a method");
+        assert_eq!(built.method, expected_method);
+        if let Some(body_template) = template.get("body").and_then(serde_json::Value::as_str) {
+            let expected_body = render_template(body_template, substitutions);
+            assert_eq!(
+                built.body,
+                expected_body.as_bytes(),
+                "{id} request body differs from template"
+            );
+            assert_eq!(
+                request.get("body").and_then(serde_json::Value::as_str),
+                Some(expected_body.as_str()),
+                "{id} frozen body differs from template"
+            );
+        }
         assert_eq!(built.url, request["url"].as_str().expect("request url"));
 
         let actual = normalized_records(&manifest, &fixture);

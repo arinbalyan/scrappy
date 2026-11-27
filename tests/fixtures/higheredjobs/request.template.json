@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://www.higheredjobs.com/search/rss.cfm",
+  "url": "https://www.higheredjobs.com/rss/categoryFeed.cfm?catID=68",
   "headers": {
     "accept": "application/rss+xml, application/xml"
   }

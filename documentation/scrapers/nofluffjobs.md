@@ -18,8 +18,10 @@ Attribution: NoFluffJobs
 - Company comes from the posting name, and location comes from the first place entry.
 - The URL alias falls back to the posting id, which the consumer resolves against the job path.
 - Salary, seniority, posted time, regions, and client-side search filtering are outside this adapter.
+- The bare posting API returned more than 8 MiB on the public tenant. The public search route is POST https://nofluffjobs.com/api/search/posting with limit, offset, and region parameters plus a JSON criteria body. The manifest only issues GET, so it cannot adopt that route without a request_options change and a fixture body.
 
 ## Break and fix log
+- 2026-11-27: Research identified POST https://nofluffjobs.com/api/search/posting as the bounded public search route. The manifest and fixtures stay on the GET posting route because the current request template is GET-only; the oversized response remains the known break until a POST request with criteria is introduced and verified.
 - 2026-11-27: Live validation returned a response above the 8 MiB fetch limit. The manifest needs a narrower query or a raised bounded limit.
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.

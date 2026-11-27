@@ -25,6 +25,7 @@ Attribution: Functional Works
 
 ## Break and fix log
 
+- 2026-11-27: Live validation returned no records. The GraphQL endpoint and query shape remain unconfirmed; the `data.jobs` fixture matches the documented nested company, location, and `descriptionHtml` fields, so the manifest and fixture are unchanged.
 - 2026-11-26: GET/JSON representation, generic fixtures, and offline replay recorded during the Tier 1 port.
 - 2026-11-26: Added POST method, templated body, and header support to the adapter; replay now builds the GraphQL POST and health is working.
 - 2026-11-26: Replaced the placeholder body with the full GraphQL query from the prior scraper and verified the frozen request bytes against the manifest template.

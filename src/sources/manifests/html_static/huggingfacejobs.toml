@@ -3,8 +3,8 @@ id = "huggingfacejobs"
 name = "Hugging Face Jobs"
 family = "html_static"
 health = "working"
-request = "https://huggingface.co/jobs"
-parser = "html"
+request = "https://apply.workable.com/api/v1/widget/accounts/huggingface"
+parser = "json"
 fetcher = "plain"
 pagination = "none"
 profile = "none"
@@ -15,9 +15,20 @@ robots = "allow"
 attribution = "Hugging Face Jobs"
 fixtures = ["huggingfacejobs"]
 
-[selectors]
-item = ".listing"
-title = ".title"
-company = "span.company"
-url = "a.job-link"
-url_attribute = "href"
+[parser_options]
+envelope = ["jobs"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company", "name"]
+
+[field_aliases.url]
+names = ["url", "shortlink"]
+
+[field_aliases.location]
+names = ["city", "locations.0.city"]
+
+[field_aliases.description]
+names = ["description"]

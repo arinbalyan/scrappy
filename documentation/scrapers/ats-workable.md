@@ -29,6 +29,7 @@ Slugs: example-co (seed placeholder)
 - A board with no parseable jobs is treated as empty rather than an error.
 
 ## Break and fix log
+- 2026-11-27: Endpoint research found no verified replacement for the widget account route. The 200 response with no records came from the example-co placeholder board, so the slug placeholder and requires_slug stay unchanged. Re-probe with an active public board slug before changing the URL.
 - 2026-11-27: Live validation returned HTTP 200 with no records for the example slug. The source stays requires_slug and needs an active board seed.
 
 - 2026-11-26: Ported the widget account JSON response with a slug manifest and synthetic fixture. The source stays requires_slug because an account slug must be supplied before a request can be built.

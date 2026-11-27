@@ -303,7 +303,7 @@ fn atom_and_json_fixtures_normalize() {
         record["url"]
             .as_str()
             .expect("url")
-            .starts_with("https://landing.jobs/jobs/")
+            .starts_with("https://landing.jobs/at/")
     }));
     assert_eq!(landing[0]["company"], "Maple Labs");
 }

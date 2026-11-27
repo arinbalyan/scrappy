@@ -26,6 +26,6 @@ Attribution: GetOnBoard
 - A location field that is an object of references yields no normalized location.
 
 ## Break and fix log
-- 2026-11-27: Live validation returned HTTP 200 but no records with title, company, and URL. The HTML aliases need review against the live payload.
+- 2026-11-27: Live validation returned HTTP 200 but no records with title, company, and URL. The public API reference still documents `GET /api/v0/search/jobs` with a JSON:API `data[]` array, `links.public_url`, and `attributes.*`, matching the manifest. The fixture and manifest were left unchanged.
 
 - 2026-11-26: Manifest, generic fixtures, and offline replay recorded during the Tier 1 port.

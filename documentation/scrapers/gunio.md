@@ -15,15 +15,16 @@ Attribution: Gun.io Jobs
 ## Behavior
 
 - Single GET returns a static HTML page; no browser or emulation profile is used.
-- Selectors match job rows and the anchor and company span within each row.
-- The fixture includes a repeated job link to exercise the parser's per-item output.
+- Selectors match each job tile and the heading anchor and company span inside it.
+- Public job tiles link to the application site; the fixture uses those absolute URLs.
 
 ## Known quirks
 
-- The adapter does not deduplicate URLs; downstream dedup handles repeated links.
+- The adapter does not deduplicate URLs within a page.
 - Relative URLs stay relative in normalized records.
 
 ## Break and fix log
 - 2026-11-27: Live validation returned HTTP 200 but no records matched the configured selectors. The static HTML selectors need updating.
+- 2026-11-27: Fixed by selecting job tiles rather than individual anchors, and by reading the company span inside each tile; refreshed the synthetic fixture and golden records. Verified via tier 1 replay.
 
 - 2026-11-26: Manifest, generic fixtures, and offline replay recorded during the Tier 1 port.

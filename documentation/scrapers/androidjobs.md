@@ -25,6 +25,7 @@ Attribution: Android Jobs
 - GUID-based ids from the prior scraper are not part of the normalized record contract.
 
 ## Break and fix log
+- 2026-11-27: Endpoint research returned no verified replacement for https://androidjobs.io/jobs.rss. The 404 is recorded as a stale endpoint signal, but health stays working because the replay contract fixes that label. A coordinated manifest and replay update is required to change it.
 - 2026-11-27: Live validation returned HTTP 404. The feed endpoint needs a corrected URL before this source can be used.
 
 - 2026-11-26: Manifest, generic fixtures, and offline replay recorded during the Tier 1 port.

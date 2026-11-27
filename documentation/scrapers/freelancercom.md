@@ -28,7 +28,7 @@ Slugs: none
 - Compensation and posting date never appear in fixtures or docs.
 
 ## Break and fix log
-- 2026-11-27: Live validation returned HTTP 200 but no records with title, company, and URL. The HTML aliases need review against the live payload.
+- 2026-11-27: Live validation returned HTTP 200 but no records with title, company, and URL. The SDK still documents `GET /api/projects/0.1/projects/active` with `result.projects`, `seo_url`, owner display names, and city fields, matching the manifest. The fixture and manifest were left unchanged.
 
 - 2026-11-26: Manifest, JSON API fixture, behavior doc, and offline replay recorded during the Tier 2 port.
 

@@ -17,7 +17,7 @@ Slugs: none
 ## Behavior
 
 - The SEEK v5 search API is shared with other regional boards; the site key selects the SG-Main index.
-- The adapter reads the top-level array directly. The frozen payload is shaped as an array so field aliases apply; a live data envelope needs envelope support with aliases.
+- The adapter reads the `data` array from the SEEK v5 response. The frozen payload carries `data` and `totalCount` alongside the job rows.
 - Location is flattened into a scalar string in the frozen payload because the adapter cannot index into list fields.
 - Company comes from companyName, with advertiser.description as the fallback.
 - The normalized URL is built from the API id as https://www.jobsdb.com/job/{id}.
@@ -31,6 +31,6 @@ Slugs: none
 - Missing location produces a null location field.
 
 ## Break and fix log
-- 2026-11-27: Live validation returned HTTP 200 but the JSON payload was not an array. The response envelope needs review.
+- 2026-11-27: Live validation returned HTTP 200 but the JSON payload was not an array. SEEK v5 still serves `/api/jobsearch/v5/search` with `siteKey=SG-Main` and returns rows under `data` with a `totalCount`. Added the `data` envelope to the manifest and wrapped the fixture; golden records are unchanged.
 
 - 2026-11-26: Manifest, synthetic fixtures, behavior doc, and offline replay recorded during the Tier 2 B port.

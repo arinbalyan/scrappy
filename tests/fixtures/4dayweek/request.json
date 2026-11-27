@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://4dayweek.io/api/jobs",
+  "url": "https://4dayweek.io/api/v1?page=1&limit=25",
   "headers": {
     "accept": "application/json"
   }

@@ -1,5 +1,5 @@
 <!doctype html>
 <html><body>
-<div class="individual_internship"><a class="job-title-href" href="/job/801/backend-engineer">Backend Engineer</a><span class="company-name">Example Co</span></div>
-<div class="individual_internship"><a class="job-title-href" href="https://jobs.example.test/802">Data Engineer</a><span class="company-name">Sample Labs</span></div>
+<div class="individual_internship"><a class="job-title-href" href="/jobs/801/backend-engineer">Backend Engineer</a><span class="company-name">Example Co</span></div>
+<div class="individual_internship"><a class="job-title-href" href="/jobs/802/data-engineer">Data Engineer</a><span class="company-name">Sample Labs</span></div>
 </body></html>

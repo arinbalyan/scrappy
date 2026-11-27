@@ -1,8 +1,40 @@
-<!doctype html>
-<html lang="en"><body>
-<nav><a href="/about">About</a><a href="/teams">Teams</a></nav>
-<main>
-<div class="listing"><a class="job-link" href="/jobs/601"><span class="title">ML Engineer</span></a><span class="company">Example Org</span></div>
-<div class="listing"><a class="job-link" href="https://jobs.example.test/roles/602"><span class="title">Data Engineer</span></a><span class="company">Sample Labs</span></div>
-<div class="listing"><a class="job-link" href="/jobs/601"><span class="title">ML Engineer (duplicate)</span></a><span class="company">Example Org</span></div>
-</main></body></html>
+{
+  "name": "Hugging Face",
+  "description": "Here at Hugging Face, we're on a journey to advance and democratize machine learning for everyone.",
+  "jobs": [
+    {
+      "title": "Low-level Senior Software Engineer, Xet Storage - EMEA Remote",
+      "shortcode": "F4C096B22E",
+      "company": "Hugging Face",
+      "employment_type": "Full-time",
+      "telecommuting": true,
+      "department": "Product",
+      "url": "https://apply.workable.com/j/F4C096B22E",
+      "shortlink": "https://apply.workable.com/j/F4C096B22E",
+      "published_on": "2026-11-20",
+      "city": "Paris",
+      "state": "Île-de-France",
+      "country": "FR",
+      "locations": [
+        {
+          "city": "Paris",
+          "state": "Île-de-France",
+          "country": "FR"
+        }
+      ]
+    },
+    {
+      "title": "Machine Learning Engineer, Inference",
+      "shortcode": "A1B2C3D4E5",
+      "company": "Hugging Face",
+      "employment_type": "Full-time",
+      "telecommuting": false,
+      "department": "Engineering",
+      "shortlink": "https://apply.workable.com/j/A1B2C3D4E5",
+      "published_on": "2026-11-21",
+      "city": "Remote",
+      "country": "US",
+      "locations": []
+    }
+  ]
+}

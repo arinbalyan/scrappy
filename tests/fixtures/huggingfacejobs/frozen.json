@@ -1,6 +1,6 @@
 {
   "fetched_at": "2026-11-26T00:00:00Z",
   "substitutions": {
-    "base_url": "https://huggingface.co/jobs"
+    "base_url": "https://apply.workable.com/api/v1/widget/accounts/huggingface"
   }
 }
