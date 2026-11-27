@@ -8,8 +8,7 @@
 use std::collections::BTreeMap;
 use std::fmt::Write as FmtWrite;
 use std::fs;
-use std::io::Write;
-use std::os::unix::fs::PermissionsExt;
+use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 
 use serde::Serialize;
@@ -153,10 +152,8 @@ fn write_private(path: &Path, bytes: &[u8]) -> Result<(), FileError> {
         fs::create_dir_all(parent).map_err(|error| FileError {
             message: format!("cannot create {}: {error}", parent.display()),
         })?;
-        fs::set_permissions(parent, fs::Permissions::from_mode(0o700)).map_err(|error| {
-            FileError {
-                message: format!("cannot secure {}: {error}", parent.display()),
-            }
+        restrict_dir(parent).map_err(|error| FileError {
+            message: format!("cannot secure {}: {error}", parent.display()),
         })?;
     }
     let temp = temp_path(path);
@@ -169,7 +166,7 @@ fn write_private(path: &Path, bytes: &[u8]) -> Result<(), FileError> {
     file.sync_all().map_err(|error| FileError {
         message: format!("cannot sync {}: {error}", temp.display()),
     })?;
-    fs::set_permissions(&temp, fs::Permissions::from_mode(0o600)).map_err(|error| FileError {
+    restrict_file(&temp).map_err(|error| FileError {
         message: format!("cannot secure {}: {error}", temp.display()),
     })?;
     fs::rename(&temp, path).map_err(|error| FileError {
@@ -183,6 +180,28 @@ fn temp_path(path: &Path) -> PathBuf {
         .and_then(|name| name.to_str())
         .unwrap_or("config");
     path.with_file_name(format!(".{name}.tmp-{}", std::process::id()))
+}
+
+#[cfg(unix)]
+fn restrict_file(path: &Path) -> io::Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    fs::set_permissions(path, fs::Permissions::from_mode(0o600))
+}
+
+#[cfg(not(unix))]
+fn restrict_file(_path: &Path) -> io::Result<()> {
+    Ok(())
+}
+
+#[cfg(unix)]
+fn restrict_dir(path: &Path) -> io::Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    fs::set_permissions(path, fs::Permissions::from_mode(0o700))
+}
+
+#[cfg(not(unix))]
+fn restrict_dir(_path: &Path) -> io::Result<()> {
+    Ok(())
 }
 
 fn parse_value(raw: &str) -> Result<Value, ConfigError> {

@@ -9,7 +9,6 @@ use std::fmt::Write as FmtWrite;
 use std::fs;
 use std::hash::{Hash, Hasher};
 use std::io::{self, Write};
-use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
 use serde::{Deserialize, Serialize};
@@ -180,8 +179,7 @@ pub fn save(path: &Path, bytes: &[u8]) -> Result<Manifest, String> {
         .map_err(|error| format!("cannot write {}: {error}", temp.display()))?;
     file.sync_all()
         .map_err(|error| format!("cannot sync {}: {error}", temp.display()))?;
-    fs::set_permissions(&temp, fs::Permissions::from_mode(0o600))
-        .map_err(|error| format!("cannot secure {}: {error}", temp.display()))?;
+    restrict_file(&temp).map_err(|error| format!("cannot secure {}: {error}", temp.display()))?;
     fs::rename(&temp, path)
         .map_err(|error| format!("cannot replace {}: {error}", path.display()))?;
     let manifest = Manifest {
@@ -198,8 +196,7 @@ pub fn save(path: &Path, bytes: &[u8]) -> Result<Manifest, String> {
         .map_err(|error| format!("cannot encode manifest: {error}"))?;
     let manifest_temp = temp_path(&manifest_path);
     fs::write(&manifest_temp, text).map_err(|error| format!("cannot write manifest: {error}"))?;
-    fs::set_permissions(&manifest_temp, fs::Permissions::from_mode(0o600))
-        .map_err(|error| format!("cannot secure manifest: {error}"))?;
+    restrict_file(&manifest_temp).map_err(|error| format!("cannot secure manifest: {error}"))?;
     fs::rename(&manifest_temp, &manifest_path)
         .map_err(|error| format!("cannot install manifest: {error}"))?;
     Ok(manifest)
@@ -235,6 +232,17 @@ fn temp_path(path: &Path) -> PathBuf {
         .and_then(|name| name.to_str())
         .unwrap_or("result");
     path.with_file_name(format!(".{name}.tmp-{}", std::process::id()))
+}
+
+#[cfg(unix)]
+fn restrict_file(path: &Path) -> io::Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+    fs::set_permissions(path, fs::Permissions::from_mode(0o600))
+}
+
+#[cfg(not(unix))]
+fn restrict_file(_path: &Path) -> io::Result<()> {
+    Ok(())
 }
 
 #[cfg(test)]

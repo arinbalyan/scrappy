@@ -1,4 +1,3 @@
-use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::{Command, Output};
 
@@ -61,11 +60,7 @@ fn set_and_unset_preserve_sections_and_permissions() {
     let text = std::fs::read_to_string(&path).expect("config readable");
     assert!(text.contains("remoteok"));
     assert!(text.contains("debug"));
-    let mode = std::fs::metadata(&path)
-        .expect("metadata available")
-        .permissions()
-        .mode();
-    assert_eq!(mode & 0o777, 0o600);
+    assert_private_file(&path);
     let output = run(&["config", "unset", "--path", &path_str, "--key", "log_level"]);
     assert!(
         output.status.success(),
@@ -101,3 +96,16 @@ fn schema_lists_every_field() {
         assert!(text.contains(field), "schema omitted {field}");
     }
 }
+
+#[cfg(unix)]
+fn assert_private_file(path: &std::path::Path) {
+    use std::os::unix::fs::PermissionsExt;
+    let mode = std::fs::metadata(path)
+        .expect("metadata available")
+        .permissions()
+        .mode();
+    assert_eq!(mode & 0o777, 0o600);
+}
+
+#[cfg(not(unix))]
+fn assert_private_file(_path: &std::path::Path) {}
