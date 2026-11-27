@@ -91,3 +91,12 @@ fail the run.
 - Challenge detection requires HTML or WAF evidence, so JSON job payloads and ordinary listings are not classified as CAPTCHAs.
 - Credentials resolve through one secret store from `SCRAPPY_<NAME>` and an optional `secrets_file`. Missing credentials produce a keyed outcome with zero requests.
 - Output schema version 2 adds source job ids, salary bounds and currency, typed apply routes, and keeps `fetched_at` separate from `date_posted`.
+
+## Final hardening additions
+
+- Cursor pagination follows a configured JSON path and stops on a missing or repeated token.
+- Bounded fanout reads an id array, requests each item through `fanout_item`, and caps requests by batch and maximum ids.
+- The live harvest calls the same pipeline executor as normal runs, so request counts, stop reasons, pagination, retries, and challenge handling match production.
+- Optional `proxies` and `cookies` config values are wired into the plain fetcher. Proxy URLs are never logged, and the in-process cookie jar is per run.
+- Workday uses composite `tenant` and `site` manifest fields with `{tenant}` and `{site}` request placeholders.
+- Doctor reports a `network` check with DNS validation mode and the response body ceiling.

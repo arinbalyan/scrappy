@@ -84,6 +84,7 @@ fn doctor_reports_all_named_checks_as_text() {
         "sources",
         "credentials",
         "proxies",
+        "network",
         "browser",
         "fixtures",
         "output",
@@ -102,7 +103,7 @@ fn doctor_json_is_parseable() {
         .expect("doctor runs");
     assert!(output.status.success());
     let value = json_output(&output);
-    assert_eq!(value["checks"].as_array().expect("array").len(), 9);
+    assert_eq!(value["checks"].as_array().expect("array").len(), 10);
     assert!(value["failures"].is_u64());
     assert!(value["config_files"].is_array());
 }
@@ -231,7 +232,7 @@ fn doctor_fix_adds_fix_check_and_counts_repairs() {
     );
     assert!(output.status.success());
     let value = json_output(&output);
-    assert_eq!(value["checks"].as_array().expect("array").len(), 10);
+    assert_eq!(value["checks"].as_array().expect("array").len(), 11);
     let fix = check(&value, "fix");
     assert_eq!(fix["status"], "pass");
     assert_eq!(fix["reason"], "secured 1 config file(s), 0 failure(s)");

@@ -22,3 +22,7 @@ Attribution: Joinrise
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 - 2026-11-26: Live probe could not resolve the API host from this network; endpoint needs a retry from an unrestricted network.
+
+## Environment classification 2026-11-27
+
+- Two probes failed DNS resolution from the current environment. The source is marked stale pending a clean-egress re-probe.

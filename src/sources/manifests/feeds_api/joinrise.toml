@@ -2,7 +2,7 @@ version = 1
 id = "joinrise"
 name = "Joinrise"
 family = "feeds_api"
-health = "working"
+health = "stale"
 request = "https://api.joinrise.ai/api/job/search?limit=25"
 parser = "json"
 fetcher = "plain"

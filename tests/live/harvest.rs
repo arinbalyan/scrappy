@@ -14,14 +14,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
+use scrappy::config::Config;
 use scrappy::config::secret::credential;
-use scrappy::engine::challenge::detect;
-use scrappy::engine::governor::{Governor, SourceBudget};
-use scrappy::engine::pipeline::{now_utc, observed_emails};
-use scrappy::fetching::Fetcher;
+use scrappy::engine::pipeline::{self, RunInput, now_utc};
 use scrappy::fetching::plain::PlainFetcher;
-use scrappy::parsing::Record;
-use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
+use scrappy::sources::adapter::TemplateValues;
 use scrappy::sources::manifest::{Manifest, parse};
 use scrappy::sources::registry::Registry;
 use serde::Serialize;
@@ -223,20 +220,6 @@ fn live_only_sources() -> Option<BTreeSet<String>> {
     (!ids.is_empty()).then_some(ids)
 }
 
-fn environment_credentials(manifest: &Manifest, values: &mut TemplateValues) -> bool {
-    for name in &manifest.credentials {
-        let variable = format!("SCRAPPY_{}", name.to_ascii_uppercase());
-        let Some(value) = std::env::var(variable)
-            .ok()
-            .filter(|v| !v.trim().is_empty())
-        else {
-            return false;
-        };
-        values.credentials.insert(name.clone(), credential(value));
-    }
-    true
-}
-
 fn address_domain(address: &str) -> String {
     address.rsplit_once('@').map_or_else(
         || "unknown".to_owned(),
@@ -275,51 +258,15 @@ struct Harvest {
 }
 
 impl Harvest {
-    /// Adds one parsed source response to the aggregate counts.
-    fn count_records(&mut self, manifest: &Manifest, records: &[Record]) {
-        let mut source_addresses = BTreeSet::new();
-        let mut source_domains = BTreeSet::new();
-        let mut records_with_emails = 0;
-        let mut skipped = 0;
-        let mut emails = 0;
-        for record in records {
-            let found = observed_emails(record.description.as_deref());
-            if found.is_empty() {
-                skipped += 1;
-            } else {
-                records_with_emails += 1;
-            }
-            for email in found {
-                source_addresses.insert(email.addr.clone());
-                let domain = address_domain(&email.addr);
-                source_domains.insert(domain.clone());
-                *self.domains.entry(domain).or_insert(0) += 1;
-                emails += 1;
-            }
-        }
-        self.totals.sources_probed += 1;
-        self.totals.records += records.len();
-        self.totals.skipped += skipped;
-        self.totals.observed_emails += emails;
-        if !records.is_empty() {
-            self.totals.sources_with_records += 1;
-        }
-        if !source_addresses.is_empty() {
-            self.totals.sources_with_emails += 1;
-        }
-        self.addresses.extend(source_addresses);
-        self.email_counts.push(EmailSourceCount {
-            source_id: manifest.id.clone(),
-            emails,
-            records_with_emails,
-        });
-    }
-
-    /// Fetches one manifest and classifies the outcome.
+    /// Fetches one manifest through the shared pipeline executor.
+    #[expect(
+        clippy::too_many_lines,
+        reason = "live report keeps outcome and counters together"
+    )]
     async fn probe(
         &mut self,
         manifest: &Manifest,
-        governor: &Governor,
+        registry: &Registry,
         fetcher: &PlainFetcher,
     ) -> SourceResult {
         let mut result = new_result(manifest);
@@ -334,88 +281,95 @@ impl Harvest {
                 .entry(name.clone())
                 .or_insert_with(|| value.clone());
         }
-        if !environment_credentials(manifest, &mut values) {
-            result.outcome = "keyed".to_owned();
-            result.detail = "credential not present in environment".to_owned();
-            return result;
-        }
-        let request = match build_request(manifest, &values) {
-            Ok(request) => request,
-            Err(error) => {
-                result.outcome = if error.message.contains("substitution") {
-                    "skipped".to_owned()
-                } else {
-                    "stale".to_owned()
-                };
-                result.detail = error.message;
-                return result;
-            }
+        let mut all_values = BTreeMap::new();
+        all_values.insert(manifest.id.clone(), values);
+        let input = RunInput {
+            sources: vec![manifest.id.clone()],
+            fetched_at: now_utc(),
+            values: all_values,
+            config: Config {
+                email_discovery: Some(true),
+                ..Config::default()
+            },
+            ..RunInput::default()
         };
-        let _permit = governor
-            .acquire(&manifest.id)
-            .await
-            .expect("rate permit acquired");
         let started = std::time::Instant::now();
-        let response = match fetcher.fetch(&request).await {
-            Ok(response) => response,
+        let (jobs, summary) = match pipeline::run(registry, &input, fetcher).await {
+            Ok(result) => result,
             Err(error) => {
-                result.elapsed_ms =
-                    u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
                 result.outcome = "environment".to_owned();
                 result.detail = error;
+                result.elapsed_ms =
+                    u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
                 return result;
             }
         };
         result.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
-        result.http_status = Some(response.status);
-        let text = response.text().unwrap_or_default();
-        result.bytes = text.len();
-        result.requests = 1;
-        result.pages = 1;
-        if let Some(challenge) = detect(response.status, &response.headers, text) {
-            result.outcome = "challenge".to_owned();
-            result.detail = format!("challenge: {challenge:?}");
-            return result;
+        if let Some(report) = summary.reports.first() {
+            result.outcome.clone_from(&report.outcome);
+            result.http_status = report.http_status;
+            result.requests = report.requests;
+            result.pages = report.pages;
+            result.bytes = report.bytes;
+            result.skipped = report.skipped_invalid + report.skipped_duplicate;
+            result.detail = report.stop_reason.clone();
         }
-        if !(200..300).contains(&response.status) {
-            result.outcome = if response.status == 403 || response.status == 429 {
+        if let Some(failure) = summary.failures.first() {
+            result.outcome = if failure.contains("403")
+                || failure.contains("429")
+                || failure.contains("challenge")
+            {
                 "blocked".to_owned()
+            } else if failure.contains("resolution")
+                || failure.contains("request failed")
+                || failure.contains("timeout")
+            {
+                "environment".to_owned()
             } else {
                 "stale".to_owned()
             };
-            result.detail = format!("http {}", response.status);
-            return result;
+            result.detail = failure.clone();
         }
-        let records = match parse_response(manifest, &response) {
-            Ok(records) => records,
-            Err(error) => {
-                result.outcome = "stale".to_owned();
-                result.detail = error.message;
-                return result;
+        if result.outcome == "working" && jobs.is_empty() {
+            result.outcome = "stale".to_owned();
+            result.detail = "no emitted records".to_owned();
+        }
+        result.records = jobs.len();
+        let mut source_addresses = BTreeSet::new();
+        let mut source_domains = BTreeSet::new();
+        let mut records_with_emails = 0;
+        for job in &jobs {
+            if !job.emails.is_empty() {
+                records_with_emails += 1;
             }
-        };
-        self.count_records(manifest, &records);
-        result.outcome = if records.is_empty() {
-            "stale".to_owned()
-        } else {
-            "working".to_owned()
-        };
-        result.records = records.len();
-        result.skipped = records
-            .iter()
-            .filter(|r| observed_emails(r.description.as_deref()).is_empty())
-            .count();
-        result.emails = self.email_counts.last().map_or(0, |c| c.emails);
-        result.domains = records
-            .iter()
-            .flat_map(|r| observed_emails(r.description.as_deref()))
-            .map(|e| address_domain(&e.addr))
-            .collect::<BTreeSet<_>>()
-            .len();
-        result.detail = "parsed with manifest pipeline".to_owned();
+            for email in &job.emails {
+                source_addresses.insert(email.addr.clone());
+                let domain = address_domain(&email.addr);
+                source_domains.insert(domain.clone());
+                *self.domains.entry(domain).or_insert(0) += 1;
+            }
+        }
+        result.emails = jobs.iter().map(|job| job.emails.len()).sum();
+        result.domains = source_domains.len();
+        self.totals.sources_probed += 1;
+        self.totals.records += jobs.len();
+        self.totals.skipped += result.skipped;
+        self.totals.observed_emails += result.emails;
+        if !jobs.is_empty() {
+            self.totals.sources_with_records += 1;
+        }
+        if !source_addresses.is_empty() {
+            self.totals.sources_with_emails += 1;
+        }
+        self.addresses.extend(source_addresses);
+        self.email_counts.push(EmailSourceCount {
+            source_id: manifest.id.clone(),
+            emails: result.emails,
+            records_with_emails,
+        });
         println!(
-            "[harvest] {}: {} records, {} emails",
-            manifest.id, result.records, result.emails
+            "[harvest] {}: {} records, {} emails, {} requests, {}",
+            manifest.id, result.records, result.emails, result.requests, result.detail
         );
         result
     }
@@ -512,18 +466,14 @@ fn timing_summary(results: &[SourceResult]) -> TimingSummary {
 #[ignore = "requires live network access and egress"]
 async fn harvest_live_records_and_contacts() {
     let selected = selected_manifests();
-    let mut governor = Governor::new();
+    let mut registry = Registry::new();
     for manifest in &selected {
-        let budget = SourceBudget::new(manifest.requests_per_minute, manifest.max_concurrency)
-            .expect("manifest budget is valid");
-        governor
-            .add_source(manifest.id.as_str(), budget)
-            .expect("source registered once");
+        registry.insert(manifest.clone());
     }
     let fetcher = PlainFetcher::new().with_timeout(Duration::from_secs(15));
     let mut harvest = Harvest::default();
     for manifest in &selected {
-        let result = harvest.probe(manifest, &governor, &fetcher).await;
+        let result = harvest.probe(manifest, &registry, &fetcher).await;
         harvest.results.push(result);
     }
     harvest.write_report();

@@ -1,6 +1,6 @@
 {
   "method": "POST",
-  "url": "https://example-co.wd5.myworkdayjobs.com/wday/cxs/example-co/External/jobs",
+  "url": "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite/jobs",
   "headers": {
     "content-type": "application/json",
     "accept": "application/json",
@@ -8,4 +8,3 @@
   },
   "body": "{\"appliedFacets\":{},\"limit\":20,\"offset\":0,\"searchText\":\"\"}"
 }
-

@@ -22,11 +22,11 @@ const SOURCES: [(&str, Family, Health, &str); 5] = [
     (
         "canadajobbank",
         Family::FeedsApi,
-        Health::Working,
+        Health::Stale,
         "feeds_api",
     ),
     ("coroflot", Family::FeedsApi, Health::Working, "feeds_api"),
-    ("joinrise", Family::FeedsApi, Health::Working, "feeds_api"),
+    ("joinrise", Family::FeedsApi, Health::Stale, "feeds_api"),
     (
         "startupjobs",
         Family::FeedsApi,

@@ -91,6 +91,7 @@ fn dispatch_run(args: &cli::RunArgs) -> Result<i32, String> {
     };
     let config = config::resolve(&sources).map_err(|error| error.message)?;
     let secrets = scrappy::config::secret::SecretStore::from_config(&config);
+    let fetcher = plain_fetcher(&config);
     let config_format = config.format.clone();
     let input = pipeline::RunInput {
         sources: args.source.clone(),
@@ -103,9 +104,18 @@ fn dispatch_run(args: &cli::RunArgs) -> Result<i32, String> {
         .enable_all()
         .build()
         .map_err(|error| format!("cannot create async runtime: {error}"))?;
-    let (jobs, summary) =
-        runtime.block_on(pipeline::run(&registry, &input, &PlainFetcher::new()))?;
+    let (jobs, summary) = runtime.block_on(pipeline::run(&registry, &input, &fetcher))?;
     write_run_output(args, config_format.as_deref(), &jobs, &summary, false)
+}
+
+fn plain_fetcher(config: &Config) -> PlainFetcher {
+    let proxies = config
+        .proxies
+        .clone()
+        .map_or_else(Vec::new, scrappy::config::OneOrMany::into_vec);
+    PlainFetcher::new()
+        .with_proxies(proxies)
+        .with_cookies(config.cookies.unwrap_or(false))
 }
 
 fn runtime_values(
@@ -116,6 +126,8 @@ fn runtime_values(
     for manifest in registry.iter() {
         let mut template = scrappy::sources::adapter::TemplateValues {
             slug: manifest.slugs.first().cloned(),
+            tenant: manifest.tenant.clone(),
+            site: manifest.site.clone(),
             credentials: secrets.values(&manifest.credentials),
             ..scrappy::sources::adapter::TemplateValues::default()
         };
@@ -191,6 +203,7 @@ fn run_with_config(
     let root = std::path::Path::new("src/sources/manifests");
     let registry = custom::load(root, &custom::directory()).map_err(|error| error.message)?;
     let secrets = scrappy::config::secret::SecretStore::from_config(&config);
+    let fetcher = plain_fetcher(&config);
     let config_format = config.format.clone();
     let input = pipeline::RunInput {
         sources,
@@ -203,8 +216,7 @@ fn run_with_config(
         .enable_all()
         .build()
         .map_err(|error| format!("cannot create async runtime: {error}"))?;
-    let (jobs, summary) =
-        runtime.block_on(pipeline::run(&registry, &input, &PlainFetcher::new()))?;
+    let (jobs, summary) = runtime.block_on(pipeline::run(&registry, &input, &fetcher))?;
     write_run_output(args, config_format.as_deref(), &jobs, &summary, true)
 }
 

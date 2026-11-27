@@ -26,3 +26,7 @@ Rate: 30 requests per minute
 - 2026-11-26: Ported from historical behavior with a manifest and synthetic fixture.
 - 2026-11-26: Live probe timed out after 20 seconds; health left at working because the endpoint may require regional access.
 
+
+## Environment classification 2026-11-27
+
+- The public API timed out in repeated probes. The source is marked stale pending a clean-egress re-probe.

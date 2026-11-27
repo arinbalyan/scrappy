@@ -122,6 +122,16 @@ pub const CONFIG_SCHEMA: &[FieldInfo] = &[
         kind: "path",
         default: "none",
     },
+    FieldInfo {
+        name: "proxies",
+        kind: "string or array",
+        default: "none",
+    },
+    FieldInfo {
+        name: "cookies",
+        kind: "boolean",
+        default: "false",
+    },
 ];
 
 /// Error produced when config discovery or validation fails.
@@ -215,6 +225,10 @@ pub struct Config {
     pub email_discovery: Option<bool>,
     /// Path to an optional secrets file outside the config contents.
     pub secrets_file: Option<PathBuf>,
+    /// Optional proxy URLs used in stable order.
+    pub proxies: Option<OneOrMany<String>>,
+    /// Whether a per-run cookie jar is enabled.
+    pub cookies: Option<bool>,
 }
 
 /// Inputs used to build a layered configuration.

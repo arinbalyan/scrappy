@@ -24,7 +24,7 @@ use crate::engine::retry::{
     CancelToken, Failure, RetryOutcome, RetryPolicy, classify_status, method_allows_retry,
     parse_retry_after, retry_async,
 };
-use crate::fetching::Fetcher;
+use crate::fetching::{Fetcher, Request};
 use crate::output::record::{
     Email, EmailSource, Job, JobInput, Provenance, SCHEMA_VERSION, from_record,
 };
@@ -356,7 +356,7 @@ fn select<'a>(registry: &'a Registry, ids: &[String]) -> Result<Vec<&'a Manifest
 
 #[expect(
     clippy::too_many_lines,
-    reason = "pagination keeps request, retry, and challenge handling together"
+    reason = "source execution keeps pagination, retry, and challenge handling together"
 )]
 async fn run_source(
     manifest: &Manifest,
@@ -377,6 +377,12 @@ async fn run_source(
     if values.slug.is_none() {
         values.slug = manifest.slugs.first().cloned();
     }
+    if values.tenant.is_none() {
+        values.tenant = manifest.tenant.clone();
+    }
+    if values.site.is_none() {
+        values.site = manifest.site.clone();
+    }
     for (name, value) in &manifest.query_defaults {
         values
             .query
@@ -394,11 +400,38 @@ async fn run_source(
         return Ok(SourceOutcome::Jobs(Vec::new(), 0, report));
     }
     let strategy = pagination::parse(&manifest.pagination);
-    let strategy = if pagination::template_supports(&manifest.request, strategy) {
+    let strategy = if pagination::template_supports(&manifest.request, strategy)
+        || matches!(strategy, Strategy::Cursor | Strategy::Fanout { .. })
+    {
         strategy
     } else {
         Strategy::None
     };
+    if strategy == Strategy::Cursor {
+        return run_cursor(
+            manifest,
+            input,
+            fetcher,
+            breaker,
+            retry_policy,
+            governor,
+            report,
+        )
+        .await;
+    }
+    if let Strategy::Fanout { batch, max_ids } = strategy {
+        return run_fanout(
+            manifest,
+            input,
+            fetcher,
+            governor,
+            retry_policy,
+            report,
+            batch,
+            max_ids,
+        )
+        .await;
+    }
     let mut records = Vec::new();
     let mut seen_urls = HashSet::new();
     let budget = manifest.request_budget.unwrap_or(25).max(1);
@@ -529,9 +562,27 @@ async fn run_source(
         }
         records.extend(page_records);
     }
+    let (jobs, skipped, invalid, duplicate) = convert_records(records, manifest, input);
+    report.skipped_invalid = invalid;
+    report.skipped_duplicate = duplicate;
+    report.emitted = jobs.len();
+    report.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
+    if report.stop_reason.is_empty() {
+        "completed".clone_into(&mut report.stop_reason);
+    }
+    Ok(SourceOutcome::Jobs(jobs, skipped, report))
+}
+
+fn convert_records(
+    records: Vec<crate::parsing::Record>,
+    manifest: &Manifest,
+    input: &RunInput,
+) -> (Vec<Job>, usize, usize, usize) {
     let mut jobs = Vec::with_capacity(records.len());
     let mut seen = HashSet::new();
     let mut skipped = 0;
+    let mut invalid = 0;
+    let mut duplicate = 0;
     let discovery = input.config.email_discovery.unwrap_or(false);
     for record in records {
         if !input.policy.allows(&manifest.id, jobs.len()) {
@@ -565,18 +616,273 @@ async fn run_source(
                 jobs.push(job);
             } else {
                 skipped += 1;
-                report.skipped_duplicate += 1;
+                duplicate += 1;
             }
         } else {
             skipped += 1;
-            report.skipped_invalid += 1;
+            invalid += 1;
         }
     }
+    (jobs, skipped, invalid, duplicate)
+}
+
+async fn fetch_checked(
+    manifest: &Manifest,
+    values: &TemplateValues,
+    fetcher: &impl Fetcher,
+    governor: &Governor,
+    retry_policy: &RetryPolicy,
+    cancelled: &mut tokio::sync::watch::Receiver<bool>,
+    report: &mut SourceReport,
+) -> Result<crate::fetching::Response, (RetryOutcome, String)> {
+    let _permit = governor
+        .acquire(&manifest.id)
+        .await
+        .map_err(|error| (RetryOutcome::Failed, format!("{}: {error}", manifest.id)))?;
+    report.requests += 1;
+    let request = build_request(manifest, values).map_err(|error| {
+        (
+            RetryOutcome::Failed,
+            format!("{}: {}", manifest.id, error.message),
+        )
+    })?;
+    let mut policy = *retry_policy;
+    if !method_allows_retry(&request.method, manifest.retry_post) {
+        policy.max_retries = 0;
+    }
+    let outcome = retry_async(
+        policy,
+        cancelled,
+        || async {
+            let response = fetcher.fetch(&request).await?;
+            match classify_status(response.status) {
+                Some(Failure::Throttled(_)) => {
+                    let retry_after = response
+                        .headers
+                        .get("retry-after")
+                        .and_then(|value| parse_retry_after(value).ok())
+                        .map_or(0, |delay| delay.as_secs());
+                    Err(format!("throttled:{}:{retry_after}", response.status))
+                }
+                Some(Failure::Retryable) => Err(format!("server:{}", response.status)),
+                _ => Ok(response),
+            }
+        },
+        classify_fetch_error,
+    )
+    .await;
+    outcome.map_err(|(outcome, error)| (outcome, format!("{}: {error}", manifest.id)))
+}
+
+fn json_path<'a>(value: &'a serde_json::Value, path: &str) -> Option<&'a serde_json::Value> {
+    let mut current = value;
+    for segment in path.split('.') {
+        current = current.get(segment)?;
+    }
+    Some(current)
+}
+
+async fn run_cursor(
+    manifest: &Manifest,
+    input: &RunInput,
+    fetcher: &impl Fetcher,
+    breaker: &CircuitBreaker,
+    retry_policy: &RetryPolicy,
+    governor: &Governor,
+    mut report: SourceReport,
+) -> Result<SourceOutcome, (RetryOutcome, String)> {
+    let started = Instant::now();
+    let mut values = input.values.get(&manifest.id).cloned().unwrap_or_default();
+    for (name, value) in &manifest.query_defaults {
+        values
+            .query
+            .entry(name.clone())
+            .or_insert_with(|| value.clone());
+    }
+    let mut records = Vec::new();
+    let mut cursor: Option<String> = None;
+    let mut seen = HashSet::new();
+    let budget = manifest.request_budget.unwrap_or(25).max(1);
+    let mut cancelled = input.cancel.receiver();
+    for _ in 0..budget {
+        if let Some(token) = &cursor {
+            values.query.insert("cursor".to_owned(), token.clone());
+        }
+        let response = match fetch_checked(
+            manifest,
+            &values,
+            fetcher,
+            governor,
+            retry_policy,
+            &mut cancelled,
+            &mut report,
+        )
+        .await
+        {
+            Ok(response) => response,
+            Err(_) if report.requests > 1 => break,
+            Err(error) => return Err(error),
+        };
+        report.http_status = Some(response.status);
+        let body = response.text().unwrap_or_default();
+        report.bytes += body.len();
+        if let Some(challenge) = detect(response.status, &response.headers, body) {
+            "challenge".clone_into(&mut report.outcome);
+            "challenge".clone_into(&mut report.stop_reason);
+            report.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
+            return Ok(SourceOutcome::Challenge(
+                attention_event(&manifest.id, &challenge, &input.config),
+                report,
+            ));
+        }
+        if !(200..300).contains(&response.status) {
+            report.partial = true;
+            "status".clone_into(&mut report.stop_reason);
+            break;
+        }
+        breaker.record_success(&manifest.id);
+        let page = match parse_response(manifest, &response) {
+            Ok(records) => records,
+            Err(_) if report.pages > 0 => break,
+            Err(error) => {
+                return Err((
+                    RetryOutcome::Failed,
+                    format!("{}: {}", manifest.id, error.message),
+                ));
+            }
+        };
+        report.pages += 1;
+        report.raw_records += page.len();
+        records.extend(page);
+        let path = manifest.cursor_path.as_deref().unwrap_or("next");
+        let next = serde_json::from_str::<serde_json::Value>(body)
+            .ok()
+            .and_then(|value| json_path(&value, path).cloned())
+            .and_then(|value| value.as_str().map(str::to_owned))
+            .filter(|value| !value.trim().is_empty());
+        match next {
+            Some(token) if seen.insert(token.clone()) => cursor = Some(token),
+            Some(_) => {
+                "repeated_page".clone_into(&mut report.stop_reason);
+                break;
+            }
+            None => {
+                "completed".clone_into(&mut report.stop_reason);
+                break;
+            }
+        }
+    }
+    let (jobs, skipped, invalid, duplicate) = convert_records(records, manifest, input);
+    report.skipped_invalid = invalid;
+    report.skipped_duplicate = duplicate;
     report.emitted = jobs.len();
     report.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
     if report.stop_reason.is_empty() {
         "completed".clone_into(&mut report.stop_reason);
     }
+    Ok(SourceOutcome::Jobs(jobs, skipped, report))
+}
+
+#[expect(
+    clippy::too_many_arguments,
+    reason = "fanout needs manifest, input, fetcher, governor, policy, report, batch, and limit"
+)]
+async fn run_fanout(
+    manifest: &Manifest,
+    input: &RunInput,
+    fetcher: &impl Fetcher,
+    governor: &Governor,
+    retry_policy: &RetryPolicy,
+    mut report: SourceReport,
+    batch: u32,
+    max_ids: u32,
+) -> Result<SourceOutcome, (RetryOutcome, String)> {
+    let started = Instant::now();
+    let mut values = input.values.get(&manifest.id).cloned().unwrap_or_default();
+    for (name, value) in &manifest.query_defaults {
+        values
+            .query
+            .entry(name.clone())
+            .or_insert_with(|| value.clone());
+    }
+    let mut cancelled = input.cancel.receiver();
+    let response = fetch_checked(
+        manifest,
+        &values,
+        fetcher,
+        governor,
+        retry_policy,
+        &mut cancelled,
+        &mut report,
+    )
+    .await?;
+    report.http_status = Some(response.status);
+    let body = response.text().unwrap_or_default();
+    report.bytes += body.len();
+    let ids = serde_json::from_str::<serde_json::Value>(body)
+        .ok()
+        .and_then(|value| {
+            value.as_array().cloned().or_else(|| {
+                json_path(&value, "items")
+                    .or_else(|| json_path(&value, "jobs"))
+                    .and_then(serde_json::Value::as_array)
+                    .cloned()
+            })
+        })
+        .unwrap_or_default();
+    let item_template = manifest.fanout_item.clone().unwrap_or_default();
+    let mut records = Vec::new();
+    let limit = usize::try_from(max_ids).unwrap_or(usize::MAX).min(
+        usize::try_from(batch)
+            .unwrap_or(usize::MAX)
+            .saturating_mul(10),
+    );
+    for id in ids.iter().take(limit) {
+        let Some(id) = id
+            .as_str()
+            .map(str::to_owned)
+            .or_else(|| id.as_u64().map(|v| v.to_string()))
+        else {
+            continue;
+        };
+        if item_template.is_empty() {
+            break;
+        }
+        let url = item_template.replace("{id}", &id);
+        let Ok(request) = Request::get(url) else {
+            continue;
+        };
+        let Ok(_permit) = governor.acquire(&manifest.id).await else {
+            break;
+        };
+        report.requests += 1;
+        let Ok(item) = fetcher.fetch(&request).await else {
+            continue;
+        };
+        report.http_status = Some(item.status);
+        let text = item.text().unwrap_or_default();
+        report.bytes += text.len();
+        let wrapped = format!("[{text}]");
+        let Ok(response) = crate::fetching::Response::new(
+            request.url.clone(),
+            item.status,
+            item.headers.clone(),
+            wrapped.into_bytes(),
+        ) else {
+            continue;
+        };
+        if let Ok(page) = parse_response(manifest, &response) {
+            report.pages += 1;
+            report.raw_records += page.len();
+            records.extend(page);
+        }
+    }
+    let (jobs, skipped, invalid, duplicate) = convert_records(records, manifest, input);
+    report.skipped_invalid = invalid;
+    report.skipped_duplicate = duplicate;
+    report.emitted = jobs.len();
+    "completed".clone_into(&mut report.stop_reason);
+    report.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
     Ok(SourceOutcome::Jobs(jobs, skipped, report))
 }
 
@@ -610,7 +916,7 @@ fn merge_jobs(jobs: Vec<Job>) -> Vec<Job> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::fetching::{Request, Response};
+    use crate::fetching::Response;
     struct MockFetcher;
 
     impl Fetcher for MockFetcher {
@@ -819,5 +1125,129 @@ attribution = "Example"
             merged[0].source_ids,
             vec!["one".to_owned(), "two".to_owned()]
         );
+    }
+
+    struct CursorFetcher;
+
+    impl Fetcher for CursorFetcher {
+        fn fetch(
+            &self,
+            request: &Request,
+        ) -> impl std::future::Future<Output = Result<Response, String>> + Send {
+            let body = if request.url.contains("cursor=abc") {
+                br#"{"next":null,"jobs":[{"title":"Two","company":"Acme","url":"https://example.test/2"}]}"#.to_vec()
+            } else {
+                br#"{"next":"abc","jobs":[{"title":"One","company":"Acme","url":"https://example.test/1"}]}"#.to_vec()
+            };
+            std::future::ready(Response::new(
+                request.url.clone(),
+                200,
+                BTreeMap::new(),
+                body,
+            ))
+        }
+    }
+
+    #[tokio::test]
+    async fn cursor_pages_stop_on_null_next() {
+        let manifest = crate::sources::manifest::parse(
+            r#"
+version = 1
+id = "cursor"
+name = "Cursor"
+family = "feeds_api"
+health = "working"
+request = "https://example.test/jobs?cursor={query:cursor}"
+parser = "json"
+fetcher = "plain"
+pagination = "cursor:next"
+cursor_path = "next"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow"
+attribution = "Example"
+[query_defaults]
+cursor = ""
+[parser_options]
+envelope = ["jobs"]
+"#,
+        )
+        .expect("manifest parsed");
+        let mut registry = Registry::new();
+        registry.insert(manifest);
+        let input = RunInput {
+            sources: vec!["cursor".to_owned()],
+            fetched_at: "2026-11-27T00:00:00Z".to_owned(),
+            ..RunInput::default()
+        };
+        let (jobs, summary) = run(&registry, &input, &CursorFetcher)
+            .await
+            .expect("pipeline completed");
+        assert_eq!(jobs.len(), 2);
+        assert_eq!(summary.reports[0].requests, 2);
+        assert_eq!(summary.reports[0].stop_reason, "completed");
+    }
+
+    struct FanoutFetcher;
+
+    impl Fetcher for FanoutFetcher {
+        fn fetch(
+            &self,
+            request: &Request,
+        ) -> impl std::future::Future<Output = Result<Response, String>> + Send {
+            let body = if request.url.ends_with("/ids") {
+                br"[1,2]".to_vec()
+            } else if request.url.ends_with("/item/1.json") {
+                br#"{"title":"One","company":"Acme","url":"https://example.test/1"}"#.to_vec()
+            } else {
+                br#"{"title":"Two","company":"Acme","url":"https://example.test/2"}"#.to_vec()
+            };
+            std::future::ready(Response::new(
+                request.url.clone(),
+                200,
+                BTreeMap::new(),
+                body,
+            ))
+        }
+    }
+
+    #[tokio::test]
+    async fn fanout_requests_items_and_stops_at_limit() {
+        let manifest = crate::sources::manifest::parse(
+            r#"
+version = 1
+id = "fanout"
+name = "Fanout"
+family = "feeds_api"
+health = "working"
+request = "https://example.test/ids"
+parser = "json"
+fetcher = "plain"
+pagination = "fanout:10:2"
+fanout_item = "https://example.test/item/{id}.json"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow"
+attribution = "Example"
+"#,
+        )
+        .expect("manifest parsed");
+        let mut registry = Registry::new();
+        registry.insert(manifest);
+        let input = RunInput {
+            sources: vec!["fanout".to_owned()],
+            fetched_at: "2026-11-27T00:00:00Z".to_owned(),
+            ..RunInput::default()
+        };
+        let (jobs, summary) = run(&registry, &input, &FanoutFetcher)
+            .await
+            .expect("pipeline completed");
+        assert_eq!(jobs.len(), 2);
+        assert_eq!(summary.reports[0].requests, 3);
+        assert_eq!(summary.reports[0].stop_reason, "completed");
     }
 }

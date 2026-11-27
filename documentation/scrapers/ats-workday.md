@@ -31,3 +31,10 @@ Concurrency: 1
 ## Adapter assessment 2026-11-27
 
 - A public board needs a full tenant, data-centre, and career-site tuple plus a POST body. The current single-seed GET manifest cannot represent it.
+
+## Composite tenant adapter 2026-11-27
+
+- The manifest now carries `tenant` and `site` fields and builds the Workday CXS URL from them.
+- The NVIDIA tuple `nvidia / NVIDIAExternalCareerSite` returned a live POST response with `total: 2000` in the earlier endpoint probe.
+- The Salesforce tuple `salesforce.wd12 / External_Career_Site` is recorded from the dated public research in `documentation/audits/slug-verification-2026-11-27.md`. A fresh Salesforce probe was not possible because escalated network approval was unavailable.
+- Test replay uses the NVIDIA tuple and a synthetic response.

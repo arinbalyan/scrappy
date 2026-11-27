@@ -164,7 +164,7 @@ fn search_and_tenant_sources_replay_into_golden_records() {
     replay(&Case {
         id: "careeronestop",
         family: Family::FeedsApi,
-        health: Health::Working,
+        health: Health::Stale,
         dir: "feeds_api",
     });
     replay(&Case {

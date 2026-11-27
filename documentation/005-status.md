@@ -28,15 +28,15 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | ats-trakstar | Trakstar ATS | working | ready | Ats | plain |
 | ats-ukg | UKG | requires_slug | ready | Ats | plain |
 | ats-workable | Workable ATS | working | ready | Ats | plain |
-| ats-workday | Workday | requires_slug | ready | Ats | plain |
+| ats-workday | Workday | working | ready | Ats | plain |
 | authenticjobs | AuthenticJobs | keyed | missing_credentials | Keyed | plain |
 | bamboohr | BambooHR | working | ready | Ats | plain |
 | berlinstartupjobs | Berlin Startup Jobs | working | ready | FeedsApi | plain |
 | breezyhr | BreezyHR | working | ready | Ats | plain |
 | builtin | Built In | working | ready | HtmlStatic | plain |
-| canadajobbank | Canada Job Bank | working | ready | FeedsApi | plain |
+| canadajobbank | Canada Job Bank | stale | ready | FeedsApi | plain |
 | careerjet | Careerjet | keyed | missing_credentials | Keyed | plain |
-| careeronestop | CareerOneStop | working | ready | FeedsApi | plain |
+| careeronestop | CareerOneStop | stale | ready | FeedsApi | plain |
 | comeet | Comeet | keyed | missing_credentials | Keyed | plain |
 | conservationjobs | Conservation Jobs | working | ready | FeedsApi | plain |
 | coroflot | Coroflot | working | ready | FeedsApi | plain |
@@ -87,7 +87,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | jobtechdev | JobTechDev | keyed | missing_credentials | Keyed | plain |
 | jobvite | Jobvite | working | ready | Ats | plain |
 | jobylon | Jobylon | working | ready | Ats | plain |
-| joinrise | Joinrise | working | ready | FeedsApi | plain |
+| joinrise | Joinrise | stale | ready | FeedsApi | plain |
 | landingjobs | Landingjobs | working | ready | FeedsApi | plain |
 | loxo | Loxo | blocked | blocked | Ats | plain |
 | manatal | Manatal | stale | ready | Ats | plain |

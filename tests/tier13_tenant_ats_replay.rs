@@ -25,7 +25,7 @@ const SOURCES: [(&str, Family, Health); 6] = [
     ("ats-recruiterflow", Family::Ats, Health::RequiresSlug),
     ("ats-ukg", Family::Ats, Health::RequiresSlug),
     ("ats-oracle", Family::Ats, Health::Working),
-    ("ats-workday", Family::Ats, Health::RequiresSlug),
+    ("ats-workday", Family::Ats, Health::Working),
 ];
 
 const FIXTURE_FILES: [&str; 6] = [
@@ -111,6 +111,10 @@ fn tenant_ats_sources_replay_into_golden_records() {
             .expect("frozen substitutions have a slug");
         let values = TemplateValues {
             slug: Some(slug.to_owned()),
+            tenant: frozen["substitutions"]["tenant"]
+                .as_str()
+                .map(str::to_owned),
+            site: frozen["substitutions"]["site"].as_str().map(str::to_owned),
             ..TemplateValues::default()
         };
         let built = build_request(&manifest, &values)

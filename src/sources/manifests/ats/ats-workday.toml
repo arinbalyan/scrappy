@@ -2,8 +2,8 @@ version = 1
 id = "ats-workday"
 name = "Workday"
 family = "ats"
-health = "requires_slug"
-request = "https://{slug}.wd5.myworkdayjobs.com/wday/cxs/{slug}/External/jobs"
+health = "working"
+request = "https://{slug}.wd5.myworkdayjobs.com/wday/cxs/{tenant}/{site}/jobs"
 parser = "json"
 fetcher = "plain"
 pagination = "none"
@@ -13,7 +13,9 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public tenant board endpoints; skip access-controlled boards"
 attribution = "Workday"
-slugs = ["example-co"]
+slugs = ["nvidia"]
+tenant = "nvidia"
+site = "NVIDIAExternalCareerSite"
 fixtures = ["ats-workday"]
 [field_aliases.url]
 names = ["url", "externalPath"]
@@ -38,4 +40,6 @@ user-agent = "Mozilla/5.0"
 
 [parser_options]
 envelope = ["jobPostings"]
+url_from = "externalPath"
+url_prefix = "https://nvidia.wd5.myworkdayjobs.com"
 

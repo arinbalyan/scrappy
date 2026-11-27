@@ -75,6 +75,7 @@ fn build_report(files: &[PathBuf], fix: bool) -> Report {
         sources_check(),
         credentials_check(&store, &credential_names),
         proxies_check(files),
+        network_check(),
         browser_check(),
         fixtures_check(),
         output_check(),
@@ -252,6 +253,17 @@ fn output_check() -> Check {
         name: "output".to_owned(),
         status: Status::Pass,
         reason: "stdout is available".to_owned(),
+    }
+}
+
+fn network_check() -> Check {
+    Check {
+        name: "network".to_owned(),
+        status: Status::Pass,
+        reason: format!(
+            "DNS validation enabled; body limit {} MiB",
+            crate::fetching::MAX_BODY_BYTES / (1024 * 1024)
+        ),
     }
 }
 

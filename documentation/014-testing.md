@@ -128,3 +128,7 @@ tests, behavior doc, and generated status are updated together.
 ## Hardened live results
 
 The 2026-11-27 hardened probe covered 107 manifests and returned 7,155 records from 58 working sources. It observed 306 email mentions in 172 addresses over 148 domains. Median source latency was 1,442 ms, p95 was 4,899 ms, and the slowest working source took 12,864 ms.
+
+## Shared-executor harvest
+
+`tests/live/harvest.rs` now calls `scrappy::engine::pipeline::run` per source. It reports the same request count, stop reason, pagination outcomes, and challenge handling as the CLI. The suite remains opt-in and ignored by default.

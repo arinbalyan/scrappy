@@ -8,7 +8,7 @@
 
 // Rust guideline compliant 2026-10-09
 
-use std::sync::OnceLock;
+use std::sync::{Arc, Mutex, OnceLock};
 use std::time::Duration;
 
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue, LOCATION};
@@ -22,6 +22,10 @@ use super::{Fetcher, MAX_BODY_BYTES, Request, Response};
 pub struct PlainFetcher {
     timeout: Option<Duration>,
     client: OnceLock<reqwest::Client>,
+    proxies: Vec<String>,
+    proxy_index: Arc<Mutex<usize>>,
+    cookies: bool,
+    cookie_jar: Arc<Mutex<std::collections::BTreeMap<String, String>>>,
 }
 
 impl PlainFetcher {
@@ -38,36 +42,95 @@ impl PlainFetcher {
         self
     }
 
+    /// Use a stable list of proxy URLs.
+    #[must_use]
+    pub fn with_proxies(mut self, proxies: Vec<String>) -> Self {
+        self.proxies = proxies;
+        self
+    }
+
+    /// Enable a per-run cookie jar.
+    #[must_use]
+    pub fn with_cookies(mut self, cookies: bool) -> Self {
+        self.cookies = cookies;
+        self
+    }
+
+    fn next_proxy(&self) -> Option<String> {
+        let mut index = self.proxy_index.lock().ok()?;
+        let proxy = self
+            .proxies
+            .get(*index % self.proxies.len().max(1))?
+            .clone();
+        *index = index.wrapping_add(1);
+        Some(proxy)
+    }
+
     fn client(&self) -> Result<&reqwest::Client, String> {
         if let Some(client) = self.client.get() {
             return Ok(client);
         }
-        let client = reqwest::Client::builder()
-            .dns_resolver(SafeResolver)
-            .redirect(reqwest::redirect::Policy::none())
-            .build()
-            .map_err(|error| format!("cannot build HTTP client: {error}"))?;
+        let client = build_client(None)?;
         Ok(self.client.get_or_init(|| client))
     }
 }
 
 impl Fetcher for PlainFetcher {
     async fn fetch(&self, request: &Request) -> Result<Response, String> {
-        let client = self.client()?;
+        let proxy = self.next_proxy();
+        let proxy_client;
+        let client = match proxy.as_deref() {
+            Some(proxy) => {
+                proxy_client = build_client(Some(proxy))?;
+                &proxy_client
+            }
+            None => self.client()?,
+        };
         let method = reqwest::Method::from_bytes(request.method.as_bytes())
             .map_err(|error| format!("invalid HTTP method: {error}"))?;
         let mut current = request.url.clone();
         let mut response = None;
         for _ in 0..=MAX_REDIRECTS {
             validate_target(&current)?;
-            let sent = client
+            let mut request_headers = headers(request)?;
+            if self.cookies
+                && !request_headers.contains_key(reqwest::header::COOKIE)
+                && let Ok(jar) = self.cookie_jar.lock()
+                && !jar.is_empty()
+            {
+                let value = jar
+                    .iter()
+                    .map(|(name, value)| format!("{name}={value}"))
+                    .collect::<Vec<_>>()
+                    .join("; ");
+                if let Ok(value) = HeaderValue::from_str(&value) {
+                    request_headers.insert(reqwest::header::COOKIE, value);
+                }
+            }
+            let builder = client
                 .request(method.clone(), &current)
-                .headers(headers(request)?)
+                .headers(request_headers)
                 .timeout(self.timeout.unwrap_or(request.timeout))
-                .body(request.body.clone())
+                .body(request.body.clone());
+            let sent = builder
                 .send()
                 .await
                 .map_err(|error| format!("request failed: {error}"))?;
+            if self.cookies
+                && let Ok(mut jar) = self.cookie_jar.lock()
+            {
+                for value in sent.headers().get_all(reqwest::header::SET_COOKIE) {
+                    if let Ok(text) = value.to_str()
+                        && let Some((pair, _rest)) = text.split_once(';')
+                        && let Some((name, value)) = pair.split_once('=')
+                    {
+                        let name = name.trim();
+                        if !name.is_empty() {
+                            jar.insert(name.to_owned(), value.trim().to_owned());
+                        }
+                    }
+                }
+            }
             if !sent.status().is_redirection() {
                 response = Some(sent);
                 break;
@@ -95,6 +158,20 @@ impl Fetcher for PlainFetcher {
         let body = bounded_body(response).await?;
         Response::new(url, status, headers, body)
     }
+}
+
+fn build_client(proxy: Option<&str>) -> Result<reqwest::Client, String> {
+    let mut builder = reqwest::Client::builder()
+        .dns_resolver(SafeResolver)
+        .redirect(reqwest::redirect::Policy::none());
+    if let Some(proxy) = proxy {
+        builder = builder.proxy(
+            reqwest::Proxy::all(proxy).map_err(|_error| "invalid configured proxy".to_owned())?,
+        );
+    }
+    builder
+        .build()
+        .map_err(|error| format!("cannot build HTTP client: {error}"))
 }
 
 /// Maximum redirects followed in one fetch.

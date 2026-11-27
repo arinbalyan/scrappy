@@ -15,10 +15,10 @@
 - [x] 2.2 Add repeated-page fingerprinting and empty-page stop reasons, and verify tests prove each stop reason is reported
 - [x] 2.3 Execute pagination with per-request governor permits, and verify a two-page mock source records two permits and one source outcome
 - [x] 2.4 Preserve collected records when a later page fails, and verify a mock first-success then failure returns partial records with a partial status
-- [ ] 2.5 Add cursor-token and next-URL execution, and verify a mock source follows two cursor pages without looping
-- [ ] 2.6 Add bounded id-array fanout, and verify a mock source caps requests and concurrency
+- [x] 2.5 Add cursor-token and next-URL execution, and verify a mock source follows two cursor pages without looping
+- [x] 2.6 Add bounded id-array fanout, and verify a mock source caps requests and concurrency
 - [x] 2.7 Wire the execute plan into `run` and verify `cargo run -- run --source arbeitnow` returns records from all three declared pages
-- [ ] 2.8 Switch `tests/live/harvest.rs` to the shared executor and verify a filtered live run reports request count and stop reason
+- [x] 2.8 Switch `tests/live/harvest.rs` to the shared executor and verify a filtered live run reports request count and stop reason
 - [x] 2.9 Update `documentation/006-architecture.md` and `documentation/014-testing.md` with pagination behavior, and verify documented commands match the CLI
 
 ## 3. Fetch resilience
@@ -27,7 +27,7 @@
 - [x] 3.2 Parse Retry-After in seconds and HTTP-date form, and verify both forms clamp to the configured maximum
 - [x] 3.3 Reuse one HTTP client per run and verify the fetcher construction test shows one client for multiple requests
 - [x] 3.4 Add an explicit user-agent policy with per-source override, and verify a request without an override carries the package user agent
-- [ ] 3.5 Add optional proxy and cookie configuration with redacted diagnostics, and verify secret-leak tests reject proxy credentials in logs
+- [x] 3.5 Add optional proxy and cookie configuration with redacted diagnostics, and verify secret-leak tests reject proxy credentials in logs
 - [x] 3.6 Acquire concurrency permits per request and verify a mock source with two pages never exceeds its cap
 - [x] 3.7 Add global and per-host concurrency caps, and verify a multi-source mock never exceeds the global cap
 - [x] 3.8 Interpret robots values by prefix and verify descriptive allow and disallow strings produce fetch and policy-skip outcomes
@@ -60,19 +60,19 @@
 - [x] 6.2 Re-probe and repair `androidjobs`, `eurojobs`, `djinni`, `drupaljobs`, `jobindex`, and `themusee`, and verify each either returns records or is marked stale with evidence
 - [x] 6.3 Confirm Cloudflare and challenge outcomes for `crunchboard`, `remotefirstjobs`, `icrunchdata`, `snagajob`, `startupjobs`, `wuzzuf`, and `hiringcafe`, and verify no bypass attempt is made
 - [x] 6.4 Repair `echojobs` throttling with backoff and per-source budget, and verify a live probe either returns records or records a dated blocked reason
-- [ ] 6.5 Repair `headhunter` only if a public identity policy works, and verify the API response before changing health
+- [x] 6.5 Repair `headhunter` only if a public identity policy works, and verify the API response before changing health
 - [x] 6.6 Remove `androidjobs`, `eurojobs`, and `drupaljobs` only after two dated probes, and verify manifest, fixtures, behavior docs, and generated status are removed together
-- [ ] 6.7 Diagnose `canadajobbank` and `joinrise` DNS failures and either repair the routes or mark them environment-dead with dated evidence
-- [ ] 6.8 Diagnose `careeronestop` connectivity and `functionalworks` body decoding, and verify both either succeed or carry a dated environment reason
+- [x] 6.7 Diagnose `canadajobbank` and `joinrise` DNS failures and either repair the routes or mark them environment-dead with dated evidence
+- [x] 6.8 Diagnose `careeronestop` connectivity and `functionalworks` body decoding, and verify both either succeed or carry a dated environment reason
 - [x] 6.9 Make the response body ceiling configurable and verify `nofluffjobs` either parses under a documented limit or is marked oversized with evidence
-- [ ] 6.10 Add DNS and body-size diagnostics to doctor and verify JSON output names the failing check without leaking URLs with credentials
+- [x] 6.10 Add DNS and body-size diagnostics to doctor and verify JSON output names the failing check without leaking URLs with credentials
 - [x] 6.11 Update every affected `documentation/scrapers/<source_id>.md` with route, evidence, and break/fix history
 - [x] 6.12 Run the public-feed replay suites and verify no fixture regression
 
 ## 7. Source coverage: ATS and new adapters
 
 - [x] 7.1 Re-verify the 14 working ATS seeds and confirm each still returns records, and update behavior docs with counts
-- [ ] 7.2 Add Workday support for a full tenant plus career-site tuple, and verify NVIDIA and Salesforce probes
+- [x] 7.2 Add Workday support for a full tenant plus career-site tuple, and verify NVIDIA and Salesforce probes
 - [x] 7.3 Add iCIMS HTML listing support or mark it new-adapter, and verify the parser against a synthetic page
 - [x] 7.4 Add Jobvite XML feed support or mark it new-adapter, and verify Egnyte returns records
 - [x] 7.5 Evaluate UKG tenant plus board UUID support, and verify one public board before committing a seed

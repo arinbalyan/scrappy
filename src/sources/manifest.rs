@@ -224,6 +224,18 @@ pub struct Manifest {
     /// Slug seeds for slug-dependent sources.
     #[serde(default)]
     pub slugs: Vec<String>,
+    /// Tenant identifier for composite seeds.
+    #[serde(default)]
+    pub tenant: Option<String>,
+    /// Career-site identifier for composite seeds.
+    #[serde(default)]
+    pub site: Option<String>,
+    /// JSON path carrying the next cursor value.
+    #[serde(default)]
+    pub cursor_path: Option<String>,
+    /// Item URL template for bounded fanout.
+    #[serde(default)]
+    pub fanout_item: Option<String>,
     /// Query substitutions used when the caller supplies none.
     #[serde(default)]
     pub query_defaults: BTreeMap<String, String>,
@@ -263,6 +275,10 @@ impl Default for Manifest {
             attribution: String::new(),
             credentials: Vec::new(),
             slugs: Vec::new(),
+            tenant: None,
+            site: None,
+            cursor_path: None,
+            fanout_item: None,
             query_defaults: BTreeMap::new(),
             request_budget: None,
             retry_post: false,

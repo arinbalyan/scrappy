@@ -41,6 +41,10 @@ pub enum Substitution {
 pub struct TemplateValues {
     /// Slug substituted into `{slug}` placeholders.
     pub slug: Option<String>,
+    /// Tenant substituted into `{tenant}` placeholders.
+    pub tenant: Option<String>,
+    /// Career site substituted into `{site}` placeholders.
+    pub site: Option<String>,
     /// Credential values keyed by declared credential name.
     pub credentials: BTreeMap<String, Credential>,
     /// Query values keyed by placeholder name.
@@ -339,6 +343,16 @@ fn render(template: &str, values: &TemplateValues) -> Result<String, AdapterErro
                 .slug
                 .as_deref()
                 .ok_or_else(|| error("missing slug substitution".to_owned()))?
+        } else if name == "tenant" {
+            values
+                .tenant
+                .as_deref()
+                .ok_or_else(|| error("missing tenant substitution".to_owned()))?
+        } else if name == "site" {
+            values
+                .site
+                .as_deref()
+                .ok_or_else(|| error("missing site substitution".to_owned()))?
         } else if let Some(key) = name.strip_prefix("key:") {
             values
                 .credentials
@@ -402,6 +416,7 @@ attribution = "Example"
                 crate::config::secret::credential("secret-value"),
             )]),
             query: BTreeMap::new(),
+            ..TemplateValues::default()
         };
         let request = build_request(&manifest, &values).expect("request built");
         assert_eq!(
@@ -447,6 +462,7 @@ attribution = "Example"
                 crate::config::secret::credential("secret-value"),
             )]),
             query: BTreeMap::new(),
+            ..TemplateValues::default()
         };
         let request = build_request(&manifest, &values).expect("request built");
         assert_eq!(request.method, "POST");

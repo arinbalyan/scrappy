@@ -28,3 +28,8 @@ Rate: 30 requests per minute
 - 2026-11-26: Ported from historical behavior with a manifest and synthetic fixture.
 - 2026-11-26: Live probe returned HTTP 403 with a forbidden error; health changed to blocked.
 
+
+## Identity policy probe 2026-11-27
+
+- Requests with a documented non-personal HH-User-Agent still returned HTTP 403.
+- The source remains blocked until a public access policy or allowlisted client is confirmed.
