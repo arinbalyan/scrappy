@@ -1,0 +1,9 @@
+{
+  "method": "GET",
+  "url": "https://{slug}.freshteam.com/api/job_postings",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0",
+    "authorization": "Bearer {key:FRESHTEAM_API_TOKEN}"
+  }
+}

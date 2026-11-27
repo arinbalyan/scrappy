@@ -1,0 +1,35 @@
+{
+  "d": {
+    "results": [
+      {
+        "jobReqId": "1001",
+        "jobTitle": "Backend Engineer",
+        "formattedJobTitle": "Backend Engineer (Engineering)",
+        "jobDescription": "<p>Build APIs.</p>",
+        "companyName": "Example Co",
+        "externalJobUrl": "https://careers.example-co.com/job/1001",
+        "department": "Engineering",
+        "postingStartDate": "2026-11-10T00:00:00Z",
+        "employmentType": "Full-Time",
+        "locationObj": {
+          "city": "Austin",
+          "state": "TX",
+          "country": "US"
+        }
+      },
+      {
+        "jobReqId": "1002",
+        "jobTitle": "Platform Engineer",
+        "formattedJobTitle": "Platform Engineer (Infrastructure)",
+        "jobDescription": "Operate clusters.",
+        "companyName": "Example Co",
+        "externalJobUrl": "https://apply.example.test/1002",
+        "department": "Infrastructure",
+        "postingStartDate": "2026-11-12T00:00:00Z",
+        "employmentType": "Contract",
+        "locationObj": null
+      }
+    ],
+    "__count": "2"
+  }
+}

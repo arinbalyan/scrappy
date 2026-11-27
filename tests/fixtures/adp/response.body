@@ -1,0 +1,53 @@
+{
+  "jobRequisitions": [
+    {
+      "jobRequisitionId": "req-701",
+      "requisitionNumber": "ADP-701",
+      "jobTitle": "Backend Engineer",
+      "jobDescription": "<p>Build APIs.</p>",
+      "shortDescription": "Build APIs",
+      "departmentName": "Engineering",
+      "companyName": "Example Co",
+      "externalUrl": "https://workforcenow.adp.com/mascsr/default/mdf/recruitment/recruitment.html?cid=example-co&jobId=req-701",
+      "postedDate": "2026-11-10",
+      "employmentType": "Full-Time",
+      "workerTypeCode": "F",
+      "location": {
+        "city": "Austin",
+        "stateProvince": "TX",
+        "country": "US",
+        "formattedAddress": "Austin, TX, US"
+      },
+      "locations": [],
+      "compensation": {
+        "minPay": 110000,
+        "maxPay": 140000,
+        "currency": "USD",
+        "frequency": "yearly"
+      }
+    },
+    {
+      "jobRequisitionId": "req-702",
+      "requisitionNumber": "ADP-702",
+      "jobTitle": "Platform Engineer",
+      "jobDescription": "Operate clusters.",
+      "shortDescription": "Operate clusters",
+      "departmentName": "Infrastructure",
+      "companyName": "Example Co",
+      "externalUrl": "https://apply.example.test/702",
+      "postedDate": "2026-11-12",
+      "employmentType": "Contract",
+      "workerTypeCode": "C",
+      "location": null,
+      "locations": [
+        {
+          "city": "Remote",
+          "stateProvince": "",
+          "country": "US",
+          "formattedAddress": "Remote, US"
+        }
+      ],
+      "compensation": null
+    }
+  ]
+}

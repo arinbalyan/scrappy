@@ -9,17 +9,20 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | --- | --- | --- | --- | --- | --- |
 | 4dayweek | 4 Day Week | working | ready | FeedsApi | plain |
 | academiccareers | Academic Careers | blocked | blocked | FeedsApi | plain |
+| adp | ADP Workforce Now | blocked | blocked | Ats | plain |
 | adzuna | Adzuna | keyed | missing_credentials | Keyed | plain |
 | aijobs | AI Jobs | working | ready | HtmlStatic | plain |
 | androidjobs | Android Jobs | working | ready | FeedsApi | plain |
 | arbeitnow | Arbeitnow | working | ready | FeedsApi | plain |
 | ats-ashby | Ashby ATS | requires_slug | ready | Ats | plain |
 | ats-oracle | Oracle | requires_slug | ready | Ats | plain |
+| ats-phenom | Phenom | stale | ready | Ats | plain |
 | ats-pinpoint | Pinpoint | requires_slug | ready | Ats | plain |
 | ats-recruitee | Recruitee ATS | requires_slug | ready | Ats | plain |
 | ats-recruiterflow | Recruiterflow | requires_slug | ready | Ats | plain |
 | ats-rippling | Rippling ATS | requires_slug | ready | HtmlStatic | plain |
 | ats-smartrecruiters | SmartRecruiters ATS | requires_slug | ready | Ats | plain |
+| ats-successfactors | SAP SuccessFactors | stale | ready | Ats | plain |
 | ats-talentlyft | TalentLyft ATS | requires_slug | ready | Ats | plain |
 | ats-teamtailor | Teamtailor | requires_slug | ready | Ats | plain |
 | ats-trakstar | Trakstar ATS | requires_slug | ready | Ats | plain |
@@ -37,6 +40,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | comeet | Comeet | keyed | missing_credentials | Keyed | plain |
 | conservationjobs | Conservation Jobs | working | ready | FeedsApi | plain |
 | coroflot | Coroflot | working | ready | FeedsApi | plain |
+| crelate | Crelate | keyed | missing_credentials | Keyed | plain |
 | crunchboard | Crunchboard | working | ready | FeedsApi | plain |
 | cryptocurrencyjobs | Cryptocurrency Jobs | working | ready | FeedsApi | plain |
 | cryptojobslist | Crypto Jobs List | working | ready | FeedsApi | plain |
@@ -53,6 +57,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | fossjobs | Fossjobs | working | ready | FeedsApi | plain |
 | fountain | Fountain | keyed | missing_credentials | FeedsApi | plain |
 | freelancercom | Freelancer.com | working | ready | FeedsApi | plain |
+| freshteam | Freshteam | keyed | missing_credentials | Keyed | plain |
 | functionalworks | Functional Works | working | ready | FeedsApi | plain |
 | getonboard | GetOnBoard | working | ready | FeedsApi | plain |
 | golangjobs | Golang Jobs | working | ready | FeedsApi | plain |
@@ -66,10 +71,12 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | hiringcafe | Hiring Cafe | working | ready | HtmlStatic | plain |
 | hiringthing | HiringThing | keyed | missing_credentials | Keyed | plain |
 | huggingfacejobs | Hugging Face Jobs | working | ready | HtmlStatic | plain |
+| icims | iCIMS | requires_slug | ready | Ats | plain |
 | icrunchdata | iCrunchData | blocked | blocked | FeedsApi | plain |
 | infojobs | InfoJobs | keyed | missing_credentials | Keyed | plain |
 | internshala | Internshala | working | ready | HtmlStatic | plain |
 | ismartrecruit | iSmartRecruit | keyed | missing_credentials | Keyed | plain |
+| jazzhr | JazzHR | keyed | missing_credentials | Ats | plain |
 | jobdataapi | JobDataAPI | working | ready | FeedsApi | plain |
 | jobicy | Jobicy | working | ready | FeedsApi | plain |
 | jobindex | Jobindex | working | ready | HtmlStatic | plain |
@@ -80,6 +87,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | jobspresso | Jobspresso | working | ready | FeedsApi | plain |
 | jobstreet | JobStreet | working | ready | FeedsApi | plain |
 | jobtechdev | JobTechDev | keyed | missing_credentials | Keyed | plain |
+| jobvite | Jobvite | requires_slug | ready | Ats | plain |
 | jobylon | Jobylon | requires_slug | ready | Ats | plain |
 | joinrise | Joinrise | working | ready | FeedsApi | plain |
 | landingjobs | Landingjobs | working | ready | FeedsApi | plain |

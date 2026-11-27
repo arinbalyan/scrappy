@@ -1,0 +1,39 @@
+version = 1
+id = "jobvite"
+name = "Jobvite"
+family = "ats"
+health = "requires_slug"
+request = "https://jobs.jobvite.com/api/v2/job-feed/{slug}"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public tenant job feeds; skip timed-out boards"
+attribution = "Jobvite"
+slugs = ["example-co"]
+fixtures = ["jobvite"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[parser_options]
+envelope = ["requisitions"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company", "company_name"]
+
+[field_aliases.url]
+names = ["detailUrl", "applyUrl", "url", "apply_url"]
+
+[field_aliases.location]
+names = ["city", "state", "country", "location"]
+
+[field_aliases.description]
+names = ["description", "briefDescription"]

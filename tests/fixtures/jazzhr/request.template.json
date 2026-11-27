@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://api.resumatorapi.com/v1/jobs/status/open?apikey={key:JAZZHR_API_KEY}",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "fetched_at": "2026-11-26T00:00:00Z",
+  "source": "https://jobs.jobvite.com/api/v2/job-feed/example-co",
+  "substitutions": {
+    "slug": "example-co"
+  }
+}

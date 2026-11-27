@@ -1,0 +1,23 @@
+{
+  "jobs": [
+    {
+      "id": "12345",
+      "title": "Software Engineer",
+      "company": "example-co",
+      "url": "https://example-co.icims.com/jobs/12345/job",
+      "location": "San Francisco, CA",
+      "datePosted": "2026-05-20",
+      "category": "Engineering"
+    },
+    {
+      "id": "67890",
+      "title": "Remote Full Stack Developer",
+      "company": "example-co",
+      "url": "https://jobs.example.test/67890",
+      "location": "Remote",
+      "datePosted": "2026-05-18",
+      "category": "Engineering"
+    }
+  ],
+  "totalCount": 2
+}

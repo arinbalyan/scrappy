@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://{slug}.icims.com/jobs/search?pr=0&o=0&mode=job&iis=Internet",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

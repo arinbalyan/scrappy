@@ -1,0 +1,39 @@
+version = 1
+id = "adp"
+name = "ADP Workforce Now"
+family = "ats"
+health = "blocked"
+request = "https://workforcenow.adp.com/mascsr/default/careercenter/public/events/staffing/v1/job-requisitions?cid={slug}"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public career center requisition endpoints"
+attribution = "ADP"
+slugs = ["example-co"]
+fixtures = ["adp"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["jobTitle"]
+
+[field_aliases.company]
+names = ["companyName", "slug"]
+
+[field_aliases.url]
+names = ["externalUrl"]
+
+[field_aliases.location]
+names = ["location.city", "location.stateProvince", "location.country", "locations.0.city", "locations.0.stateProvince", "locations.0.country"]
+
+[field_aliases.description]
+names = ["jobDescription", "shortDescription"]
+
+[parser_options]
+envelope = ["jobRequisitions"]

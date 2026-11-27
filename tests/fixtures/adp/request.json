@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://workforcenow.adp.com/mascsr/default/careercenter/public/events/staffing/v1/job-requisitions?cid=example-co",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

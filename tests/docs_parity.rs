@@ -17,7 +17,7 @@ fn documented_docs() -> Vec<PathBuf> {
     docs
 }
 
-const NUMBERED_DOCS: [&str; 15] = [
+const NUMBERED_DOCS: [&str; 16] = [
     "001-quickstart.md",
     "002-installation.md",
     "003-cli-reference.md",
@@ -33,6 +33,7 @@ const NUMBERED_DOCS: [&str; 15] = [
     "013-source-registry.md",
     "014-testing.md",
     "015-security.md",
+    "016-config-migration.md",
 ];
 
 const MANIFEST_FAMILIES: [&str; 5] = ["feeds_api", "ats", "html_static", "html_rendered", "keyed"];

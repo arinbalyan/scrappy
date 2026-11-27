@@ -1,0 +1,39 @@
+version = 1
+id = "ats-phenom"
+name = "Phenom"
+family = "ats"
+health = "stale"
+request = "https://jobs.{slug}.com/api/jobs?offset=0&limit=25"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public tenant job API use"
+attribution = "Phenom"
+slugs = ["example-co"]
+fixtures = ["ats-phenom"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["companyName", "slug"]
+
+[field_aliases.url]
+names = ["url", "applyUrl"]
+
+[field_aliases.location]
+names = ["location.city", "location.state", "location.country", "locationText"]
+
+[field_aliases.description]
+names = ["description", "shortDescription"]
+
+[parser_options]
+envelope = ["jobs"]

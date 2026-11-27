@@ -1,0 +1,46 @@
+{
+  "jobs": [
+    {
+      "id": 701,
+      "reqId": "PH-701",
+      "title": "Backend Engineer",
+      "description": "Build APIs.",
+      "shortDescription": "Build APIs",
+      "companyName": "Example Co",
+      "url": "https://jobs.example-co.com/job/701",
+      "applyUrl": "https://apply.example.test/701",
+      "location": {
+        "city": "Austin",
+        "state": "TX",
+        "country": "US"
+      },
+      "locationText": "Austin, TX",
+      "department": "Engineering",
+      "category": "Engineering",
+      "type": "Full-Time",
+      "employmentType": "Full-Time",
+      "postedDate": 1762723200000,
+      "isRemote": false,
+      "workplaceType": "hybrid"
+    },
+    {
+      "id": 702,
+      "reqId": "PH-702",
+      "title": "Platform Engineer",
+      "description": "",
+      "shortDescription": "Operate clusters.",
+      "companyName": "Example Co",
+      "url": "",
+      "applyUrl": "https://apply.example.test/702",
+      "location": null,
+      "locationText": "Remote",
+      "department": "Infrastructure",
+      "category": "Operations",
+      "type": "Contract",
+      "employmentType": "Contract",
+      "postedDate": 1762896000,
+      "isRemote": true,
+      "workplaceType": "remote"
+    }
+  ]
+}

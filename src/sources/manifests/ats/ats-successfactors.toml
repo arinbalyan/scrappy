@@ -1,0 +1,39 @@
+version = 1
+id = "ats-successfactors"
+name = "SAP SuccessFactors"
+family = "ats"
+health = "stale"
+request = 'https://example-co.successfactors.com/odata/v2/JobRequisitionPosting?$select=jobReqId,jobTitle,jobDescription,locationObj,department,postingStartDate,employmentType,companyName,externalJobUrl&$top=20&$skip=0&$format=json'
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public tenant OData job postings"
+attribution = "SAP SuccessFactors"
+slugs = ["example-co"]
+fixtures = ["ats-successfactors"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["jobTitle", "formattedJobTitle"]
+
+[field_aliases.company]
+names = ["companyName", "slug"]
+
+[field_aliases.url]
+names = ["externalJobUrl"]
+
+[field_aliases.location]
+names = ["locationObj.city", "locationObj.state", "locationObj.country"]
+
+[field_aliases.description]
+names = ["jobDescription"]
+
+[parser_options]
+envelope = ["d", "results"]

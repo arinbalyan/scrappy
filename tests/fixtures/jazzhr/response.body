@@ -1,0 +1,30 @@
+[
+  {
+    "id": "1001",
+    "title": "Software Engineer",
+    "company": "example-co",
+    "city": "San Francisco",
+    "state": "CA",
+    "zip": "94102",
+    "department": "Engineering",
+    "description": "Build amazing software.",
+    "url": "https://example-co.applytojob.com/apply/abc123",
+    "type": "Full-Time",
+    "original_open_date": "2026-05-15",
+    "board_code": "abc123"
+  },
+  {
+    "id": "1002",
+    "title": "Product Manager",
+    "company": "example-co",
+    "city": "New York",
+    "state": "NY",
+    "zip": "10001",
+    "department": "Product",
+    "description": null,
+    "url": "https://example-co.applytojob.com/apply/1002",
+    "type": "Full-Time",
+    "original_open_date": "2026-05-10",
+    "board_code": null
+  }
+]

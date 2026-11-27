@@ -1,0 +1,36 @@
+version = 1
+id = "jazzhr"
+name = "JazzHR"
+family = "ats"
+health = "keyed"
+request = "https://api.resumatorapi.com/v1/jobs/status/open?apikey={key:JAZZHR_API_KEY}"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow credentialed open-job API use; skip without credentials"
+attribution = "JazzHR"
+credentials = ["JAZZHR_API_KEY"]
+fixtures = ["jazzhr"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company", "company_name"]
+
+[field_aliases.url]
+names = ["url", "apply_url"]
+
+[field_aliases.location]
+names = ["city", "state", "location"]
+
+[field_aliases.description]
+names = ["description"]

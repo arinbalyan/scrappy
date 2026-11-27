@@ -1,0 +1,9 @@
+{
+  "method": "GET",
+  "url": "https://app.crelate.com/api3/jobs?published=true&offset=0&limit=25",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0",
+    "x-api-key": "{key:CRELATE_API_KEY}"
+  }
+}

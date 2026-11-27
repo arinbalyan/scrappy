@@ -1,0 +1,39 @@
+version = 1
+id = "icims"
+name = "iCIMS"
+family = "ats"
+health = "requires_slug"
+request = "https://{slug}.icims.com/jobs/search?pr=0&o=0&mode=job&iis=Internet"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 1
+robots = "allow public tenant search endpoints; skip slow or access-controlled boards"
+attribution = "iCIMS"
+slugs = ["example-co"]
+fixtures = ["icims"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+
+[parser_options]
+envelope = ["jobs"]
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company", "company_name"]
+
+[field_aliases.url]
+names = ["url", "apply_url"]
+
+[field_aliases.location]
+names = ["location", "city", "state"]
+
+[field_aliases.description]
+names = ["description"]

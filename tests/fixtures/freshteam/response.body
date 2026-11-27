@@ -1,0 +1,28 @@
+[
+  {
+    "id": 501,
+    "title": "Backend Engineer",
+    "description": "<p>Build services.</p>",
+    "department": "Engineering",
+    "branch": "Austin",
+    "type": "fulltime",
+    "remote": false,
+    "closing_date": "2026-12-31",
+    "created_at": "2026-11-20T00:00:00Z",
+    "applicant_apply_link": "https://example-co.freshteam.com/jobs/501",
+    "company": "example-co"
+  },
+  {
+    "id": 502,
+    "title": "Platform Engineer",
+    "description": "Operate clusters.",
+    "department": "Infrastructure",
+    "branch": "Remote",
+    "type": "contract",
+    "remote": true,
+    "closing_date": "",
+    "created_at": "2026-11-22T00:00:00Z",
+    "applicant_apply_link": "https://example-co.freshteam.com/jobs/502",
+    "company": "example-co"
+  }
+]

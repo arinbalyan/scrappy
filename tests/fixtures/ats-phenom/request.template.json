@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://jobs.{slug}.com/api/jobs?offset=0&limit=25",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

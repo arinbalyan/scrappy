@@ -1,0 +1,38 @@
+version = 1
+id = "freshteam"
+name = "Freshteam"
+family = "keyed"
+health = "keyed"
+request = "https://{slug}.freshteam.com/api/job_postings"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 1
+robots = "allow credentialed tenant API use"
+attribution = "Freshteam"
+credentials = ["FRESHTEAM_API_TOKEN"]
+slugs = ["example-co"]
+fixtures = ["freshteam"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+authorization = "Bearer {key:FRESHTEAM_API_TOKEN}"
+
+[field_aliases.title]
+names = ["title"]
+
+[field_aliases.company]
+names = ["company", "company_name"]
+
+[field_aliases.url]
+names = ["applicant_apply_link", "url", "apply_url"]
+
+[field_aliases.location]
+names = ["branch", "location", "city"]
+
+[field_aliases.description]
+names = ["description"]

@@ -1,0 +1,32 @@
+[
+  {
+    "id": "job-401",
+    "name": "Backend Engineer",
+    "company": "example-co",
+    "description": "<p>Build APIs.</p>",
+    "city": "Austin",
+    "state_province": "TX",
+    "postal_code": "78701",
+    "country": "US",
+    "is_remote": false,
+    "created_date": "2026-11-20T00:00:00Z",
+    "modified_date": "2026-11-21T00:00:00Z",
+    "status": "published",
+    "url": "https://app.crelate.com/portal/example-co/job/job-401"
+  },
+  {
+    "id": "job-402",
+    "name": "Platform Engineer",
+    "company": "example-co",
+    "description": "Operate clusters.",
+    "city": "Remote",
+    "state_province": "",
+    "postal_code": "",
+    "country": "US",
+    "is_remote": true,
+    "created_date": "2026-11-22T00:00:00Z",
+    "modified_date": "2026-11-23T00:00:00Z",
+    "status": "published",
+    "url": "https://app.crelate.com/portal/example-co/job/job-402"
+  }
+]

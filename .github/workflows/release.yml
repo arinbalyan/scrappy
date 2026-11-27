@@ -1,0 +1,87 @@
+name: release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  artifacts:
+    name: build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            archive: scrappy_linux_amd64.tar.gz
+          - target: aarch64-apple-darwin
+            os: macos-latest
+            archive: scrappy_darwin_arm64.tar.gz
+          - target: x86_64-apple-darwin
+            os: macos-latest
+            archive: scrappy_darwin_amd64.tar.gz
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+            archive: scrappy_windows_amd64.zip
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Install musl tools
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Package archive
+        shell: bash
+        run: |
+          mkdir -p dist
+          if [[ "${{ matrix.target }}" == *windows* ]]; then
+            cp "target/${{ matrix.target }}/release/scrappy.exe" dist/
+            (cd dist && zip -q "../${{ matrix.archive }}" scrappy.exe)
+          else
+            cp "target/${{ matrix.target }}/release/scrappy" dist/
+            (cd dist && tar -czf "../${{ matrix.archive }}" scrappy)
+          fi
+      - name: Smoke test archive
+        shell: bash
+        run: |
+          if [[ "${{ matrix.target }}" == *windows* ]]; then
+            "target/${{ matrix.target }}/release/scrappy.exe" --version
+          else
+            "target/${{ matrix.target }}/release/scrappy" --version
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.archive }}
+          path: ${{ matrix.archive }}
+
+  release:
+    name: checksums and release
+    needs: artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Installers and checksums
+        run: |
+          cp scripts/install.sh dist/install.sh
+          cp scripts/install.ps1 dist/install.ps1
+          chmod +x dist/install.sh
+          (cd dist && sha256sum scrappy_*.tar.gz scrappy_*.zip install.sh install.ps1 > SHA256SUMS)
+      - name: Verify every checksum
+        run: (cd dist && sha256sum --check SHA256SUMS)
+      - name: Upload release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+

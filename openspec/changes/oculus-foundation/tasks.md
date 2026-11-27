@@ -190,6 +190,13 @@
 - [x] 11j.3 Record live probe results, update health labels where needed, and regenerate documentation/005-status.md
 - [x] 11j.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, and strict OpenSpec validation
 
+## 11l. Tenant and keyed API source ports
+
+- [x] 11l.1 Port adp, ats-phenom, ats-successfactors, icims, jazzhr, jobvite, crelate, and freshteam with manifests, behavior docs, and six-file fixtures
+- [x] 11l.2 Add offline golden replay coverage in tests/tier15_tenant_ats_replay.rs, tests/tier16_keyed_ats_replay.rs, and tests/tier17_keyed_feed_replay.rs
+- [x] 11l.3 Regenerate documentation/005-status.md and record adapter gaps in per-source behavior docs
+- [x] 11l.4 Verify the offline suite with cargo fmt, clippy, cargo test, emulation check, browser check, and strict OpenSpec validation
+
 ## 11k. Remaining public and seed-based source ports
 
 - [x] 11k.1 Port jobtechdev, wellfound, and jobylon with manifests, behavior docs, and six-file fixtures. Record deliberate skips: ziprecruiter needs cursor pagination and a session handshake, gem needs GraphQL batch envelopes, arbeitsagentur needs a live key and URL synthesis, bayt needs relative URL resolution, and ashby/bullhorn/tesla are already represented by ATS or multi-stage capabilities outside the manifest schema.
@@ -202,8 +209,8 @@
 - [x] 12.1 Add CI matrix for stable Rust, offline cargo test --locked, and feature builds, and verify a dry CI run passes
 - [x] 12.2 Add cargo audit and cargo deny checks and verify a known vulnerable fixture dependency fails the check
 - [x] 12.3 Add musl static build with file and ldd verification and verify the binary runs in a minimal container
-- [ ] 12.4 Document config migration from the old binary and verify every documented command works against the new CLI
-- [ ] 12.5 Build and upload every installation-documented artifact in the release workflow, verify checksums in installers, and smoke-test each artifact
+- [x] 12.4 Document config migration from the old binary and verify every documented command works against the new CLI
+- [x] 12.5 Build and upload every installation-documented artifact in the release workflow, verify checksums in installers, and smoke-test each artifact
 
 ## 13. Live validation, opt-in
 

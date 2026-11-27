@@ -1,0 +1,8 @@
+{
+  "method": "GET",
+  "url": "https://jobs.jobvite.com/api/v2/job-feed/{slug}",
+  "headers": {
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
+  }
+}

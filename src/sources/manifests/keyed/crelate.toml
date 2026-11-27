@@ -1,0 +1,38 @@
+version = 1
+id = "crelate"
+name = "Crelate"
+family = "keyed"
+health = "keyed"
+request = "https://app.crelate.com/api3/jobs?published=true&offset=0&limit=25"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 20
+max_concurrency = 1
+robots = "allow credentialed API use for configured tenants"
+attribution = "Crelate"
+credentials = ["CRELATE_API_KEY"]
+slugs = ["example-co"]
+fixtures = ["crelate"]
+
+[request_options.headers]
+accept = "application/json"
+user-agent = "Mozilla/5.0"
+x-api-key = "{key:CRELATE_API_KEY}"
+
+[field_aliases.title]
+names = ["name", "title"]
+
+[field_aliases.company]
+names = ["company", "company_name"]
+
+[field_aliases.url]
+names = ["url", "apply_url", "job_url"]
+
+[field_aliases.location]
+names = ["city", "state_province", "country", "location"]
+
+[field_aliases.description]
+names = ["description"]

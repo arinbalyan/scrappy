@@ -1,0 +1,8 @@
+{
+  "fetched_at": "2026-11-26T00:00:00Z",
+  "substitutions": {
+    "slug": "example-co",
+    "CRELATE_API_KEY": "example-api-key"
+  },
+  "note": "Synthetic key and slug seed. The historical portal URL is carried explicitly in the response."
+}

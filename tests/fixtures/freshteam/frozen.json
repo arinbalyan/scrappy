@@ -1,0 +1,8 @@
+{
+  "fetched_at": "2026-11-26T00:00:00Z",
+  "substitutions": {
+    "slug": "example-co",
+    "FRESHTEAM_API_TOKEN": "example-token"
+  },
+  "note": "Synthetic token and slug seed. The historical apply-link fallback is resolved in fixtures."
+}
