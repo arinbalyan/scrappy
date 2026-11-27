@@ -2,8 +2,8 @@ version = 1
 id = "ats-teamtailor"
 name = "Teamtailor"
 family = "ats"
-health = "requires_slug"
-request = "https://career.teamtailor.com/widget/jobs/{slug}"
+health = "working"
+request = "https://{slug}.teamtailor.com/jobs.json"
 parser = "json"
 fetcher = "plain"
 pagination = "none"
@@ -13,23 +13,19 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public tenant board endpoints; skip access-controlled boards"
 attribution = "Teamtailor"
-slugs = ["example-co"]
+slugs = ["polestar"]
 fixtures = ["ats-teamtailor"]
 [field_aliases.url]
-names = ["links.careersite-url", "attributes.apply-url", "attributes.external-url"]
+names = ["url"]
 
 [field_aliases.title]
-names = ["attributes.title"]
+names = ["title"]
 
 [field_aliases.company]
-names = ["company.name", "id"]
-
-[field_aliases.location]
-names = ["attributes.city"]
+names = ["authors.0.name"]
 
 [field_aliases.description]
-names = ["attributes.body"]
+names = ["content_text", "content_html", "summary"]
 
 [parser_options]
-envelope = ["data"]
-
+envelope = ["items"]

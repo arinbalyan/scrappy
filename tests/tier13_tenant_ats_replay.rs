@@ -16,11 +16,11 @@ use scrappy::sources::manifest::{Family, Health, parse};
 use serde_json::Value;
 
 const SOURCES: [(&str, Family, Health); 6] = [
-    ("ats-pinpoint", Family::Ats, Health::RequiresSlug),
-    ("ats-teamtailor", Family::Ats, Health::RequiresSlug),
+    ("ats-pinpoint", Family::Ats, Health::Working),
+    ("ats-teamtailor", Family::Ats, Health::Working),
     ("ats-recruiterflow", Family::Ats, Health::RequiresSlug),
     ("ats-ukg", Family::Ats, Health::RequiresSlug),
-    ("ats-oracle", Family::Ats, Health::RequiresSlug),
+    ("ats-oracle", Family::Ats, Health::Working),
     ("ats-workday", Family::Ats, Health::RequiresSlug),
 ];
 

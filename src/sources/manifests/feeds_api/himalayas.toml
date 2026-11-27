@@ -29,3 +29,6 @@ names = ["description", "text"]
 [parser_options]
 envelope = ["jobs"]
 
+[query_defaults]
+limit = "100"
+offset = "0"

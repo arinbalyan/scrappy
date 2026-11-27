@@ -2,7 +2,7 @@ version = 1
 id = "jobylon"
 name = "Jobylon"
 family = "ats"
-health = "requires_slug"
+health = "working"
 request = "https://feed.jobylon.com/feeds/{slug}/?format=json"
 parser = "json"
 fetcher = "plain"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public company feeds; skip challenged or missing feeds"
 attribution = "Jobylon"
-slugs = ["example-co"]
+slugs = ["e2eea2b2-3d8a-439d-beb5-6bf05741f38c"]
 fixtures = ["jobylon"]
 
 [field_aliases.title]

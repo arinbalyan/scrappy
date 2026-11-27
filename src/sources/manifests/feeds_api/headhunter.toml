@@ -37,3 +37,5 @@ names = ["snippet.requirement", "snippet.responsibility", "description"]
 [parser_options]
 envelope = ["items"]
 
+[query_defaults]
+search_term = "engineer"

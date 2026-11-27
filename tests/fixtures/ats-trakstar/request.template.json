@@ -1,8 +1,8 @@
 {
   "method": "GET",
-  "url": "https://{slug}.hire.trakstar.com/api/v1/openings",
+  "url": "https://{slug}.hire.trakstar.com/jobfeeds/{slug}",
   "headers": {
-    "accept": "application/json",
+    "accept": "application/rss+xml, application/xml",
     "user-agent": "Mozilla/5.0"
   }
 }

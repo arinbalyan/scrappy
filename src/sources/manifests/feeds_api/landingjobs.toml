@@ -29,3 +29,7 @@ names = ["locations.0.city", "city", "location"]
 
 [field_aliases.description]
 names = ["role_description", "description", "text"]
+
+[query_defaults]
+limit = "100"
+offset = "0"

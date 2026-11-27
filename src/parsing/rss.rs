@@ -33,6 +33,8 @@ struct Item {
     title: Option<String>,
     link: Option<String>,
     description: Option<String>,
+    #[serde(rename = "pubDate", default)]
+    pub_date: Option<String>,
     #[serde(default)]
     creator: Vec<Namespaced>,
 }
@@ -60,6 +62,8 @@ struct Entry {
     #[serde(rename = "link", default)]
     links: Vec<Link>,
     summary: Option<String>,
+    published: Option<String>,
+    updated: Option<String>,
     #[serde(rename = "location", default)]
     locations: Vec<String>,
 }
@@ -147,7 +151,9 @@ impl Parser for PatternRssParser {
                 )
             };
             let url = item.link.unwrap_or_default();
-            let record = Record::new(url, title, company)?.with_location(location);
+            let record = Record::new(url, title, company)?
+                .with_location(location)
+                .with_date_posted(item.pub_date);
             records.push(record.with_description(item.description));
         }
         Ok(records)
@@ -166,7 +172,7 @@ impl Parser for RssParser {
             let title = item.title.unwrap_or_default();
             let url = item.link.unwrap_or_default();
             let company = page_host(&url).unwrap_or_else(|| "unknown".to_owned());
-            let record = Record::new(url, title, company)?;
+            let record = Record::new(url, title, company)?.with_date_posted(item.pub_date);
             records.push(record.with_description(item.description));
         }
         Ok(records)
@@ -187,7 +193,10 @@ fn parse_atom(text: &str) -> Result<Vec<Record>, String> {
         let title = entry.title.unwrap_or_default();
         let company = page_host(&url).unwrap_or_else(|| "unknown".to_owned());
         let location = entry.locations.into_iter().next();
-        let record = Record::new(url, title, company)?.with_location(location);
+        let date_posted = entry.published.or(entry.updated);
+        let record = Record::new(url, title, company)?
+            .with_location(location)
+            .with_date_posted(date_posted);
         records.push(record.with_description(entry.summary));
     }
     Ok(records)

@@ -2,7 +2,7 @@ version = 1
 id = "ats-ashby"
 name = "Ashby ATS"
 family = "ats"
-health = "requires_slug"
+health = "working"
 request = "https://api.ashbyhq.com/posting-api/job-board/{slug}"
 parser = "json"
 fetcher = "plain"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public board endpoints; skip challenged or access-controlled boards"
 attribution = "Ashby"
-slugs = ["example-co"]
+slugs = ["notion"]
 fixtures = ["ats-ashby"]
 
 [field_aliases.title]

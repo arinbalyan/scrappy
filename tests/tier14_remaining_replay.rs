@@ -24,7 +24,7 @@ const SOURCES: [(&str, Family, Health, &str); 3] = [
         Health::Working,
         "html_static",
     ),
-    ("jobylon", Family::Ats, Health::RequiresSlug, "ats"),
+    ("jobylon", Family::Ats, Health::Working, "ats"),
 ];
 
 const FIXTURE_FILES: [&str; 6] = [

@@ -15,6 +15,7 @@ use crate::engine::contract::{ProgressEvent, write_event};
 use crate::engine::governor::{Governor, SourceBudget};
 use crate::engine::limits::ResultPolicy;
 use crate::engine::memory::MemoryCeiling;
+use crate::engine::pagination::{self, Strategy};
 use crate::engine::retry::{CancelToken, Failure, RetryOutcome, RetryPolicy, retry_async};
 use crate::fetching::Fetcher;
 use crate::output::record::{
@@ -85,7 +86,7 @@ fn run_identifier(fetched_at: &str) -> String {
 
 fn robots_allows(policy: &str) -> bool {
     let value = policy.trim().to_ascii_lowercase();
-    value == "allow" || value == "allowed" || value == "permit"
+    value == "permit" || value.starts_with("allow")
 }
 
 /// Extract addresses observed directly in a job description.
@@ -331,6 +332,10 @@ fn select<'a>(registry: &'a Registry, ids: &[String]) -> Result<Vec<&'a Manifest
         .collect()
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "pagination keeps request, retry, and challenge handling together"
+)]
 async fn run_source(
     manifest: &Manifest,
     input: &RunInput,
@@ -339,61 +344,111 @@ async fn run_source(
     breaker: &CircuitBreaker,
     retry_policy: &RetryPolicy,
 ) -> Result<SourceOutcome, (RetryOutcome, String)> {
-    let values = input.values.get(&manifest.id).cloned().unwrap_or_default();
-    let request = build_request(manifest, &values).map_err(|error| {
-        (
-            RetryOutcome::Failed,
-            format!("{}: {}", manifest.id, error.message),
-        )
-    })?;
+    let mut values = input.values.get(&manifest.id).cloned().unwrap_or_default();
+    if values.slug.is_none() {
+        values.slug = manifest.slugs.first().cloned();
+    }
+    for (name, value) in &manifest.query_defaults {
+        values
+            .query
+            .entry(name.clone())
+            .or_insert_with(|| value.clone());
+    }
+    let strategy = pagination::parse(&manifest.pagination);
+    let strategy = if pagination::template_supports(&manifest.request, strategy) {
+        strategy
+    } else {
+        Strategy::None
+    };
+    let mut records = Vec::new();
     let mut cancelled = input.cancel.receiver();
-    let outcome = retry_async(
-        *retry_policy,
-        &mut cancelled,
-        || fetcher.fetch(&request),
-        |error: &String| {
-            if error.contains("429") || error.contains("throttled") {
-                Failure::Throttled(None)
-            } else {
-                Failure::Retryable
-            }
-        },
-    )
-    .await;
-    if *cancelled.borrow() {
-        return Err((
-            RetryOutcome::Cancelled,
-            format!("{}: cancelled", manifest.id),
-        ));
-    }
-    let response =
-        outcome.map_err(|(outcome, error)| (outcome, format!("{}: {error}", manifest.id)))?;
-    if let Ok(text) = response.text()
-        && let Some(challenge) = detect(response.status, &response.headers, text)
-    {
-        breaker.record_failure(&manifest.id, challenge.kind);
-        return Ok(SourceOutcome::Challenge(attention_event(
-            &manifest.id,
-            &challenge,
-            &input.config,
-        )));
-    }
-    breaker.record_success(&manifest.id);
-    if !(200..300).contains(&response.status) {
-        return Err((
-            RetryOutcome::Failed,
-            format!(
-                "{}: unexpected HTTP status {}",
-                manifest.id, response.status
-            ),
-        ));
-    }
-    let records = parse_response(manifest, &response).map_err(|error| {
-        (
-            RetryOutcome::Failed,
-            format!("{}: {}", manifest.id, error.message),
+    for (index, page) in strategy.values().into_iter().enumerate() {
+        if !input.policy.allows(&manifest.id, records.len()) {
+            break;
+        }
+        if let Some(key) = strategy.query_key() {
+            values.query.insert(key.to_owned(), page.to_string());
+        }
+        let request = build_request(manifest, &values).map_err(|error| {
+            (
+                RetryOutcome::Failed,
+                format!("{}: {}", manifest.id, error.message),
+            )
+        })?;
+        let outcome = retry_async(
+            *retry_policy,
+            &mut cancelled,
+            || async {
+                let response = fetcher.fetch(&request).await?;
+                match response.status {
+                    429 => Err(format!("throttled: {}", response.status)),
+                    500..=599 => Err(format!("server error: {}", response.status)),
+                    _ => Ok(response),
+                }
+            },
+            |error: &String| {
+                if error.contains("429") || error.contains("throttled") {
+                    Failure::Throttled(None)
+                } else {
+                    Failure::Retryable
+                }
+            },
         )
-    })?;
+        .await;
+        if *cancelled.borrow() {
+            return Err((
+                RetryOutcome::Cancelled,
+                format!("{}: cancelled", manifest.id),
+            ));
+        }
+        let response = match outcome {
+            Ok(response) => response,
+            Err((outcome, error)) if index == 0 => {
+                return Err((outcome, format!("{}: {error}", manifest.id)));
+            }
+            Err(_) => break,
+        };
+        if let Ok(text) = response.text()
+            && let Some(challenge) = detect(response.status, &response.headers, text)
+        {
+            if index == 0 {
+                breaker.record_failure(&manifest.id, challenge.kind);
+                return Ok(SourceOutcome::Challenge(attention_event(
+                    &manifest.id,
+                    &challenge,
+                    &input.config,
+                )));
+            }
+            break;
+        }
+        breaker.record_success(&manifest.id);
+        if !(200..300).contains(&response.status) {
+            if index == 0 {
+                return Err((
+                    RetryOutcome::Failed,
+                    format!(
+                        "{}: unexpected HTTP status {}",
+                        manifest.id, response.status
+                    ),
+                ));
+            }
+            break;
+        }
+        let page_records = match parse_response(manifest, &response) {
+            Ok(records) => records,
+            Err(error) if index == 0 => {
+                return Err((
+                    RetryOutcome::Failed,
+                    format!("{}: {}", manifest.id, error.message),
+                ));
+            }
+            Err(_) => break,
+        };
+        if page_records.is_empty() {
+            break;
+        }
+        records.extend(page_records);
+    }
     let mut jobs = Vec::with_capacity(records.len());
     let mut skipped = 0;
     let discovery = input.config.email_discovery.unwrap_or(false);
@@ -408,6 +463,13 @@ async fn run_source(
         let job_input = JobInput {
             source_id: manifest.id.clone(),
             fetched_at: input.fetched_at.clone(),
+            is_remote: record.is_remote,
+            date_posted: record.date_posted.clone(),
+            compensation: record.compensation.clone(),
+            apply_method: record.apply_method.clone(),
+            job_url_direct: record.job_url_direct.clone(),
+            company_url: record.company_url.clone(),
+            industry: record.industry.clone(),
             emails,
             ..JobInput::default()
         };

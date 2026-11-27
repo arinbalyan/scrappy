@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://example-co.recruitee.com/api/offers",
+  "url": "https://bunq.recruitee.com/api/offers",
   "headers": {
     "accept": "application/json"
   }

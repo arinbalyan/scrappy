@@ -27,3 +27,8 @@ Concurrency: 1
 - 2026-11-26: Ported the tenant postings feed with a slug manifest and synthetic fixture.
 - 2026-11-26: Live probe of a historical tenant slug returned 404 HTML; health left at requires_slug because no active public tenant was confirmed.
 
+
+## Live seed verification
+
+- 2026-11-27: verified live seed `article` through the manifest adapter, returning 5 records.
+- The manifest now ships this verified seed and is declared working. Re-probe when the tenant board moves.

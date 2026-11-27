@@ -104,7 +104,7 @@ fn ats_gem_replays_into_golden_records() {
     let manifest = manifest();
     assert_eq!(manifest.id, SOURCE_ID);
     assert_eq!(manifest.family, Family::Ats);
-    assert_eq!(manifest.health, Health::RequiresSlug);
+    assert_eq!(manifest.health, Health::Working);
     assert_eq!(manifest.fixtures, vec![SOURCE_ID.to_owned()]);
 
     let dir = root().join("tests/fixtures").join(SOURCE_ID);

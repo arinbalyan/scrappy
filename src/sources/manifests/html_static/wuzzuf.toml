@@ -21,3 +21,6 @@ title = "a.job-title"
 company = "span.company-name"
 url = "a.job-title"
 url_attribute = "href"
+
+[query_defaults]
+term = "engineer"

@@ -100,16 +100,16 @@ comma-separated source ids and `SCRAPPY_LIVE_SEED_<SOURCE_ID>` for a verified
 slug. A source that declares credentials needs the matching `SCRAPPY_*`
 variable in the environment; without it the source is reported as keyed.
 
-The 2026-11-27 harvest probed 42 sources and produced 3,044 records across 41
-sources. It observed 259 email mentions in 162 unique addresses over 138
-domains, with 15 sources contributing addresses. The largest yields were
-`devopsjobs` with 1,000 records and 141 mentions, `arbeitnow` with 300, and
-`functionalworks` with 259. The largest email contributors were `devopsjobs`
+The 2026-11-27 full harvest probed all 111 sources and produced 6,778 records
+across 54 sources. It observed 254 email mentions in 162 unique addresses over 138
+domains, with 14 sources contributing addresses. The largest yields were `ats-workable` with 2,157 records,
+`devopsjobs` with 1,000, `breezyhr` with 757, `arbeitnow` with 300, and
+`ats-gem` with 300. The largest email contributors were `devopsjobs`
 with 141 mentions, `remoteok` with 28, `weworkremotely` with 22, and
 `realworkfromanywhere` with 21. Repeated trailing dots in domains such as
 `camunda.com.` indicate a normalization improvement for a later change.
-Outcome buckets were 41 working, 13 blocked, 19 keyed, 6 stale, 26 skipped, 4
-environment, and 2 challenge. These are live outcomes; manifest health in
+Outcome buckets were 54 working, 11 blocked, 19 keyed, 9 stale, 10 skipped, 5
+environment, and 3 challenge. These are live outcomes; manifest health in
 documentation/005-status.md is declared separately.
 
 ATS tenant slug candidates are recorded in

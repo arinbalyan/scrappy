@@ -2,7 +2,7 @@ version = 1
 id = "ats-gem"
 name = "Gem Job Board"
 family = "ats"
-health = "requires_slug"
+health = "working"
 request = "https://api.gem.com/job_board/v0/{slug}/job_posts/"
 parser = "json"
 fetcher = "plain"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public job board endpoints; boards without a published slug are skipped"
 attribution = "Gem"
-slugs = ["example-board"]
+slugs = ["coupa-software-inc-ats-1"]
 fixtures = ["ats-gem"]
 
 [field_aliases.title]

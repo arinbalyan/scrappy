@@ -14,26 +14,26 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | aijobs | AI Jobs | working | ready | HtmlStatic | plain |
 | androidjobs | Android Jobs | working | ready | FeedsApi | plain |
 | arbeitnow | Arbeitnow | working | ready | FeedsApi | plain |
-| ats-ashby | Ashby ATS | requires_slug | ready | Ats | plain |
-| ats-gem | Gem Job Board | requires_slug | ready | Ats | plain |
-| ats-oracle | Oracle | requires_slug | ready | Ats | plain |
+| ats-ashby | Ashby ATS | working | ready | Ats | plain |
+| ats-gem | Gem Job Board | working | ready | Ats | plain |
+| ats-oracle | Oracle | working | ready | Ats | plain |
 | ats-phenom | Phenom | stale | ready | Ats | plain |
-| ats-pinpoint | Pinpoint | requires_slug | ready | Ats | plain |
-| ats-recruitee | Recruitee ATS | requires_slug | ready | Ats | plain |
+| ats-pinpoint | Pinpoint | working | ready | Ats | plain |
+| ats-recruitee | Recruitee ATS | working | ready | Ats | plain |
 | ats-recruiterflow | Recruiterflow | requires_slug | ready | Ats | plain |
 | ats-rippling | Rippling ATS | requires_slug | ready | HtmlStatic | plain |
-| ats-smartrecruiters | SmartRecruiters ATS | requires_slug | ready | Ats | plain |
+| ats-smartrecruiters | SmartRecruiters ATS | working | ready | Ats | plain |
 | ats-successfactors | SAP SuccessFactors | stale | ready | Ats | plain |
 | ats-talentlyft | TalentLyft ATS | requires_slug | ready | Ats | plain |
-| ats-teamtailor | Teamtailor | requires_slug | ready | Ats | plain |
-| ats-trakstar | Trakstar ATS | requires_slug | ready | Ats | plain |
+| ats-teamtailor | Teamtailor | working | ready | Ats | plain |
+| ats-trakstar | Trakstar ATS | working | ready | Ats | plain |
 | ats-ukg | UKG | requires_slug | ready | Ats | plain |
-| ats-workable | Workable ATS | requires_slug | ready | Ats | plain |
+| ats-workable | Workable ATS | working | ready | Ats | plain |
 | ats-workday | Workday | requires_slug | ready | Ats | plain |
 | authenticjobs | AuthenticJobs | keyed | missing_credentials | Keyed | plain |
-| bamboohr | BambooHR | requires_slug | ready | Ats | plain |
+| bamboohr | BambooHR | working | ready | Ats | plain |
 | berlinstartupjobs | Berlin Startup Jobs | working | ready | FeedsApi | plain |
-| breezyhr | BreezyHR | requires_slug | ready | Ats | plain |
+| breezyhr | BreezyHR | working | ready | Ats | plain |
 | builtin | Built In | working | ready | HtmlStatic | plain |
 | canadajobbank | Canada Job Bank | working | ready | FeedsApi | plain |
 | careerjet | Careerjet | keyed | missing_credentials | Keyed | plain |
@@ -62,7 +62,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | functionalworks | Functional Works | working | ready | HtmlStatic | plain |
 | getonboard | GetOnBoard | working | ready | FeedsApi | plain |
 | golangjobs | Golang Jobs | working | ready | FeedsApi | plain |
-| greenhouse | Greenhouse | requires_slug | ready | Ats | plain |
+| greenhouse | Greenhouse | working | ready | Ats | plain |
 | gunio | Gun.io Jobs | working | ready | HtmlStatic | plain |
 | hackernews | Hacker News | working | ready | FeedsApi | plain |
 | hasjob | Hasjob | working | ready | FeedsApi | plain |
@@ -83,14 +83,14 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | jobicy | Jobicy | working | ready | FeedsApi | plain |
 | jobindex | Jobindex | working | ready | HtmlStatic | plain |
 | jobsch | jobs.ch | working | ready | FeedsApi | plain |
-| jobscore | JobScore | requires_slug | ready | Ats | plain |
+| jobscore | JobScore | working | ready | Ats | plain |
 | jobsdb | JobsDB | working | ready | FeedsApi | plain |
 | jobsinjapan | Jobs in Japan | working | ready | FeedsApi | plain |
 | jobspresso | Jobspresso | working | ready | FeedsApi | plain |
 | jobstreet | JobStreet | working | ready | FeedsApi | plain |
 | jobtechdev | JobTechDev | keyed | missing_credentials | Keyed | plain |
 | jobvite | Jobvite | requires_slug | ready | Ats | plain |
-| jobylon | Jobylon | requires_slug | ready | Ats | plain |
+| jobylon | Jobylon | working | ready | Ats | plain |
 | joinrise | Joinrise | working | ready | FeedsApi | plain |
 | landingjobs | Landingjobs | working | ready | FeedsApi | plain |
 | loxo | Loxo | blocked | blocked | Ats | plain |

@@ -32,3 +32,7 @@ names = ["location.city"]
 
 [field_aliases.description]
 names = ["description"]
+
+[query_defaults]
+limit = "100"
+term = "engineer"

@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://feed.jobylon.com/feeds/example-co/?format=json",
+  "url": "https://feed.jobylon.com/feeds/{slug}/?format=json",
   "headers": {
     "accept": "application/json"
   }

@@ -29,3 +29,5 @@ names = ["description", "text"]
 [parser_options]
 envelope = ["jobs"]
 
+[query_defaults]
+search = "engineer"

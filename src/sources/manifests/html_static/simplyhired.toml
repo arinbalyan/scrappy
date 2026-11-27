@@ -27,3 +27,8 @@ title = "[data-testid=searchSerpJobTitle]"
 company = "[data-testid=companyName]"
 url = "a[href]"
 url_attribute = "href"
+
+[query_defaults]
+l = "remote"
+pn = "1"
+q = "engineer"

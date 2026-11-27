@@ -27,3 +27,8 @@ Slugs: example-co (seed placeholder)
 - 2026-11-26: Ported from historical behavior with a slug manifest and synthetic fixture.
 - 2026-11-26: Live probe returned HTTP 301 for the placeholder tenant; health stays requires_slug.
 
+
+## Live seed verification
+
+- 2026-11-27: verified live seed `chargebee` through the manifest adapter, returning 1 records.
+- The route was corrected to the vendor's current public feed and the manifest is declared working.

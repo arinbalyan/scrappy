@@ -220,6 +220,9 @@ pub struct Manifest {
     /// Slug seeds for slug-dependent sources.
     #[serde(default)]
     pub slugs: Vec<String>,
+    /// Query substitutions used when the caller supplies none.
+    #[serde(default)]
+    pub query_defaults: BTreeMap<String, String>,
     /// Fixture identifiers used by offline tests.
     #[serde(default)]
     pub fixtures: Vec<String>,
@@ -250,6 +253,7 @@ impl Default for Manifest {
             attribution: String::new(),
             credentials: Vec::new(),
             slugs: Vec::new(),
+            query_defaults: BTreeMap::new(),
             fixtures: Vec::new(),
         }
     }

@@ -1,7 +1,7 @@
 {
   "captured_at": "2026-11-26T00:00:00Z",
-  "source": "https://feed.jobylon.com/feeds/example-co/?format=json",
+  "source": "https://feed.jobylon.com/feeds/00000000-0000-4000-8000-000000000001/?format=json",
   "substitutions": {
-    "slug": "example-co"
+    "slug": "00000000-0000-4000-8000-000000000001"
   }
 }

@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://jobs.jobvite.com/api/v2/job-feed/example-co",
+  "url": "https://jobs.jobvite.com/api/v2/job-feed/egnyte",
   "headers": {
     "accept": "application/json",
     "user-agent": "Mozilla/5.0"

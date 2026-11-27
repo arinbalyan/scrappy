@@ -1,8 +1,7 @@
 {
   "fetched_at": "2026-11-26T00:00:00Z",
   "substitutions": {
-    "slug": "example-co"
+    "slug": "401auto"
   },
   "note": "Historical BambooHR URLs were derived from slug and job id; fixtures carry the resolved URL."
 }
-

@@ -2,7 +2,7 @@ version = 1
 id = "ats-recruitee"
 name = "Recruitee ATS"
 family = "ats"
-health = "requires_slug"
+health = "working"
 request = "https://{slug}.recruitee.com/api/offers"
 parser = "json"
 fetcher = "plain"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public board endpoints; skip challenged or access-controlled boards"
 attribution = "Recruitee"
-slugs = ["example-co"]
+slugs = ["bunq"]
 fixtures = ["ats-recruitee"]
 
 [field_aliases.title]

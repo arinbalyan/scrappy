@@ -24,3 +24,6 @@ url_attribute = "href"
 
 [request_options.headers]
 user-agent = "Mozilla/5.0"
+
+[query_defaults]
+search = "engineer"

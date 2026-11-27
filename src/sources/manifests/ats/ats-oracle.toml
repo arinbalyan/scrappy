@@ -2,8 +2,8 @@ version = 1
 id = "ats-oracle"
 name = "Oracle"
 family = "ats"
-health = "requires_slug"
-request = "https://{slug}.fa.oraclecloud.com/hcmRestApi/resources/latest/recruitingCEJobRequisitions?onlyData=true&finder=findReqs;siteNumber=CX_45001,facetsList=LOCATIONS;WORK_LOCATIONS;WORKPLACE_TYPES;TITLES;CATEGORIES;ORGANIZATIONS;POSTING_DATES;FLEX_FIELDS,limit=100,sortBy=POSTING_DATES_DESC"
+health = "working"
+request = "https://{slug}/hcmRestApi/resources/latest/recruitingCEJobRequisitions?onlyData=true&expand=requisitionList&finder=findReqs;siteNumber=CX_45001,facetsList=LOCATIONS;WORK_LOCATIONS;WORK_TYPES;TITLES;CATEGORIES;ORGANIZATIONS;POSTING_DATES;FLEX_FIELDS,limit=100,sortBy=POSTING_DATES_DESC"
 parser = "json"
 fetcher = "plain"
 pagination = "none"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public tenant board endpoints; skip access-controlled boards"
 attribution = "Oracle"
-slugs = ["example-co"]
+slugs = ["ejwl.fa.us2.oraclecloud.com"]
 fixtures = ["ats-oracle"]
 [field_aliases.url]
 names = ["ExternalUrl", "url"]
@@ -29,4 +29,6 @@ names = ["PrimaryLocation"]
 
 [parser_options]
 envelope = ["items", "0", "requisitionList"]
+url_from = "Id"
+url_prefix = "https://ejwl.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_45001/job/"
 

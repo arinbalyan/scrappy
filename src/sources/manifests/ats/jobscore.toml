@@ -2,7 +2,7 @@ version = 1
 id = "jobscore"
 name = "JobScore"
 family = "ats"
-health = "requires_slug"
+health = "working"
 request = "https://careers.jobscore.com/jobs/{slug}/feed.json?sort=date&limit=25"
 parser = "json"
 fetcher = "plain"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public job feed endpoints"
 attribution = "JobScore"
-slugs = ["example-co"]
+slugs = ["cresa"]
 fixtures = ["jobscore"]
 
 [request_options.headers]
@@ -35,3 +35,6 @@ names = ["location.city", "location.state", "location.country"]
 [field_aliases.description]
 names = ["description"]
 
+
+[parser_options]
+envelope = ["jobs"]

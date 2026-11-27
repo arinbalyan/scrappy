@@ -18,7 +18,7 @@ use scrappy::fetching::Fetcher;
 use scrappy::fetching::plain::PlainFetcher;
 use scrappy::parsing::Record;
 use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
-use scrappy::sources::manifest::{Health, Manifest, parse};
+use scrappy::sources::manifest::{Manifest, parse};
 use scrappy::sources::registry::Registry;
 use serde::Serialize;
 use serde_json::Value;
@@ -38,6 +38,8 @@ struct SourceResult {
     skipped: usize,
     emails: usize,
     domains: usize,
+    elapsed_ms: u64,
+    bytes: usize,
     detail: String,
 }
 
@@ -140,11 +142,15 @@ fn substitutions(dir: &Path) -> TemplateValues {
 fn frozen_slug(dir: &Path, manifest: &Manifest) -> Option<String> {
     let text = fs::read_to_string(dir.join("frozen.json")).ok()?;
     let frozen: Value = serde_json::from_str(&text).ok()?;
-    let value = frozen.get("substitutions")?.get("seed_slug")?.as_str()?;
+    let substitutions = frozen.get("substitutions")?;
+    let value = substitutions
+        .get("seed_slug")
+        .or_else(|| substitutions.get("slug"))?
+        .as_str()?;
     if value == "example-co" {
         return None;
     }
-    if manifest.id == "ats-oracle" {
+    if manifest.id == "ats-oracle" && !value.contains('.') {
         let tenant = value.split('-').next().unwrap_or(value);
         let region = value.rsplit('-').next().unwrap_or("us");
         return Some(format!("{tenant}.fa.{region}.oraclecloud.com"));
@@ -174,9 +180,11 @@ fn selected_manifests() -> Vec<Manifest> {
         .cloned()
         .collect();
     assert!(unknown.is_empty(), "unknown live source ids: {unknown:?}");
-    all.into_iter()
-        .filter(|manifest| ids.contains(&manifest.id))
-        .collect()
+    let selected: Vec<Manifest> = all
+        .into_iter()
+        .filter(|manifest| ids.iter().any(|id| id == &manifest.id))
+        .collect();
+    selected
 }
 
 fn live_only_sources() -> Option<BTreeSet<String>> {
@@ -223,6 +231,8 @@ fn new_result(manifest: &Manifest) -> SourceResult {
         skipped: 0,
         emails: 0,
         domains: 0,
+        elapsed_ms: 0,
+        bytes: 0,
         detail: String::new(),
     }
 }
@@ -291,14 +301,15 @@ impl Harvest {
         if let Some(slug) = frozen_slug(&dir, manifest).or_else(|| live_slug(manifest)) {
             values.slug = Some(slug);
         }
+        for (name, value) in &manifest.query_defaults {
+            values
+                .query
+                .entry(name.clone())
+                .or_insert_with(|| value.clone());
+        }
         if !environment_credentials(manifest, &mut values) {
             result.outcome = "keyed".to_owned();
             result.detail = "credential not present in environment".to_owned();
-            return result;
-        }
-        if manifest.health == Health::Blocked {
-            result.outcome = "blocked".to_owned();
-            result.detail = "manifest marks source as blocked".to_owned();
             return result;
         }
         let request = match build_request(manifest, &values) {
@@ -317,16 +328,21 @@ impl Harvest {
             .acquire(&manifest.id)
             .await
             .expect("rate permit acquired");
+        let started = std::time::Instant::now();
         let response = match fetcher.fetch(&request).await {
             Ok(response) => response,
             Err(error) => {
+                result.elapsed_ms =
+                    u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
                 result.outcome = "environment".to_owned();
                 result.detail = error;
                 return result;
             }
         };
+        result.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
         result.http_status = Some(response.status);
         let text = response.text().unwrap_or_default();
+        result.bytes = text.len();
         if let Some(challenge) = detect(response.status, &response.headers, text) {
             result.outcome = "challenge".to_owned();
             result.detail = format!("challenge: {challenge:?}");

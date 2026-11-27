@@ -1,37 +1,20 @@
 {
-  "data": [
+  "version": "https://jsonfeed.org/version/1.1",
+  "title": "Polestar",
+  "items": [
     {
-      "company": {
-        "name": "example-co"
-      },
       "id": "9101",
-      "type": "jobs",
-      "links": {
-        "careersite-url": "https://career.teamtailor.com/example-co/jobs/9101"
-      },
-      "attributes": {
-        "title": "Frontend Engineer",
-        "body": "Build interfaces",
-        "city": "Lisbon",
-        "remote": false
-      }
+      "url": "https://polestar.teamtailor.com/jobs/9101",
+      "title": "Frontend Engineer",
+      "content_text": "Build interfaces.",
+      "date_published": "2026-11-20T00:00:00Z"
     },
     {
-      "company": {
-        "name": "example-co"
-      },
       "id": "9102",
-      "type": "jobs",
-      "links": {
-        "careersite-url": "https://career.teamtailor.com/example-co/jobs/9102"
-      },
-      "attributes": {
-        "title": "Platform Engineer",
-        "body": "Build runtime",
-        "city": "Remote",
-        "remote": true
-      }
+      "url": "https://polestar.teamtailor.com/jobs/9102",
+      "title": "Data Engineer",
+      "content_text": "Build pipelines.",
+      "date_published": "2026-11-21T00:00:00Z"
     }
   ]
 }
-

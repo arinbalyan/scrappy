@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://ats.rippling.com/example-co/jobs",
+  "url": "https://ats.rippling.com/rippling/jobs",
   "headers": {
     "accept": "application/json",
     "user-agent": "Mozilla/5.0"

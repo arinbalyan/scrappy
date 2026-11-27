@@ -34,3 +34,8 @@ Slugs: example-co (seed placeholder)
 ## Live validation
 
 - 2026-11-26: GET with the seed slug `example-co` returned HTTP 404 HTML; health stays `requires_slug` because a valid tenant seed is caller-supplied.
+
+## Live seed verification
+
+- 2026-11-27: verified live seed `e2eea2b2-3d8a-439d-beb5-6bf05741f38c` through the manifest adapter, returning 24 records.
+- The manifest now ships this verified seed and is declared working. Re-probe when the tenant board moves.

@@ -12,5 +12,6 @@ pub mod dedup;
 pub mod governor;
 pub mod limits;
 pub mod memory;
+pub mod pagination;
 pub mod pipeline;
 pub mod retry;

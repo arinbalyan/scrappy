@@ -2,7 +2,7 @@ version = 1
 id = "ats-workable"
 name = "Workable ATS"
 family = "ats"
-health = "requires_slug"
+health = "working"
 request = "https://apply.workable.com/api/v1/widget/accounts/{slug}"
 parser = "json"
 fetcher = "plain"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public board endpoints; skip challenged or access-controlled boards"
 attribution = "Workable"
-slugs = ["example-co"]
+slugs = ["huzzle"]
 fixtures = ["ats-workable"]
 
 [field_aliases.title]

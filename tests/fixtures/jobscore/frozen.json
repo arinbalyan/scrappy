@@ -1,8 +1,7 @@
 {
   "fetched_at": "2026-11-26T00:00:00Z",
   "substitutions": {
-    "slug": "example-co"
+    "slug": "cresa"
   },
   "note": "Historical URL derivation is resolved in fixtures; client-side search filtering is out of adapter scope."
 }
-

@@ -2,7 +2,7 @@ version = 1
 id = "ats-pinpoint"
 name = "Pinpoint"
 family = "ats"
-health = "requires_slug"
+health = "working"
 request = "https://{slug}.pinpointhq.com/postings.json"
 parser = "json"
 fetcher = "plain"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public tenant board endpoints; skip access-controlled boards"
 attribution = "Pinpoint"
-slugs = ["example-co"]
+slugs = ["article"]
 fixtures = ["ats-pinpoint"]
 [field_aliases.url]
 names = ["url", "id"]

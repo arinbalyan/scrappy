@@ -35,3 +35,6 @@ names = ["text"]
 [parser_options]
 envelope = ["results"]
 
+[query_defaults]
+location = "remote"
+search = "engineer"

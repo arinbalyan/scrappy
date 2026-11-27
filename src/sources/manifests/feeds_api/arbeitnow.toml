@@ -29,3 +29,5 @@ names = ["description", "text"]
 [parser_options]
 envelope = ["data"]
 
+[query_defaults]
+page = "1"

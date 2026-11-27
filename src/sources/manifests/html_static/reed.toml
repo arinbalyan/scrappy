@@ -36,3 +36,8 @@ names = ["jobDetail.displayLocationName"]
 
 [field_aliases.description]
 names = ["jobDetail.jobDescription"]
+
+[query_defaults]
+keywords = "engineer"
+location = "remote"
+pageno = "1"

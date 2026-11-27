@@ -2,8 +2,8 @@ version = 1
 id = "ats-smartrecruiters"
 name = "SmartRecruiters ATS"
 family = "ats"
-health = "requires_slug"
-request = "https://api.smartrecruiters.com/v1/companies/{slug}/jobs?offset=0&limit={query:limit}"
+health = "working"
+request = "https://api.smartrecruiters.com/v1/companies/{slug}/postings?offset=0&limit={query:limit}"
 parser = "json"
 fetcher = "plain"
 pagination = "offset:100"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public board endpoints; skip challenged or access-controlled boards"
 attribution = "SmartRecruiters"
-slugs = ["example-co"]
+slugs = ["Canva"]
 fixtures = ["ats-smartrecruiters"]
 
 [field_aliases.title]
@@ -33,3 +33,6 @@ names = ["jobAd.sections.jobDescription.text"]
 
 [parser_options]
 envelope = ["content"]
+
+[query_defaults]
+limit = "100"

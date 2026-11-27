@@ -30,3 +30,8 @@ names = ["description"]
 [parser_options]
 envelope = ["jobs"]
 
+[query_defaults]
+keywords = "engineer"
+locale_code = "en_US"
+page = "1"
+pagesize = "50"

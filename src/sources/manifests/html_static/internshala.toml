@@ -22,3 +22,6 @@ title = "a.job-title-href"
 company = "p.company-name"
 url = "a.job-title-href"
 url_attribute = "href"
+
+[query_defaults]
+page = "1"

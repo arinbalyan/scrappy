@@ -27,3 +27,8 @@ Slugs: example-co (seed placeholder)
 - 2026-11-26: Ported from historical behavior with a slug manifest and synthetic fixture.
 - 2026-11-26: Live probe returned HTTP 200 for a real public board and HTTP 404 for the placeholder slug.
 
+
+## Live seed verification
+
+- 2026-11-27: verified live seed `thirdchannel-inc` through the manifest adapter, returning 757 records.
+- The manifest now ships this verified seed and is declared working. Re-probe when the tenant board moves.

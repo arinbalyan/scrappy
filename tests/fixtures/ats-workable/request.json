@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://apply.workable.com/api/v1/widget/accounts/example-co",
+  "url": "https://apply.workable.com/api/v1/widget/accounts/huzzle",
   "headers": {
     "accept": "application/json"
   }

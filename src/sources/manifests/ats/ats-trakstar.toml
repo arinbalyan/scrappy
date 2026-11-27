@@ -2,9 +2,9 @@ version = 1
 id = "ats-trakstar"
 name = "Trakstar ATS"
 family = "ats"
-health = "requires_slug"
-request = "https://{slug}.hire.trakstar.com/api/v1/openings"
-parser = "json"
+health = "working"
+request = "https://{slug}.hire.trakstar.com/jobfeeds/{slug}"
+parser = "rss"
 fetcher = "plain"
 pagination = "none"
 profile = "none"
@@ -13,11 +13,11 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public opening endpoints"
 attribution = "Trakstar"
-slugs = ["example-co"]
+slugs = ["chargebee"]
 fixtures = ["ats-trakstar"]
 
 [request_options.headers]
-accept = "application/json"
+accept = "application/rss+xml, application/xml"
 user-agent = "Mozilla/5.0"
 
 [field_aliases.title]

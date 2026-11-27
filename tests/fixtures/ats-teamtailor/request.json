@@ -1,8 +1,7 @@
 {
   "method": "GET",
-  "url": "https://career.teamtailor.com/widget/jobs/example-co",
+  "url": "https://polestar.teamtailor.com/jobs.json",
   "headers": {
     "accept": "application/json"
   }
 }
-

@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public job board pages; skip board pages that present a challenge"
 attribution = "Rippling ATS"
-slugs = ["example-co"]
+slugs = ["rippling"]
 fixtures = ["ats-rippling"]
 
 [request_options.headers]

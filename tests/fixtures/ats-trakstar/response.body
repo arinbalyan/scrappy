@@ -1,25 +1,5 @@
-[
-  {
-    "id": 701,
-    "title": "Backend Engineer",
-    "company": "example-co",
-    "url": "https://example-co.hire.trakstar.com/openings/701",
-    "city": "Austin",
-    "state": "TX",
-    "country": "US",
-    "description": "<p>Build APIs.</p>",
-    "department": "Engineering",
-    "employment_type": "Full-time"
-  },
-  {
-    "id": 702,
-    "title": "Platform Engineer",
-    "company": "example-co",
-    "url": "",
-    "apply_url": "https://apply.example.test/702",
-    "location": "Remote",
-    "description": "Operate clusters.",
-    "department": "Infrastructure",
-    "employment_type": "Full-time"
-  }
-]
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0"><channel><title>Chargebee</title>
+<item><title>Backend Engineer</title><link>https://chargebee.hire.trakstar.com/openings/701</link><description>Build APIs.</description><pubDate>Wed, 26 Nov 2026 00:00:00 +0000</pubDate></item>
+<item><title>Platform Engineer</title><link>https://chargebee.hire.trakstar.com/openings/702</link><description>Operate clusters.</description><pubDate>Wed, 26 Nov 2026 00:00:00 +0000</pubDate></item>
+</channel></rss>

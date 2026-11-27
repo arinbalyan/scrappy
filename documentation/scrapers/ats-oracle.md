@@ -27,3 +27,8 @@ Concurrency: 1
 - 2026-11-26: Ported the recruiting requisitions feed with a slug manifest and synthetic fixture.
 - 2026-11-26: Live probe of a historical tenant subdomain timed out; health left at requires_slug because no active public tenant was confirmed.
 
+
+## Live seed verification
+
+- 2026-11-27: verified live seed `ejwl.fa.us2.oraclecloud.com` through the manifest adapter, returning 100 records.
+- The manifest now ships this verified seed and is declared working. Re-probe when the tenant board moves.

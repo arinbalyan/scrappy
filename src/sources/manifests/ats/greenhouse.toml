@@ -2,7 +2,7 @@ version = 1
 id = "greenhouse"
 name = "Greenhouse"
 family = "ats"
-health = "requires_slug"
+health = "working"
 request = "https://boards-api.greenhouse.io/v1/boards/{slug}/jobs?content=true"
 parser = "json"
 fetcher = "plain"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public board endpoints; skip challenged or access-controlled boards"
 attribution = "Greenhouse"
-slugs = ["example-co"]
+slugs = ["gitlab"]
 fixtures = ["greenhouse"]
 
 [field_aliases.title]

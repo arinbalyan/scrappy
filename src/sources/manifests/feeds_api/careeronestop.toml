@@ -37,3 +37,6 @@ names = ["Description"]
 [parser_options]
 envelope = ["Jobs"]
 
+[query_defaults]
+location = "remote"
+search_term = "engineer"

@@ -2,7 +2,7 @@ version = 1
 id = "bamboohr"
 name = "BambooHR"
 family = "ats"
-health = "requires_slug"
+health = "working"
 request = "https://{slug}.bamboohr.com/careers/list"
 parser = "json"
 fetcher = "plain"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public career list endpoints"
 attribution = "BambooHR"
-slugs = ["example-co"]
+slugs = ["401auto"]
 fixtures = ["bamboohr"]
 
 [request_options.headers]
@@ -22,6 +22,8 @@ user-agent = "Mozilla/5.0"
 
 [parser_options]
 envelope = ["result"]
+url_from = "id"
+url_prefix = "https://401auto.bamboohr.com/careers/"
 
 [field_aliases.title]
 names = ["jobOpeningName"]

@@ -31,3 +31,8 @@ Slugs: example-board (seed placeholder)
 ## Break and fix log
 
 - 2026-11-27: Ported the public REST job-board list with a slug manifest and synthetic fixture. The source stays requires_slug because a board vanity path must be supplied before a request can be built.
+
+## Live seed verification
+
+- 2026-11-27: verified live seed `coupa-software-inc-ats-1` through the manifest adapter, returning 300 records.
+- The manifest now ships this verified seed and is declared working. Re-probe when the tenant board moves.

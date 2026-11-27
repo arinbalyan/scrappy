@@ -32,3 +32,7 @@ names = ["attributes.location_cities.0", "attributes.location_cities"]
 
 [field_aliases.description]
 names = ["attributes.description"]
+
+[query_defaults]
+per_page = "50"
+term = "engineer"

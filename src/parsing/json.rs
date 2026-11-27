@@ -32,8 +32,9 @@ impl Parser for JsonParser {
             Value::Array(items) => items.as_slice(),
             Value::Object(object) => object
                 .get("jobs")
+                .or_else(|| object.get("items"))
                 .and_then(Value::as_array)
-                .ok_or("JSON object has no jobs array")?,
+                .ok_or("JSON object has no jobs or items array")?,
             _ => return Err("JSON payload is not an array or object".to_owned()),
         };
         let mut records = Vec::with_capacity(items.len());
@@ -162,9 +163,144 @@ pub fn record_from_aliases_with_url(
         "description",
         &["description", "text", "content", "jobDescription"],
     );
-    Record::new(url, title, company)
-        .ok()
-        .map(|record| record.with_location(location).with_description(description))
+    let extra = extra_fields(object, aliases);
+    Record::new(url, title, company).ok().map(|record| {
+        record
+            .with_location(location)
+            .with_description(description)
+            .with_date_posted(extra.date_posted)
+            .with_compensation(extra.compensation)
+            .with_apply_method(extra.apply_method)
+            .with_job_url_direct(extra.job_url_direct)
+            .with_company_url(extra.company_url)
+            .with_industry(extra.industry)
+            .with_is_remote(extra.is_remote)
+    })
+}
+
+struct ExtraFields {
+    date_posted: Option<String>,
+    compensation: Option<String>,
+    apply_method: Option<String>,
+    job_url_direct: Option<String>,
+    company_url: Option<String>,
+    industry: Option<String>,
+    is_remote: Option<bool>,
+}
+
+fn read_field(
+    object: &serde_json::Map<String, Value>,
+    aliases: Option<&BTreeMap<String, Vec<String>>>,
+    name: &str,
+    defaults: &[&str],
+) -> Option<String> {
+    aliases
+        .and_then(|map| map.get(name))
+        .and_then(|names| alias_field(object, names))
+        .or_else(|| {
+            defaults
+                .iter()
+                .find_map(|key| object.get(*key))
+                .and_then(Value::as_str)
+                .map(str::trim)
+                .filter(|value| !value.is_empty())
+                .map(str::to_owned)
+        })
+}
+
+fn extra_fields(
+    object: &serde_json::Map<String, Value>,
+    aliases: Option<&BTreeMap<String, Vec<String>>>,
+) -> ExtraFields {
+    ExtraFields {
+        date_posted: read_field(
+            object,
+            aliases,
+            "date_posted",
+            &[
+                "date_posted",
+                "datePosted",
+                "posted_at",
+                "postedAt",
+                "publication_date",
+                "publicationDate",
+                "releasedDate",
+                "created_at",
+                "createdAt",
+                "date",
+                "PostedDate",
+                "published",
+            ],
+        ),
+        compensation: read_field(
+            object,
+            aliases,
+            "compensation",
+            &[
+                "compensation",
+                "salary",
+                "salary_range",
+                "salaryRange",
+                "pay",
+            ],
+        ),
+        apply_method: read_field(
+            object,
+            aliases,
+            "apply_method",
+            &["apply_method", "applyMethod", "how_to_apply", "howToApply"],
+        ),
+        job_url_direct: read_field(
+            object,
+            aliases,
+            "job_url_direct",
+            &[
+                "job_url_direct",
+                "apply_url",
+                "applyUrl",
+                "application_url",
+                "url_active_page",
+            ],
+        ),
+        company_url: read_field(
+            object,
+            aliases,
+            "company_url",
+            &[
+                "company_url",
+                "companyUrl",
+                "company.website",
+                "company.url",
+            ],
+        ),
+        industry: read_field(
+            object,
+            aliases,
+            "industry",
+            &["industry", "company.industry", "category"],
+        ),
+        is_remote: bool_field(object, aliases, &["is_remote", "isRemote", "remote"]),
+    }
+}
+
+fn bool_field(
+    object: &serde_json::Map<String, Value>,
+    aliases: Option<&BTreeMap<String, Vec<String>>>,
+    defaults: &[&str],
+) -> Option<bool> {
+    let value = aliases
+        .and_then(|map| map.get("is_remote"))
+        .and_then(|names| names.iter().find_map(|name| nested(object, name)))
+        .or_else(|| defaults.iter().find_map(|key| object.get(*key)))?;
+    match value {
+        Value::Bool(value) => Some(*value),
+        Value::String(value) => match value.trim().to_ascii_lowercase().as_str() {
+            "true" | "yes" | "1" | "remote" => Some(true),
+            "false" | "no" | "0" | "onsite" => Some(false),
+            _ => None,
+        },
+        _ => None,
+    }
 }
 
 /// Build one record from a JSON object using common feed field names.
@@ -527,6 +663,20 @@ mod tests {
         let records = JsonParser.parse(&response(body)).expect("records parsed");
         assert_eq!(records.len(), 1);
         assert_eq!(records[0].title, "Engineer");
+    }
+
+    #[test]
+    fn keeps_posting_date_salary_and_apply_fields() {
+        let body = r#"[{"title":"Engineer","company":"Acme","url":"https://example.test/1","date_posted":"2026-11-20","salary":"USD 120k","apply_url":"https://example.test/apply","industry":"Software","remote":true}]"#;
+        let records = JsonParser.parse(&response(body)).expect("records parsed");
+        assert_eq!(records[0].date_posted.as_deref(), Some("2026-11-20"));
+        assert_eq!(records[0].compensation.as_deref(), Some("USD 120k"));
+        assert_eq!(
+            records[0].job_url_direct.as_deref(),
+            Some("https://example.test/apply")
+        );
+        assert_eq!(records[0].industry.as_deref(), Some("Software"));
+        assert_eq!(records[0].is_remote, Some(true));
     }
 
     #[test]

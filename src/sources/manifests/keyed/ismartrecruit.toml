@@ -35,3 +35,6 @@ names = ["city", "country"]
 [field_aliases.description]
 names = ["description"]
 
+[query_defaults]
+city = "remote"
+job_title = "engineer"

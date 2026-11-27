@@ -29,3 +29,5 @@ names = ["jobDescription", "description", "text"]
 [parser_options]
 envelope = ["jobs"]
 
+[query_defaults]
+count = "50"

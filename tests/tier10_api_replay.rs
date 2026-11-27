@@ -17,7 +17,7 @@ use serde_json::Value;
 
 const SOURCES: [(&str, Family, Health, &str); 2] = [
     ("ismartrecruit", Family::Keyed, Health::Keyed, "keyed"),
-    ("ats-trakstar", Family::Ats, Health::RequiresSlug, "ats"),
+    ("ats-trakstar", Family::Ats, Health::Working, "ats"),
 ];
 
 const FIXTURE_FILES: [&str; 6] = [

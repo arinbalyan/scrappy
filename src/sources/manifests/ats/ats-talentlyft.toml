@@ -30,3 +30,5 @@ names = ["Description"]
 [parser_options]
 envelope = ["Results"]
 
+[query_defaults]
+per_page = "50"

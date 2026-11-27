@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://api.gem.com/job_board/v0/example-board/job_posts/",
+  "url": "https://api.gem.com/job_board/v0/coupa-software-inc-ats-1/job_posts/",
   "headers": {
     "accept": "application/json"
   }

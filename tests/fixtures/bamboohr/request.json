@@ -1,9 +1,8 @@
 {
   "method": "GET",
-  "url": "https://example-co.bamboohr.com/careers/list",
+  "url": "https://401auto.bamboohr.com/careers/list",
   "headers": {
     "accept": "application/json",
     "user-agent": "Mozilla/5.0"
   }
 }
-

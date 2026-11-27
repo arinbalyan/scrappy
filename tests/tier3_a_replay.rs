@@ -14,16 +14,11 @@ use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
 use scrappy::sources::manifest::{Family, Health, Manifest, parse};
 
 const SOURCES: [(&str, Family, Health, &str); 5] = [
-    ("greenhouse", Family::Ats, Health::RequiresSlug, "json"),
-    ("ats-ashby", Family::Ats, Health::RequiresSlug, "json"),
-    (
-        "ats-smartrecruiters",
-        Family::Ats,
-        Health::RequiresSlug,
-        "json",
-    ),
-    ("ats-recruitee", Family::Ats, Health::RequiresSlug, "json"),
-    ("ats-workable", Family::Ats, Health::RequiresSlug, "json"),
+    ("greenhouse", Family::Ats, Health::Working, "json"),
+    ("ats-ashby", Family::Ats, Health::Working, "json"),
+    ("ats-smartrecruiters", Family::Ats, Health::Working, "json"),
+    ("ats-recruitee", Family::Ats, Health::Working, "json"),
+    ("ats-workable", Family::Ats, Health::Working, "json"),
 ];
 
 const REQUIRED_FILES: [&str; 6] = [

@@ -2,7 +2,7 @@ version = 1
 id = "breezyhr"
 name = "BreezyHR"
 family = "ats"
-health = "requires_slug"
+health = "working"
 request = "https://{slug}.breezy.hr/json"
 parser = "json"
 fetcher = "plain"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public career board endpoints"
 attribution = "BreezyHR"
-slugs = ["example-co"]
+slugs = ["thirdchannel-inc"]
 fixtures = ["breezyhr"]
 
 [request_options.headers]

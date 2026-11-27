@@ -1,8 +1,8 @@
 {
   "method": "GET",
-  "url": "https://example-co.hire.trakstar.com/api/v1/openings",
+  "url": "https://chargebee.hire.trakstar.com/jobfeeds/chargebee",
   "headers": {
-    "accept": "application/json",
+    "accept": "application/rss+xml, application/xml",
     "user-agent": "Mozilla/5.0"
   }
 }

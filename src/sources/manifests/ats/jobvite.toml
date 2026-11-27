@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public tenant job feeds; skip timed-out boards"
 attribution = "Jobvite"
-slugs = ["example-co"]
+slugs = ["egnyte"]
 fixtures = ["jobvite"]
 
 [request_options.headers]

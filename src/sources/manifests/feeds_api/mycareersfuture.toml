@@ -39,3 +39,7 @@ names = ["location"]
 
 [field_aliases.description]
 names = ["description"]
+
+[query_defaults]
+keyword = "engineer"
+limit = "100"

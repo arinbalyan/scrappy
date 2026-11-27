@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://api.ashbyhq.com/posting-api/job-board/example-co",
+  "url": "https://api.ashbyhq.com/posting-api/job-board/notion",
   "headers": {
     "accept": "application/json"
   }

@@ -34,3 +34,9 @@ names = ["locations.0.label", "location"]
 
 [field_aliases.description]
 names = ["teaser"]
+
+[query_defaults]
+keywords = "engineer"
+page = "1"
+pagesize = "50"
+where = "remote"

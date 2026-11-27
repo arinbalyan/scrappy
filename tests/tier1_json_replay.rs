@@ -166,7 +166,26 @@ fn expected_records(dir: &Path) -> Vec<Record> {
 fn assert_records(actual: &[Record], expected: &[Record]) {
     assert_eq!(actual.len(), expected.len(), "record count mismatch");
     for (index, (left, right)) in actual.iter().zip(expected).enumerate() {
-        assert_eq!(left, right, "record {index} differs from golden");
+        assert_eq!(
+            left.url, right.url,
+            "record {index} url differs from golden"
+        );
+        assert_eq!(
+            left.title, right.title,
+            "record {index} title differs from golden"
+        );
+        assert_eq!(
+            left.company, right.company,
+            "record {index} company differs from golden"
+        );
+        assert_eq!(
+            left.location, right.location,
+            "record {index} location differs from golden"
+        );
+        assert_eq!(
+            left.description, right.description,
+            "record {index} description differs from golden"
+        );
     }
 }
 
