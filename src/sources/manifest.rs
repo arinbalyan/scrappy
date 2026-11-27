@@ -119,6 +119,18 @@ pub struct EmbeddedOptions {
     /// Dot-separated path to the job array inside the JSON blob.
     #[serde(default)]
     pub envelope: Vec<String>,
+    /// Apollo typename used to collect normalized job objects.
+    #[serde(default)]
+    pub item_type: Option<String>,
+    /// Resolve Apollo normalized references before field extraction.
+    #[serde(default)]
+    pub resolve_refs: bool,
+    /// JSON field path used to derive canonical job URLs.
+    #[serde(default)]
+    pub url_from: Option<String>,
+    /// URL prefix prepended to a derived job identifier.
+    #[serde(default)]
+    pub url_prefix: Option<String>,
 }
 
 /// Optional parser settings that stay opaque to the manifest schema.

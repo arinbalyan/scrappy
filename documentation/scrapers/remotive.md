@@ -7,7 +7,7 @@ Endpoint: GET https://remotive.com/api/remote-jobs?search={term}
 Parser: json
 Fetcher: plain
 Pagination: none
-Rate: 20 requests per minute
+Rate: 30 requests per minute
 Concurrency: 1
 Robots: allow indexing of public job listings
 Attribution: Remotive

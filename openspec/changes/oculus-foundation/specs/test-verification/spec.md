@@ -18,7 +18,7 @@ Normal tests SHALL pass with networking disabled. Parsers SHALL be tested by rep
 - **THEN** live-network tests are not executed
 
 ### Requirement: Fixture contract
-Each source fixture set SHALL include a request descriptor, response body, selected headers, a frozen timestamp, and a golden normalized record. Fixtures SHALL be sanitized before commit.
+Each source fixture set SHALL include a request descriptor, its request template, response body, selected headers, a frozen timestamp, and a golden normalized record. Fixtures SHALL be sanitized before commit.
 
 #### Scenario: Fixture replays into a parser
 - **WHEN** a fixture is loaded for a source
@@ -26,7 +26,7 @@ Each source fixture set SHALL include a request descriptor, response body, selec
 
 #### Scenario: Fixture metadata is complete
 - **WHEN** a fixture set is validated
-- **THEN** request descriptor, response body, headers, timestamp, and golden record are present
+- **THEN** request descriptor, request template, response body, headers, timestamp, and golden record are present
 
 ### Requirement: CLI contract tests
 CLI tests SHALL cover precedence for every configurable field, scalar and array config forms, explicit false overrides, per-source values, output formats, config writes, doctor parity, and invalid input exit codes.
@@ -44,7 +44,7 @@ A separate validation workflow SHALL check which sources currently return jobs, 
 
 #### Scenario: Health report distinguishes failures
 - **WHEN** live validation finishes
-- **THEN** the report separates working, keyed, blocked, stale, and skipped live outcomes and lists historical IDs without manifests under unregistered
+- **THEN** the report separates working, keyed, blocked, environment, stale, and skipped live outcomes and lists historical IDs without manifests under unregistered
 
 #### Scenario: Live validation respects rate limits
 - **WHEN** live validation runs

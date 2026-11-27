@@ -7,7 +7,7 @@ Endpoint: GET https://jobicy.com/api/v2/remote-jobs?count={n}
 Parser: json
 Fetcher: plain
 Pagination: none; count capped at 50
-Rate: 20 requests per minute
+Rate: 30 requests per minute
 Concurrency: 1
 Robots: allow indexing of public job listings
 Attribution: Jobicy

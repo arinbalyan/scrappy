@@ -12,7 +12,7 @@ Concurrency: 1
 Robots: allow public board endpoints; challenged or access-controlled boards are skipped
 Attribution: Greenhouse
 Credentials: none
-Slugs: example-co (seed placeholder); gitlab and stripe are verified live seeds
+Slugs: example-co (seed placeholder); gitlab is a verified live seed
 
 ## Behavior
 

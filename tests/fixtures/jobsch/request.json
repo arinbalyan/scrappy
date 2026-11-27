@@ -1,6 +1,6 @@
 {
   "method": "GET",
-  "url": "https://www.jobs.ch/api/v1/public/search?rows=25",
+  "url": "https://www.jobs.ch/api/v1/public/search?query=engineer",
   "headers": {
     "accept": "application/json"
   }

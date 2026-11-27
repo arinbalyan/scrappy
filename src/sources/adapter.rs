@@ -166,11 +166,15 @@ pub fn parse_response(
                     .map(|(field, alias)| (field.clone(), alias.names.clone()))
                     .collect()
             });
-            EmbeddedJsonParser::new(
+            EmbeddedJsonParser::with_options(
                 embedded.element_id.clone(),
                 embedded.variable.clone(),
                 embedded.envelope.clone(),
                 aliases,
+                embedded.resolve_refs,
+                embedded.item_type.clone(),
+                embedded.url_from.clone(),
+                embedded.url_prefix.clone(),
             )
             .map_err(error)?
             .parse(response)

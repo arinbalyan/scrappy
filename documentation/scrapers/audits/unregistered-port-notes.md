@@ -2,8 +2,8 @@
 
 Date: 2026-11-27
 
-Scope: 20 historical scraper implementations that were not registered in the
-declarative source registry. Each source was reviewed against the historical
+Scope: 20 historical source IDs that were not registered in the declarative
+source registry. Each was reviewed against the historical
 `internal/scraper/<id>/scraper.go` implementation and current public endpoint
 documentation. A source was ported only when a public, no-auth JSON or RSS
 endpoint returns complete job records whose fields map directly to the

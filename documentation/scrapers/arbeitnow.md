@@ -7,7 +7,7 @@ Endpoint: GET https://www.arbeitnow.com/api/job-board-api?page={n}
 Parser: json
 Fetcher: plain
 Pagination: numbered pages, up to 3, stopping when the next link is null
-Rate: 20 requests per minute
+Rate: 30 requests per minute
 Concurrency: 1
 Robots: allow indexing of public job listings
 Attribution: Arbeitnow

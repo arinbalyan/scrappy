@@ -48,8 +48,8 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | deel | Deel | keyed | missing_credentials | FeedsApi | plain |
 | devopsjobs | Devopsjobs | working | ready | FeedsApi | plain |
 | dice | Dice | keyed | missing_credentials | FeedsApi | plain |
-| djinni | Djinni | working | ready | FeedsApi | plain |
-| drupaljobs | Drupal Jobs | working | ready | FeedsApi | plain |
+| djinni | Djinni | stale | ready | FeedsApi | plain |
+| drupaljobs | Drupal Jobs | stale | ready | FeedsApi | plain |
 | echojobs | EchoJobs | working | ready | FeedsApi | plain |
 | ecojobs | Eco Jobs | stale | ready | FeedsApi | plain |
 | eurojobs | Euro Jobs | working | ready | FeedsApi | plain |

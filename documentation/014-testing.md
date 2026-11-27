@@ -12,8 +12,9 @@ The ignored suite in `tests/live/validate.rs` runs with
 `cargo test --test live_validate -- --ignored --nocapture`. It fetches each
 registered source through the real plain fetcher, applies the source's
 configured rate through `src/engine/governor.rs`, and prints a report with
-working, keyed, blocked, stale, and unregistered sections. Redirect stdout
-to a local file to keep the report out of version control.
+working, keyed, blocked, environment, stale, skipped, and unregistered
+sections. Redirect stdout to a local file to keep the report out of version
+control.
 
 The `environment` section holds DNS and connection failures that describe the
 probe host rather than a source. A restricted network can put every reachable

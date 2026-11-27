@@ -27,8 +27,8 @@ const SOURCES: [(&str, Family, Health, &str); 10] = [
         Health::Working,
         "feeds_api",
     ),
-    ("djinni", Family::FeedsApi, Health::Working, "feeds_api"),
-    ("drupaljobs", Family::FeedsApi, Health::Working, "feeds_api"),
+    ("djinni", Family::FeedsApi, Health::Stale, "feeds_api"),
+    ("drupaljobs", Family::FeedsApi, Health::Stale, "feeds_api"),
     ("echojobs", Family::FeedsApi, Health::Working, "feeds_api"),
     ("eurojobs", Family::FeedsApi, Health::Working, "feeds_api"),
     (

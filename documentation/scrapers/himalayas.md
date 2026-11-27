@@ -7,7 +7,7 @@ Endpoint: GET https://himalayas.app/jobs/api?limit={n}&offset={n}
 Parser: json
 Fetcher: plain
 Pagination: offset and limit, page size 20, up to 10 pages
-Rate: 20 requests per minute
+Rate: 30 requests per minute
 Concurrency: 1
 Robots: allow indexing of public job listings
 Attribution: Himalayas

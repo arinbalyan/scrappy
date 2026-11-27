@@ -197,6 +197,10 @@ pub struct EmbeddedJsonParser {
     variable: Option<String>,
     path: Vec<String>,
     aliases: Option<BTreeMap<String, Vec<String>>>,
+    resolve_refs: bool,
+    item_type: Option<String>,
+    url_from: Option<String>,
+    url_prefix: Option<String>,
 }
 
 impl EmbeddedJsonParser {
@@ -211,6 +215,48 @@ impl EmbeddedJsonParser {
         path: Vec<String>,
         aliases: Option<BTreeMap<String, Vec<String>>>,
     ) -> Result<Self, String> {
+        Self::with_refs(element_id, variable, path, aliases, false)
+    }
+
+    /// Build a parser that resolves normalized object references.
+    ///
+    /// # Errors
+    /// Returns a diagnostic when neither an element id nor a variable name
+    /// is supplied or when an alias name is empty.
+    pub fn with_refs(
+        element_id: Option<String>,
+        variable: Option<String>,
+        path: Vec<String>,
+        aliases: Option<BTreeMap<String, Vec<String>>>,
+        resolve_refs: bool,
+    ) -> Result<Self, String> {
+        Self::with_options(
+            element_id,
+            variable,
+            path,
+            aliases,
+            resolve_refs,
+            None,
+            None,
+            None,
+        )
+    }
+
+    /// Build a parser for normalized embedded objects with derived URLs.
+    ///
+    /// # Errors
+    /// Returns a diagnostic when aliases or URL settings are invalid.
+    #[allow(clippy::too_many_arguments, reason = "manifest options map directly")]
+    pub fn with_options(
+        element_id: Option<String>,
+        variable: Option<String>,
+        path: Vec<String>,
+        aliases: Option<BTreeMap<String, Vec<String>>>,
+        resolve_refs: bool,
+        item_type: Option<String>,
+        url_from: Option<String>,
+        url_prefix: Option<String>,
+    ) -> Result<Self, String> {
         if element_id.is_none() && variable.is_none() {
             return Err("embedded parser needs an element id or variable".to_owned());
         }
@@ -221,11 +267,18 @@ impl EmbeddedJsonParser {
                 }
             }
         }
+        if url_from.is_some() && url_prefix.is_none() {
+            return Err("derived URL needs a prefix".to_owned());
+        }
         Ok(Self {
             element_id,
             variable,
             path,
             aliases,
+            resolve_refs,
+            item_type,
+            url_from,
+            url_prefix,
         })
     }
 }
@@ -250,12 +303,38 @@ impl Parser for EmbeddedJsonParser {
         } else {
             envelope(&value, &self.path).ok_or("embedded JSON envelope not found")?
         };
-        let items = selected
-            .as_array()
-            .ok_or("embedded JSON envelope is not an array")?;
+        let items: Vec<&Value> = if let Some(item_type) = &self.item_type {
+            selected
+                .as_object()
+                .ok_or("embedded JSON envelope is not an object")?
+                .values()
+                .filter(|item| {
+                    item.get("__typename")
+                        .and_then(Value::as_str)
+                        .is_some_and(|name| name == item_type)
+                })
+                .collect()
+        } else {
+            selected
+                .as_array()
+                .ok_or("embedded JSON envelope is not an array")?
+                .iter()
+                .collect()
+        };
         let mut records = Vec::with_capacity(items.len());
-        for item in items {
-            if let Some(record) = record_from_aliases(item, self.aliases.as_ref()) {
+        for item in &items {
+            let resolved = if self.resolve_refs {
+                resolve_refs(item, &value)
+            } else {
+                (*item).clone()
+            };
+            if let Some(record) = record_from_aliases_with_url(
+                &resolved,
+                self.aliases.as_ref(),
+                None,
+                self.url_from.as_deref(),
+                self.url_prefix.as_deref(),
+            ) {
                 records.push(record);
             }
         }
@@ -312,6 +391,28 @@ fn variable_json(text: &str, name: &str) -> Option<String> {
         }
     }
     None
+}
+
+fn resolve_refs(item: &Value, root: &Value) -> Value {
+    match item {
+        Value::Object(map) if map.len() == 1 && map.contains_key("__ref") => {
+            let key = map["__ref"].as_str().unwrap_or_default();
+            let escaped = key.replace('~', "~0").replace('/', "~1");
+            root.pointer(&format!("/props/pageProps/apolloState/data/{escaped}"))
+                .map_or_else(|| item.clone(), |target| resolve_refs(target, root))
+        }
+        Value::Object(map) => {
+            let mut resolved = serde_json::Map::with_capacity(map.len());
+            for (key, value) in map {
+                resolved.insert(key.clone(), resolve_refs(value, root));
+            }
+            Value::Object(resolved)
+        }
+        Value::Array(items) => {
+            Value::Array(items.iter().map(|item| resolve_refs(item, root)).collect())
+        }
+        _ => item.clone(),
+    }
 }
 
 /// Parser for a configured JSON envelope path with field aliases.
@@ -500,5 +601,61 @@ mod tests {
         .expect("parser built");
         let records = parser.parse(&response(body)).expect("records parsed");
         assert_eq!(records[0].title, "Engineer");
+    }
+
+    #[test]
+    fn resolves_embedded_object_references() {
+        let body = r#"<html><script id="__NEXT_DATA__" type="application/json">{"props":{"pageProps":{"apolloState":{"data":{"JobListing:1":{"title":"Engineer","company":{"__ref":"Startup:2"},"locationNames":["Berlin"],"url":"https://example.test/1"},"Startup:2":{"name":"Labs"}}},"jobs":[{"__ref":"JobListing:1"}]}}}</script></html>"#;
+        let parser = EmbeddedJsonParser::with_refs(
+            Some("__NEXT_DATA__".to_owned()),
+            None,
+            vec![
+                "props".to_owned(),
+                "pageProps".to_owned(),
+                "jobs".to_owned(),
+            ],
+            Some(
+                [("company".to_owned(), vec!["company.name".to_owned()])]
+                    .into_iter()
+                    .collect(),
+            ),
+            true,
+        )
+        .expect("parser built");
+        let records = parser.parse(&response(body)).expect("records parsed");
+        assert_eq!(records[0].company, "Labs");
+    }
+
+    #[test]
+    fn selects_typed_embedded_objects_and_derives_urls() {
+        let body = r#"<html><script id="__NEXT_DATA__" type="application/json">{"props":{"pageProps":{"apolloState":{"data":{"JobListing:1":{"__typename":"JobListing","title":"Engineer","slug":"engineer-1","company":{"__ref":"Startup:2"},"locationNames":["Berlin"]},"Startup:2":{"__typename":"Startup","name":"Labs"},"Other:3":{"__typename":"Other","title":"Ignored","slug":"ignored"}}}}}}</script></html>"#;
+        let parser = EmbeddedJsonParser::with_options(
+            Some("__NEXT_DATA__".to_owned()),
+            None,
+            vec![
+                "props".to_owned(),
+                "pageProps".to_owned(),
+                "apolloState".to_owned(),
+                "data".to_owned(),
+            ],
+            Some(
+                [
+                    ("company".to_owned(), vec!["company.name".to_owned()]),
+                    ("location".to_owned(), vec!["locationNames.0".to_owned()]),
+                ]
+                .into_iter()
+                .collect(),
+            ),
+            true,
+            Some("JobListing".to_owned()),
+            Some("slug".to_owned()),
+            Some("https://example.test/jobs/".to_owned()),
+        )
+        .expect("parser built");
+        let records = parser.parse(&response(body)).expect("records parsed");
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].url, "https://example.test/jobs/engineer-1");
+        assert_eq!(records[0].company, "Labs");
+        assert_eq!(records[0].location.as_deref(), Some("Berlin"));
     }
 }
