@@ -2,7 +2,7 @@ version = 1
 id = "web3career"
 name = "Web3 Career"
 family = "feeds_api"
-health = "working"
+health = "keyed"
 request = "https://web3.career/api/v1/jobs?limit=25"
 parser = "json"
 fetcher = "plain"

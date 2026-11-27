@@ -25,5 +25,6 @@ Attribution: 4 Day Week
 - Location aliases use the first array element only.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 but no records with title, company, and URL. The JSON envelope or aliases need review against the live payload.
 
 - 2026-11-26: Manifest, generic fixtures, and offline replay recorded during the Tier 1 port.

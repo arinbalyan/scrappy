@@ -28,5 +28,6 @@ Slugs: none
 - Missing location produces a null location field.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 but the JSON payload was not an array. The response envelope needs review.
 
 - 2026-11-26: Manifest, synthetic fixtures, behavior doc, and offline replay recorded during the Tier 2 B port.

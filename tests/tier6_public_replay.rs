@@ -29,7 +29,7 @@ const SOURCES: [(&str, Family, Health, &str); 5] = [
         Health::Blocked,
         "feeds_api",
     ),
-    ("web3career", Family::FeedsApi, Health::Working, "feeds_api"),
+    ("web3career", Family::FeedsApi, Health::Keyed, "feeds_api"),
 ];
 
 const FIXTURE_FILES: [&str; 6] = [

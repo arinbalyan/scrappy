@@ -2,7 +2,7 @@ version = 1
 id = "usajobs"
 name = "USAJobs"
 family = "keyed"
-health = "blocked"
+health = "keyed"
 request = "https://data.usajobs.gov/api/Search?results_per_page=25&page=1"
 parser = "json"
 fetcher = "plain"

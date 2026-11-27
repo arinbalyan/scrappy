@@ -26,6 +26,7 @@ Slugs: example-co (seed placeholder)
 - A different tenant requires editing the manifest URL; no runtime substitution changes the instance.
 
 ## Break and fix log
+- 2026-11-27: Live validation could not reach the fixed example tenant instance. Health stays stale until an active tenant and OData path are confirmed.
 
 - 2026-11-26: Ported the first OData page with a fixed tenant and synthetic fixture.
 - 2026-11-26: Historical stale-slug report mapped to stale; no live probe was added.

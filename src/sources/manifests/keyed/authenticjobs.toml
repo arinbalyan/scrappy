@@ -2,7 +2,7 @@ version = 1
 id = "authenticjobs"
 name = "AuthenticJobs"
 family = "keyed"
-health = "blocked"
+health = "keyed"
 request = "https://authenticjobs.com/api/?api_key={key:AUTHENTICJOBS_API_KEY}&page=1"
 parser = "json"
 fetcher = "plain"

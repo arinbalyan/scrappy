@@ -25,6 +25,7 @@ Slugs: example-co (seed placeholder)
 - Boards without a configured seed cannot build a tenant host and are skipped.
 
 ## Break and fix log
+- 2026-11-27: Live validation could not reach the example tenant host. The source remains stale and needs an active tenant seed for a meaningful probe.
 
 - 2026-11-26: Ported the first page of the tenant job API with a slug manifest and synthetic fixture.
 - 2026-11-26: Historical stale-slug report mapped to stale; no live probe was added.

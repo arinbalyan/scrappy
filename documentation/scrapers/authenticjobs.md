@@ -20,3 +20,4 @@ Attribution: AuthenticJobs
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 - 2026-11-26: Live probe returned an HTTP 403 Cloudflare challenge, so health changed to blocked.
+- 2026-11-27: Live validation could not build the request without AUTHENTICJOBS_API_KEY, so keyed is the accurate pre-credential state. The earlier 403 remains a deployment risk and must be re-probed with a real key.

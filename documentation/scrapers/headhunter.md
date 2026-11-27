@@ -20,6 +20,7 @@ Rate: 30 requests per minute
 - The historical scraper jittered requests; pacing is handled by engine rate limits in the rewrite.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 403, consistent with the blocked health. The run environment may restrict outbound hosts.
 
 - 2026-11-26: Ported from historical behavior with a manifest and synthetic fixture.
 - 2026-11-26: Live probe returned HTTP 403 with a forbidden error; health changed to blocked.

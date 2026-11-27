@@ -28,6 +28,7 @@ Slugs: engineering
 - Location and description are dropped by the HTML parser, although the old flow read them from card text.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 but no records matched the configured selectors. The static HTML selectors need updating.
 
 - 2026-11-26: Manifest, static HTML fixture, behavior doc, and offline replay recorded during the Tier 2 port.
 

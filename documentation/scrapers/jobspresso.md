@@ -25,6 +25,7 @@ Company: Title prefix before the colon with `company_first = true`
 - Descriptions are CDATA-wrapped text.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 but one or more records had an empty title. The selector or title alias needs review.
 
 - 2026-11-26: Tier 1 manifest, synthetic six-file fixture, and offline replay test added.
 

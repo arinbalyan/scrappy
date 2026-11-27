@@ -24,6 +24,7 @@ Company: Top-level `company` field, required by the JSON parser
 - Numeric ids in links are retained as normalized URLs.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 but no records with title, company, and URL. The HTML aliases need review against the live payload.
 
 - 2026-11-26: Tier 1 manifest, synthetic six-file fixture, and offline replay test added.
 

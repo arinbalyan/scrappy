@@ -25,5 +25,6 @@ Attribution: YC Jobs
 - Relative URLs stay relative in normalized records.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 404. The feed URL needs correction before this source can be used.
 
 - 2026-11-26: GET/HTML fallback representation, generic fixtures, and offline replay recorded during the Tier 1 port; POST and derived-key flow remain unported.

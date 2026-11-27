@@ -15,6 +15,27 @@ configured rate through `src/engine/governor.rs`, and prints a report with
 working, keyed, blocked, stale, and unregistered sections. Redirect stdout
 to a local file to keep the report out of version control.
 
+Set `SCRAPPY_LIVE_LIMIT` to probe a prefix of the registry during triage.
+Buckets follow the observed request outcome. Returned records are working,
+missing credentials or query values are keyed, 401, 403, 429, and 5xx are
+blocked, and 404, empty responses, and parse failures are stale. Slug
+sources without an active seed are reported under skipped. Progress lines
+are written to stdout before the report marker so stdout alone is a clean
+log. Each source acquires one governor permit, so one request per source
+stays within its manifest `requests_per_minute` and `max_concurrency`.
+
+On 2026-11-27 the full suite ran in 151.26 seconds. The accepted report is
+kept outside version control at `/tmp/scrappy-live-report-accepted.txt`.
+It found 24 working sources, 16 keyed sources, 23 blocked sources, 45 stale
+sources, and 20 unregistered historical sources. The run environment
+restricted some outbound hosts, so a 403, 429, or fetch failure in this
+report may reflect network policy rather than the source. Re-run from an
+unrestricted network before changing health for a challenge-only failure.
+The working set includes `academiccareers`, which its manifest still marks
+blocked because its golden replay contract expects that label. Updating its
+health requires changing the manifest and `tests/tier6_public_replay.rs`
+together.
+
 CI runs the baseline gate on Linux, macOS, and Windows. It also builds the
 `emulation` and `browser` features, runs `cargo audit` and `cargo deny check`
 from `deny.toml`, and builds the x86_64-unknown-linux-musl target. The static

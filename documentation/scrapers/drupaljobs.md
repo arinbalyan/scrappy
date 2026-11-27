@@ -18,6 +18,7 @@ Attribution: Drupal Jobs
 - Company is derived from the job URL host when the feed has no company tag.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 but the RSS feed was malformed. The endpoint or feed parser needs review.
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 

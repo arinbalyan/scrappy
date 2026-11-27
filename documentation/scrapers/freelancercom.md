@@ -28,6 +28,7 @@ Slugs: none
 - Compensation and posting date never appear in fixtures or docs.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 but no records with title, company, and URL. The HTML aliases need review against the live payload.
 
 - 2026-11-26: Manifest, JSON API fixture, behavior doc, and offline replay recorded during the Tier 2 port.
 

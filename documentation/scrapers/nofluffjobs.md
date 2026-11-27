@@ -20,6 +20,7 @@ Attribution: NoFluffJobs
 - Salary, seniority, posted time, regions, and client-side search filtering are outside this adapter.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned a response above the 8 MiB fetch limit. The manifest needs a narrower query or a raised bounded limit.
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 - 2026-11-26: Corrected endpoint from the RSS path to the posting API and aligned fixture fields.

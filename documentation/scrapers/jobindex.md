@@ -28,6 +28,7 @@ Slugs: none
 - Missing company or title rows are skipped by the parser.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 204 with no embedded JSON source. The page endpoint or markup needs review.
 
 - 2026-11-26: Manifest, embedded Stash fixture, behavior doc, and offline replay recorded during the Tier 2 port.
 

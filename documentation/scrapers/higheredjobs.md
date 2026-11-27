@@ -19,6 +19,7 @@ Attribution: HigherEdJobs
 - The plain fetcher received an Incapsula challenge page during live validation; browser emulation is needed before this source can serve records.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 but the RSS feed was malformed HTML. The endpoint or feed parser needs review.
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 - 2026-11-26: Live probe returned an Incapsula challenge; health changed to blocked.

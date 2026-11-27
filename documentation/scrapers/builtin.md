@@ -28,6 +28,7 @@ Slugs: none
 - An anti-bot challenge response is treated as a fetch failure by the caller; the manifest declares no challenge handling.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 but no embedded JSON source was found. The page markup or embedded envelope needs review.
 
 - 2026-11-26: Manifest, embedded-JSON fixture, behavior doc, and offline replay recorded during the Tier 2 port.
 

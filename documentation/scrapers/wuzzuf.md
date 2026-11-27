@@ -27,6 +27,7 @@ Slugs: none
 - No browser or emulation profile is declared for the static search page.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 403. The run environment may restrict outbound hosts; re-probe from an unrestricted network before changing health.
 
 - 2026-11-26: Manifest, static search fixture, behavior doc, and offline replay recorded during the Tier 2 port.
 

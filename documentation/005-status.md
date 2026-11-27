@@ -29,7 +29,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | ats-ukg | UKG | requires_slug | ready | Ats | plain |
 | ats-workable | Workable ATS | requires_slug | ready | Ats | plain |
 | ats-workday | Workday | requires_slug | ready | Ats | plain |
-| authenticjobs | AuthenticJobs | blocked | blocked | Keyed | plain |
+| authenticjobs | AuthenticJobs | keyed | missing_credentials | Keyed | plain |
 | bamboohr | BambooHR | requires_slug | ready | Ats | plain |
 | berlinstartupjobs | Berlin Startup Jobs | working | ready | FeedsApi | plain |
 | breezyhr | BreezyHR | requires_slug | ready | Ats | plain |
@@ -108,8 +108,8 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | talroo | Talroo | keyed | missing_credentials | FeedsApi | plain |
 | themuse | The Muse | working | ready | FeedsApi | plain |
 | ukvisajobs | UK Visa Jobs | working | ready | FeedsApi | plain |
-| usajobs | USAJobs | blocked | blocked | Keyed | plain |
-| web3career | Web3 Career | working | missing_credentials | FeedsApi | plain |
+| usajobs | USAJobs | keyed | missing_credentials | Keyed | plain |
+| web3career | Web3 Career | keyed | missing_credentials | FeedsApi | plain |
 | wellfound | Wellfound | working | ready | HtmlStatic | plain |
 | weworkremotely | We Work Remotely | working | ready | FeedsApi | plain |
 | wordpressjobs | WordPress Jobs | working | ready | FeedsApi | plain |

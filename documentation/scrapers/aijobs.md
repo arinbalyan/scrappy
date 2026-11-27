@@ -24,5 +24,6 @@ Attribution: AI Jobs
 - Relative URLs stay relative in normalized records.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 but no records matched the configured selectors. The static HTML selectors need updating.
 
 - 2026-11-26: Manifest, generic fixtures, and offline replay recorded during the Tier 1 port.

@@ -20,3 +20,4 @@ Attribution: USAJobs
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 - 2026-11-26: Live probe returned an HTTP 403 Akamai access denial, so health changed to blocked.
+- 2026-11-27: Live validation could not build the request without USAJOBS_API_KEY and USAJOBS_EMAIL, so keyed is the accurate pre-credential state. The earlier 403 remains a deployment risk and must be re-probed with real credentials.

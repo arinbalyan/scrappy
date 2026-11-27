@@ -19,6 +19,7 @@ Rate: 30 requests per minute
 - Structured location objects, compensation, and remote flags are outside the normalized record contract.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 403, consistent with the blocked health. The run environment may restrict outbound hosts.
 
 - 2026-11-26: Ported from historical behavior with a manifest and synthetic fixture.
 - 2026-11-26: Live probe of a placeholder tenant returned HTTP 403; health changed to blocked.

@@ -22,6 +22,7 @@ Concurrency: 1
 - Offset pagination and regex extraction of job IDs stay outside the adapter.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 422 with no `jobPostings` envelope. The endpoint needs a corrected tenant path and request shape.
 
 - 2026-11-26: Ported the tenant job search POST with a slug manifest and synthetic fixture.
 - 2026-11-26: Live POST probe of a public tenant returned HTTP 200 with 342 job postings; health left at requires_slug because the tenant and site are supplied by the caller.

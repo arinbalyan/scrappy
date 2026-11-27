@@ -21,6 +21,7 @@ Concurrency: 1
 - Remote inference and creation dates stay outside the normalized record contract.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 401 with the example slug. The source remains requires_slug and needs an active board slug for a meaningful probe.
 
 - 2026-11-26: Ported the external job list with a slug header template and synthetic fixture.
 - 2026-11-26: Live probe returned HTTP 400 with an API key requirement; health left at requires_slug because the manifest declares no credential option yet.

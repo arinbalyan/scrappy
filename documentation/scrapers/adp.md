@@ -25,6 +25,7 @@ Slugs: example-co (seed placeholder)
 - Boards without a configured seed cannot build a cid and are skipped.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 404 for the seeded tenant path. Keep the tenant seed requirement and re-check the endpoint before enabling this source.
 
 - 2026-11-26: Ported the tenant requisition feed with a slug manifest and synthetic fixture.
 - 2026-11-26: Historical timeout report mapped to blocked; no live probe was added.

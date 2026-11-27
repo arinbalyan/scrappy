@@ -15,9 +15,9 @@ use scrappy::sources::manifest::{Family, Health, Manifest, parse};
 use serde_json::Value;
 
 const SOURCES: [(&str, Family, Health, &str); 5] = [
-    ("authenticjobs", Family::Keyed, Health::Blocked, "keyed"),
+    ("authenticjobs", Family::Keyed, Health::Keyed, "keyed"),
     ("jobdataapi", Family::FeedsApi, Health::Working, "feeds_api"),
-    ("usajobs", Family::Keyed, Health::Blocked, "keyed"),
+    ("usajobs", Family::Keyed, Health::Keyed, "keyed"),
     ("infojobs", Family::Keyed, Health::Keyed, "keyed"),
     ("exa", Family::Keyed, Health::Keyed, "keyed"),
 ];

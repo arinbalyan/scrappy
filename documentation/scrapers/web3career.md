@@ -2,7 +2,7 @@
 
 Source id: web3career
 Family: feeds_api
-Health: working
+Health: keyed
 Endpoint: GET https://web3.career/api/v1/jobs?limit=25
 Parser: JSON with field aliases
 Fetcher: plain
@@ -20,3 +20,4 @@ Attribution: Web3 Career
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 - 2026-11-26: Live probe returned HTTP 404 for the assumed jobs path; endpoint needs correction before use.
+- 2026-11-27: Live validation returned HTTP 404 for the assumed jobs path. Health is keyed because WEB3CAREER_API_TOKEN is required; the endpoint path still needs correction before a keyed probe can verify records.

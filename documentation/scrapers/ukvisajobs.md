@@ -27,5 +27,6 @@ Slugs: none
 - Salary and degree details from the HTML fallback are outside the normalized record fields.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 but invalid JSON. The endpoint or parser needs review.
 
 - 2026-11-26: Manifest, synthetic JSON fixture, behavior doc, and offline replay recorded during the Tier 2 C port.

@@ -23,5 +23,6 @@ Slugs: none
 - The two-stage flow is represented by frozen raw items and derived items, then replayed by the offline test.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 with no records. The feed shape or aliases need review against the live payload.
 
 - 2026-11-26: Manifest, fixture, behavior doc, and offline replay recorded during Tier 1 port.

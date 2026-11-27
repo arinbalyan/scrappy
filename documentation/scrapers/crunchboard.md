@@ -25,6 +25,7 @@ Company: First title segment; titles use `Company - Title` with `company_first =
 - Descriptions are CDATA-wrapped text.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 403. The run environment may restrict outbound hosts; re-probe from an unrestricted network before changing health.
 
 - 2026-11-26: Tier 1 manifest, synthetic six-file fixture, and offline replay test added.
 

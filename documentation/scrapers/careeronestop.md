@@ -20,6 +20,7 @@ Rate: 30 requests per minute
 - City and state are split from a flat location string in the historical scraper; the normalized record keeps the flat value.
 
 ## Break and fix log
+- 2026-11-27: Live validation could not reach the public API endpoint. Re-probe from an unrestricted network before changing health.
 
 - 2026-11-26: Ported from historical behavior with a manifest and synthetic fixture.
 - 2026-11-26: Live probe timed out after 20 seconds; health left at working because the endpoint may require regional access.

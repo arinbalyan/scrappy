@@ -25,5 +25,6 @@ Attribution: Hugging Face Jobs
 - An item without a company span still normalizes with an empty company.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 200 but no records matched the configured selectors. The static HTML selectors need updating.
 
 - 2026-11-26: Manifest, generic fixtures, and offline replay recorded during the Tier 1 port.

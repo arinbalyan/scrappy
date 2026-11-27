@@ -17,6 +17,7 @@ Attribution: Deel
 - Historical source required DEEL_API_TOKEN and read postings from data. Company is derived from department; salary and dates are outside this adapter.
 
 ## Break and fix log
+- 2026-11-27: Live validation returned HTTP 401 without DEEL_API_TOKEN, confirming the keyed requirement.
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 - 2026-11-26: Live probe returned HTTP 401, consistent with the declared DEEL_API_TOKEN requirement.
