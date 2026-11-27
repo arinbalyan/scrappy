@@ -1,5 +1,7 @@
 # Proposal
 
+> Historical license note: the repository owner relicensed scrappy to GPL-3.0-or-later on 2026-11-27. MIT references below describe the original plan and are superseded.
+
 ## Why
 
 The existing Go scraper grew from a small script into a 62,000-line program with no clear end state. Its CLI and config handling are the worst parts: documented precedence is not implemented, scalar config values silently erase defaults, boolean flags cannot be turned off, saved config destroys per-site settings, and stdout can contain warnings mixed into JSON. Now the desired end state is known, so a clean-room Rust rebuild can make the binary, config contract, and source adapters correct from the start.

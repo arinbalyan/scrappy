@@ -1,7 +1,0 @@
-{
-  "captured_at": "2026-11-26T00:00:00Z",
-  "source": "https://api.exa.ai/search",
-  "substitutions": {
-    "exa_api_key": "test-exa_api_key"
-  }
-}

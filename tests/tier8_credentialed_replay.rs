@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Offline golden replays for credentialed API sources.
 //!
 //! Frozen requests are rendered with synthetic credentials and compared with
@@ -15,12 +19,11 @@ use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
 use scrappy::sources::manifest::{Family, Health, Manifest, parse};
 use serde_json::Value;
 
-const SOURCES: [(&str, Family, Health, &str); 5] = [
+const SOURCES: [(&str, Family, Health, &str); 4] = [
     ("authenticjobs", Family::Keyed, Health::Keyed, "keyed"),
     ("jobdataapi", Family::FeedsApi, Health::Working, "feeds_api"),
     ("usajobs", Family::Keyed, Health::Keyed, "keyed"),
     ("infojobs", Family::Keyed, Health::Keyed, "keyed"),
-    ("exa", Family::Keyed, Health::Keyed, "keyed"),
 ];
 
 const FIXTURE_FILES: [&str; 6] = [

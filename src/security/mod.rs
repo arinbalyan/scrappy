@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Secret handling and outbound target validation.
 //!
 //! The helpers here keep credentials and personal data out of logs and test

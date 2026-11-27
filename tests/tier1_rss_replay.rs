@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Offline replays for the Tier 1 feed sources in this port.
 //!
 //! Every fixture is rendered from its template and parsed through
@@ -22,7 +26,7 @@ const SOURCES: [(&str, Health, &str); 11] = [
     ("railsjobs", Health::Working, "rss"),
     ("golangjobs", Health::Working, "rss"),
     ("devopsjobs", Health::Working, "rss"),
-    ("crunchboard", Health::Working, "rss"),
+    ("crunchboard", Health::Blocked, "rss"),
     ("jobspresso", Health::Working, "rss"),
     ("hasjob", Health::Working, "rss"),
     ("landingjobs", Health::Working, "json"),

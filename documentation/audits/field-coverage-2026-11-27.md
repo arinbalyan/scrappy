@@ -151,7 +151,7 @@ serialization. Production coverage is separate.
 (`src/output/record.rs:139`, `src/output/record.rs:211`). No manifest maps a
 company URL and no pipeline code supplies one. The output contract says the
 domain may come from source identity or `company_url`
-(`openspec/changes/oculus-foundation/specs/output-contract/spec.md:65`). The
+(`openspec/specs/output-contract/spec.md:65`). The
 source-identity path is not implemented.
 
 ### G6. `quality_score` cannot exceed 40 in production

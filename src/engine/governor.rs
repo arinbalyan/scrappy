@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Per-source rate limits, concurrency caps, and the global kill switch.
 //!
 //! See documentation/006-architecture.md.
@@ -58,6 +62,7 @@ impl KillSwitch {
 #[derive(Debug)]
 pub struct RequestPermit<'a> {
     _concurrency: SemaphorePermit<'a>,
+    _global: SemaphorePermit<'a>,
 }
 
 /// Independent rate and concurrency control for every source.
@@ -66,6 +71,7 @@ pub struct Governor {
     sources: BTreeMap<String, SourceLimits>,
     kill_switch: watch::Receiver<bool>,
     switch: KillSwitch,
+    global: Semaphore,
 }
 
 #[derive(Debug)]
@@ -93,6 +99,7 @@ impl Governor {
             sources: BTreeMap::new(),
             kill_switch,
             switch: KillSwitch { sender },
+            global: Semaphore::new(DEFAULT_CONCURRENCY),
         }
     }
 
@@ -120,6 +127,18 @@ impl Governor {
                 concurrency: Semaphore::new(budget.max_concurrency),
             },
         );
+        Ok(())
+    }
+
+    /// Replace the global concurrency cap.
+    ///
+    /// # Errors
+    /// Returns a diagnostic when the cap is zero.
+    pub fn set_global_limit(&mut self, limit: usize) -> Result<(), String> {
+        if limit == 0 {
+            return Err("global concurrency must be greater than zero".to_owned());
+        }
+        self.global = Semaphore::new(limit);
         Ok(())
     }
 
@@ -166,7 +185,15 @@ impl Governor {
                     if *self.kill_switch.borrow() {
                         return Err("run stopped by kill switch".to_owned());
                     }
-                    return Ok(RequestPermit { _concurrency: permit });
+                    let global = self
+                        .global
+                        .acquire()
+                        .await
+                        .map_err(|error| format!("global concurrency closed: {error}"))?;
+                    return Ok(RequestPermit {
+                        _concurrency: permit,
+                        _global: global,
+                    });
                 }
             }
         }

@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Thread-safe proxy selection with health feedback.
 //!
 //! See documentation/010-proxy.md.

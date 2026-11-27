@@ -33,3 +33,7 @@ Slugs: example-co (seed placeholder)
 
 - 2026-11-26: Ported the tenant requisition feed with a slug manifest and synthetic fixture.
 - 2026-11-26: Historical timeout report mapped to blocked; no live probe was added.
+
+## Viability classification 2026-11-27
+
+- Class: blocked. Workforce Now needs a tenant GUID and a candidate-site flow outside the current manifest.

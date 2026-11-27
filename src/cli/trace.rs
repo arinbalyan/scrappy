@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Tracing field masking for command diagnostics.
 //!
 //! Values tagged as sensitive or URL-shaped are masked before they enter a

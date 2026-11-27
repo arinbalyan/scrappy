@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! RSS, Atom, and pattern-based feed parsers.
 //!
 //! See documentation/006-architecture.md.
@@ -31,6 +35,7 @@ struct Channel {
 #[derive(Debug, Deserialize)]
 struct Item {
     title: Option<String>,
+    guid: Option<String>,
     link: Option<String>,
     description: Option<String>,
     #[serde(rename = "pubDate", default)]
@@ -59,6 +64,7 @@ struct Feed {
 #[derive(Debug, Deserialize)]
 struct Entry {
     title: Option<String>,
+    id: Option<String>,
     #[serde(rename = "link", default)]
     links: Vec<Link>,
     summary: Option<String>,
@@ -152,6 +158,7 @@ impl Parser for PatternRssParser {
             };
             let url = item.link.unwrap_or_default();
             let record = Record::new(url, title, company)?
+                .with_source_job_id(item.guid)
                 .with_location(location)
                 .with_date_posted(item.pub_date);
             records.push(record.with_description(item.description));
@@ -172,7 +179,9 @@ impl Parser for RssParser {
             let title = item.title.unwrap_or_default();
             let url = item.link.unwrap_or_default();
             let company = page_host(&url).unwrap_or_else(|| "unknown".to_owned());
-            let record = Record::new(url, title, company)?.with_date_posted(item.pub_date);
+            let record = Record::new(url, title, company)?
+                .with_source_job_id(item.guid)
+                .with_date_posted(item.pub_date);
             records.push(record.with_description(item.description));
         }
         Ok(records)
@@ -195,6 +204,7 @@ fn parse_atom(text: &str) -> Result<Vec<Record>, String> {
         let location = entry.locations.into_iter().next();
         let date_posted = entry.published.or(entry.updated);
         let record = Record::new(url, title, company)?
+            .with_source_job_id(entry.id)
             .with_location(location)
             .with_date_posted(date_posted);
         records.push(record.with_description(entry.summary));

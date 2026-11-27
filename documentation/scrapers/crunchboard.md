@@ -30,3 +30,7 @@ Company: First title segment; titles use `Company - Title` with `company_first =
 
 - 2026-11-26: Tier 1 manifest, synthetic six-file fixture, and offline replay test added.
 
+
+## Live relabel 2026-11-27
+
+- Live probe observed the endpoint as `blocked`. The manifest health was corrected to match the observed outcome.

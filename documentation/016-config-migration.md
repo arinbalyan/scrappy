@@ -68,3 +68,9 @@ Run this sequence after moving an old config:
 Every listed command exits before any request except `run`. A malformed
 config exits with status 2 and a diagnostic on stderr.
 
+
+## Secrets and schema migration
+
+- Move credential values from committed config files to `SCRAPPY_<NAME>` variables or a local `secrets_file`.
+- Remove credential values from old configs before sharing or committing them.
+- Output schema version 2 is additive. Version 1 records remain readable, but new records carry source ids, salary fields, and typed apply routes.

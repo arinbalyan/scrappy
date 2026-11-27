@@ -27,3 +27,7 @@ Slugs: example-co (seed placeholder)
 
 - 2026-11-26: Ported the embedded JSON path with a slug manifest and synthetic board fixture. The old scraper's in-page fallback is not represented; the source stays requires_slug until that shape is observed in a fixture.
 
+
+## Viability classification 2026-11-27
+
+- Class: blocked. Board data loads client-side through Algolia, so the embedded JSON envelope is absent.

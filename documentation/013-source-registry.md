@@ -15,7 +15,7 @@ root after a manifest changes. It reports declared health and current
 availability, not live probe results. Each source has a behavior document
 in documentation/scrapers/<source_id>.md. Manifest validation and parity rules
 are specified in
-openspec/changes/oculus-foundation/specs/source-registry/spec.md.
+openspec/specs/source-registry/spec.md.
 
 Manifests may optionally declare request_template, field_aliases, selectors,
 and parser_options. These fields are unset in the bundled
@@ -37,3 +37,10 @@ supporting files. Each manifest must have a behavior document in
 registered fixture set must contain the six canonical files listed in
 `tests/fixtures/README.md`. Manifests may name credentials but must never carry
 a credential value or secret.
+
+## Hardening fields
+
+- `query_defaults` supplies query substitutions when the caller does not provide them.
+- `request_budget` caps requests for one source and defaults to 25.
+- `retry_post` allows POST retries for APIs that document idempotent behavior.
+- `pagination` accepts page and offset forms. Repeated request URLs stop a source with `repeated_page`.

@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Offline golden replays for the keyed and seed-based ATS sources.
 //!
 //! Frozen responses are parsed through the real manifest adapters. The slug
@@ -19,7 +23,7 @@ use serde_json::Value;
 const SOURCES: [(&str, Family, Health, &str); 3] = [
     ("icims", Family::Ats, Health::RequiresSlug, "ats"),
     ("jazzhr", Family::Ats, Health::Keyed, "ats"),
-    ("jobvite", Family::Ats, Health::RequiresSlug, "ats"),
+    ("jobvite", Family::Ats, Health::Working, "ats"),
 ];
 
 const FIXTURE_FILES: [&str; 6] = [

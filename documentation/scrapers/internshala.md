@@ -33,3 +33,7 @@ Slugs: engineering
 
 - 2026-11-26: Manifest, static HTML fixture, behavior doc, and offline replay recorded during the Tier 2 port.
 
+
+## Hardened live probe 2026-11-27
+
+- Live probe returned 52 records after the challenge-classification and pagination fixes.

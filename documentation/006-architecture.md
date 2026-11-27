@@ -11,7 +11,7 @@ tests use directory targets under tests/cli_contract and tests/bridge_contract,
 declared in Cargo.toml. Fixtures live in tests/fixtures/<source_id>/ and
 behavior docs in documentation/scrapers/<source_id>.md. Empty directories keep
 a short README. The canonical tree is recorded in
-openspec/changes/oculus-foundation/design.md.
+openspec/changes/archive/2026-11-27-oculus-foundation/design.md.
 
 For feeds_api sources, src/sources/adapter.rs joins manifest.rs with fetching
 and parsing. A caller supplies runtime substitutions (slug, named credential,
@@ -81,3 +81,13 @@ cannot raise the global cap. When fail-open is enabled, a failed source does
 not stop the run; its sanitized diagnostic appears in the terminal summary
 along with emitted, skipped, and resolved cap counts. Unknown sources still
 fail the run.
+
+## Hardening changes 2026-11-27
+
+- Pagination executes `page`, `offset`, and repeated-request guards with a default 25-request budget per source. A `request_budget` manifest key overrides the default.
+- Governor permits are acquired per request. A global semaphore defaults to four in-flight requests, and each source keeps its own rate and concurrency budget.
+- Retries classify 408, 425, 429, and 5xx responses, honor `Retry-After` in seconds or HTTP-date form, and use bounded jitter. GET, HEAD, and OPTIONS retry by default. POST retries only when `retry_post = true`.
+- Plain fetches reuse one HTTP client per run and send `scrappy/0.1 (+https://github.com/arinbalyan/scrappy)` unless a manifest sets `user-agent`.
+- Challenge detection requires HTML or WAF evidence, so JSON job payloads and ordinary listings are not classified as CAPTCHAs.
+- Credentials resolve through one secret store from `SCRAPPY_<NAME>` and an optional `secrets_file`. Missing credentials produce a keyed outcome with zero requests.
+- Output schema version 2 adds source job ids, salary bounds and currency, typed apply routes, and keeps `fetched_at` separate from `date_posted`.

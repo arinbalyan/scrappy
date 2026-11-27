@@ -30,3 +30,7 @@ Slugs: none
 ## Break and fix log
 
 - 2026-11-26: Manifest, synthetic fixtures, behavior doc, and offline replay recorded during the Tier 2 B port.
+
+## Live relabel 2026-11-27
+
+- Live probe observed the endpoint as `blocked`. The manifest health was corrected to match the observed outcome.

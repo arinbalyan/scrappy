@@ -27,3 +27,7 @@ Concurrency: 1
 - 2026-11-26: Ported the tenant opportunity search with a slug manifest and synthetic fixture.
 - 2026-11-26: Live probe of a historical tenant slug returned 404 HTML; health left at requires_slug because no active public tenant was confirmed.
 
+
+## Adapter assessment 2026-11-27
+
+- A public board needs a tenant code plus a board UUID and a POST search call, which the current single-seed GET manifest cannot represent.

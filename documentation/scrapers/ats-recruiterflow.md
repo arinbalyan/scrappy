@@ -26,3 +26,7 @@ Concurrency: 1
 - 2026-11-26: Ported the external job list with a slug header template and synthetic fixture.
 - 2026-11-26: Live probe returned HTTP 400 with an API key requirement; health left at requires_slug because the manifest declares no credential option yet.
 
+
+## Viability classification 2026-11-27
+
+- Class: requires_slug. The seed is the API key itself, so the source is credential-only.

@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Offline replay of Tier 2 source fixtures through the real adapters.
 //!
 //! Each frozen response is parsed with `scrappy::sources::adapter::parse_response`
@@ -38,7 +42,7 @@ const SOURCES: [(&str, Family, Health, &str, &str); 6] = [
     (
         "wuzzuf",
         Family::HtmlStatic,
-        Health::Working,
+        Health::Blocked,
         "html_static",
         "html",
     ),
@@ -52,7 +56,7 @@ const SOURCES: [(&str, Family, Health, &str, &str); 6] = [
     (
         "jobindex",
         Family::HtmlStatic,
-        Health::Working,
+        Health::Stale,
         "html_static",
         "json",
     ),

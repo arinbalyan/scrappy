@@ -12,7 +12,6 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | adp | ADP Workforce Now | blocked | blocked | Ats | plain |
 | adzuna | Adzuna | keyed | missing_credentials | Keyed | plain |
 | aijobs | AI Jobs | working | ready | HtmlStatic | plain |
-| androidjobs | Android Jobs | working | ready | FeedsApi | plain |
 | arbeitnow | Arbeitnow | working | ready | FeedsApi | plain |
 | ats-ashby | Ashby ATS | working | ready | Ats | plain |
 | ats-gem | Gem Job Board | working | ready | Ats | plain |
@@ -21,7 +20,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | ats-pinpoint | Pinpoint | working | ready | Ats | plain |
 | ats-recruitee | Recruitee ATS | working | ready | Ats | plain |
 | ats-recruiterflow | Recruiterflow | requires_slug | ready | Ats | plain |
-| ats-rippling | Rippling ATS | requires_slug | ready | HtmlStatic | plain |
+| ats-rippling | Rippling ATS | blocked | blocked | HtmlStatic | plain |
 | ats-smartrecruiters | SmartRecruiters ATS | working | ready | Ats | plain |
 | ats-successfactors | SAP SuccessFactors | stale | ready | Ats | plain |
 | ats-talentlyft | TalentLyft ATS | requires_slug | ready | Ats | plain |
@@ -42,18 +41,15 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | conservationjobs | Conservation Jobs | working | ready | FeedsApi | plain |
 | coroflot | Coroflot | working | ready | FeedsApi | plain |
 | crelate | Crelate | keyed | missing_credentials | Keyed | plain |
-| crunchboard | Crunchboard | working | ready | FeedsApi | plain |
+| crunchboard | Crunchboard | blocked | blocked | FeedsApi | plain |
 | cryptocurrencyjobs | Cryptocurrency Jobs | working | ready | FeedsApi | plain |
 | cryptojobslist | Crypto Jobs List | working | ready | FeedsApi | plain |
 | deel | Deel | keyed | missing_credentials | FeedsApi | plain |
 | devopsjobs | Devopsjobs | working | ready | FeedsApi | plain |
 | dice | Dice | keyed | missing_credentials | FeedsApi | plain |
 | djinni | Djinni | stale | ready | FeedsApi | plain |
-| drupaljobs | Drupal Jobs | stale | ready | FeedsApi | plain |
-| echojobs | EchoJobs | working | ready | FeedsApi | plain |
+| echojobs | EchoJobs | blocked | blocked | FeedsApi | plain |
 | ecojobs | Eco Jobs | working | ready | FeedsApi | plain |
-| eurojobs | Euro Jobs | working | ready | FeedsApi | plain |
-| exa | Exa | keyed | missing_credentials | Keyed | plain |
 | findwork | FindWork | keyed | missing_credentials | Keyed | plain |
 | fossjobs | Fossjobs | working | ready | FeedsApi | plain |
 | fountain | Fountain | keyed | missing_credentials | FeedsApi | plain |
@@ -69,7 +65,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | headhunter | HeadHunter | blocked | blocked | FeedsApi | plain |
 | higheredjobs | HigherEdJobs | working | ready | FeedsApi | plain |
 | himalayas | Himalayas | working | ready | FeedsApi | plain |
-| hiringcafe | Hiring Cafe | working | ready | HtmlStatic | plain |
+| hiringcafe | Hiring Cafe | blocked | blocked | HtmlStatic | plain |
 | hiringthing | HiringThing | keyed | missing_credentials | Keyed | plain |
 | hnalgolia | Hacker News Algolia Jobs | working | ready | FeedsApi | plain |
 | huggingfacejobs | Hugging Face Jobs | working | ready | HtmlStatic | plain |
@@ -81,7 +77,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | jazzhr | JazzHR | keyed | missing_credentials | Ats | plain |
 | jobdataapi | JobDataAPI | working | ready | FeedsApi | plain |
 | jobicy | Jobicy | working | ready | FeedsApi | plain |
-| jobindex | Jobindex | working | ready | HtmlStatic | plain |
+| jobindex | Jobindex | stale | ready | HtmlStatic | plain |
 | jobsch | jobs.ch | working | ready | FeedsApi | plain |
 | jobscore | JobScore | working | ready | Ats | plain |
 | jobsdb | JobsDB | working | ready | FeedsApi | plain |
@@ -89,26 +85,26 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | jobspresso | Jobspresso | working | ready | FeedsApi | plain |
 | jobstreet | JobStreet | working | ready | FeedsApi | plain |
 | jobtechdev | JobTechDev | keyed | missing_credentials | Keyed | plain |
-| jobvite | Jobvite | requires_slug | ready | Ats | plain |
+| jobvite | Jobvite | working | ready | Ats | plain |
 | jobylon | Jobylon | working | ready | Ats | plain |
 | joinrise | Joinrise | working | ready | FeedsApi | plain |
 | landingjobs | Landingjobs | working | ready | FeedsApi | plain |
 | loxo | Loxo | blocked | blocked | Ats | plain |
-| manatal | Manatal | requires_slug | ready | Ats | plain |
+| manatal | Manatal | stale | ready | Ats | plain |
 | mycareersfuture | MyCareersFuture | working | ready | FeedsApi | plain |
-| nofluffjobs | NoFluffJobs | working | ready | FeedsApi | plain |
+| nofluffjobs | NoFluffJobs | blocked | blocked | FeedsApi | plain |
 | pythonjobs | Python Jobs | working | ready | FeedsApi | plain |
 | railsjobs | Rails Jobs | working | ready | FeedsApi | plain |
 | realworkfromanywhere | Real Work From Anywhere | working | ready | FeedsApi | plain |
 | reed | Reed | working | ready | HtmlStatic | plain |
-| remotefirstjobs | Remote First Jobs | working | ready | FeedsApi | plain |
+| remotefirstjobs | Remote First Jobs | blocked | blocked | FeedsApi | plain |
 | remoteok | RemoteOK | working | ready | FeedsApi | plain |
 | remotive | Remotive | working | ready | FeedsApi | plain |
 | simplyhired | Simply Hired | working | ready | HtmlStatic | plain |
 | snagajob | Snagajob | blocked | blocked | FeedsApi | plain |
 | startupjobs | Startup Jobs | blocked | blocked | FeedsApi | plain |
 | talroo | Talroo | keyed | missing_credentials | FeedsApi | plain |
-| themuse | The Muse | working | ready | FeedsApi | plain |
+| themuse | The Muse | stale | ready | FeedsApi | plain |
 | ukvisajobs | UK Visa Jobs | working | ready | FeedsApi | plain |
 | usajobs | USAJobs | keyed | missing_credentials | Keyed | plain |
 | web3career | Web3 Career | keyed | missing_credentials | FeedsApi | plain |
@@ -116,7 +112,7 @@ manifest in `src/sources/manifests/` and rerun the generator.
 | weworkremotely | We Work Remotely | working | ready | FeedsApi | plain |
 | wordpressjobs | WordPress Jobs | working | ready | FeedsApi | plain |
 | workingnomads | Working Nomads | working | ready | FeedsApi | plain |
-| wuzzuf | Wuzzuf | working | ready | HtmlStatic | plain |
+| wuzzuf | Wuzzuf | blocked | blocked | HtmlStatic | plain |
 | ycjobs | YC Jobs | blocked | blocked | Keyed | plain |
 
 The source registry is described in `documentation/013-source-registry.md`.

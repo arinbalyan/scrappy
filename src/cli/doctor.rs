@@ -1,7 +1,11 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Doctor checks for local setup and dependencies.
 //!
 //! The check taxonomy is specified in
-//! openspec/changes/oculus-foundation/specs/cli-config/spec.md.
+//! openspec/specs/cli-config/spec.md.
 
 // Rust guideline compliant 2026-10-09
 
@@ -12,6 +16,7 @@ use serde::Serialize;
 
 use crate::cli::diagnostic::safe_text;
 use crate::config::CONFIG_SCHEMA;
+use crate::config::secret::SecretStore;
 
 /// Status of one doctor check.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -62,11 +67,13 @@ pub fn report_with_fix(files: &[PathBuf]) -> Report {
 }
 
 fn build_report(files: &[PathBuf], fix: bool) -> Report {
+    let store = SecretStore::discover(files);
+    let credential_names = declared_credential_names();
     let mut checks = vec![
         config_check(files),
         schema_check(),
         sources_check(),
-        credentials_check(),
+        credentials_check(&store, &credential_names),
         proxies_check(files),
         browser_check(),
         fixtures_check(),
@@ -134,12 +141,39 @@ fn sources_check() -> Check {
     }
 }
 
-fn credentials_check() -> Check {
-    let present = crate::config::ENV_PREFIX;
+fn declared_credential_names() -> Vec<String> {
+    let root = std::path::Path::new("src/sources/manifests");
+    let Ok(registry) = crate::sources::custom::load(root, &crate::sources::custom::directory())
+    else {
+        return Vec::new();
+    };
+    let mut names: Vec<String> = registry
+        .iter()
+        .flat_map(|manifest| manifest.credentials.iter().cloned())
+        .collect();
+    names.sort();
+    names.dedup();
+    names
+}
+
+fn credentials_check(store: &SecretStore, names: &[String]) -> Check {
+    if names.is_empty() {
+        return Check {
+            name: "credentials".to_owned(),
+            status: Status::Skip,
+            reason: "no source declares credentials".to_owned(),
+        };
+    }
+    let report = store.report(names);
+    let status = if report.is_complete() {
+        Status::Pass
+    } else {
+        Status::Warn
+    };
     Check {
         name: "credentials".to_owned(),
-        status: Status::Skip,
-        reason: format!("credential names use {present}* prefixes; values are never printed"),
+        status,
+        reason: format!("{} declared credential name(s): {report}", names.len()),
     }
 }
 

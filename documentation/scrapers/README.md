@@ -53,4 +53,4 @@ Attribution: Example
 ```
 
 Manifest validation and parity rules live in
-openspec/changes/oculus-foundation/specs/source-registry/spec.md.
+openspec/specs/source-registry/spec.md.

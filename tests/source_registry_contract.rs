@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Offline parity checks for the bundled source registry.
 //!
 //! Every built-in manifest must have a behavior document, a declared health

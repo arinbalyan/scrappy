@@ -26,3 +26,7 @@ Slugs: example-co (seed placeholder)
 
 - 2026-11-26: Ported the JSON board response with a slug manifest and synthetic fixture. The source stays requires_slug because a board slug must be supplied before a request can be built.
 
+
+## Viability classification 2026-11-27
+
+- Class: requires_slug. No current public tenant or documented public route was confirmed.

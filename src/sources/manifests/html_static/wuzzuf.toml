@@ -2,7 +2,7 @@ version = 1
 id = "wuzzuf"
 name = "Wuzzuf"
 family = "html_static"
-health = "working"
+health = "blocked"
 request = "https://wuzzuf.net/search/jobs/?q={query:term}"
 parser = "html"
 fetcher = "plain"

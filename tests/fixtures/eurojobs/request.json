@@ -1,5 +1,0 @@
-{
-  "method": "GET",
-  "url": "https://www.eurojobs.com/rss",
-  "headers": {"accept": "application/rss+xml, application/xml"}
-}

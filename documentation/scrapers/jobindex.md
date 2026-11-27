@@ -33,3 +33,7 @@ Slugs: none
 
 - 2026-11-26: Manifest, embedded Stash fixture, behavior doc, and offline replay recorded during the Tier 2 port.
 
+
+## Live relabel 2026-11-27
+
+- Live probe observed the endpoint as `stale`. The manifest health was corrected to match the observed outcome.

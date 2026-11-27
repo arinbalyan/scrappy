@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Opt-in live harvest with record and contact counts.
 //!
 //! Run with `SCRAPPY_LIVE_REPORT=/tmp/report.json` cargo test --test `live_harvest` -- --ignored --nocapture.
@@ -38,6 +42,8 @@ struct SourceResult {
     skipped: usize,
     emails: usize,
     domains: usize,
+    requests: usize,
+    pages: usize,
     elapsed_ms: u64,
     bytes: usize,
     detail: String,
@@ -80,6 +86,25 @@ struct Report {
     sources: Vec<SourceResult>,
     emails_by_source: Vec<EmailSourceCount>,
     top_domains: Vec<DomainCount>,
+    timing: TimingSummary,
+}
+
+/// Latency and yield summary over working sources.
+#[derive(Debug, Serialize)]
+struct TimingSummary {
+    working_samples: usize,
+    median_ms: u64,
+    p95_ms: u64,
+    max_ms: u64,
+    fastest: Vec<TimedSource>,
+    slowest: Vec<TimedSource>,
+}
+
+/// One source latency row.
+#[derive(Debug, Serialize)]
+struct TimedSource {
+    source_id: String,
+    elapsed_ms: u64,
 }
 
 fn root() -> PathBuf {
@@ -231,6 +256,8 @@ fn new_result(manifest: &Manifest) -> SourceResult {
         skipped: 0,
         emails: 0,
         domains: 0,
+        requests: 0,
+        pages: 0,
         elapsed_ms: 0,
         bytes: 0,
         detail: String::new(),
@@ -343,6 +370,8 @@ impl Harvest {
         result.http_status = Some(response.status);
         let text = response.text().unwrap_or_default();
         result.bytes = text.len();
+        result.requests = 1;
+        result.pages = 1;
         if let Some(challenge) = detect(response.status, &response.headers, text) {
             result.outcome = "challenge".to_owned();
             result.detail = format!("challenge: {challenge:?}");
@@ -409,13 +438,15 @@ impl Harvest {
         top_domains.truncate(20);
         self.email_counts
             .sort_by_key(|left| std::cmp::Reverse(left.emails));
+        let timing = timing_summary(&self.results);
         let report = Report {
             generated_at: now_utc(),
-            version: 1,
+            version: 2,
             totals: self.totals,
             sources: self.results,
             emails_by_source: self.email_counts,
             top_domains,
+            timing,
         };
         let path =
             std::env::var("SCRAPPY_LIVE_REPORT").unwrap_or_else(|_| DEFAULT_REPORT.to_owned());
@@ -431,6 +462,48 @@ impl Harvest {
             report.totals.unique_addresses,
             report.totals.sources_with_records
         );
+    }
+}
+
+fn timing_summary(results: &[SourceResult]) -> TimingSummary {
+    let mut timed: Vec<&SourceResult> = results
+        .iter()
+        .filter(|result| result.outcome == "working" && result.elapsed_ms > 0)
+        .collect();
+    timed.sort_by_key(|result| result.elapsed_ms);
+    let percentile = |percent: usize| -> u64 {
+        if timed.is_empty() {
+            return 0;
+        }
+        let index = ((timed.len() * percent).div_ceil(100)).saturating_sub(1);
+        timed[index.min(timed.len() - 1)].elapsed_ms
+    };
+    let mut fastest: Vec<TimedSource> = timed
+        .iter()
+        .take(10)
+        .map(|result| TimedSource {
+            source_id: result.id.clone(),
+            elapsed_ms: result.elapsed_ms,
+        })
+        .collect();
+    fastest.sort_by_key(|row| row.elapsed_ms);
+    let mut slowest: Vec<TimedSource> = timed
+        .iter()
+        .rev()
+        .take(10)
+        .map(|result| TimedSource {
+            source_id: result.id.clone(),
+            elapsed_ms: result.elapsed_ms,
+        })
+        .collect();
+    slowest.sort_by_key(|row| std::cmp::Reverse(row.elapsed_ms));
+    TimingSummary {
+        working_samples: timed.len(),
+        median_ms: percentile(50),
+        p95_ms: percentile(95),
+        max_ms: timed.last().map_or(0, |result| result.elapsed_ms),
+        fastest,
+        slowest,
     }
 }
 

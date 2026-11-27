@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 // Rust guideline compliant 2026-10-09
 
 use std::fs;
@@ -135,7 +139,7 @@ fn canonical_tree_is_present() {
         "tests/fixtures/README.md".to_owned(),
         "tests/live/".to_owned(),
         "documentation/scrapers/".to_owned(),
-        "openspec/changes/oculus-foundation/design.md".to_owned(),
+        "openspec/changes/archive/2026-11-27-oculus-foundation/design.md".to_owned(),
     ];
     expected.extend(
         NUMBERED_DOCS

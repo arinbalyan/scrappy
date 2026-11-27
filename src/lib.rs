@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Library boundary for the scrappy command-line tool.
 //!
 //! Command handling, configuration, source manifests, fetching, parsing,

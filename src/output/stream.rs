@@ -1,6 +1,10 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Streaming output with atomic lines.
 //!
-//! See openspec/changes/oculus-foundation/specs/output-contract/spec.md.
+//! See openspec/specs/output-contract/spec.md.
 
 // Rust guideline compliant 2026-10-09
 

@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Manifest pagination strategies.
 //!
 //! Supported forms are `page:N`, `page:start:end`, `offset:step`, and
@@ -28,6 +32,15 @@ pub enum Strategy {
         /// Number of offset requests.
         pages: u32,
     },
+    /// Cursor token supplied by the response.
+    Cursor,
+    /// Bounded fanout over an id array.
+    Fanout {
+        /// Size of each fanout batch.
+        batch: u32,
+        /// Maximum ids requested.
+        max_ids: u32,
+    },
 }
 
 impl Strategy {
@@ -35,9 +48,10 @@ impl Strategy {
     #[must_use]
     pub fn query_key(self) -> Option<&'static str> {
         match self {
-            Self::None => None,
+            Self::None | Self::Fanout { .. } => None,
             Self::Page { .. } => Some("page"),
             Self::Offset { .. } => Some("offset"),
+            Self::Cursor => Some("cursor"),
         }
     }
 
@@ -45,9 +59,9 @@ impl Strategy {
     #[must_use]
     pub fn values(self) -> Vec<u32> {
         match self {
-            Self::None => vec![0],
             Self::Page { start, end } => (start..=end).collect(),
             Self::Offset { step, pages } => (0..pages).map(|index| index * step).collect(),
+            Self::None | Self::Cursor | Self::Fanout { .. } => vec![0],
         }
     }
 }
@@ -72,6 +86,22 @@ pub fn parse(text: &str) -> Strategy {
             [start, end] if start <= end => Strategy::Page {
                 start: *start,
                 end: (*end).min(MAX_PAGES),
+            },
+            _ => Strategy::None,
+        };
+    }
+    if text == "cursor:next" || text.starts_with("cursor:") {
+        return Strategy::Cursor;
+    }
+    if let Some(rest) = text.strip_prefix("fanout:") {
+        let parts: Vec<u32> = rest
+            .split(':')
+            .filter_map(|part| part.trim().parse().ok())
+            .collect();
+        return match parts.as_slice() {
+            [batch, max_ids] if *batch > 0 && *max_ids > 0 => Strategy::Fanout {
+                batch: *batch,
+                max_ids: (*max_ids).min(MAX_PAGES),
             },
             _ => Strategy::None,
         };
@@ -132,8 +162,14 @@ mod tests {
 
     #[test]
     fn unsupported_strategies_stay_single_request() {
-        assert_eq!(parse("cursor:next"), Strategy::None);
-        assert_eq!(parse("fanout:10:45"), Strategy::None);
+        assert_eq!(parse("cursor:next"), Strategy::Cursor);
+        assert_eq!(
+            parse("fanout:10:45"),
+            Strategy::Fanout {
+                batch: 10,
+                max_ids: 45
+            }
+        );
         assert_eq!(parse("numbered pages"), Strategy::None);
     }
 

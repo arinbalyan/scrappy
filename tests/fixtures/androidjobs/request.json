@@ -1,7 +1,0 @@
-{
-  "method": "GET",
-  "url": "https://androidjobs.io/jobs.rss",
-  "headers": {
-    "accept": "application/rss+xml, application/xml"
-  }
-}

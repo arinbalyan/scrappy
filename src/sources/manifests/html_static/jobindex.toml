@@ -2,7 +2,7 @@ version = 1
 id = "jobindex"
 name = "Jobindex"
 family = "html_static"
-health = "working"
+health = "stale"
 request = "https://www.jobindex.dk/jobsoegning?q={query:term}"
 parser = "json"
 fetcher = "plain"

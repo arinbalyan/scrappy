@@ -23,3 +23,7 @@ Attribution: Remote First Jobs
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 
+
+## Live relabel 2026-11-27
+
+- Live probe observed the endpoint as `blocked`. The manifest health was corrected to match the observed outcome.

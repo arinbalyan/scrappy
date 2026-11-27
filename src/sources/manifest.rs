@@ -1,7 +1,11 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Versioned source manifest schema.
 //!
 //! The manifest contract is specified in
-//! openspec/changes/oculus-foundation/specs/source-registry/spec.md.
+//! openspec/specs/source-registry/spec.md.
 
 // Rust guideline compliant 2026-10-09
 
@@ -223,6 +227,12 @@ pub struct Manifest {
     /// Query substitutions used when the caller supplies none.
     #[serde(default)]
     pub query_defaults: BTreeMap<String, String>,
+    /// Maximum requests per source run.
+    #[serde(default)]
+    pub request_budget: Option<usize>,
+    /// Whether POST requests may be retried.
+    #[serde(default)]
+    pub retry_post: bool,
     /// Fixture identifiers used by offline tests.
     #[serde(default)]
     pub fixtures: Vec<String>,
@@ -254,6 +264,8 @@ impl Default for Manifest {
             credentials: Vec::new(),
             slugs: Vec::new(),
             query_defaults: BTreeMap::new(),
+            request_budget: None,
+            retry_post: false,
             fixtures: Vec::new(),
         }
     }
@@ -277,6 +289,10 @@ pub fn parse(text: &str) -> Result<Manifest, ManifestError> {
 /// # Errors
 /// Returns `ManifestError` for an unsupported version, an invalid identifier,
 /// an empty required value, or an invalid limit.
+#[expect(
+    clippy::too_many_lines,
+    reason = "manifest validation reads as one checklist"
+)]
 pub fn validate(manifest: &Manifest) -> Result<(), ManifestError> {
     if manifest.version != MANIFEST_VERSION {
         return Err(ManifestError {
@@ -318,6 +334,20 @@ pub fn validate(manifest: &Manifest) -> Result<(), ManifestError> {
                 "manifest {} has invalid rate or concurrency limits",
                 manifest.id
             ),
+        });
+    }
+    if manifest.request_budget == Some(0) {
+        return Err(ManifestError {
+            message: format!("manifest {} has a zero request budget", manifest.id),
+        });
+    }
+    let pagination = manifest.pagination.trim().to_ascii_lowercase();
+    if (pagination.starts_with("page:") || pagination.starts_with("offset:"))
+        && crate::engine::pagination::parse(&pagination)
+            == crate::engine::pagination::Strategy::None
+    {
+        return Err(ManifestError {
+            message: format!("manifest {} has malformed pagination", manifest.id),
         });
     }
     if manifest.health == Health::Keyed && manifest.credentials.is_empty() {
@@ -590,5 +620,19 @@ fixtures = ["sample"]
         let text = format!("{VALID}\n[selectors]\nitem = \"\"\n");
         let error = parse(&text).unwrap_err();
         assert!(error.message.contains("selector"));
+    }
+
+    #[test]
+    fn rejects_zero_request_budget() {
+        let text = format!("{VALID}\nrequest_budget = 0\n");
+        let error = parse(&text).unwrap_err();
+        assert!(error.message.contains("request budget"));
+    }
+
+    #[test]
+    fn rejects_malformed_page_strategy() {
+        let text = VALID.replace("pagination = \"none\"", "pagination = \"page:oops\"");
+        let error = parse(&text).unwrap_err();
+        assert!(error.message.contains("pagination"));
     }
 }

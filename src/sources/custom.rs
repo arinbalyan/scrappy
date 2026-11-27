@@ -1,7 +1,11 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Custom source manifests from the documented user config directory.
 //!
 //! The custom-source contract is specified in
-//! openspec/changes/oculus-foundation/specs/source-registry/spec.md.
+//! openspec/specs/source-registry/spec.md.
 
 // Rust guideline compliant 2026-10-09
 

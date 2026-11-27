@@ -27,3 +27,9 @@ Attribution: NoFluffJobs
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 - 2026-11-26: Corrected endpoint from the RSS path to the posting API and aligned fixture fields.
 
+
+
+## Oversized payload 2026-11-27
+
+- The public `/api/posting` response exceeded 63 MB in a 30-second probe and was still streaming.
+- Buffering that response is not safe for the default memory ceiling. The source is marked blocked until a filtered or paginated endpoint is documented.

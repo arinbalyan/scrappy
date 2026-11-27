@@ -1,12 +1,17 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Source health status derived from manifests.
 //!
 //! Health states are specified in
-//! openspec/changes/oculus-foundation/specs/source-registry/spec.md.
+//! openspec/specs/source-registry/spec.md.
 
 // Rust guideline compliant 2026-10-09
 
 use serde::Serialize;
 
+use crate::config::secret::SecretStore;
 use crate::sources::manifest::{Health, Manifest};
 use crate::sources::registry::Registry;
 
@@ -54,17 +59,29 @@ pub struct SourceStatus {
 /// Build statuses for every registered manifest.
 #[must_use]
 pub fn list(registry: &Registry, fixture_root: &std::path::Path) -> Vec<SourceStatus> {
+    let store = SecretStore::discover(&[]);
+    list_with_store(registry, fixture_root, &store)
+}
+
+/// Build statuses with a caller-provided credential store.
+#[must_use]
+pub fn list_with_store(
+    registry: &Registry,
+    fixture_root: &std::path::Path,
+    store: &SecretStore,
+) -> Vec<SourceStatus> {
     registry
         .iter()
-        .map(|manifest| status(manifest, fixture_root))
+        .map(|manifest| status(manifest, fixture_root, store))
         .collect()
 }
 
-fn status(manifest: &Manifest, fixture_root: &std::path::Path) -> SourceStatus {
-    let missing_credential = manifest
-        .credentials
-        .iter()
-        .any(|name| std::env::var(name).is_err());
+fn status(
+    manifest: &Manifest,
+    fixture_root: &std::path::Path,
+    store: &SecretStore,
+) -> SourceStatus {
+    let missing_credential = !store.missing(&manifest.credentials).is_empty();
     let missing_fixture = manifest
         .fixtures
         .iter()
@@ -105,7 +122,8 @@ mod tests {
             toml::from_str(include_str!("manifest_sample.toml")).expect("sample manifest parses");
         let registry = Registry::new();
         assert_eq!(registry.len(), 0);
-        let status = status(&manifest, std::path::Path::new("/nonexistent"));
+        let store = SecretStore::from_environment();
+        let status = status(&manifest, std::path::Path::new("/nonexistent"), &store);
         assert_eq!(status.availability, Availability::Blocked);
     }
 }

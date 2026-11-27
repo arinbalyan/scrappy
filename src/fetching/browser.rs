@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Optional browser rendering fetcher and its dependency resolver.
 //!
 //! See documentation/012-browser-automation.md.

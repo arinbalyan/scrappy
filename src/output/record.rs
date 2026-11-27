@@ -1,16 +1,20 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Normalized records for downstream consumers.
 //!
-//! See openspec/changes/oculus-foundation/specs/output-contract/spec.md.
+//! See openspec/specs/output-contract/spec.md.
 
 // Rust guideline compliant 2026-10-09
 
 use serde::{Deserialize, Serialize};
 
 use crate::engine::dedup::{ContentFields, canonical_url, content_hash};
-use crate::parsing::Record;
+use crate::parsing::{ApplyRoute, Record, is_ats_or_job_board_host};
 
 /// Current output schema version.
-pub const SCHEMA_VERSION: u32 = 1;
+pub const SCHEMA_VERSION: u32 = 2;
 
 /// Where an address was obtained from.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -64,6 +68,9 @@ pub struct Job {
     pub source_id: String,
     /// Stable external identifier.
     pub external_id: String,
+    /// Source-native job identifier when supplied.
+    #[serde(default)]
+    pub source_job_id: Option<String>,
     /// Canonical job URL.
     pub canonical_url: String,
     /// Job title.
@@ -84,8 +91,23 @@ pub struct Job {
     pub date_posted: Option<String>,
     /// Compensation description.
     pub compensation: Option<String>,
+    /// Lower salary bound as a decimal string.
+    #[serde(default)]
+    pub salary_min: Option<String>,
+    /// Upper salary bound as a decimal string.
+    #[serde(default)]
+    pub salary_max: Option<String>,
+    /// ISO currency code when supplied.
+    #[serde(default)]
+    pub salary_currency: Option<String>,
+    /// Pay period such as year or month.
+    #[serde(default)]
+    pub salary_period: Option<String>,
     /// How to apply for the job.
     pub apply_method: Option<String>,
+    /// Typed application route.
+    #[serde(default)]
+    pub apply_route: Option<ApplyRoute>,
     /// Direct application URL.
     pub job_url_direct: Option<String>,
     /// Company website URL.
@@ -109,6 +131,8 @@ pub struct Job {
 pub struct JobInput {
     /// Source identifier.
     pub source_id: String,
+    /// Source-native job identifier when supplied.
+    pub source_job_id: Option<String>,
     /// Timestamp assigned by the caller.
     pub fetched_at: String,
     /// Whether the job is remote.
@@ -117,7 +141,16 @@ pub struct JobInput {
     pub date_posted: Option<String>,
     /// Compensation description.
     pub compensation: Option<String>,
+    /// Lower salary bound as a decimal string.
+    pub salary_min: Option<String>,
+    /// Upper salary bound as a decimal string.
+    pub salary_max: Option<String>,
+    /// ISO currency code when supplied.
+    pub salary_currency: Option<String>,
+    /// Pay period such as year or month.
+    pub salary_period: Option<String>,
     /// How to apply for the job.
+    pub apply_route: Option<ApplyRoute>,
     pub apply_method: Option<String>,
     /// Direct application URL.
     pub job_url_direct: Option<String>,
@@ -144,7 +177,11 @@ pub fn company_domain(company_url: Option<&str>) -> Option<String> {
     if host.is_empty() || !host.contains('.') {
         return None;
     }
-    Some(host.to_ascii_lowercase())
+    let host = host.to_ascii_lowercase();
+    if is_ats_or_job_board_host(&host) {
+        return None;
+    }
+    Some(host)
 }
 
 fn score_job(record: &Record, input: &JobInput) -> u8 {
@@ -209,12 +246,16 @@ pub fn from_record(record: &Record, input: &JobInput, schema_version: u32) -> Re
         description: record.description.as_deref().unwrap_or_default(),
     });
     let domain = company_domain(input.company_url.as_deref());
-    let external_id = format!("{}-{:016x}", input.source_id, hash);
+    let external_id = input.source_job_id.as_ref().map_or_else(
+        || format!("{}-{:016x}", input.source_id, hash),
+        |job_id| format!("{}:{job_id}", input.source_id),
+    );
     let source_ids = vec![input.source_id.clone()];
     Ok(Job {
         schema_version,
         source_id: input.source_id.clone(),
         external_id,
+        source_job_id: input.source_job_id.clone(),
         canonical_url: url,
         title: record.title.clone(),
         company: record.company.clone(),
@@ -225,7 +266,12 @@ pub fn from_record(record: &Record, input: &JobInput, schema_version: u32) -> Re
         is_remote: input.is_remote,
         date_posted: input.date_posted.clone(),
         compensation: input.compensation.clone(),
+        salary_min: input.salary_min.clone(),
+        salary_max: input.salary_max.clone(),
+        salary_currency: input.salary_currency.clone(),
+        salary_period: input.salary_period.clone(),
         apply_method: input.apply_method.clone(),
+        apply_route: input.apply_route,
         job_url_direct: input.job_url_direct.clone(),
         company_url: input.company_url.clone(),
         company_domain: domain,
@@ -249,9 +295,9 @@ pub fn read_versioned(text: &str) -> Result<Job, String> {
         .get("schema_version")
         .and_then(serde_json::Value::as_u64)
         .ok_or_else(|| "job record has no schema version".to_owned())?;
-    if version != u64::from(SCHEMA_VERSION) {
+    if version == 0 || version > u64::from(SCHEMA_VERSION) {
         return Err(format!(
-            "unsupported output schema version: {version}; expected {SCHEMA_VERSION}"
+            "unsupported output schema version: {version}; expected 1 through {SCHEMA_VERSION}"
         ));
     }
     serde_json::from_value(value).map_err(|error| format!("invalid job record: {error}"))

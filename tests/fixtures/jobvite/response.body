@@ -1,41 +1,4 @@
-{
-  "requisitions": [
-    {
-      "eId": "J001",
-      "title": "Senior Software Engineer",
-      "company": "example-co",
-      "department": "Engineering",
-      "category": "Tech",
-      "location": "San Francisco, CA",
-      "city": "San Francisco",
-      "state": "CA",
-      "country": "USA",
-      "type": "Full-Time",
-      "date": "2026-05-15",
-      "description": "Build scalable systems.",
-      "briefDescription": "Systems engineering role",
-      "applyUrl": "https://jobs.jobvite.com/example-co/apply/J001",
-      "detailUrl": "https://jobs.jobvite.com/example-co/job/J001",
-      "requisitionId": "J001"
-    },
-    {
-      "eId": "J002",
-      "title": "Remote Technical Writer",
-      "company": "example-co",
-      "department": "Docs",
-      "category": null,
-      "location": "Remote",
-      "city": null,
-      "state": null,
-      "country": null,
-      "type": "Contract",
-      "date": "2026-05-10",
-      "description": null,
-      "briefDescription": "Write product documentation",
-      "applyUrl": "https://jobs.example.test/apply/J002",
-      "detailUrl": null,
-      "requisitionId": "J002"
-    }
-  ],
-  "total": 2
-}
+<?xml version="1.0" encoding="UTF-8"?><result>
+<job><id>abc</id><title>Backend Engineer</title><location>Remote</location><date>11/17/2026</date><detail-url>https://app.jobvite.com/job?id=abc</detail-url><apply-url>https://app.jobvite.com/apply?id=abc</apply-url><description>Build APIs.</description></job>
+<job><id>def</id><title>Platform Engineer</title><location>Berlin</location><date>11/18/2026</date><detail-url>https://app.jobvite.com/job?id=def</detail-url><description>Operate clusters.</description></job>
+</result>

@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Redaction of fields and URLs in command diagnostics.
 //!
 //! Tracing values pass through `mask_field` by field name, while URL values

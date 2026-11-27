@@ -36,3 +36,7 @@ Attribution: Wellfound
 
 - 2026-11-27: Targeted live validation with `SCRAPPY_LIVE_ONLY=wellfound` returned 43 records from the Apollo cache path.
 - 2026-11-26: The endpoint was not probed successfully from this network; health came from historical evidence and offline replay.
+
+## Hardened live probe 2026-11-27
+
+- Live probe returned 45 records after the challenge-classification and pagination fixes.

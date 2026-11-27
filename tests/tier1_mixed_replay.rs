@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Offline replay of Tier 1 fixtures through the real adapters.
 //!
 //! Each frozen response is parsed with `scrappy::sources::adapter::parse_response`
@@ -13,16 +17,9 @@ use scrappy::fetching::Response;
 use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
 use scrappy::sources::manifest::{Family, Health, Manifest, parse};
 
-const SOURCES: [(&str, Family, Health, &str, &str); 9] = [
+const SOURCES: [(&str, Family, Health, &str, &str); 8] = [
     (
         "weworkremotely",
-        Family::FeedsApi,
-        Health::Working,
-        "feeds_api",
-        "rss",
-    ),
-    (
-        "androidjobs",
         Family::FeedsApi,
         Health::Working,
         "feeds_api",

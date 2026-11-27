@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! JSON feed and array parsers.
 //!
 //! See documentation/006-architecture.md.
@@ -8,7 +12,7 @@ use std::collections::BTreeMap;
 
 use serde_json::Value;
 
-use super::{Parser, Record};
+use super::{Parser, Record, classify_apply_route};
 use crate::fetching::Response;
 
 /// Parser for JSON arrays and feed objects.
@@ -164,13 +168,25 @@ pub fn record_from_aliases_with_url(
         &["description", "text", "content", "jobDescription"],
     );
     let extra = extra_fields(object, aliases);
+    let apply_route = classify_apply_route(
+        extra.apply_method.as_deref(),
+        extra.job_url_direct.as_deref(),
+    );
     Record::new(url, title, company).ok().map(|record| {
         record
             .with_location(location)
             .with_description(description)
+            .with_source_job_id(extra.source_job_id)
             .with_date_posted(extra.date_posted)
             .with_compensation(extra.compensation)
+            .with_salary(
+                extra.salary_min,
+                extra.salary_max,
+                extra.salary_currency,
+                extra.salary_period,
+            )
             .with_apply_method(extra.apply_method)
+            .with_apply_route(Some(apply_route))
             .with_job_url_direct(extra.job_url_direct)
             .with_company_url(extra.company_url)
             .with_industry(extra.industry)
@@ -179,8 +195,13 @@ pub fn record_from_aliases_with_url(
 }
 
 struct ExtraFields {
+    source_job_id: Option<String>,
     date_posted: Option<String>,
     compensation: Option<String>,
+    salary_min: Option<f64>,
+    salary_max: Option<f64>,
+    salary_currency: Option<String>,
+    salary_period: Option<String>,
     apply_method: Option<String>,
     job_url_direct: Option<String>,
     company_url: Option<String>,
@@ -208,11 +229,21 @@ fn read_field(
         })
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "field table is easier to audit in one place"
+)]
 fn extra_fields(
     object: &serde_json::Map<String, Value>,
     aliases: Option<&BTreeMap<String, Vec<String>>>,
 ) -> ExtraFields {
     ExtraFields {
+        source_job_id: read_field(
+            object,
+            aliases,
+            "source_job_id",
+            &["id", "jobId", "job_id", "ref", "requisitionId", "jobReqId"],
+        ),
         date_posted: read_field(
             object,
             aliases,
@@ -242,6 +273,40 @@ fn extra_fields(
                 "salary_range",
                 "salaryRange",
                 "pay",
+            ],
+        ),
+        salary_min: number_field(
+            object,
+            aliases,
+            "salary_min",
+            &["salary_min", "salaryMin", "salary.min", "salary.from"],
+        ),
+        salary_max: number_field(
+            object,
+            aliases,
+            "salary_max",
+            &["salary_max", "salaryMax", "salary.max", "salary.to"],
+        ),
+        salary_currency: read_field(
+            object,
+            aliases,
+            "salary_currency",
+            &[
+                "salary_currency",
+                "salaryCurrency",
+                "salary.currency",
+                "currency",
+            ],
+        ),
+        salary_period: read_field(
+            object,
+            aliases,
+            "salary_period",
+            &[
+                "salary_period",
+                "salaryPeriod",
+                "payment_frequency",
+                "period",
             ],
         ),
         apply_method: read_field(
@@ -280,6 +345,23 @@ fn extra_fields(
             &["industry", "company.industry", "category"],
         ),
         is_remote: bool_field(object, aliases, &["is_remote", "isRemote", "remote"]),
+    }
+}
+
+fn number_field(
+    object: &serde_json::Map<String, Value>,
+    aliases: Option<&BTreeMap<String, Vec<String>>>,
+    name: &str,
+    defaults: &[&str],
+) -> Option<f64> {
+    let value = aliases
+        .and_then(|map| map.get(name))
+        .and_then(|names| names.iter().find_map(|name| nested(object, name)))
+        .or_else(|| defaults.iter().find_map(|key| nested(object, key)))?;
+    match value {
+        Value::Number(number) => number.as_f64(),
+        Value::String(text) => text.trim().parse().ok(),
+        _ => None,
     }
 }
 

@@ -27,3 +27,7 @@ Rate: 30 requests per minute
 - 2026-11-26: Ported from historical behavior with a manifest and synthetic fixture.
 - 2026-11-26: Live probe of a placeholder tenant returned HTTP 403; health changed to blocked.
 
+
+## Viability classification 2026-11-27
+
+- Class: blocked. No public tenant API or seed was found.

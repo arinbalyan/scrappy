@@ -27,3 +27,7 @@ Concurrency: 1
 - 2026-11-26: Ported the tenant job search POST with a slug manifest and synthetic fixture.
 - 2026-11-26: Live POST probe of a public tenant returned HTTP 200 with 342 job postings; health left at requires_slug because the tenant and site are supplied by the caller.
 
+
+## Adapter assessment 2026-11-27
+
+- A public board needs a full tenant, data-centre, and career-site tuple plus a POST body. The current single-seed GET manifest cannot represent it.

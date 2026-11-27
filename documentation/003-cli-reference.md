@@ -26,7 +26,7 @@ Config resolution order is user $HOME/.config/scrappy/config.toml, project
 `config.toml`, `SCRAPPY_*` environment values, repeated `--config` files in
 order, then CLI values. See documentation/004-configuration.md. The command
 contract is in
-openspec/changes/oculus-foundation/specs/cli-config/spec.md.
+openspec/specs/cli-config/spec.md.
 
 ## Run progress and exit codes
 

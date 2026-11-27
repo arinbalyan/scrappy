@@ -9,6 +9,13 @@ on the main branch and other repositories in the parent workspace were read
 only for behavioral evidence. No source code, fixtures, documentation, prompts,
 configuration text, or branding were copied from those projects.
 
+License
+
+scrappy is licensed under the GNU General Public License, version 3 or later.
+Copyright (c) 2026 Arin Balyan. Distributed modifications must retain this
+notice, mark the modified files with the date of change, and remain under the
+GNU GPL. See LICENSE and MODIFICATIONS.md.
+
 Third-party licenses
 
 Dependencies are fetched from crates.io and each crate keeps its own license.

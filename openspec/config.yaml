@@ -14,9 +14,9 @@ context: |
   Record design provenance in a NOTICE file when implementation begins.
 
   The old scrappy license is personal, non-commercial use with attribution.
-  The new branch will use an MIT-style permissive license. Only the repository
-  owner may make that relicensing decision; artifacts must not assume any
-  third-party code is relicensed.
+  The new branch is licensed under the GNU General Public License, version 3
+  or later. Only the repository owner may make relicensing decisions;
+  artifacts must not assume any third-party code is relicensed.
 
   Target a small installable command-line binary with explicit subcommands,
   typed TOML config, layered precedence, structured NDJSON output, and

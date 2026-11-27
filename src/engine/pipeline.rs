@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Scrape execution from selected manifests to emitted jobs.
 //! See documentation/006-architecture.md.
 
@@ -5,18 +9,21 @@
 
 use std::collections::{BTreeMap, HashSet};
 use std::io;
-use std::time::{Duration, SystemTime, UNIX_EPOCH};
+use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
 use crate::config::Config;
 use crate::engine::attention::{AttentionEvent, attention_event};
 use crate::engine::breaker::CircuitBreaker;
 use crate::engine::challenge::detect;
-use crate::engine::contract::{ProgressEvent, write_event};
+use crate::engine::contract::{ProgressEvent, SourceReport, write_event};
 use crate::engine::governor::{Governor, SourceBudget};
 use crate::engine::limits::ResultPolicy;
 use crate::engine::memory::MemoryCeiling;
 use crate::engine::pagination::{self, Strategy};
-use crate::engine::retry::{CancelToken, Failure, RetryOutcome, RetryPolicy, retry_async};
+use crate::engine::retry::{
+    CancelToken, Failure, RetryOutcome, RetryPolicy, classify_status, method_allows_retry,
+    parse_retry_after, retry_async,
+};
 use crate::fetching::Fetcher;
 use crate::output::record::{
     Email, EmailSource, Job, JobInput, Provenance, SCHEMA_VERSION, from_record,
@@ -27,10 +34,10 @@ use crate::sources::registry::Registry;
 
 /// Outcome of one source run before jobs are merged.
 enum SourceOutcome {
-    /// Parsed jobs and skipped record count.
-    Jobs(Vec<Job>, usize),
-    /// Challenge classified for human attention.
-    Challenge(AttentionEvent),
+    /// Parsed jobs, skipped record count, and counters.
+    Jobs(Vec<Job>, usize, SourceReport),
+    /// Challenge classified for human attention with counters.
+    Challenge(AttentionEvent, SourceReport),
 }
 
 /// Result of one scrape run.
@@ -50,6 +57,8 @@ pub struct RunSummary {
     pub run_id: String,
     /// True when the run was stopped by cancellation.
     pub cancelled: bool,
+    /// Per-source counters for live reporting.
+    pub reports: Vec<SourceReport>,
 }
 
 /// Inputs for one scrape run.
@@ -82,6 +91,25 @@ fn run_identifier(fetched_at: &str) -> String {
             value.wrapping_mul(31).wrapping_add(u64::from(byte))
         });
     format!("run-{stamp:016x}")
+}
+
+#[expect(clippy::ptr_arg, reason = "retry_async supplies &String")]
+fn classify_fetch_error(error: &String) -> Failure {
+    if let Some(rest) = error.strip_prefix("throttled:") {
+        let seconds = rest
+            .rsplit(':')
+            .next()
+            .and_then(|value| value.parse::<u64>().ok())
+            .unwrap_or(0);
+        return Failure::Throttled(Some(Duration::from_secs(seconds)));
+    }
+    if error.starts_with("server:")
+        || error.contains("request failed")
+        || error.contains("error sending request")
+    {
+        return Failure::Retryable;
+    }
+    Failure::Permanent
 }
 
 fn robots_allows(policy: &str) -> bool {
@@ -183,7 +211,6 @@ pub async fn run(
 ) -> Result<(Vec<Job>, RunSummary), String> {
     let selected = select(registry, &input.sources)?;
     let mut jobs = Vec::new();
-    let mut seen = HashSet::new();
     let mut summary = RunSummary {
         emitted: 0,
         skipped: 0,
@@ -192,6 +219,7 @@ pub async fn run(
         events: Vec::new(),
         run_id: run_identifier(&input.fetched_at),
         cancelled: false,
+        reports: Vec::new(),
     };
     let mut governor = Governor::new();
     let breaker = CircuitBreaker::default();
@@ -210,23 +238,10 @@ pub async fn run(
             ));
         }
         if !robots_allows(&manifest.robots) {
-            push_event(
-                &mut summary,
-                input,
-                Some(&manifest.id),
-                "policy_skip",
-                &seen,
-            );
+            push_event(&mut summary, input, Some(&manifest.id), "policy_skip");
             continue;
         }
         let budget = overrides(manifest, &input.config, &mut governor)?;
-        let _permit = match governor.acquire(&manifest.id).await {
-            Ok(permit) => permit,
-            Err(error) => {
-                summary.failures.push(format!("{}: {error}", manifest.id));
-                continue;
-            }
-        };
         if breaker.is_open(&manifest.id) {
             summary.failures.push(format!(
                 "{}: circuit open after repeated challenges",
@@ -234,17 +249,19 @@ pub async fn run(
             ));
             continue;
         }
-        match run_source(manifest, input, fetcher, &mut seen, &breaker, &budget).await {
-            Ok(SourceOutcome::Jobs(source_jobs, skipped)) => {
+        match run_source(manifest, input, fetcher, &breaker, &budget, &governor).await {
+            Ok(SourceOutcome::Jobs(source_jobs, skipped, report)) => {
+                summary.reports.push(report);
                 summary.skipped += skipped;
                 summary.emitted += source_jobs.len();
                 jobs.extend(source_jobs);
-                push_event(&mut summary, input, Some(&manifest.id), "success", &seen);
+                push_event(&mut summary, input, Some(&manifest.id), "success");
             }
-            Ok(SourceOutcome::Challenge(event)) => {
+            Ok(SourceOutcome::Challenge(event, report)) => {
+                summary.reports.push(report);
                 breaker.record_failure(&manifest.id, event.kind);
                 summary.attention.push(event);
-                push_event(&mut summary, input, Some(&manifest.id), "attention", &seen);
+                push_event(&mut summary, input, Some(&manifest.id), "attention");
             }
             Err((RetryOutcome::Cancelled, error)) => {
                 summary.cancelled = true;
@@ -252,6 +269,15 @@ pub async fn run(
                 break;
             }
             Err((_, error)) => {
+                let mut report = SourceReport {
+                    source_id: manifest.id.clone(),
+                    family: format!("{:?}", manifest.family),
+                    outcome: "failure".to_owned(),
+                    stop_reason: "error".to_owned(),
+                    ..SourceReport::default()
+                };
+                report.elapsed_ms = 0;
+                summary.reports.push(report);
                 if input.policy.fail_open {
                     summary.failures.push(error);
                 } else {
@@ -260,7 +286,9 @@ pub async fn run(
             }
         }
     }
-    push_event(&mut summary, input, None, "completed", &seen);
+    let jobs = merge_jobs(jobs);
+    summary.emitted = jobs.len();
+    push_event(&mut summary, input, None, "completed");
     Ok((jobs, summary))
 }
 
@@ -294,13 +322,7 @@ fn overrides(
     Ok(policy)
 }
 
-fn push_event(
-    summary: &mut RunSummary,
-    input: &RunInput,
-    source_id: Option<&str>,
-    status: &str,
-    seen: &HashSet<String>,
-) {
+fn push_event(summary: &mut RunSummary, input: &RunInput, source_id: Option<&str>, status: &str) {
     let event = ProgressEvent {
         event: if status == "completed" {
             "run.completed".to_owned()
@@ -309,7 +331,7 @@ fn push_event(
         },
         run_id: summary.run_id.clone(),
         source_id: source_id.map(str::to_owned),
-        emitted: seen.len().min(summary.emitted),
+        emitted: summary.emitted,
         skipped: summary.skipped,
         status: status.to_owned(),
     };
@@ -340,10 +362,17 @@ async fn run_source(
     manifest: &Manifest,
     input: &RunInput,
     fetcher: &impl Fetcher,
-    seen: &mut HashSet<String>,
     breaker: &CircuitBreaker,
     retry_policy: &RetryPolicy,
+    governor: &Governor,
 ) -> Result<SourceOutcome, (RetryOutcome, String)> {
+    let started = Instant::now();
+    let mut report = SourceReport {
+        source_id: manifest.id.clone(),
+        family: format!("{:?}", manifest.family),
+        outcome: "working".to_owned(),
+        ..SourceReport::default()
+    };
     let mut values = input.values.get(&manifest.id).cloned().unwrap_or_default();
     if values.slug.is_none() {
         values.slug = manifest.slugs.first().cloned();
@@ -354,6 +383,16 @@ async fn run_source(
             .entry(name.clone())
             .or_insert_with(|| value.clone());
     }
+    if manifest
+        .credentials
+        .iter()
+        .any(|name| !values.credentials.contains_key(name))
+    {
+        "keyed".clone_into(&mut report.outcome);
+        "missing_credentials".clone_into(&mut report.stop_reason);
+        report.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
+        return Ok(SourceOutcome::Jobs(Vec::new(), 0, report));
+    }
     let strategy = pagination::parse(&manifest.pagination);
     let strategy = if pagination::template_supports(&manifest.request, strategy) {
         strategy
@@ -361,38 +400,64 @@ async fn run_source(
         Strategy::None
     };
     let mut records = Vec::new();
+    let mut seen_urls = HashSet::new();
+    let budget = manifest.request_budget.unwrap_or(25).max(1);
     let mut cancelled = input.cancel.receiver();
     for (index, page) in strategy.values().into_iter().enumerate() {
+        if report.requests >= budget {
+            "budget_exhausted".clone_into(&mut report.stop_reason);
+            break;
+        }
         if !input.policy.allows(&manifest.id, records.len()) {
+            "cap_reached".clone_into(&mut report.stop_reason);
             break;
         }
         if let Some(key) = strategy.query_key() {
             values.query.insert(key.to_owned(), page.to_string());
         }
+        report.requests += 1;
+        let _permit = match governor.acquire(&manifest.id).await {
+            Ok(permit) => permit,
+            Err(error) if index == 0 => {
+                return Err((RetryOutcome::Failed, format!("{}: {error}", manifest.id)));
+            }
+            Err(_) => break,
+        };
         let request = build_request(manifest, &values).map_err(|error| {
             (
                 RetryOutcome::Failed,
                 format!("{}: {}", manifest.id, error.message),
             )
         })?;
+        if !seen_urls.insert(request.url.clone()) {
+            "repeated_page".clone_into(&mut report.stop_reason);
+            break;
+        }
+        let mut retry_policy = *retry_policy;
+        retry_policy.max_retries = if method_allows_retry(&request.method, manifest.retry_post) {
+            retry_policy.max_retries
+        } else {
+            0
+        };
         let outcome = retry_async(
-            *retry_policy,
+            retry_policy,
             &mut cancelled,
             || async {
                 let response = fetcher.fetch(&request).await?;
-                match response.status {
-                    429 => Err(format!("throttled: {}", response.status)),
-                    500..=599 => Err(format!("server error: {}", response.status)),
+                match classify_status(response.status) {
+                    Some(Failure::Throttled(_)) => {
+                        let retry_after = response
+                            .headers
+                            .get("retry-after")
+                            .and_then(|value| parse_retry_after(value).ok())
+                            .map_or(0, |delay| delay.as_secs());
+                        Err(format!("throttled:{}:{retry_after}", response.status))
+                    }
+                    Some(Failure::Retryable) => Err(format!("server:{}", response.status)),
                     _ => Ok(response),
                 }
             },
-            |error: &String| {
-                if error.contains("429") || error.contains("throttled") {
-                    Failure::Throttled(None)
-                } else {
-                    Failure::Retryable
-                }
-            },
+            classify_fetch_error,
         )
         .await;
         if *cancelled.borrow() {
@@ -406,22 +471,31 @@ async fn run_source(
             Err((outcome, error)) if index == 0 => {
                 return Err((outcome, format!("{}: {error}", manifest.id)));
             }
-            Err(_) => break,
+            Err(_) => {
+                report.partial = true;
+                "partial_failure".clone_into(&mut report.stop_reason);
+                break;
+            }
         };
-        if let Ok(text) = response.text()
-            && let Some(challenge) = detect(response.status, &response.headers, text)
-        {
+        report.http_status = Some(response.status);
+        let body = response.text().unwrap_or_default();
+        report.bytes += body.len();
+        if let Some(challenge) = detect(response.status, &response.headers, body) {
             if index == 0 {
                 breaker.record_failure(&manifest.id, challenge.kind);
-                return Ok(SourceOutcome::Challenge(attention_event(
-                    &manifest.id,
-                    &challenge,
-                    &input.config,
-                )));
+                "challenge".clone_into(&mut report.outcome);
+                "challenge".clone_into(&mut report.stop_reason);
+                report.elapsed_ms =
+                    u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
+                return Ok(SourceOutcome::Challenge(
+                    attention_event(&manifest.id, &challenge, &input.config),
+                    report,
+                ));
             }
+            report.partial = true;
+            "partial_challenge".clone_into(&mut report.stop_reason);
             break;
         }
-        breaker.record_success(&manifest.id);
         if !(200..300).contains(&response.status) {
             if index == 0 {
                 return Err((
@@ -432,8 +506,11 @@ async fn run_source(
                     ),
                 ));
             }
+            report.partial = true;
+            "partial_status".clone_into(&mut report.stop_reason);
             break;
         }
+        breaker.record_success(&manifest.id);
         let page_records = match parse_response(manifest, &response) {
             Ok(records) => records,
             Err(error) if index == 0 => {
@@ -444,12 +521,16 @@ async fn run_source(
             }
             Err(_) => break,
         };
+        report.pages += 1;
+        report.raw_records += page_records.len();
         if page_records.is_empty() {
+            "empty_page".clone_into(&mut report.stop_reason);
             break;
         }
         records.extend(page_records);
     }
     let mut jobs = Vec::with_capacity(records.len());
+    let mut seen = HashSet::new();
     let mut skipped = 0;
     let discovery = input.config.email_discovery.unwrap_or(false);
     for record in records {
@@ -462,29 +543,68 @@ async fn run_source(
             .collect();
         let job_input = JobInput {
             source_id: manifest.id.clone(),
+            source_job_id: record.source_job_id.clone(),
             fetched_at: input.fetched_at.clone(),
             is_remote: record.is_remote,
             date_posted: record.date_posted.clone(),
             compensation: record.compensation.clone(),
+            salary_min: record.salary_min.map(|value| value.to_string()),
+            salary_max: record.salary_max.map(|value| value.to_string()),
+            salary_currency: record.salary_currency.clone(),
+            salary_period: record.salary_period.clone(),
             apply_method: record.apply_method.clone(),
+            apply_route: record.apply_route,
             job_url_direct: record.job_url_direct.clone(),
             company_url: record.company_url.clone(),
             industry: record.industry.clone(),
             emails,
             ..JobInput::default()
         };
-        match from_record(&record, &job_input, SCHEMA_VERSION) {
-            Ok(job) => {
-                if seen.insert(job.canonical_url.clone()) {
-                    jobs.push(job);
-                } else {
-                    skipped += 1;
-                }
+        if let Ok(job) = from_record(&record, &job_input, SCHEMA_VERSION) {
+            if seen.insert(job.canonical_url.clone()) {
+                jobs.push(job);
+            } else {
+                skipped += 1;
+                report.skipped_duplicate += 1;
             }
-            Err(_) => skipped += 1,
+        } else {
+            skipped += 1;
+            report.skipped_invalid += 1;
         }
     }
-    Ok(SourceOutcome::Jobs(jobs, skipped))
+    report.emitted = jobs.len();
+    report.elapsed_ms = u64::try_from(started.elapsed().as_millis()).unwrap_or(u64::MAX);
+    if report.stop_reason.is_empty() {
+        "completed".clone_into(&mut report.stop_reason);
+    }
+    Ok(SourceOutcome::Jobs(jobs, skipped, report))
+}
+
+fn merge_jobs(jobs: Vec<Job>) -> Vec<Job> {
+    let mut output: Vec<Job> = Vec::new();
+    let mut index_by_url: BTreeMap<String, usize> = BTreeMap::new();
+    for job in jobs {
+        if let Some(index) = index_by_url.get(&job.canonical_url).copied() {
+            let existing = &mut output[index];
+            for source in job.source_ids {
+                if !existing.source_ids.contains(&source) {
+                    existing.source_ids.push(source);
+                }
+            }
+            existing.location = existing.location.take().or(job.location);
+            existing.description = existing.description.take().or(job.description);
+            existing.date_posted = existing.date_posted.take().or(job.date_posted);
+            existing.compensation = existing.compensation.take().or(job.compensation);
+            existing.job_url_direct = existing.job_url_direct.take().or(job.job_url_direct);
+            existing.company_url = existing.company_url.take().or(job.company_url);
+            existing.industry = existing.industry.take().or(job.industry);
+            existing.emails.extend(job.emails);
+        } else {
+            index_by_url.insert(job.canonical_url.clone(), output.len());
+            output.push(job);
+        }
+    }
+    output
 }
 
 #[cfg(test)]
@@ -667,5 +787,37 @@ attribution = "Example"
         assert_eq!(summary.attention.len(), 1);
         assert_eq!(summary.attention[0].source_id, "sample");
         assert_eq!(summary.attention[0].status, 403);
+    }
+
+    #[test]
+    fn merge_jobs_keeps_all_source_ids() {
+        let record = crate::parsing::Record::new("https://example.test/jobs/1", "Engineer", "Acme")
+            .expect("valid record");
+        let first = from_record(
+            &record,
+            &JobInput {
+                source_id: "one".to_owned(),
+                fetched_at: "2026-11-27T00:00:00Z".to_owned(),
+                ..JobInput::default()
+            },
+            SCHEMA_VERSION,
+        )
+        .expect("first job");
+        let second = from_record(
+            &record,
+            &JobInput {
+                source_id: "two".to_owned(),
+                fetched_at: "2026-11-27T00:00:00Z".to_owned(),
+                ..JobInput::default()
+            },
+            SCHEMA_VERSION,
+        )
+        .expect("second job");
+        let merged = merge_jobs(vec![first, second]);
+        assert_eq!(merged.len(), 1);
+        assert_eq!(
+            merged[0].source_ids,
+            vec!["one".to_owned(), "two".to_owned()]
+        );
     }
 }

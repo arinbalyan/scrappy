@@ -2,9 +2,9 @@ version = 1
 id = "jobvite"
 name = "Jobvite"
 family = "ats"
-health = "requires_slug"
-request = "https://jobs.jobvite.com/api/v2/job-feed/{slug}"
-parser = "json"
+health = "working"
+request = "https://app.jobvite.com/CompanyJobs/Xml.aspx?c={slug}"
+parser = "jobvite"
 fetcher = "plain"
 pagination = "none"
 profile = "none"
@@ -13,7 +13,7 @@ requests_per_minute = 30
 max_concurrency = 1
 robots = "allow public tenant job feeds; skip timed-out boards"
 attribution = "Jobvite"
-slugs = ["egnyte"]
+slugs = ["qLHaVfwh"]
 fixtures = ["jobvite"]
 
 [request_options.headers]

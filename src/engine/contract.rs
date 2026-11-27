@@ -1,7 +1,11 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Runtime contract for streams, exit codes, and non-interactive input.
 //!
 //! The contract is specified in
-//! openspec/changes/oculus-foundation/specs/cli-config/spec.md.
+//! openspec/specs/cli-config/spec.md.
 
 // Rust guideline compliant 2026-10-09
 
@@ -41,6 +45,41 @@ pub struct ProgressEvent {
     pub skipped: usize,
     /// Status of the event.
     pub status: String,
+}
+
+/// Per-source counters collected during one run.
+#[derive(Debug, Clone, Default, PartialEq, Eq, serde::Serialize)]
+pub struct SourceReport {
+    /// Source identifier.
+    pub source_id: String,
+    /// Manifest family name.
+    pub family: String,
+    /// Final outcome label.
+    pub outcome: String,
+    /// Last HTTP status observed.
+    pub http_status: Option<u16>,
+    /// Requests issued for this source.
+    pub requests: usize,
+    /// Pages or items requested successfully.
+    pub pages: usize,
+    /// Retries performed for this source.
+    pub retries: usize,
+    /// Records returned by the parser.
+    pub raw_records: usize,
+    /// Records emitted after validation and deduplication.
+    pub emitted: usize,
+    /// Records rejected by validation.
+    pub skipped_invalid: usize,
+    /// Records rejected as duplicates.
+    pub skipped_duplicate: usize,
+    /// Response bytes read.
+    pub bytes: usize,
+    /// Wall time spent on this source.
+    pub elapsed_ms: u64,
+    /// Pagination stop reason or failure label.
+    pub stop_reason: String,
+    /// True when records were kept after a later-page failure.
+    pub partial: bool,
 }
 
 /// Write one NDJSON event to a stream.

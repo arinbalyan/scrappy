@@ -1,7 +1,11 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Typed configuration and layered resolution.
 //!
 //! Field behavior is specified in
-//! openspec/changes/oculus-foundation/specs/cli-config/spec.md.
+//! openspec/specs/cli-config/spec.md.
 //! Operational notes are in documentation/004-configuration.md.
 
 // Rust guideline compliant 2026-10-09
@@ -113,6 +117,11 @@ pub const CONFIG_SCHEMA: &[FieldInfo] = &[
         kind: "boolean",
         default: "false",
     },
+    FieldInfo {
+        name: "secrets_file",
+        kind: "path",
+        default: "none",
+    },
 ];
 
 /// Error produced when config discovery or validation fails.
@@ -204,6 +213,8 @@ pub struct Config {
     pub date: Option<String>,
     /// Explicit opt-in for inferred contact discovery.
     pub email_discovery: Option<bool>,
+    /// Path to an optional secrets file outside the config contents.
+    pub secrets_file: Option<PathBuf>,
 }
 
 /// Inputs used to build a layered configuration.
@@ -283,6 +294,7 @@ fn merge_environment(merged: &mut BTreeMap<String, serde_json::Value>) -> Result
         "hours_old",
         "date",
         "email_discovery",
+        "secrets_file",
     ] {
         let name = format!("{ENV_PREFIX}{}", field.to_uppercase());
         let Ok(raw) = std::env::var(&name) else {
@@ -427,6 +439,23 @@ mod tests {
         assert!(validate(&config).is_err());
         let config: Config = parse("memory_mb = 0").expect("loads");
         assert!(validate(&config).is_err());
+    }
+
+    #[test]
+    fn secrets_file_key_accepts_a_path() {
+        let config: Config =
+            parse("secrets_file = '/tmp/scrappy-secrets'").expect("secrets file loads");
+        assert_eq!(
+            config.secrets_file,
+            Some(PathBuf::from("/tmp/scrappy-secrets"))
+        );
+    }
+
+    #[test]
+    fn credential_values_are_not_config_fields() {
+        let error = parse::<Config>("SCRAPPY_API_KEY = 'value'")
+            .expect_err("credential values are rejected");
+        assert!(error.message.contains("unknown field"));
     }
 }
 

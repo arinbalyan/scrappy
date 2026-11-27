@@ -31,3 +31,7 @@ Slugs: none
 - 2026-11-27: Live validation could not build the request without a query value for `l`. Health stays working for configured query seeds; this source requires query substitutions to run.
 
 - 2026-11-26: Manifest, synthetic HTML fixture, behavior doc, and offline replay recorded during the Tier 2 C port.
+
+## Hardened live probe 2026-11-27
+
+- Live probe returned 20 records after the challenge-classification and pagination fixes.

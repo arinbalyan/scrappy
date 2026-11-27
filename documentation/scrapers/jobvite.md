@@ -27,3 +27,9 @@ Slugs: example-co (seed placeholder)
 
 - 2026-11-26: Ported from historical behavior with a slug manifest and synthetic envelope fixture.
 - 2026-11-26: Historical status docs report API timeouts and 20 populated slugs; health stays requires_slug because a tenant seed is required to build the URL.
+
+## Live XML adapter 2026-11-27
+
+- The public route moved to `app.jobvite.com/CompanyJobs/Xml.aspx?c={slug}`.
+- A Jobvite XML parser now reads `result/job` records, native ids, detail URLs, locations, dates, and descriptions.
+- Seed `qLHaVfwh` returned 49 records and 41 observed email mentions in a live probe.

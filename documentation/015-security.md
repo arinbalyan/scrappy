@@ -1,7 +1,7 @@
 # Security
 
 The contract for this subsystem is in
-openspec/changes/oculus-foundation/specs/security-privacy/spec.md.
+openspec/specs/security-privacy/spec.md.
 
 ## Redaction helpers
 

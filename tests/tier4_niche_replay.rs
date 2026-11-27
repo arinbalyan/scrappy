@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Offline golden replays for the niche feed and API sources.
 //!
 //! Each frozen response is parsed through the real manifest adapter and
@@ -14,7 +18,7 @@ use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
 use scrappy::sources::manifest::{Family, Health, Manifest, parse};
 use serde_json::Value;
 
-const SOURCES: [(&str, Family, Health, &str); 11] = [
+const SOURCES: [(&str, Family, Health, &str); 9] = [
     (
         "berlinstartupjobs",
         Family::FeedsApi,
@@ -28,22 +32,20 @@ const SOURCES: [(&str, Family, Health, &str); 11] = [
         "feeds_api",
     ),
     ("djinni", Family::FeedsApi, Health::Stale, "feeds_api"),
-    ("drupaljobs", Family::FeedsApi, Health::Stale, "feeds_api"),
-    ("echojobs", Family::FeedsApi, Health::Working, "feeds_api"),
-    ("eurojobs", Family::FeedsApi, Health::Working, "feeds_api"),
+    ("echojobs", Family::FeedsApi, Health::Blocked, "feeds_api"),
     (
         "nofluffjobs",
         Family::FeedsApi,
-        Health::Working,
+        Health::Blocked,
         "feeds_api",
     ),
     (
         "remotefirstjobs",
         Family::FeedsApi,
-        Health::Working,
+        Health::Blocked,
         "feeds_api",
     ),
-    ("themuse", Family::FeedsApi, Health::Working, "feeds_api"),
+    ("themuse", Family::FeedsApi, Health::Stale, "feeds_api"),
     (
         "wordpressjobs",
         Family::FeedsApi,

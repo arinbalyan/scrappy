@@ -2,7 +2,7 @@ version = 1
 id = "themuse"
 name = "The Muse"
 family = "feeds_api"
-health = "working"
+health = "stale"
 request = "https://www.themuse.com/api/public/jobs?page=0&descending=true"
 parser = "json"
 fetcher = "plain"

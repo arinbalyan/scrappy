@@ -27,3 +27,7 @@ Attribution: The Muse
 ## Live validation
 
 - 2026-11-26: GET returned HTTP 403 with a challenge page from the test network; manifest stays `working` from historical evidence and offline replay.
+
+## Live relabel 2026-11-27
+
+- Live probe observed the endpoint as `stale`. The manifest health was corrected to match the observed outcome.

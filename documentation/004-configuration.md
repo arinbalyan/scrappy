@@ -8,7 +8,7 @@ and CLI values. `--no-default-config` disables the discovered files and environm
 layer. Config writes are atomic, use mode 0600 for files and 0700 for newly
 created directories, and never store credentials. The runtime schema is
 printed by `scrappy config schema` and listed in the table below. See
-openspec/changes/oculus-foundation/specs/cli-config/spec.md.
+openspec/specs/cli-config/spec.md.
 
 | Key | Type | Default |
 | --- | --- | --- |
@@ -36,7 +36,7 @@ contact addresses discovered through a dedicated source manifest. Observed
 addresses from job descriptions are always emitted with observed provenance.
 The environment form is `SCRAPPY_EMAIL_DISCOVERY`. See
 documentation/007-email-extraction.md and
-openspec/changes/oculus-foundation/specs/security-privacy/spec.md.
+openspec/specs/security-privacy/spec.md.
 
 For `run`, a config format is used when set, even if `--format` is also
 given; the CLI format applies only when config has no format. The `table`
@@ -44,3 +44,7 @@ format is accepted by `--format` for listing but rejected for run output.
 With
 `run --stdin-config`, the stdin document is the highest-precedence run-config
 layer, so its format wins and explicit `--config` flags are ignored.
+
+## Secrets file
+
+`secrets_file` points at a local file containing `NAME=value` or `SCRAPPY_NAME=value` entries. Environment values take precedence. The file accepts comments, quoted values, and `export` prefixes. Config files never contain credential values, and doctor reports names and presence only.

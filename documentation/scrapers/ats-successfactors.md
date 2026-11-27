@@ -34,3 +34,7 @@ Slugs: example-co (seed placeholder)
 
 - 2026-11-26: Ported the first OData page with a fixed tenant and synthetic fixture.
 - 2026-11-26: Historical stale-slug report mapped to stale; no live probe was added.
+
+## Viability classification 2026-11-27
+
+- Class: stale. OData access is tenant-role-gated and public boards use custom domains.

@@ -1,9 +1,14 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Plain HTTP fetcher using reqwest with rustls.
 //!
 //! See documentation/006-architecture.md.
 
 // Rust guideline compliant 2026-10-09
 
+use std::sync::OnceLock;
 use std::time::Duration;
 
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue, LOCATION};
@@ -16,6 +21,7 @@ use super::{Fetcher, MAX_BODY_BYTES, Request, Response};
 #[derive(Debug, Clone, Default)]
 pub struct PlainFetcher {
     timeout: Option<Duration>,
+    client: OnceLock<reqwest::Client>,
 }
 
 impl PlainFetcher {
@@ -31,17 +37,23 @@ impl PlainFetcher {
         self.timeout = Some(timeout);
         self
     }
+
+    fn client(&self) -> Result<&reqwest::Client, String> {
+        if let Some(client) = self.client.get() {
+            return Ok(client);
+        }
+        let client = reqwest::Client::builder()
+            .dns_resolver(SafeResolver)
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .map_err(|error| format!("cannot build HTTP client: {error}"))?;
+        Ok(self.client.get_or_init(|| client))
+    }
 }
 
 impl Fetcher for PlainFetcher {
     async fn fetch(&self, request: &Request) -> Result<Response, String> {
-        let client = reqwest::Client::builder()
-            .default_headers(headers(request)?)
-            .dns_resolver(SafeResolver)
-            .redirect(reqwest::redirect::Policy::none())
-            .timeout(self.timeout.unwrap_or(request.timeout))
-            .build()
-            .map_err(|error| format!("cannot build HTTP client: {error}"))?;
+        let client = self.client()?;
         let method = reqwest::Method::from_bytes(request.method.as_bytes())
             .map_err(|error| format!("invalid HTTP method: {error}"))?;
         let mut current = request.url.clone();
@@ -50,6 +62,8 @@ impl Fetcher for PlainFetcher {
             validate_target(&current)?;
             let sent = client
                 .request(method.clone(), &current)
+                .headers(headers(request)?)
+                .timeout(self.timeout.unwrap_or(request.timeout))
                 .body(request.body.clone())
                 .send()
                 .await
@@ -163,6 +177,12 @@ fn resolve_location(current: &str, location: &str) -> Result<String, String> {
 
 fn headers(request: &Request) -> Result<HeaderMap, String> {
     let mut map = HeaderMap::new();
+    if !request.headers.contains_key("user-agent") {
+        map.insert(
+            reqwest::header::USER_AGENT,
+            HeaderValue::from_static(crate::fetching::USER_AGENT),
+        );
+    }
     for (name, value) in &request.headers {
         let name = HeaderName::from_bytes(name.as_bytes())
             .map_err(|error| format!("invalid header name: {error}"))?;

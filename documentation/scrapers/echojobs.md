@@ -23,3 +23,9 @@ Attribution: EchoJobs
 
 - 2026-11-26: Ported from historical behavior into the manifest adapter with synthetic fixtures.
 
+
+
+## Live relabel 2026-11-27
+
+- Two live probes returned HTTP 429 before a body was available.
+- The source is marked blocked until its documented quota and Retry-After behavior are confirmed.

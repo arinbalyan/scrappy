@@ -42,4 +42,4 @@ None. The project has no synced main specs yet, so this change introduces capabi
 - `tests/live/` for full pagination, timing, and statistics reporting.
 - `documentation/` for runbooks, source behavior records, and generated status.
 
-Observed old behavior is limited to pagination loops, status retries, concurrency semaphores, and identity rotation seen in the read-only `main` branch. The new design is independently written and uses the manifest schema as its contract. The new branch remains MIT-licensed. No third-party implementation is copied or relicensed.
+Observed old behavior is limited to pagination loops, status retries, concurrency semaphores, and identity rotation seen in the read-only `main` branch. The new design is independently written and uses the manifest schema as its contract. The new branch is licensed under the GNU GPL, version 3 or later. No third-party implementation is copied or relicensed.

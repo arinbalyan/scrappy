@@ -27,3 +27,7 @@ Slugs: example-co (seed placeholder)
 - 2026-11-26: Ported from historical behavior with a slug manifest and synthetic fixture.
 - 2026-11-26: Live probe returned HTTP 404 for the placeholder slug; health stays requires_slug.
 
+
+## Viability classification 2026-11-27
+
+- Class: stale. The current public API returns items without a job URL, so no canonical record can be emitted.

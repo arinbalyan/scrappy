@@ -33,3 +33,7 @@ Slugs: example-co (seed placeholder)
 
 - 2026-11-26: Ported the first page of the tenant job API with a slug manifest and synthetic fixture.
 - 2026-11-26: Historical stale-slug report mapped to stale; no live probe was added.
+
+## Viability classification 2026-11-27
+
+- Class: stale. The vendor route uses employer domains and a POST widget API outside the manifest shape.

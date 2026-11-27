@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 // Rust guideline compliant 2026-10-09
 
 use std::collections::BTreeMap;
@@ -86,12 +90,13 @@ fn dispatch_run(args: &cli::RunArgs) -> Result<i32, String> {
         ..config::Sources::default()
     };
     let config = config::resolve(&sources).map_err(|error| error.message)?;
+    let secrets = scrappy::config::secret::SecretStore::from_config(&config);
     let config_format = config.format.clone();
     let input = pipeline::RunInput {
         sources: args.source.clone(),
         fetched_at: pipeline::now_utc(),
         config,
-        values: config_values(config_format.as_ref()),
+        values: runtime_values(&registry, &secrets),
         ..pipeline::RunInput::default()
     };
     let runtime = tokio::runtime::Builder::new_current_thread()
@@ -103,10 +108,21 @@ fn dispatch_run(args: &cli::RunArgs) -> Result<i32, String> {
     write_run_output(args, config_format.as_deref(), &jobs, &summary, false)
 }
 
-fn config_values(
-    _format: Option<&String>,
+fn runtime_values(
+    registry: &scrappy::sources::registry::Registry,
+    secrets: &scrappy::config::secret::SecretStore,
 ) -> BTreeMap<String, scrappy::sources::adapter::TemplateValues> {
-    BTreeMap::new()
+    let mut values = BTreeMap::new();
+    for manifest in registry.iter() {
+        let mut template = scrappy::sources::adapter::TemplateValues {
+            slug: manifest.slugs.first().cloned(),
+            credentials: secrets.values(&manifest.credentials),
+            ..scrappy::sources::adapter::TemplateValues::default()
+        };
+        template.query.extend(manifest.query_defaults.clone());
+        values.insert(manifest.id.clone(), template);
+    }
+    values
 }
 
 fn run_exit_code(summary: &pipeline::RunSummary) -> i32 {
@@ -174,12 +190,13 @@ fn run_with_config(
 ) -> Result<i32, String> {
     let root = std::path::Path::new("src/sources/manifests");
     let registry = custom::load(root, &custom::directory()).map_err(|error| error.message)?;
+    let secrets = scrappy::config::secret::SecretStore::from_config(&config);
     let config_format = config.format.clone();
     let input = pipeline::RunInput {
         sources,
         fetched_at: pipeline::now_utc(),
         config,
-        values: config_values(config_format.as_ref()),
+        values: runtime_values(&registry, &secrets),
         ..pipeline::RunInput::default()
     };
     let runtime = tokio::runtime::Builder::new_current_thread()

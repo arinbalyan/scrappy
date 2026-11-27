@@ -117,3 +117,14 @@ ATS tenant slug candidates are recorded in
 documentation and dated public references. Do not add a candidate to a
 manifest until the project's own fetcher has probed it and the fixtures, replay
 tests, behavior doc, and generated status are updated together.
+
+## Hardening verification
+
+- The live report now records requests, pages, bytes, latency, and a timing block with median, p95, maximum, fastest, and slowest working sources.
+- `cargo test --locked --tests --quiet -- --skip fetches_from_local_server` remains the offline gate.
+- The live suite stays ignored and must be run explicitly with `--ignored`.
+- Challenge fixtures cover JSON payloads that mention CAPTCHA text and WAF HTML that must still be classified as a challenge.
+
+## Hardened live results
+
+The 2026-11-27 hardened probe covered 107 manifests and returned 7,155 records from 58 working sources. It observed 306 email mentions in 172 addresses over 148 domains. Median source latency was 1,442 ms, p95 was 4,899 ms, and the slowest working source took 12,864 ms.

@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Offline golden replays for seed-based ATS API sources.
 //!
 //! Frozen responses are parsed through the real manifest adapter. Slug values
@@ -20,7 +24,7 @@ const SOURCES: [(&str, Family, Health); 5] = [
     ("breezyhr", Family::Ats, Health::Working),
     ("comeet", Family::Keyed, Health::Keyed),
     ("jobscore", Family::Ats, Health::Working),
-    ("manatal", Family::Ats, Health::RequiresSlug),
+    ("manatal", Family::Ats, Health::Stale),
 ];
 
 const FIXTURE_FILES: [&str; 6] = [

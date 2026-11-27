@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Fetcher contracts and implementations.
 //!
 //! Parsers receive `Response` values and never call the network. See
@@ -17,7 +21,10 @@ use std::time::Duration;
 pub const MAX_REQUEST_BODY_BYTES: usize = 1024 * 1024;
 
 /// Maximum accepted response body size.
-pub const MAX_BODY_BYTES: usize = 8 * 1024 * 1024;
+pub const MAX_BODY_BYTES: usize = 16 * 1024 * 1024;
+
+/// User agent sent when a request does not override it.
+pub const USER_AGENT: &str = "scrappy/0.1 (+https://github.com/arinbalyan/scrappy)";
 
 /// Default request timeout.
 pub const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);

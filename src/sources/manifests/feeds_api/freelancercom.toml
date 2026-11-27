@@ -6,7 +6,7 @@ health = "working"
 request = "https://www.freelancer.com/api/projects/0.1/projects/active?compact=true&limit={query:limit}&full_description=true&query={query:term}"
 parser = "json"
 fetcher = "plain"
-pagination = "offset:0:50"
+pagination = "none"
 profile = "none"
 requires_js = false
 requests_per_minute = 20

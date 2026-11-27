@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2026 Arin Balyan
+// Last modified: 2026-11-27
+
 //! Manifest-driven request building and response parsing.
 //!
 //! Adapters turn a validated manifest plus runtime substitutions into a
@@ -14,6 +18,7 @@ use crate::config::secret::Credential;
 use crate::fetching::{Request, Response};
 use crate::parsing::Parser;
 use crate::parsing::html::HtmlParser;
+use crate::parsing::jobvite::JobviteParser;
 use crate::parsing::json::{
     ConfigurableJsonParser, EmbeddedJsonParser, JsonParser, record_from_aliases_with_default,
 };
@@ -212,6 +217,7 @@ pub fn parse_response(
                 .collect())
         }
         "json" => JsonParser.parse(response),
+        "jobvite" => JobviteParser.parse(response),
         "rss" if options.is_some_and(|o| o.title_separator.is_some()) => {
             let opts = options.ok_or_else(|| error("missing parser options".to_owned()))?;
             let separator = opts.title_separator.as_deref().unwrap_or_default();
