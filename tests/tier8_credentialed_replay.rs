@@ -9,6 +9,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use scrappy::config::secret::credential;
 use scrappy::fetching::Response;
 use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
 use scrappy::sources::manifest::{Family, Health, Manifest, parse};
@@ -125,7 +126,9 @@ fn credentialed_sources_replay_into_golden_records() {
         assert_eq!(request_json["method"], template_json["method"]);
         let mut values = TemplateValues::default();
         for (name, value) in substitutions(&dir) {
-            values.credentials.insert(name.to_ascii_uppercase(), value);
+            values
+                .credentials
+                .insert(name.to_ascii_uppercase(), credential(value));
         }
         let built = build_request(&manifest, &values)
             .unwrap_or_else(|error| panic!("{id} build failed: {error}"));

@@ -10,6 +10,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use scrappy::config::secret::credential;
 use scrappy::fetching::Response;
 use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
 use scrappy::sources::manifest::{Family, Health, parse};
@@ -61,7 +62,9 @@ fn values(dir: &Path) -> TemplateValues {
             if name == "slug" {
                 result.slug = Some(value);
             } else {
-                result.credentials.insert(name.to_ascii_uppercase(), value);
+                result
+                    .credentials
+                    .insert(name.to_ascii_uppercase(), credential(value));
             }
         }
     }

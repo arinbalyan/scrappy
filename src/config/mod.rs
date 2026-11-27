@@ -14,6 +14,7 @@ use serde::de::DeserializeOwned;
 use serde::{Deserialize, Deserializer, Serialize};
 
 pub mod file;
+pub mod secret;
 pub mod validation;
 
 /// Path for the user-level config file below the home directory.
@@ -107,6 +108,11 @@ pub const CONFIG_SCHEMA: &[FieldInfo] = &[
         kind: "date YYYY-MM-DD",
         default: "unset",
     },
+    FieldInfo {
+        name: "email_discovery",
+        kind: "boolean",
+        default: "false",
+    },
 ];
 
 /// Error produced when config discovery or validation fails.
@@ -196,6 +202,8 @@ pub struct Config {
     pub hours_old: Option<u64>,
     /// Date bound for job posts.
     pub date: Option<String>,
+    /// Explicit opt-in for inferred contact discovery.
+    pub email_discovery: Option<bool>,
 }
 
 /// Inputs used to build a layered configuration.
@@ -207,6 +215,8 @@ pub struct Sources {
     pub hermetic: bool,
     /// Pre-parsed CLI overrides.
     pub cli: Config,
+    /// Credential values loaded from the environment for request auth.
+    pub credentials: BTreeMap<String, secret::Credential>,
 }
 
 /// Load and resolve configuration from files, environment, and CLI values.
@@ -272,6 +282,7 @@ fn merge_environment(merged: &mut BTreeMap<String, serde_json::Value>) -> Result
         "min_score",
         "hours_old",
         "date",
+        "email_discovery",
     ] {
         let name = format!("{ENV_PREFIX}{}", field.to_uppercase());
         let Ok(raw) = std::env::var(&name) else {
@@ -295,7 +306,7 @@ fn merge_environment(merged: &mut BTreeMap<String, serde_json::Value>) -> Result
                 .map_err(|error| ConfigError {
                     message: format!("invalid {name}: {error}"),
                 })?
-        } else if field == "is_remote" {
+        } else if field == "is_remote" || field == "email_discovery" {
             raw.parse::<bool>()
                 .map(serde_json::Value::from)
                 .map_err(|error| ConfigError {

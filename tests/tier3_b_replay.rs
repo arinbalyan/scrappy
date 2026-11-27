@@ -110,7 +110,7 @@ fn substitutions(manifest: &Manifest, frozen: &Value) -> Vec<Substitution> {
             } else if manifest.credentials.contains(name) {
                 Substitution::Key {
                     name: name.clone(),
-                    value,
+                    value: scrappy::config::secret::credential(value),
                 }
             } else {
                 Substitution::Query {

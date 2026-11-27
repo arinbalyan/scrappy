@@ -26,6 +26,10 @@ jobs:
           cargo build --locked
           sh scripts/check-secret-leaks.sh --self-test
           sh scripts/check-secret-leaks.sh target/debug/scrappy
+      - name: Fixture PII check
+        run: |
+          sh scripts/check-fixture-pii.sh --self-test
+          sh scripts/check-fixture-pii.sh
       - run: cargo check --locked --features emulation
       - run: cargo check --locked --features browser
   audit:

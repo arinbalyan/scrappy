@@ -9,6 +9,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use scrappy::config::secret::credential;
 use scrappy::fetching::Response;
 use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
 use scrappy::sources::manifest::{Family, Health, Manifest, parse};
@@ -120,7 +121,7 @@ fn keyed_and_slug_sources_replay_into_golden_records() {
                 other => {
                     values
                         .credentials
-                        .insert(other.to_ascii_uppercase(), value.to_owned());
+                        .insert(other.to_ascii_uppercase(), credential(value));
                     values.query.insert(other.to_owned(), value.to_owned());
                 }
             }

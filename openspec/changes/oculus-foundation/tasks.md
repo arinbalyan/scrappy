@@ -60,7 +60,7 @@
 - [x] 5.4 Implement canonical URL normalization and content-hash dedup with a disable switch and verify idempotent output across two runs
 - [x] 5.5 Implement versioned checkpoint and resume bound to a config fingerprint and verify a matching checkpoint skips completed work
 - [x] 5.6 Implement global and per-source result caps and fail-open policy and verify the run summary records skipped failures
-- [ ] 5.7 Implement enrichment before emission with contact provenance, deterministic scoring, authoritative company_domain, dedup, and source attribution, and verify every stdout record is final
+- [x] 5.7 Implement enrichment before emission with contact provenance, deterministic scoring, authoritative company_domain, dedup, and source attribution, and verify every stdout record is final
 - [x] 5.8 Implement challenge attention events with opaque resume state bound to the config fingerprint and verify only the challenged source pauses
 
 ## 6. Output contract
@@ -81,22 +81,22 @@
 
 ## 7. Security and privacy
 
-- [ ] 7.1 Wrap credentials in redacting types and verify debug output contains only a redaction marker
-- [ ] 7.2 Add tracing field masking and URL query redaction and verify a synthetic secret never appears in logs or errors
-- [ ] 7.3 Implement DNS-resolving SSRF protection with redirect revalidation and validated-address connection and verify literal and resolved private addresses are blocked
-- [ ] 7.4 Implement hard body size and memory ceilings and verify oversized responses are rejected
-- [ ] 7.5 Add fixture scrubbing tooling and verify committed fixtures contain no synthetic personal data
-- [ ] 7.6 Keep guessed email and commit-email harvesting disabled by default and verify no such records appear in a default run
-- [ ] 7.7 Add wire-protocol secret checks across stdout, stderr, progress events, and resume state, and verify a synthetic secret never appears in any surface
-- [ ] 7.8 Inspect challenge bodies before closing responses and classify challenges separately from generic 403 failures, and verify with a challenge fixture
+- [x] 7.1 Wrap credentials in redacting types and verify debug output contains only a redaction marker
+- [x] 7.2 Add tracing field masking and URL query redaction and verify a synthetic secret never appears in logs or errors
+- [x] 7.3 Implement DNS-resolving SSRF protection with redirect revalidation and validated-address connection and verify literal and resolved private addresses are blocked
+- [x] 7.4 Implement hard body size and memory ceilings and verify oversized responses are rejected
+- [x] 7.5 Add fixture scrubbing tooling and verify committed fixtures contain no synthetic personal data
+- [x] 7.6 Keep guessed email and commit-email harvesting disabled by default and verify no such records appear in a default run
+- [x] 7.7 Add wire-protocol secret checks across stdout, stderr, progress events, and resume state, and verify a synthetic secret never appears in any surface
+- [x] 7.8 Inspect challenge bodies before closing responses and classify challenges separately from generic 403 failures, and verify with a challenge fixture
 
 ## 8. Fixtures and offline tests
 
 - [x] 8.1 Define fixture directory contract with request descriptor, response body, headers, frozen timestamp, and golden record, and verify a validator test passes
 - [x] 8.2 Build fixture replay harness that injects saved responses into real parsers and verify a parser test passes with networking disabled
-- [ ] 8.3 Add CLI contract tests for precedence, scalar forms, explicit false, formats, config writes, doctor parity, doctor fix failure counting, init template, schema output, completion, version, and invalid exits, and verify the suite passes
-- [ ] 8.4 Add secret-leak CI check with synthetic secrets and verify the check fails on an injected leak
-- [ ] 8.5 Add bridge contract tests for stdin config, progress events, exit codes, flush behavior, and cancellation, and verify the suite passes offline
+- [x] 8.3 Add CLI contract tests for precedence, scalar forms, explicit false, formats, config writes, doctor parity, doctor fix failure counting, init template, schema output, completion, version, and invalid exits, and verify the suite passes
+- [x] 8.4 Add secret-leak CI check with synthetic secrets and verify the check fails on an injected leak
+- [x] 8.5 Add bridge contract tests for stdin config, progress events, exit codes, flush behavior, and cancellation, and verify the suite passes offline
 
 ## 9. Source porting Tier 1
 

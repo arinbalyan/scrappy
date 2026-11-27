@@ -135,6 +135,26 @@ pub fn validate_target(url: &str) -> Result<Vec<IpAddr>, String> {
     Ok(addresses)
 }
 
+/// Resolve a hostname and return only public addresses.
+///
+/// HTTP clients use this at connection time so rebinding cannot redirect a
+/// validated hostname to a private address.
+///
+/// # Errors
+/// Returns a diagnostic when resolution fails or no public address exists.
+pub fn resolve_public_host(host: &str) -> Result<Vec<IpAddr>, String> {
+    let target = TargetHost::Name(host);
+    let addresses = resolve_host(target, 0)?;
+    let allowed: Vec<_> = addresses
+        .into_iter()
+        .filter(|address| !is_forbidden(*address))
+        .collect();
+    if allowed.is_empty() {
+        return Err("target host resolved only to blocked addresses".to_owned());
+    }
+    Ok(allowed)
+}
+
 /// Host parsed from a target authority.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum TargetHost<'a> {
@@ -535,6 +555,22 @@ mod tests {
         validate_target("https://user@/jobs").unwrap_err();
         validate_target("https://example.test:notaport/jobs").unwrap_err();
         validate_target("https://[::1/jobs").unwrap_err();
+    }
+
+    #[test]
+    fn resolve_public_host_rejects_names_with_only_private_results() {
+        let error = resolve_public_host("localhost").unwrap_err();
+        assert!(error.contains("blocked"));
+        let error = resolve_public_host("127.0.0.1").unwrap_err();
+        assert!(error.contains("blocked"));
+    }
+
+    #[test]
+    #[ignore = "requires DNS resolution"]
+    fn resolve_public_host_accepts_public_name() {
+        let addresses = resolve_public_host("example.com").expect("public hostname resolves");
+        assert_ne!(addresses, [] as [IpAddr; 0]);
+        assert!(addresses.iter().all(|address| !is_forbidden(*address)));
     }
 
     #[test]

@@ -16,7 +16,7 @@ use scrappy::sources::status;
 fn main() {
     let cli = cli::parse();
     if let Err(message) = dispatch(cli) {
-        eprintln!("{message}");
+        eprintln!("{}", cli::diagnostic::safe_text(&message));
         std::process::exit(EXIT_USAGE);
     }
 }
@@ -73,9 +73,16 @@ fn dispatch_validate(args: cli::GlobalArgs) -> Result<(), String> {
 fn dispatch_run(args: &cli::RunArgs) -> Result<(), String> {
     let root = std::path::Path::new("src/sources/manifests");
     let registry = custom::load(root, &custom::directory()).map_err(|error| error.message)?;
+    let sources = config::Sources {
+        files: args.global.config.clone(),
+        hermetic: args.global.no_default_config,
+        ..config::Sources::default()
+    };
+    let config = config::resolve(&sources).map_err(|error| error.message)?;
     let input = pipeline::RunInput {
         sources: args.source.clone(),
         fetched_at: pipeline::now_utc(),
+        config,
         ..pipeline::RunInput::default()
     };
     let (jobs, summary) = pipeline::run(&registry, &input, &PlainFetcher::new())?;
@@ -90,7 +97,12 @@ fn dispatch_run(args: &cli::RunArgs) -> Result<(), String> {
     let text = writer::encode(&jobs, format)?;
     print!("{text}");
     for failure in &summary.failures {
-        eprintln!("scrappy: {failure}");
+        eprintln!("scrappy: {}", cli::diagnostic::safe_text(failure));
+    }
+    for event in &summary.attention {
+        let encoded = serde_json::to_string(event)
+            .map_err(|error| format!("cannot encode attention event: {error}"))?;
+        eprintln!("{}", cli::diagnostic::safe_text(&encoded));
     }
     Ok(())
 }

@@ -9,6 +9,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use scrappy::config::secret::credential;
 use scrappy::fetching::Response;
 use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
 use scrappy::sources::manifest::{Family, Health, parse};
@@ -95,7 +96,7 @@ fn hiringthing_replays_into_golden_records() {
     let mut values = TemplateValues::default();
     values.credentials.insert(
         "HIRINGTHING_API_TOKEN".to_owned(),
-        "sample-token".to_owned(),
+        credential("sample-token"),
     );
     let built = build_request(&manifest, &values).expect("valid request");
     let url = request_json["url"].as_str().expect("request has a url");

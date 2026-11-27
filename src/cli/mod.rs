@@ -3,7 +3,9 @@
 //! The command tree is described in documentation/003-cli-reference.md.
 //! Commands that need configuration or fetching are wired in later sections.
 
+pub mod diagnostic;
 pub mod doctor;
+pub mod trace;
 
 // Rust guideline compliant 2026-10-09
 

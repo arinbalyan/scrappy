@@ -7,7 +7,9 @@
 use std::collections::BTreeMap;
 
 #[cfg(feature = "emulation")]
-use super::{Fetcher, Request, Response};
+use super::{Fetcher, MAX_BODY_BYTES, Request, Response};
+#[cfg(feature = "emulation")]
+use crate::security::{resolve_public_host, validate_target};
 
 /// One pinned browser-like request profile.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -73,23 +75,41 @@ impl Fetcher for EmulationFetcher {
             .ok_or("no emulation profile selected")?;
         let client = wreq::Client::builder()
             .emulation(profile_name(profile)?)
+            .dns_resolver(SafeResolver)
+            .redirect(wreq::redirect::Policy::none())
             .build()
             .map_err(|error| format!("cannot build emulation client: {error}"))?;
         let method = wreq::Method::from_bytes(request.method.as_bytes())
             .map_err(|error| format!("invalid HTTP method: {error}"))?;
-        let mut builder = client.request(method, &request.url);
-        for (name, value) in &request.headers {
-            builder = builder.header(name, value);
+        let mut current = request.url.clone();
+        let mut response = None;
+        for _ in 0..=MAX_REDIRECTS {
+            validate_target(&current)?;
+            let mut builder = client.request(method.clone(), &current);
+            for (name, value) in &request.headers {
+                builder = builder.header(name, value);
+            }
+            if !request.body.is_empty() {
+                builder = builder.body(request.body.clone());
+            }
+            let sent = builder
+                .send()
+                .await
+                .map_err(|error| format!("emulated request failed: {error}"))?;
+            if !sent.status().is_redirection() {
+                response = Some(sent);
+                break;
+            }
+            let location = sent
+                .headers()
+                .get(wreq::header::LOCATION)
+                .and_then(|value| value.to_str().ok())
+                .ok_or("redirect has no usable location")?;
+            current = resolve_location(&current, location)?;
         }
-        if !request.body.is_empty() {
-            builder = builder.body(request.body.clone());
-        }
-        let response = builder
-            .send()
-            .await
-            .map_err(|error| format!("emulated request failed: {error}"))?;
+        let response = response.ok_or("too many redirects")?;
         let status = response.status().as_u16();
-        let url = response.uri().to_string();
+        let url = current;
         let headers = response
             .headers()
             .iter()
@@ -100,13 +120,85 @@ impl Fetcher for EmulationFetcher {
                     .map(|value| (name.as_str().to_owned(), value.to_owned()))
             })
             .collect();
-        let body = response
-            .bytes()
-            .await
-            .map_err(|error| format!("cannot read emulated body: {error}"))?
-            .to_vec();
+        let body = bounded_body(response).await?;
         Response::new(url, status, headers, body)
     }
+}
+
+#[cfg(feature = "emulation")]
+const MAX_REDIRECTS: usize = 10;
+
+/// Read a bounded body so oversized responses are rejected before they are kept.
+///
+/// # Errors
+/// Returns a diagnostic when the body cannot be read.
+#[cfg(feature = "emulation")]
+async fn bounded_body(response: wreq::Response) -> Result<Vec<u8>, String> {
+    use futures::StreamExt;
+
+    let mut stream = response.bytes_stream();
+    let mut body = Vec::new();
+    while let Some(item) = stream.next().await {
+        let chunk = item.map_err(|error| format!("cannot read emulated body: {error}"))?;
+        if body.len() + chunk.len() > MAX_BODY_BYTES {
+            return Err(format!("response body exceeds {MAX_BODY_BYTES} bytes"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+    Ok(body)
+}
+
+#[cfg(feature = "emulation")]
+#[derive(Debug)]
+struct SafeResolver;
+
+#[cfg(feature = "emulation")]
+impl wreq::dns::Resolve for SafeResolver {
+    fn resolve(&self, name: wreq::dns::Name) -> wreq::dns::Resolving {
+        let host = name.as_str().to_owned();
+        Box::pin(async move {
+            let addresses = resolve_public_host(&host)?;
+            let addrs: Vec<_> = addresses
+                .into_iter()
+                .map(|address| std::net::SocketAddr::new(address, 0))
+                .collect();
+            Ok(Box::new(addrs.into_iter()) as wreq::dns::Addrs)
+        })
+    }
+}
+
+#[cfg(feature = "emulation")]
+fn join_relative(directory: &str, location: &str) -> String {
+    if directory.ends_with('/') {
+        format!("{directory}{location}")
+    } else {
+        format!("{directory}/{location}")
+    }
+}
+
+#[cfg(feature = "emulation")]
+fn resolve_location(current: &str, location: &str) -> Result<String, String> {
+    if location.starts_with("http://") || location.starts_with("https://") {
+        validate_target(location)?;
+        return Ok(location.to_owned());
+    }
+    let (scheme, remainder) = current.split_once("://").ok_or("invalid current URL")?;
+    let authority_end = remainder.find(['/', '?', '#']).unwrap_or(remainder.len());
+    let authority = &remainder[..authority_end];
+    let path =
+        if location.starts_with('/') {
+            location.to_owned()
+        } else {
+            let base = &remainder[authority_end..];
+            let base_path = base.split('?').next().unwrap_or(base);
+            let directory = base_path.rsplit_once('/').map_or("/", |(prefix, _)| {
+                if prefix.is_empty() { "/" } else { prefix }
+            });
+            join_relative(directory, location)
+        };
+    let target = format!("{scheme}://{authority}{path}");
+    validate_target(&target)?;
+    Ok(target)
 }
 
 #[cfg(feature = "emulation")]
@@ -120,6 +212,14 @@ fn profile_name(name: &str) -> Result<wreq_util::Profile, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(feature = "emulation")]
+    #[test]
+    fn join_relative_avoids_double_slash() {
+        assert_eq!(join_relative("/", "next"), "/next");
+        assert_eq!(join_relative("/jobs", "next"), "/jobs/next");
+        assert_eq!(join_relative("/jobs/", "next"), "/jobs/next");
+    }
 
     #[test]
     fn profile_headers_match_user_agent() {

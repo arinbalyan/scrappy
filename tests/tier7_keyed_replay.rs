@@ -61,9 +61,10 @@ fn manifest(id: &str, family_dir: &str) -> Manifest {
 fn synthetic_values(manifest: &Manifest) -> TemplateValues {
     let mut values = TemplateValues::default();
     for name in &manifest.credentials {
-        values
-            .credentials
-            .insert(name.clone(), format!("test-{name}"));
+        values.credentials.insert(
+            name.clone(),
+            scrappy::config::secret::credential(format!("test-{name}")),
+        );
     }
     values
 }

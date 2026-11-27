@@ -6,6 +6,10 @@
 use std::collections::{BTreeMap, HashSet};
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::config::Config;
+use crate::engine::attention::{AttentionEvent, attention_event};
+use crate::engine::challenge::detect;
+use crate::engine::memory::MemoryCeiling;
 use crate::fetching::Fetcher;
 use crate::output::record::{
     Email, EmailSource, Job, JobInput, Provenance, SCHEMA_VERSION, from_record,
@@ -13,6 +17,14 @@ use crate::output::record::{
 use crate::sources::adapter::{TemplateValues, build_request, parse_response};
 use crate::sources::manifest::Manifest;
 use crate::sources::registry::Registry;
+
+/// Outcome of one source run before jobs are merged.
+enum SourceOutcome {
+    /// Parsed jobs and skipped record count.
+    Jobs(Vec<Job>, usize),
+    /// Challenge classified for human attention.
+    Challenge(AttentionEvent),
+}
 
 /// Result of one scrape run.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -23,6 +35,8 @@ pub struct RunSummary {
     pub skipped: usize,
     /// Diagnostic messages for sources that failed.
     pub failures: Vec<String>,
+    /// Machine-readable challenges that need human attention.
+    pub attention: Vec<AttentionEvent>,
 }
 
 /// Inputs for one scrape run.
@@ -34,6 +48,8 @@ pub struct RunInput {
     pub fetched_at: String,
     /// Runtime substitutions keyed by source identifier.
     pub values: BTreeMap<String, TemplateValues>,
+    /// Active configuration used to bind attention resume state.
+    pub config: Config,
 }
 
 /// Maximum length retained when scanning a description for an address.
@@ -138,15 +154,24 @@ pub fn run(
         emitted: 0,
         skipped: 0,
         failures: Vec::new(),
+        attention: Vec::new(),
     };
     for manifest in selected {
-        match run_source(manifest, input, fetcher, &mut seen) {
-            Ok((source_jobs, skipped)) => {
+        if let Some(megabytes) = input.config.memory_mb
+            && !MemoryCeiling::from_mb(megabytes).allows_start()
+        {
+            return Err(format!(
+                "memory ceiling of {megabytes} MB reached before source {}",
+                manifest.id
+            ));
+        }
+        match run_source(manifest, input, fetcher, &mut seen)? {
+            SourceOutcome::Jobs(source_jobs, skipped) => {
                 summary.skipped += skipped;
                 summary.emitted += source_jobs.len();
                 jobs.extend(source_jobs);
             }
-            Err(reason) => summary.failures.push(reason),
+            SourceOutcome::Challenge(event) => summary.attention.push(event),
         }
     }
     Ok((jobs, summary))
@@ -170,11 +195,20 @@ fn run_source(
     input: &RunInput,
     fetcher: &impl Fetcher,
     seen: &mut HashSet<String>,
-) -> Result<(Vec<Job>, usize), String> {
+) -> Result<SourceOutcome, String> {
     let values = input.values.get(&manifest.id).cloned().unwrap_or_default();
     let request = build_request(manifest, &values)
         .map_err(|error| format!("{}: {}", manifest.id, error.message))?;
     let response = tokio_runtime()?.block_on(fetcher.fetch(&request))?;
+    if let Ok(text) = response.text()
+        && let Some(challenge) = detect(response.status, &response.headers, text)
+    {
+        return Ok(SourceOutcome::Challenge(attention_event(
+            &manifest.id,
+            &challenge,
+            &input.config,
+        )));
+    }
     if !(200..300).contains(&response.status) {
         return Err(format!(
             "{}: unexpected HTTP status {}",
@@ -185,11 +219,16 @@ fn run_source(
         .map_err(|error| format!("{}: {}", manifest.id, error.message))?;
     let mut jobs = Vec::with_capacity(records.len());
     let mut skipped = 0;
+    let discovery = input.config.email_discovery.unwrap_or(false);
     for record in records {
+        let emails = observed_emails(record.description.as_deref())
+            .into_iter()
+            .filter(|email| discovery || email.provenance == Provenance::Observed)
+            .collect();
         let job_input = JobInput {
             source_id: manifest.id.clone(),
             fetched_at: input.fetched_at.clone(),
-            emails: observed_emails(record.description.as_deref()),
+            emails,
             ..JobInput::default()
         };
         match from_record(&record, &job_input, SCHEMA_VERSION) {
@@ -203,7 +242,7 @@ fn run_source(
             Err(_) => skipped += 1,
         }
     }
-    Ok((jobs, skipped))
+    Ok(SourceOutcome::Jobs(jobs, skipped))
 }
 
 fn tokio_runtime() -> Result<tokio::runtime::Runtime, String> {
@@ -284,6 +323,23 @@ attribution = "Example"
 
     struct EmailingFetcher;
 
+    struct ChallengeFetcher;
+
+    impl Fetcher for ChallengeFetcher {
+        fn fetch(
+            &self,
+            _request: &Request,
+        ) -> impl std::future::Future<Output = Result<Response, String>> + Send {
+            let body = b"<title>cf-browser-verification</title>";
+            std::future::ready(Response::new(
+                "https://example.test/jobs",
+                403,
+                BTreeMap::new(),
+                body.to_vec(),
+            ))
+        }
+    }
+
     impl Fetcher for EmailingFetcher {
         fn fetch(
             &self,
@@ -334,5 +390,42 @@ attribution = "Example"
         assert_eq!(jobs[0].emails[0].provenance, Provenance::Observed);
         assert_eq!(jobs[0].source_ids, vec!["sample".to_owned()]);
         assert_eq!(jobs[0].company_domain, None);
+    }
+
+    #[test]
+    fn challenge_response_is_classified_as_attention_not_failure() {
+        let manifest = crate::sources::manifest::parse(
+            r#"version = 1
+id = "sample"
+name = "Sample"
+family = "feeds_api"
+health = "working"
+request = "https://example.test/jobs"
+parser = "json"
+fetcher = "plain"
+pagination = "none"
+profile = "none"
+requires_js = false
+requests_per_minute = 30
+max_concurrency = 2
+robots = "allow"
+attribution = "Example"
+"#,
+        )
+        .expect("manifest parsed");
+        let mut registry = Registry::new();
+        registry.insert(manifest);
+        let input = RunInput {
+            sources: vec!["sample".to_owned()],
+            fetched_at: "2026-11-27T00:00:00Z".to_owned(),
+            ..RunInput::default()
+        };
+        let (jobs, summary) =
+            run(&registry, &input, &ChallengeFetcher).expect("pipeline completed");
+        assert_eq!(jobs, [] as [Job; 0]);
+        assert_eq!(summary.failures, [] as [String; 0]);
+        assert_eq!(summary.attention.len(), 1);
+        assert_eq!(summary.attention[0].source_id, "sample");
+        assert_eq!(summary.attention[0].status, 403);
     }
 }

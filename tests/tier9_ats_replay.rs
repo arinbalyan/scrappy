@@ -9,6 +9,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use scrappy::config::secret::credential;
 use scrappy::fetching::Response;
 use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
 use scrappy::sources::manifest::{Family, Health, Manifest, parse};
@@ -132,10 +133,7 @@ fn seed_based_sources_replay_into_golden_records() {
             if name != "slug" {
                 values.credentials.insert(
                     name.to_ascii_uppercase(),
-                    value
-                        .as_str()
-                        .expect("credential value is a string")
-                        .to_owned(),
+                    credential(value.as_str().expect("credential value is a string")),
                 );
             }
         }

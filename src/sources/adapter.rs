@@ -10,6 +10,7 @@
 
 use std::collections::BTreeMap;
 
+use crate::config::secret::Credential;
 use crate::fetching::{Request, Response};
 use crate::parsing::Parser;
 use crate::parsing::html::HtmlParser;
@@ -25,7 +26,7 @@ pub enum Substitution {
     /// Company slug for a `{slug}` placeholder.
     Slug(String),
     /// Credential name and value for a `{key:<name>}` placeholder.
-    Key { name: String, value: String },
+    Key { name: String, value: Credential },
     /// Query name and value for a `{query:<name>}` placeholder.
     Query { name: String, value: String },
 }
@@ -36,7 +37,7 @@ pub struct TemplateValues {
     /// Slug substituted into `{slug}` placeholders.
     pub slug: Option<String>,
     /// Credential values keyed by declared credential name.
-    pub credentials: BTreeMap<String, String>,
+    pub credentials: BTreeMap<String, Credential>,
     /// Query values keyed by placeholder name.
     pub query: BTreeMap<String, String>,
 }
@@ -292,7 +293,7 @@ fn render(template: &str, values: &TemplateValues) -> Result<String, AdapterErro
             values
                 .credentials
                 .get(key)
-                .map(String::as_str)
+                .map(Credential::as_str)
                 .ok_or_else(|| error(format!("missing credential substitution for {key}")))?
         } else if let Some(query) = name.strip_prefix("query:") {
             values
@@ -346,7 +347,10 @@ attribution = "Example"
         .expect("manifest parsed");
         let values = TemplateValues {
             slug: Some("acme".to_owned()),
-            credentials: BTreeMap::from([("api_key".to_owned(), "secret-value".to_owned())]),
+            credentials: BTreeMap::from([(
+                "api_key".to_owned(),
+                crate::config::secret::credential("secret-value"),
+            )]),
             query: BTreeMap::new(),
         };
         let request = build_request(&manifest, &values).expect("request built");
@@ -388,7 +392,10 @@ attribution = "Example"
         assert_eq!(manifest.family, Family::FeedsApi);
         let values = TemplateValues {
             slug: Some("acme".to_owned()),
-            credentials: BTreeMap::from([("api_key".to_owned(), "secret-value".to_owned())]),
+            credentials: BTreeMap::from([(
+                "api_key".to_owned(),
+                crate::config::secret::credential("secret-value"),
+            )]),
             query: BTreeMap::new(),
         };
         let request = build_request(&manifest, &values).expect("request built");

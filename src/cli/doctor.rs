@@ -10,6 +10,7 @@ use std::path::{Path, PathBuf};
 
 use serde::Serialize;
 
+use crate::cli::diagnostic::safe_text;
 use crate::config::CONFIG_SCHEMA;
 
 /// Status of one doctor check.
@@ -98,7 +99,7 @@ fn config_check(files: &[PathBuf]) -> Check {
         Check {
             name: "config".to_owned(),
             status: Status::Warn,
-            reason: format!("missing config file(s): {}", missing.join(", ")),
+            reason: format!("missing config file(s): {}", safe_text(&missing.join(", "))),
         }
     }
 }
@@ -128,7 +129,7 @@ fn sources_check() -> Check {
         Err(error) => Check {
             name: "sources".to_owned(),
             status: Status::Fail,
-            reason: error.message,
+            reason: safe_text(&error.message),
         },
     }
 }
@@ -171,7 +172,7 @@ fn browser_check() -> Check {
         Err(error) => Check {
             name: "browser".to_owned(),
             status: Status::Skip,
-            reason: error.reason().to_owned(),
+            reason: safe_text(error.reason()),
         },
     }
 }
@@ -197,14 +198,17 @@ fn fixtures_check() -> Check {
                 Check {
                     name: "fixtures".to_owned(),
                     status: Status::Fail,
-                    reason: format!("missing or blocked fixtures: {}", missing.join(", ")),
+                    reason: format!(
+                        "missing or blocked fixtures: {}",
+                        safe_text(&missing.join(", "))
+                    ),
                 }
             }
         }
         Err(error) => Check {
             name: "fixtures".to_owned(),
             status: Status::Fail,
-            reason: error.message,
+            reason: safe_text(&error.message),
         },
     }
 }

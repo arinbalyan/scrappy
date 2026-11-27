@@ -55,7 +55,7 @@ fn builds_request_with_slug_key_and_query_substitutions() {
         Substitution::Slug("acme".to_owned()),
         Substitution::Key {
             name: "api_key".to_owned(),
-            value: "top-secret".to_owned(),
+            value: scrappy::config::secret::credential("top-secret"),
         },
         Substitution::Query {
             name: "page".to_owned(),
@@ -81,7 +81,7 @@ fn missing_required_substitution_is_an_error() {
         Substitution::Slug("acme".to_owned()),
         Substitution::Key {
             name: "api_key".to_owned(),
-            value: "top-secret".to_owned(),
+            value: scrappy::config::secret::credential("top-secret"),
         },
     ];
     let error = request_with(&manifest, &substitutions).unwrap_err();
@@ -111,9 +111,10 @@ fn parses_records_through_adapter() {
 fn credential_value_never_appears_in_errors() {
     let manifest = parse(TEMPLATED).expect("manifest parsed");
     let mut values = TemplateValues::default();
-    values
-        .credentials
-        .insert("api_key".to_owned(), "top-secret".to_owned());
+    values.credentials.insert(
+        "api_key".to_owned(),
+        scrappy::config::secret::credential("top-secret"),
+    );
     let error = build_request(&manifest, &values).unwrap_err();
     assert_eq!(
         error,

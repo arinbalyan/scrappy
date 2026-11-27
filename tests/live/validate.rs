@@ -11,6 +11,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
+use scrappy::config::secret::credential;
 use scrappy::engine::governor::{Governor, SourceBudget};
 use scrappy::fetching::Fetcher;
 use scrappy::fetching::plain::PlainFetcher;
@@ -68,7 +69,7 @@ fn substitutions(dir: &Path) -> TemplateValues {
                 values.slug = Some(value.to_owned());
             }
         } else if let Some(key) = name.strip_prefix("key:") {
-            values.credentials.insert(key.to_owned(), value.to_owned());
+            values.credentials.insert(key.to_owned(), credential(value));
         } else if let Some(query) = name.strip_prefix("query:") {
             values.query.insert(query.to_owned(), value.to_owned());
         } else {
