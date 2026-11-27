@@ -30,7 +30,7 @@ stays within its manifest `requests_per_minute` and `max_concurrency`.
 
 On 2026-11-27 the full suite ran in 151.26 seconds. The accepted report is
 kept outside version control at `/tmp/scrappy-live-report-accepted.txt`.
-It found 24 working sources, 16 keyed sources, 23 blocked sources, 45 stale
+It found 24 working sources, 16 keyed sources, 23 blocked sources, 46 stale
 sources, and 20 unregistered historical sources. The run environment
 restricted some outbound hosts, so a 403, 429, or fetch failure in this
 report may reflect network policy rather than the source. Re-run from an
