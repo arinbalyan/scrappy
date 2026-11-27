@@ -4,7 +4,7 @@ name = "Built In"
 family = "html_static"
 health = "working"
 request = "https://builtin.com/jobs?search={query:search}"
-parser = "json"
+parser = "html"
 fetcher = "plain"
 pagination = "page:0:6"
 profile = "none"
@@ -15,27 +15,12 @@ robots = "allow"
 attribution = "Built In"
 fixtures = ["builtin"]
 
-[field_aliases.title]
-names = ["title"]
-
-[field_aliases.company]
-names = ["company_name"]
-
-[field_aliases.url]
-names = ["url"]
-
-[field_aliases.location]
-names = ["city_name"]
-
-[field_aliases.description]
-names = ["body_teaser"]
-
-[parser_options]
-envelope = ["props", "pageProps", "jobs"]
-
-[parser_options.embedded]
-element_id = "__NEXT_DATA__"
-envelope = ["props", "pageProps", "jobs"]
+[selectors]
+item = "[data-id=job-card]"
+title = "[data-id=job-card-title]"
+company = "[data-id=company-title]"
+url = "[data-id=job-card-title]"
+url_attribute = "href"
 
 [request_options.headers]
 user-agent = "Mozilla/5.0"

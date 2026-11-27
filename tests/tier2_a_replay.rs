@@ -19,7 +19,7 @@ const SOURCES: [(&str, Family, Health, &str, &str); 5] = [
         Family::HtmlStatic,
         Health::Working,
         "html_static",
-        "json",
+        "html",
     ),
     (
         "internshala",
