@@ -2,6 +2,7 @@
   "method": "GET",
   "url": "https://www.jobindex.dk/jobsoegning?q={term}",
   "headers": {
-    "accept": "application/json"
+    "accept": "application/json",
+    "user-agent": "Mozilla/5.0"
   }
 }

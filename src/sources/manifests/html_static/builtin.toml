@@ -36,3 +36,6 @@ envelope = ["props", "pageProps", "jobs"]
 [parser_options.embedded]
 element_id = "__NEXT_DATA__"
 envelope = ["props", "pageProps", "jobs"]
+
+[request_options.headers]
+user-agent = "Mozilla/5.0"

@@ -3,7 +3,8 @@
   "url": "https://functional.works-hub.com/api/graphql",
   "headers": {
     "accept": "application/json",
-    "content-type": "application/json"
+    "content-type": "application/json",
+    "user-agent": "Mozilla/5.0"
   },
   "body": "{\"query\":\"{ jobs(page_size:20, vertical:\\\"functional\\\", published:true) { title company { name } location { city country } remote remuneration { timePeriod competitive currency min max } slug firstPublished descriptionHtml tags { label } } }\"}"
 }

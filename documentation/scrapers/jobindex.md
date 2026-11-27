@@ -28,6 +28,7 @@ Slugs: none
 - Missing company or title rows are skipped by the parser.
 
 ## Break and fix log
+- 2026-11-27: Added the browser user-agent header used by the historical scraper after a live probe returned HTTP 204 with no body. Replay fixtures were updated to match.
 - 2026-11-27: Live validation returned HTTP 204 with no embedded JSON source. Public search still uses /jobsoegning?q=... with a Stash variable and searchResponse.results; the empty probe likely came from a response with no query or no results. The manifest and fixture are unchanged.
 
 - 2026-11-26: Manifest, embedded Stash fixture, behavior doc, and offline replay recorded during the Tier 2 port.

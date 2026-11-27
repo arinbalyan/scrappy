@@ -28,6 +28,7 @@ Slugs: none
 - An anti-bot challenge response is treated as a fetch failure by the caller; the manifest declares no challenge handling.
 
 ## Break and fix log
+- 2026-11-27: Added the browser user-agent header used by the historical scraper after a live probe returned HTTP 200 with a challenged or variant page. Replay fixtures were updated to match.
 - 2026-11-27: Live validation returned HTTP 200 but no embedded JSON source was found. Public pages continue to carry a __NEXT_DATA__ blob with jobs under props.pageProps.jobs, so the missing blob likely came from a challenged or query-free variant. The manifest and fixture keep that path; a response without the blob still fails replay.
 
 - 2026-11-26: Manifest, embedded-JSON fixture, behavior doc, and offline replay recorded during the Tier 2 port.

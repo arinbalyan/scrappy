@@ -36,3 +36,6 @@ envelope = ["jobsearch", "result_app", "storeData", "searchResponse", "results"]
 [parser_options.embedded]
 variable = "Stash"
 envelope = ["jobsearch", "result_app", "storeData", "searchResponse", "results"]
+
+[request_options.headers]
+user-agent = "Mozilla/5.0"
