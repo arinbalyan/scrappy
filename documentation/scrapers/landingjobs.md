@@ -29,5 +29,7 @@ Company: Upstream-derived `company.name` field; missing values normalize to "unk
 
 - 2026-11-27: Replay showed the feed's company objects were not being read. Changed the company alias to `company.name` and added `locations.0.city` ahead of `city` for location.
 
+- 2026-11-27: Live validation reported two records because the frozen query used `limit=2`. Raised the frozen limit to the historical default of 50 and updated the recorded request URL. The public endpoint and record validation are unchanged.
+
 - 2026-11-26: Tier 1 manifest, synthetic six-file fixture, and offline replay test added.
 

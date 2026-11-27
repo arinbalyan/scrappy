@@ -17,6 +17,8 @@ fixtures = ["jobstreet"]
 
 [parser_options]
 envelope = ["data"]
+url_from = "id"
+url_prefix = "https://www.jobstreet.com.my/job/"
 
 [field_aliases.title]
 names = ["title"]

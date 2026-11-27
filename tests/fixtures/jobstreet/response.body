@@ -3,7 +3,6 @@
     "id": "js-501",
     "title": "Frontend Engineer",
     "companyName": "Example Digital",
-    "jobUrl": "https://www.jobstreet.com/job/js-501",
     "teaser": "<p>Build web interfaces.</p>",
     "listingDate": "2026-11-21T08:30:00Z",
     "salaryLabel": "RM 5,000 - RM 8,000 per month",
@@ -15,7 +14,6 @@
     "advertiser": {
       "description": "Sample Infrastructure"
     },
-    "jobUrl": "https://www.jobstreet.com/job/js-502",
     "teaser": "Keep services healthy.",
     "location": null
   }

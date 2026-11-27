@@ -92,6 +92,18 @@ pub fn record_from_aliases_with_default(
     aliases: Option<&BTreeMap<String, Vec<String>>>,
     default_company: Option<&str>,
 ) -> Option<Record> {
+    record_from_aliases_with_url(value, aliases, default_company, None, None)
+}
+
+/// Build one record with an optional derived URL field.
+#[must_use]
+pub fn record_from_aliases_with_url(
+    value: &Value,
+    aliases: Option<&BTreeMap<String, Vec<String>>>,
+    default_company: Option<&str>,
+    url_from: Option<&str>,
+    url_prefix: Option<&str>,
+) -> Option<Record> {
     let object = value.as_object()?;
     let field = |name: &str, defaults: &[&str]| -> Option<String> {
         aliases
@@ -107,10 +119,21 @@ pub fn record_from_aliases_with_default(
                     .map(str::to_owned)
             })
     };
-    let url = field(
-        "url",
-        &["url", "link", "apply_url", "job_url", "public_url"],
-    )?;
+    let derived = url_from
+        .and_then(|path| nested(object, path))
+        .and_then(Value::as_str)
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(|id| match url_prefix {
+            Some(prefix) if !id.starts_with("https://") => format!("{prefix}{id}"),
+            _ => id.to_owned(),
+        });
+    let url = derived.or_else(|| {
+        field(
+            "url",
+            &["url", "link", "apply_url", "job_url", "public_url"],
+        )
+    })?;
     let title = field(
         "title",
         &["title", "position", "job_title", "jobTitle", "name"],
@@ -297,6 +320,8 @@ pub struct ConfigurableJsonParser {
     path: Vec<String>,
     aliases: Option<BTreeMap<String, Vec<String>>>,
     default_company: Option<String>,
+    url_from: Option<String>,
+    url_prefix: Option<String>,
 }
 
 impl ConfigurableJsonParser {
@@ -320,6 +345,20 @@ impl ConfigurableJsonParser {
         aliases: Option<BTreeMap<String, Vec<String>>>,
         default_company: Option<String>,
     ) -> Result<Self, String> {
+        Self::with_options(path, aliases, default_company, None, None)
+    }
+
+    /// Build a parser with a derived URL field and company fallback.
+    ///
+    /// # Errors
+    /// Returns a diagnostic when an alias or template is invalid.
+    pub fn with_options(
+        path: &[String],
+        aliases: Option<BTreeMap<String, Vec<String>>>,
+        default_company: Option<String>,
+        url_from: Option<String>,
+        url_prefix: Option<String>,
+    ) -> Result<Self, String> {
         if let Some(map) = &aliases {
             for (field, names) in map {
                 if field.trim().is_empty() || names.iter().any(|name| name.trim().is_empty()) {
@@ -327,10 +366,15 @@ impl ConfigurableJsonParser {
                 }
             }
         }
+        if url_from.is_some() && url_prefix.is_none() {
+            return Err("derived URL needs a prefix".to_owned());
+        }
         Ok(Self {
             path: path.to_vec(),
             aliases,
             default_company,
+            url_from,
+            url_prefix,
         })
     }
 }
@@ -345,10 +389,12 @@ impl Parser for ConfigurableJsonParser {
         let items = selected.as_array().ok_or("JSON envelope is not an array")?;
         let mut records = Vec::with_capacity(items.len());
         for item in items {
-            if let Some(record) = record_from_aliases_with_default(
+            if let Some(record) = record_from_aliases_with_url(
                 item,
                 self.aliases.as_ref(),
                 self.default_company.as_deref(),
+                self.url_from.as_deref(),
+                self.url_prefix.as_deref(),
             ) {
                 records.push(record);
             }

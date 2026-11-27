@@ -17,6 +17,8 @@ fixtures = ["jobsdb"]
 
 [parser_options]
 envelope = ["data"]
+url_from = "id"
+url_prefix = "https://www.jobsdb.com/job/"
 
 [field_aliases.title]
 names = ["title"]

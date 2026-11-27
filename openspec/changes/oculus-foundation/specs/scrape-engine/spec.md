@@ -56,6 +56,7 @@ The engine SHALL detect WAF and bot challenges, stop the affected source, record
 
 ### Requirement: Canonicalization and content hashing
 Each emitted record SHALL carry a canonical URL and a content hash computed from stable fields. Deduplication SHALL use those values and SHALL be idempotent across reruns.
+A configured JSON parser SHALL derive a canonical URL from a named field path and URL prefix when the source omits a direct link. Derived URLs SHALL be deterministic, use https, and never use opaque tracking tokens.
 
 #### Scenario: Same content produces the same hash
 - **WHEN** the same job is fetched twice with unchanged fields
@@ -64,6 +65,14 @@ Each emitted record SHALL carry a canonical URL and a content hash computed from
 #### Scenario: Deduplication can be disabled
 - **WHEN** a user disables deduplication
 - **THEN** duplicate records are emitted as separate results
+
+#### Scenario: Derive a canonical URL from an id
+    - **WHEN** a JSON manifest declares a `url_from` field path and a `url_prefix` starting with https
+    - **THEN** each record that lacks a direct link uses the prefix plus the field value as its canonical URL
+
+#### Scenario: Reject an incomplete URL derivation
+    - **WHEN** a JSON manifest declares `url_from` without `url_prefix`
+    - **THEN** parser construction fails with a diagnostic naming the missing prefix
 
 ### Requirement: Checkpoint and resume
 An interrupted run SHALL persist progress so a resumed run skips completed sources and already-emitted records. The checkpoint SHALL be versioned and safe to reuse only with a matching configuration.

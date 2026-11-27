@@ -127,6 +127,12 @@ pub struct ParserOptions {
     /// Dot-separated path to an array inside a JSON envelope.
     #[serde(default)]
     pub envelope: Vec<String>,
+    /// JSON field path used to derive canonical job URLs.
+    #[serde(default)]
+    pub url_from: Option<String>,
+    /// URL prefix prepended to a derived job identifier.
+    #[serde(default)]
+    pub url_prefix: Option<String>,
     /// Company fallback when an item has no company field.
     #[serde(default)]
     pub default_company_path: Vec<String>,

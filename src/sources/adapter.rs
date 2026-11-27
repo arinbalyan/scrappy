@@ -176,22 +176,13 @@ pub fn parse_response(
             .parse(response)
         }
         "json" if options.is_some_and(|o| !o.envelope.is_empty()) => {
-            let aliases = manifest.field_aliases.as_ref().map(|map| {
-                map.iter()
-                    .map(|(field, alias)| (field.clone(), alias.names.clone()))
-                    .collect()
-            });
             let envelope = &options
                 .ok_or_else(|| error("missing parser options".to_owned()))?
                 .envelope;
             let value: serde_json::Value =
                 serde_json::from_str(response.text().unwrap_or_default())
                     .map_err(|reason| error(format!("invalid JSON payload: {reason}")))?;
-            let company =
-                options.and_then(|options| default_company(&value, &options.default_company_path));
-            ConfigurableJsonParser::with_default_company(envelope, aliases, company)
-                .map_err(error)?
-                .parse(response)
+            parse_envelope(manifest, options, &value, envelope, response)
         }
         "json" if manifest.field_aliases.is_some() => {
             let value: serde_json::Value =
@@ -256,6 +247,33 @@ fn adapter_error(reason: &str) -> AdapterError {
 
 fn error(message: String) -> AdapterError {
     AdapterError { message }
+}
+
+/// Parse a JSON envelope with derived URL and company options.
+///
+/// # Errors
+/// Returns a diagnostic when the parser options or payload are invalid.
+fn parse_envelope(
+    manifest: &Manifest,
+    options: Option<&crate::sources::manifest::ParserOptions>,
+    value: &serde_json::Value,
+    envelope: &[String],
+    response: &Response,
+) -> Result<Vec<crate::parsing::Record>, String> {
+    let aliases = manifest.field_aliases.as_ref().map(|map| {
+        map.iter()
+            .map(|(field, alias)| (field.clone(), alias.names.clone()))
+            .collect()
+    });
+    let company = options.and_then(|options| default_company(value, &options.default_company_path));
+    ConfigurableJsonParser::with_options(
+        envelope,
+        aliases,
+        company,
+        options.and_then(|options| options.url_from.clone()),
+        options.and_then(|options| options.url_prefix.clone()),
+    )?
+    .parse(response)
 }
 
 /// Read a lowercase envelope key as a fallback company name.
