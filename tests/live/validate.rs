@@ -15,7 +15,7 @@ use scrappy::engine::governor::{Governor, SourceBudget};
 use scrappy::fetching::Fetcher;
 use scrappy::fetching::plain::PlainFetcher;
 use scrappy::sources::adapter::{TemplateValues, build_request, parse_response};
-use scrappy::sources::manifest::{Health, Manifest, parse};
+use scrappy::sources::manifest::{Manifest, parse};
 use scrappy::sources::registry::Registry;
 use serde_json::Value;
 
@@ -63,8 +63,10 @@ fn substitutions(dir: &Path) -> TemplateValues {
         let Some(value) = value.as_str() else {
             continue;
         };
-        if name == "slug" {
-            values.slug = Some(value.to_owned());
+        if name == "slug" || name == "seed_slug" {
+            if values.slug.is_none() {
+                values.slug = Some(value.to_owned());
+            }
         } else if let Some(key) = name.strip_prefix("key:") {
             values.credentials.insert(key.to_owned(), value.to_owned());
         } else if let Some(query) = name.strip_prefix("query:") {
@@ -76,18 +78,34 @@ fn substitutions(dir: &Path) -> TemplateValues {
     values
 }
 
+fn probe_slug(dir: &Path, manifest: &Manifest) -> Option<String> {
+    let text = fs::read_to_string(dir.join("frozen.json")).ok()?;
+    let frozen: Value = serde_json::from_str(&text).ok()?;
+    let object = frozen.get("substitutions")?.as_object()?;
+    let value = object
+        .get("seed_slug")
+        .or_else(|| object.get("slug"))?
+        .as_str()?;
+    if value == "example-co" {
+        return None;
+    }
+    if manifest.id == "ats-oracle" {
+        let tenant = value.split('-').next().unwrap_or(value);
+        let region = value.rsplit('-').next().unwrap_or("us");
+        return Some(format!("{tenant}.fa.{region}.oraclecloud.com"));
+    }
+    Some(value.to_owned())
+}
+
 #[derive(Debug)]
 enum Outcome {
     Working(usize),
-    Keyed(String),
     Blocked(String),
     Stale(String),
 }
 
 fn classify(status: u16, count: usize, parse_error: Option<&str>) -> Outcome {
-    if (400..500).contains(&status) && status != 404 {
-        Outcome::Keyed(format!("http {status}"))
-    } else if status == 429 || status >= 500 {
+    if status == 401 || status == 403 || status == 429 || status >= 500 {
         Outcome::Blocked(format!("http {status}"))
     } else if status == 404 {
         Outcome::Stale("http 404".to_owned())
@@ -97,6 +115,18 @@ fn classify(status: u16, count: usize, parse_error: Option<&str>) -> Outcome {
         Outcome::Stale(format!("http {status}; parse failed: {error}"))
     } else {
         Outcome::Stale(format!("http {status} but no records"))
+    }
+}
+
+fn classify_build_error(message: &str) -> Option<&'static str> {
+    if message.contains("missing credential substitution")
+        || message.contains("missing query substitution")
+    {
+        Some("keyed")
+    } else if message.contains("missing slug substitution") {
+        Some("skipped: no live slug seed")
+    } else {
+        None
     }
 }
 
@@ -119,15 +149,30 @@ async fn report_live_source_health() {
     let mut keyed = Vec::new();
     let mut blocked = Vec::new();
     let mut stale = Vec::new();
+    let mut skipped = Vec::new();
     let mut unregistered = Vec::new();
 
-    for manifest in manifests() {
+    let all = manifests();
+    let limit = std::env::var("SCRAPPY_LIVE_LIMIT")
+        .ok()
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(all.len());
+    for manifest in all.into_iter().take(limit) {
+        println!("[live] probing {}", manifest.id);
         let dir = root().join("tests/fixtures").join(&manifest.id);
-        let values = substitutions(&dir);
+        let mut values = substitutions(&dir);
+        if let Some(slug) = probe_slug(&dir, &manifest) {
+            values.slug = Some(slug);
+        }
         let request = match build_request(&manifest, &values) {
             Ok(request) => request,
             Err(error) => {
-                blocked.push(format!("{}: request build failed: {error}", manifest.id));
+                let line = format!("{}: {}", manifest.id, error.message);
+                match classify_build_error(&error.message) {
+                    Some("keyed") => keyed.push(line),
+                    Some("skipped: no live slug seed") => skipped.push(line),
+                    _ => stale.push(line),
+                }
                 continue;
             }
         };
@@ -150,17 +195,14 @@ async fn report_live_source_health() {
                 working.push(format!("{}: {count} records", manifest.id));
                 continue;
             }
-            Outcome::Keyed(reason) | Outcome::Blocked(reason) => {
+            Outcome::Blocked(reason) | Outcome::Stale(reason) => {
                 format!("{}: {reason}", manifest.id)
             }
-            Outcome::Stale(reason) => format!("{}: {reason}", manifest.id),
         };
-        match manifest.health {
-            Health::Keyed => keyed.push(line),
-            Health::Blocked => blocked.push(line),
-            Health::Stale | Health::Working | Health::RequiresSlug | Health::BrowserOnly => {
-                stale.push(line);
-            }
+        match classify(response.status, count, parse_error.as_deref()) {
+            Outcome::Blocked(_) => blocked.push(line),
+            Outcome::Stale(_) => stale.push(line),
+            Outcome::Working(_) => unreachable!("working records already recorded"),
         }
     }
 
@@ -180,6 +222,7 @@ async fn report_live_source_health() {
     print_bucket("keyed", &keyed);
     print_bucket("blocked", &blocked);
     print_bucket("stale", &stale);
+    print_bucket("skipped", &skipped);
     print_bucket("unregistered", &unregistered);
 }
 
